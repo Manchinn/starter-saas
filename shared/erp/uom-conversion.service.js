@@ -1,0 +1,45 @@
+const { UOMConversion, UOM } = require('../../server/models')
+
+const uomInclude = [
+  { model: UOM, as: 'fromUom', attributes: ['id', 'name', 'abbreviation'] },
+  { model: UOM, as: 'toUom',   attributes: ['id', 'name', 'abbreviation'] },
+]
+
+const list = async () => {
+  const rows = await UOMConversion.findAll({
+    include: uomInclude,
+    order: [['createdAt', 'ASC']],
+  })
+  return rows
+}
+
+const create = async ({ fromUomId, toUomId, factor, notes }) => {
+  if (!fromUomId) throw { status: 400, message: 'From UOM is required' }
+  if (!toUomId)   throw { status: 400, message: 'To UOM is required' }
+  if (fromUomId === toUomId) throw { status: 400, message: 'From and To UOM must be different' }
+  if (!factor || parseFloat(factor) <= 0) throw { status: 400, message: 'Factor must be greater than 0' }
+  const conv = await UOMConversion.create({ fromUomId, toUomId, factor: parseFloat(factor), notes: notes || null })
+  return UOMConversion.findByPk(conv.id, { include: uomInclude })
+}
+
+const update = async (id, { fromUomId, toUomId, factor, notes }) => {
+  const conv = await UOMConversion.findByPk(id)
+  if (!conv) throw { status: 404, message: 'Conversion not found' }
+  if (fromUomId === toUomId) throw { status: 400, message: 'From and To UOM must be different' }
+  if (factor !== undefined && parseFloat(factor) <= 0) throw { status: 400, message: 'Factor must be greater than 0' }
+  await conv.update({
+    ...(fromUomId !== undefined && { fromUomId }),
+    ...(toUomId   !== undefined && { toUomId }),
+    ...(factor    !== undefined && { factor: parseFloat(factor) }),
+    ...(notes     !== undefined && { notes: notes || null }),
+  })
+  return UOMConversion.findByPk(id, { include: uomInclude })
+}
+
+const remove = async (id) => {
+  const conv = await UOMConversion.findByPk(id)
+  if (!conv) throw { status: 404, message: 'Conversion not found' }
+  await conv.destroy()
+}
+
+module.exports = { list, create, update, remove }

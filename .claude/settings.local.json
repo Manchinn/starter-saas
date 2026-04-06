@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/install-status)",
+      "Bash(curl -s http://localhost:3000/api/auth/install-status)",
+      "Bash(curl:*)",
+      "Bash(sqlite3:*)",
+      "Bash(xargs grep:*)"
+    ]
+  }
+}
