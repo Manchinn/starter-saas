@@ -28,8 +28,11 @@ const getById = async (id) => {
   return pricing
 }
 
-const create = async ({ name, code, description, unitPrice, currency = 'USD', status = 'active', orderItemId, customerGroupId, userId }) => {
-  if (code?.trim()) {
+const create = async ({ name, code, description, unitPrice, currency = 'USD', status = 'active', orderItemId, customerGroupId, autoCode, userId }) => {
+  if (autoCode) {
+    const seqSvc = require('../settings/sequence.service')
+    code = await seqSvc.getNext('PRC', userId)
+  } else if (code?.trim()) {
     const existing = await Pricing.findOne({ where: { code: code.trim(), createdBy: userId || null } })
     if (existing) throw { status: 400, message: 'Pricing code already exists' }
   }

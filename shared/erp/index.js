@@ -3,7 +3,6 @@ import {
   UsersIcon,
   CubeIcon,
   ShoppingCartIcon,
-  ListBulletIcon,
   TagIcon,
   ClipboardDocumentListIcon,
   BuildingStorefrontIcon,
@@ -174,12 +173,6 @@ export default {
       name: 'erp-orders',
       component: () => import('./orders/views/OrdersList.vue'),
       meta: { requiresAuth: true, title: 'Orders' },
-    },
-    {
-      path: '/erp/sale-items',
-      name: 'erp-sale-items',
-      component: () => import('./orders/views/OrderItemsList.vue'),
-      meta: { requiresAuth: true, title: 'Sale Items' },
     },
     {
       path: '/erp/orders/create',
@@ -359,6 +352,12 @@ export default {
       component: () => import('./pricing/views/PricingCreate.vue'),
       meta: { requiresAuth: true, title: 'New Price List' },
     },
+    {
+      path: '/erp/pricing/:id/edit',
+      name: 'erp-pricing-edit',
+      component: () => import('./pricing/views/PricingEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Price List' },
+    },
   ],
   navItem: {
     label: 'ERP',
@@ -377,9 +376,10 @@ export default {
         label: 'Inventory',
         icon: CubeIcon,
         children: [
-          { label: 'Product Category', to: '/erp/product-categories', icon: TagIcon,          permission: 'erp.products.list' },
-          { label: 'Product Master',   to: '/erp/item-master',        icon: CubeIcon,         permission: 'erp.products.list' },
-          { label: 'Vendors',          to: '/erp/vendors',            icon: BuildingLibraryIcon,            permission: 'erp.products.list' },
+          { label: 'Product Category', to: '/erp/product-categories', icon: TagIcon,                    permission: 'erp.products.list' },
+          { label: 'Product Master',   to: '/erp/item-master',        icon: CubeIcon,                   permission: 'erp.products.list' },
+          { label: 'Order Items',      to: '/erp/order-items',        icon: ClipboardDocumentListIcon,  permission: 'order-items.list' },
+          { label: 'Vendors',          to: '/erp/vendors',            icon: BuildingLibraryIcon,         permission: 'erp.products.list' },
           { label: 'Stores',           to: '/erp/stores',             icon: BuildingStorefrontIcon,         permission: 'erp.stores.list' },
           { label: 'UOM',              to: '/erp/uom',                icon: ScaleIcon,                     permission: 'erp.uom.list' },
           { label: 'UOM Conversion',   to: '/erp/uom-conversion',     icon: ArrowUturnRightIcon,           permission: 'erp.uom.list' },
@@ -397,7 +397,6 @@ export default {
         label: 'Sale',
         icon: ShoppingCartIcon,
         children: [
-          { label: 'Sale Items',  to: '/erp/sale-items',  icon: ListBulletIcon,            permission: 'erp.orders.list' },
           { label: 'Order Items', to: '/erp/order-items', icon: ClipboardDocumentListIcon, permission: 'order-items.list' },
           { label: 'Price Lists', to: '/erp/pricing',     icon: TagIcon,                   permission: 'erp.pricing.list' },
           { label: 'Sales',       to: '/erp/orders',      icon: ShoppingCartIcon,          permission: 'erp.orders.list' },

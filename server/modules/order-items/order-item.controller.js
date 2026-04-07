@@ -11,6 +11,15 @@ class OrderItemController extends BaseController {
     }
   }
 
+  async saleLookup(req, res) {
+    try {
+      const items = await service.saleLookup()
+      return this.ok(res, { items })
+    } catch (err) {
+      return this.serverError(res)
+    }
+  }
+
   async list(req, res) {
     try {
       const { page, limit, search, orderId } = req.query

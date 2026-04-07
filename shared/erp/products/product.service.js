@@ -35,9 +35,12 @@ const getById = async (id) => {
   return product
 }
 
-const create = async ({ name, sku, description, cost, category, sellingUomId, purchasingUomId, status = 'active', storeIds = [], vendorIds = [], userId }) => {
+const create = async ({ name, sku, description, cost, category, sellingUomId, purchasingUomId, status = 'active', storeIds = [], vendorIds = [], autoCode, userId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
-  if (sku?.trim()) {
+  if (autoCode) {
+    const seqSvc = require('../settings/sequence.service')
+    sku = await seqSvc.getNext('PRD', userId)
+  } else if (sku?.trim()) {
     const existing = await Product.findOne({ where: { sku: sku.trim(), createdBy: userId || null } })
     if (existing) throw { status: 400, message: 'SKU already exists' }
   }

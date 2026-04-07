@@ -36,9 +36,12 @@ const getById = async (id) => {
   return cat
 }
 
-const create = async ({ code, name, description, parentId, status = 'active', userId }) => {
+const create = async ({ code, name, description, parentId, status = 'active', autoCode, userId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
-  if (code?.trim()) {
+  if (autoCode) {
+    const seqSvc = require('../settings/sequence.service')
+    code = await seqSvc.getNext('CAT', userId)
+  } else if (code?.trim()) {
     const existing = await ProductCategory.findOne({ where: { code: code.trim(), createdBy: userId || null } })
     if (existing) throw { status: 400, message: 'Category code already exists' }
   }

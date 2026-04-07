@@ -72,7 +72,7 @@ const saving   = ref(false)
 
 onMounted(async () => {
   try {
-    const { data } = await api.get(`/api/erp/customer-groups/${route.params.id}`)
+    const { data } = await api.get(`/erp/customer-groups/${route.params.id}`)
     const g = data.data.group
     form.value = { name: g.name, description: g.description || '', status: g.status }
   } catch {
@@ -87,7 +87,7 @@ async function save() {
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await api.put(`/api/erp/customer-groups/${route.params.id}`, form.value)
+    await api.put(`/erp/customer-groups/${route.params.id}`, form.value)
     router.push('/erp/customer-groups')
   } catch (err) {
     const d = err.response?.data
@@ -100,7 +100,7 @@ async function save() {
 async function confirmDelete() {
   if (!confirm(`Delete "${form.value.name}"? This cannot be undone.`)) return
   try {
-    await api.delete(`/api/erp/customer-groups/${route.params.id}`)
+    await api.delete(`/erp/customer-groups/${route.params.id}`)
     router.push('/erp/customer-groups')
   } catch (err) {
     error.value = err.response?.data?.message || 'Delete failed'

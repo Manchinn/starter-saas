@@ -1,10 +1,11 @@
-const { OrderItem, Order, Product, Item } = require('../../models')
+const { OrderItem, Order, Product, Item, Pricing } = require('../../models')
 const { Op } = require('sequelize')
 
 const itemIncludes = [
-  { model: Order, as: 'order', attributes: ['id', 'orderNumber', 'status'] },
-  { model: Product, as: 'product', attributes: ['id', 'name', 'sku'] },
-  { model: Item, as: 'item', attributes: ['id', 'title', 'stock'] },
+  { model: Order,   as: 'order',    attributes: ['id', 'orderNumber', 'status'] },
+  { model: Product, as: 'product',  attributes: ['id', 'name', 'sku'] },
+  { model: Item,    as: 'item',     attributes: ['id', 'title', 'stock'] },
+  { model: Pricing, as: 'pricings', attributes: ['id', 'code', 'name', 'unitPrice', 'currency', 'status'] },
 ]
 
 const list = async ({ page = 1, limit = 20, search = '', orderId = '' }) => {
@@ -31,20 +32,25 @@ const getById = async (id) => {
 }
 
 const listItems = async () => {
-  return Item.findAll({
+  const products = await Product.findAll({
     where: { status: 'active' },
-    attributes: ['id', 'title', 'stock'],
-    order: [['title', 'ASC']],
+    attributes: ['id', 'name', 'sku', 'stock'],
+    order: [['name', 'ASC']],
   })
+  return products.map(p => ({ id: p.id, title: p.name, sku: p.sku, stock: p.stock }))
 }
 
-const create = async ({ orderId, itemId, productId, productName, itemCode, quantity, unitPrice }) => {
+const create = async ({ orderId, itemId, productId, productName, itemCode, autoCode, quantity = 1, unitPrice = 0 }) => {
+  if (autoCode) {
+    const seqSvc = require('../../../shared/erp/settings/sequence.service')
+    itemCode = await seqSvc.getNext('OI', null)
+  }
   if (orderId) {
     const order = await Order.findByPk(orderId)
     if (!order) throw { status: 404, message: 'Order not found' }
   }
 
-  // Resolve item if provided
+  // Resolve item if provided (legacy Item model)
   let resolvedItemId = itemId || null
   if (resolvedItemId) {
     const masterItem = await Item.findByPk(resolvedItemId)
@@ -119,4 +125,24 @@ const remove = async (id) => {
   await orderItem.destroy()
 }
 
-module.exports = { list, getById, listItems, create, update, remove }
+// Return order items with their linked price-list unit price — for sale line-item dropdowns
+const saleLookup = async () => {
+  const items = await OrderItem.findAll({
+    attributes: ['id', 'productName', 'itemCode'],
+    include: [{ model: Pricing, as: 'pricings', attributes: ['id', 'name', 'unitPrice', 'currency', 'status'] }],
+    order: [['productName', 'ASC']],
+  })
+  return items.map(item => {
+    const pricing = item.pricings?.find(p => p.status === 'active') || item.pricings?.[0] || null
+    return {
+      id:          item.id,
+      name:        item.productName,
+      code:        item.itemCode || null,
+      unitPrice:   pricing ? parseFloat(pricing.unitPrice) : 0,
+      currency:    pricing?.currency || 'USD',
+      pricingName: pricing?.name    || null,
+    }
+  })
+}
+
+module.exports = { list, getById, listItems, saleLookup, create, update, remove }

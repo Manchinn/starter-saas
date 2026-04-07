@@ -17,5 +17,11 @@ export default {
       component: () => import('./views/NewOrderItem.vue'),
       meta: { requiresAuth: true, title: 'New Order Item' },
     },
+    {
+      path: '/erp/order-items/:id/edit',
+      name: 'order-items-edit',
+      component: () => import('./views/OrderItemEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Order Item' },
+    },
   ],
 }

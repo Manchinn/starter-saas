@@ -4,12 +4,18 @@ const sequelize = require('../../../server/config/database')
 
 // ── Default sequences seeded on first use ────────────────────────────────────
 const DEFAULTS = {
-  GR:  { name: 'Good Receive',     format: 'GR{YY}{MM}{####}',  initialValue: 1, maxValue: 9999, reseedPeriod: 'M' },
-  ADJ: { name: 'Stock Adjustment', format: 'ADJ{YY}{MM}{####}', initialValue: 1, maxValue: 9999, reseedPeriod: 'M' },
-  CNT: { name: 'Stock Count',      format: 'SC{YY}{MM}{####}',  initialValue: 1, maxValue: 9999, reseedPeriod: 'M' },
-  STR: { name: 'Stock Transfer',    format: 'RQ{YY}{MM}{####}',  initialValue: 1, maxValue: 9999, reseedPeriod: 'M' },
-  RTN: { name: 'Stock Return',     format: 'RTN{YY}{MM}{####}', initialValue: 1, maxValue: 9999, reseedPeriod: 'M' },
-  ISS: { name: 'Stock Issue',      format: 'ISS{YY}{MM}{####}', initialValue: 1, maxValue: 9999, reseedPeriod: 'M' },
+  GR:  { name: 'Good Receive',          format: 'GR{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  ADJ: { name: 'Stock Adjustment',      format: 'ADJ{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  CNT: { name: 'Stock Count',           format: 'SC{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  STR: { name: 'Stock Transfer',        format: 'RQ{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  RTN: { name: 'Stock Return',          format: 'RTN{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  ISS: { name: 'Stock Issue',           format: 'ISS{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  VND: { name: 'Vendor Code',           format: 'VND{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  PRD: { name: 'Product Code / SKU',    format: 'PRD{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  CAT: { name: 'Category Code',         format: 'CAT{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  WHS: { name: 'Store / Warehouse Code',format: 'WHS{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  PRC: { name: 'Price List Code',       format: 'PRC{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  OI:  { name: 'Order Item Code',       format: 'OI{####}',          initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
 }
 
 // ── Format engine ─────────────────────────────────────────────────────────────
@@ -83,6 +89,19 @@ const getNext = async (code, userId) => {
 
 // ── Preview: what would the next ref look like (read-only) ───────────────────
 const preview = (seq) => applyFormat(seq.format, seq.runningValue)
+
+// ── getPreview: fetch next code for an entity sequence without consuming it ──
+const getPreview = async (code, userId) => {
+  const def = DEFAULTS[code] || {}
+  const where = userId ? { code, userId } : { code, userId: null }
+  const [seq] = await Sequence.findOrCreate({
+    where,
+    defaults: { ...def, code, userId: userId || null, runningValue: def.initialValue || 1 },
+  })
+  const reset = needsReset(seq)
+  const runningValue = reset ? seq.initialValue : seq.runningValue
+  return applyFormat(seq.format, runningValue)
+}
 
 // ── CRUD ──────────────────────────────────────────────────────────────────────
 const list = async (userId) => {
@@ -167,4 +186,4 @@ const seedDefaultsForUser = async (userId) => {
   return { seeded: true, count: entries.length }
 }
 
-module.exports = { getNext, list, getById, create, update, resetSequence, remove, seedDefaultsForUser }
+module.exports = { getNext, getPreview, list, getById, create, update, resetSequence, remove, seedDefaultsForUser }

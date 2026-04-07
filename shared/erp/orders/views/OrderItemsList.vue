@@ -182,7 +182,7 @@ const deleteModal = reactive({ open: false, item: null, saving: false, error: ''
 async function fetchItems() {
   loading.value = true
   try {
-    const { data } = await api.get('/api/erp/orders/items', { params: { page: page.value, limit, search: search.value } })
+    const { data } = await api.get('/erp/orders/items', { params: { page: page.value, limit, search: search.value } })
     items.value = data.data.items
     total.value  = data.data.total
   } finally {
@@ -192,7 +192,7 @@ async function fetchItems() {
 
 async function fetchMasterItems() {
   try {
-    const { data } = await api.get('/api/erp/item-master', { params: { limit: 500, status: 'active' } })
+    const { data } = await api.get('/erp/item-master', { params: { limit: 500, status: 'active' } })
     masterItems.value = data.data.products
   } catch {
     masterItems.value = []
@@ -237,7 +237,7 @@ async function saveEdit() {
   editModal.saving = true
   editModal.error  = ''
   try {
-    await api.put(`/api/erp/orders/items/${editModal.item.id}`, {
+    await api.put(`/erp/orders/items/${editModal.item.id}`, {
       productId:   editForm.productId || null,
       productName: editForm.productName,
       quantity:    editForm.quantity,
@@ -263,7 +263,7 @@ async function doDelete() {
   deleteModal.saving = true
   deleteModal.error  = ''
   try {
-    await api.delete(`/api/erp/orders/items/${deleteModal.item.id}`)
+    await api.delete(`/erp/orders/items/${deleteModal.item.id}`)
     deleteModal.open = false
     fetchItems()
   } catch (err) {

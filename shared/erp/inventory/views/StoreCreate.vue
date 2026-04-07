@@ -13,8 +13,14 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Code</label>
-            <input v-model="form.code" type="text" placeholder="e.g. WH-001"
+            <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" placeholder="e.g. WH-001"
               class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <input v-else :value="autoCode.preview.value" type="text" readonly
+              class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 text-gray-500 font-mono cursor-not-allowed" />
+            <label class="mt-1 flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
+              Auto-generate
+            </label>
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
@@ -66,18 +72,22 @@ import { useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { useAutoCode } from '@/composables/useAutoCode'
 
-const router = useRouter()
-const form   = ref({ name: '', code: '', phone: '', email: '', address: '', status: 'active' })
-const error  = ref('')
-const saving = ref(false)
+const router   = useRouter()
+const form     = ref({ name: '', code: '', phone: '', email: '', address: '', status: 'active' })
+const error    = ref('')
+const saving   = ref(false)
+const autoCode = useAutoCode('WHS')
 
 async function save() {
   error.value = ''
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await api.post('/erp/stores', form.value)
+    const payload = { ...form.value }
+    if (autoCode.enabled.value) { payload.autoCode = true; payload.code = null }
+    await api.post('/erp/stores', payload)
     router.push('/erp/stores')
   } catch (err) {
     const d = err.response?.data

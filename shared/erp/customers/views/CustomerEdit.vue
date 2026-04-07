@@ -92,12 +92,12 @@ const saving   = ref(false)
 
 onMounted(async () => {
   const [groupsRes] = await Promise.allSettled([
-    api.get('/api/erp/customer-groups/all'),
+    api.get('/erp/customer-groups/all'),
   ])
   if (groupsRes.status === 'fulfilled') groups.value = groupsRes.value.data.data.groups
 
   try {
-    const { data } = await api.get(`/api/erp/customers/${route.params.id}`)
+    const { data } = await api.get(`/erp/customers/${route.params.id}`)
     const c = data.data.customer
     form.value = {
       name: c.name, company: c.company || '', email: c.email || '',
@@ -116,7 +116,7 @@ async function save() {
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await api.put(`/api/erp/customers/${route.params.id}`, { ...form.value, customerGroupId: form.value.customerGroupId || null })
+    await api.put(`/erp/customers/${route.params.id}`, { ...form.value, customerGroupId: form.value.customerGroupId || null })
     router.push('/erp/customers')
   } catch (err) {
     const d = err.response?.data
@@ -129,7 +129,7 @@ async function save() {
 async function confirmDelete() {
   if (!confirm(`Delete "${form.value.name}"? This cannot be undone.`)) return
   try {
-    await api.delete(`/api/erp/customers/${route.params.id}`)
+    await api.delete(`/erp/customers/${route.params.id}`)
     router.push('/erp/customers')
   } catch (err) {
     error.value = err.response?.data?.message || 'Delete failed'

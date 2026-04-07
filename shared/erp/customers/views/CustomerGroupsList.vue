@@ -87,7 +87,7 @@ let searchTimeout = null
 async function fetchGroups() {
   loading.value = true
   try {
-    const { data } = await api.get('/api/erp/customer-groups', { params: { page: page.value, limit, search: search.value } })
+    const { data } = await api.get('/erp/customer-groups', { params: { page: page.value, limit, search: search.value } })
     groups.value = data.data.groups
     total.value  = data.data.total
   } finally {
@@ -106,7 +106,7 @@ onMounted(fetchGroups)
 async function confirmDelete(g) {
   if (!confirm(`Delete "${g.name}"? This cannot be undone.`)) return
   try {
-    await api.delete(`/api/erp/customer-groups/${g.id}`)
+    await api.delete(`/erp/customer-groups/${g.id}`)
     fetchGroups()
   } catch (err) {
     alert(err.response?.data?.message || 'Delete failed')

@@ -80,7 +80,7 @@ const error  = ref('')
 const saving = ref(false)
 
 onMounted(async () => {
-  const { data } = await api.get('/api/erp/customer-groups/all')
+  const { data } = await api.get('/erp/customer-groups/all')
   groups.value = data.data.groups
 })
 
@@ -89,7 +89,7 @@ async function save() {
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await api.post('/api/erp/customers', { ...form.value, customerGroupId: form.value.customerGroupId || null })
+    await api.post('/erp/customers', { ...form.value, customerGroupId: form.value.customerGroupId || null })
     router.push('/erp/customers')
   } catch (err) {
     const d = err.response?.data

@@ -10,6 +10,7 @@ const router = Router()
 router.use(authenticate)
 
 router.get('/items-lookup', requirePermission('order-items.list'), (req, res) => controller.listItems(req, res))
+router.get('/sale-lookup',  requirePermission('order-items.list'), (req, res) => controller.saleLookup(req, res))
 router.get('/', requirePermission('order-items.list'), (req, res) => controller.list(req, res))
 router.get('/:id', requirePermission('order-items.list'), (req, res) => controller.getById(req, res))
 
@@ -17,8 +18,8 @@ router.post('/', requirePermission('order-items.manage'), [
   body('orderId').optional(),
   body('productName').trim().notEmpty().withMessage('Product name is required'),
   body('itemCode').optional().trim(),
-  body('quantity').isInt({ min: 1 }).withMessage('Quantity must be a positive integer'),
-  body('unitPrice').isFloat({ min: 0 }).withMessage('Unit price must be a non-negative number'),
+  body('quantity').optional().isInt({ min: 1 }).withMessage('Quantity must be a positive integer'),
+  body('unitPrice').optional().isFloat({ min: 0 }).withMessage('Unit price must be a non-negative number'),
   validate,
 ], (req, res) => controller.create(req, res))
 

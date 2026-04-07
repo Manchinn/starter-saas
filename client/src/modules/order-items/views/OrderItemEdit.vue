@@ -6,28 +6,26 @@
         <RouterLink to="/erp/order-items" class="text-gray-400 hover:text-gray-600 transition">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
-        <h1 class="text-2xl font-bold text-gray-900">New Order Item</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Edit Order Item</h1>
       </div>
 
-      <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+      <div v-if="loading" class="bg-white rounded-xl border border-gray-200 p-6 text-center text-gray-400">
+        Loading…
+      </div>
+
+      <div v-else class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
 
         <div class="grid grid-cols-2 gap-4">
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Code</label>
-            <input v-if="!autoCode.enabled.value" v-model="form.itemCode" type="text" placeholder="e.g. OI-001"
-              class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            <input v-else :value="autoCode.preview.value" type="text" readonly
-              class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 text-gray-500 font-mono cursor-not-allowed" />
-            <label class="mt-1 flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
-              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
-              Auto-generate
-            </label>
-          </div>
-
           <div class="col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">Order Name <span class="text-red-500">*</span></label>
             <input v-model="form.productName" type="text" placeholder="e.g. Widget A"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Item Code</label>
+            <input v-model="form.itemCode" type="text" placeholder="e.g. ITM-001"
+              class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
 
           <div class="col-span-2">
@@ -51,7 +49,7 @@
           <RouterLink to="/erp/order-items" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition">Cancel</RouterLink>
           <button @click="save" :disabled="saving"
             class="px-5 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
-            {{ saving ? 'Creating…' : 'Create Order Item' }}
+            {{ saving ? 'Saving…' : 'Save Changes' }}
           </button>
         </div>
 
@@ -62,31 +60,44 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
-import { useAutoCode } from '@/composables/useAutoCode'
 
-const router      = useRouter()
+const router = useRouter()
+const route  = useRoute()
+const id     = route.params.id
+
+const form       = ref({ productName: '', itemCode: '', productId: '' })
 const masterItems = ref([])
-const form        = ref({ productName: '', itemCode: '', productId: '' })
-const error       = ref('')
-const saving      = ref(false)
-const autoCode    = useAutoCode('OI')
+const loading    = ref(true)
+const saving     = ref(false)
+const error      = ref('')
 
 onMounted(async () => {
   try {
-    const { data } = await api.get('/order-items/items-lookup')
-    masterItems.value = data.data.items
+    const [itemRes, lookupRes] = await Promise.all([
+      api.get(`/order-items/${id}`),
+      api.get('/order-items/items-lookup'),
+    ])
+    const item = itemRes.data.data.orderItem
+    masterItems.value = lookupRes.data.data.items
+    form.value = {
+      productName: item.productName || '',
+      itemCode:    item.itemCode    || '',
+      productId:   item.productId   || '',
+    }
   } catch (err) {
-    console.error('Failed to load product master:', err.message)
+    error.value = err.response?.data?.message || 'Failed to load order item'
+  } finally {
+    loading.value = false
   }
 })
 
 function onProductSelect() {
   if (!form.value.productId) return
-  const selected = masterItems.value.find((m) => m.id === form.value.productId)
+  const selected = masterItems.value.find(m => m.id === form.value.productId)
   if (selected) form.value.productName = selected.title
 }
 
@@ -95,17 +106,15 @@ async function save() {
   if (!form.value.productName.trim()) { error.value = 'Order name is required'; return }
   saving.value = true
   try {
-    const payload = {
+    await api.put(`/order-items/${id}`, {
       productName: form.value.productName,
       itemCode:    form.value.itemCode || null,
       productId:   form.value.productId || null,
-    }
-    if (autoCode.enabled.value) { payload.autoCode = true; payload.itemCode = null }
-    await api.post('/order-items', payload)
+    })
     router.push('/erp/order-items')
   } catch (err) {
     const d = err.response?.data
-    error.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to create order item'
+    error.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to save'
   } finally {
     saving.value = false
   }

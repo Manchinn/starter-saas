@@ -17,8 +17,14 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Code / SKU</label>
-              <input v-model="form.sku" type="text" placeholder="SKU-001"
+              <input v-if="!autoCode.enabled.value" v-model="form.sku" type="text" placeholder="SKU-001"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <input v-else :value="autoCode.preview.value" type="text" readonly
+                class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 text-gray-500 font-mono cursor-not-allowed" />
+              <label class="mt-1 flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
+                Auto-generate
+              </label>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
@@ -149,9 +155,11 @@ import { useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { useAutoCode } from '@/composables/useAutoCode'
 
-const router = useRouter()
-const form   = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', sellingUomId: '', purchasingUomId: '' })
+const router   = useRouter()
+const form     = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', sellingUomId: '', purchasingUomId: '' })
+const autoCode = useAutoCode('PRD')
 const stores     = ref([])
 const vendors    = ref([])
 const uoms       = ref([])
@@ -210,13 +218,15 @@ async function save() {
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await api.post('/erp/item-master', {
+    const payload = {
       ...form.value,
       sellingUomId:    form.value.sellingUomId    || null,
       purchasingUomId: form.value.purchasingUomId || null,
       storeIds:  linkedStores.value.map(s => s.id),
       vendorIds: linkedVendors.value.map(v => v.id),
-    })
+    }
+    if (autoCode.enabled.value) { payload.autoCode = true; payload.sku = null }
+    await api.post('/erp/item-master', payload)
     router.push('/erp/item-master')
   } catch (err) {
     const d = err.response?.data

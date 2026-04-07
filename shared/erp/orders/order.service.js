@@ -39,37 +39,39 @@ const getById = async (id) => {
 const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 }) => {
   if (!items.length) throw { status: 400, message: 'Order must have at least one item' }
 
-  return sequelize.transaction(async (t) => {
-    const orderNumber = await generateOrderNumber()
+  const orderNumber = await generateOrderNumber()
+  const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
+  const tax   = toFixed(subtotal * (taxRate / 100), 2)
+  const total = toFixed(subtotal + tax, 2)
 
-    const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
-    const tax = toFixed(subtotal * (taxRate / 100), 2)
-    const total = toFixed(subtotal + tax, 2)
-
+  let createdId
+  await sequelize.transaction(async (t) => {
     const order = await Order.create(
       { orderNumber, customerId: customerId || null, orderDate: orderDate || new Date(), notes, subtotal, tax, total },
       { transaction: t }
     )
+    createdId = order.id
 
     for (const item of items) {
-      const product = item.productId ? await Product.findByPk(item.productId) : null
-      const masterItem = item.itemId ? await Item.findByPk(item.itemId) : null
+      const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
+      const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
       await OrderItem.create(
         {
-          orderId: order.id,
-          itemId: item.itemId || null,
-          productId: item.productId || null,
+          orderId:     order.id,
+          itemId:      item.itemId    || null,
+          productId:   item.productId || null,
           productName: item.productName || masterItem?.title || product?.name || 'Unknown',
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          total: toFixed(item.quantity * item.unitPrice, 2),
+          quantity:    item.quantity,
+          unitPrice:   item.unitPrice,
+          total:       toFixed(item.quantity * item.unitPrice, 2),
         },
         { transaction: t }
       )
     }
-
-    return getById(order.id)
   })
+
+  // Fetch the fully-populated order AFTER the transaction has committed
+  return getById(createdId)
 }
 
 const updateStatus = async (id, status) => {
@@ -79,9 +81,9 @@ const updateStatus = async (id, status) => {
   if (!order) throw { status: 404, message: 'Order not found' }
   const oldStatus = order.status
 
-  if (oldStatus === status) return order
+  if (oldStatus === status) return getById(id)
 
-  return sequelize.transaction(async (t) => {
+  await sequelize.transaction(async (t) => {
     // Cut stock when moving to confirmed
     if (status === 'confirmed' && ['draft', 'cancelled'].includes(oldStatus)) {
       for (const item of order.items) {
@@ -111,8 +113,9 @@ const updateStatus = async (id, status) => {
     }
 
     await order.update({ status }, { transaction: t })
-    return getById(id)
   })
+
+  return getById(id)
 }
 
 const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
@@ -120,29 +123,29 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
   if (!order) throw { status: 404, message: 'Order not found' }
   if (order.status !== 'draft') throw { status: 400, message: 'Only draft orders can be edited' }
 
-  return sequelize.transaction(async (t) => {
+  await sequelize.transaction(async (t) => {
     if (items) {
       await OrderItem.destroy({ where: { orderId: id }, transaction: t })
 
       const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
       const rate = taxRate !== undefined ? taxRate : 0
-      const tax = toFixed(subtotal * (rate / 100), 2)
+      const tax   = toFixed(subtotal * (rate / 100), 2)
       const total = toFixed(subtotal + tax, 2)
 
       await order.update({ customerId: customerId || null, orderDate, notes, subtotal, tax, total }, { transaction: t })
 
       for (const item of items) {
-        const product = item.productId ? await Product.findByPk(item.productId) : null
-        const masterItem = item.itemId ? await Item.findByPk(item.itemId) : null
+        const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
+        const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
         await OrderItem.create(
           {
-            orderId: id,
-            itemId: item.itemId || null,
-            productId: item.productId || null,
+            orderId:     id,
+            itemId:      item.itemId    || null,
+            productId:   item.productId || null,
             productName: item.productName || masterItem?.title || product?.name || 'Unknown',
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            total: toFixed(item.quantity * item.unitPrice, 2),
+            quantity:    item.quantity,
+            unitPrice:   item.unitPrice,
+            total:       toFixed(item.quantity * item.unitPrice, 2),
           },
           { transaction: t }
         )
@@ -150,9 +153,9 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
     } else {
       await order.update({ customerId: customerId || null, orderDate, notes }, { transaction: t })
     }
-
-    return getById(id)
   })
+
+  return getById(id)
 }
 
 const remove = async (id) => {

@@ -16,9 +16,12 @@ const getById = async (id) => {
   return store
 }
 
-const create = async ({ name, code, address, phone, email, status = 'active', userId }) => {
+const create = async ({ name, code, address, phone, email, status = 'active', autoCode, userId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
-  if (code?.trim()) {
+  if (autoCode) {
+    const seqSvc = require('../settings/sequence.service')
+    code = await seqSvc.getNext('WHS', userId)
+  } else if (code?.trim()) {
     const existing = await Store.findOne({ where: { code: code.trim(), createdBy: userId || null } })
     if (existing) throw { status: 400, message: 'Store code already exists' }
   }

@@ -15,6 +15,15 @@ router.post('/seed-defaults/:userId', requireRole('admin'), async (req, res, nex
   } catch (err) { next(err) }
 })
 
+router.get('/preview/:code', async (req, res, next) => {
+  try {
+    const userId = req.user?.id || null
+    const code = req.params.code.toUpperCase()
+    const preview = await svc.getPreview(code, userId)
+    res.json({ success: true, data: { preview } })
+  } catch (err) { next(err) }
+})
+
 router.get('/',             (req, res) => controller.list(req, res))
 router.get('/:id',          (req, res) => controller.getById(req, res))
 router.post('/',            (req, res) => controller.create(req, res))

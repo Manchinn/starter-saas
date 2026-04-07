@@ -63,7 +63,7 @@ async function save() {
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await api.post('/api/erp/customer-groups', form.value)
+    await api.post('/erp/customer-groups', form.value)
     router.push('/erp/customer-groups')
   } catch (err) {
     const d = err.response?.data
