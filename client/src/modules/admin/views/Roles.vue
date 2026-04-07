@@ -26,7 +26,7 @@
             <div class="flex items-center gap-2 flex-wrap justify-end">
               <span v-if="role.isSystem" class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">System</span>
               <button @click="openEdit(role)" class="text-xs px-3 py-1 border rounded hover:bg-gray-50">Edit</button>
-              <button @click="openPermissions(role)" class="text-xs px-3 py-1 border border-primary-200 text-primary-600 rounded hover:bg-primary-50">Permissions</button>
+              <RouterLink :to="`/admin/roles/${role.id}/permissions`" class="text-xs px-3 py-1 border border-primary-200 text-primary-600 rounded hover:bg-primary-50">Permissions</RouterLink>
               <button @click="openModules(role)" class="text-xs px-3 py-1 border border-indigo-200 text-indigo-600 rounded hover:bg-indigo-50">Modules</button>
               <button v-if="!role.isSystem" @click="deleteRole(role)" class="text-xs px-3 py-1 border border-red-200 text-red-500 rounded hover:bg-red-50">Delete</button>
             </div>
@@ -87,36 +87,6 @@
         </div>
       </div>
 
-      <!-- Assign Permissions Modal -->
-      <div v-if="permModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-4 max-h-[80vh] flex flex-col">
-          <h2 class="text-lg font-semibold">Permissions — {{ permModal.role.name }}</h2>
-          <div class="flex-1 overflow-y-auto space-y-4">
-            <div v-for="(perms, group) in permissionsStore.grouped" :key="group">
-              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{{ group }}</p>
-              <div class="space-y-1">
-                <label
-                  v-for="perm in perms"
-                  :key="perm.id"
-                  class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-                >
-                  <input type="checkbox" :value="perm.id" v-model="permModal.selected" class="rounded" />
-                  <div>
-                    <span class="text-sm font-medium text-gray-800">{{ perm.name }}</span>
-                    <span class="ml-2 text-xs font-mono text-gray-400">{{ perm.slug }}</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </div>
-          <div v-if="permModalError" class="text-sm text-red-600">{{ permModalError }}</div>
-          <div class="flex justify-end gap-3 pt-2 border-t">
-            <button @click="permModal = null" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50">Cancel</button>
-            <button @click="savePermissions" class="px-4 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700">Save</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Assign Modules Modal -->
       <div v-if="modulesModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 max-h-[80vh] flex flex-col">
@@ -153,22 +123,18 @@
 import { ref, onMounted } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useRolesStore } from '@/stores/roles'
-import { usePermissionsStore } from '@/stores/permissions'
 import { useModulesStore } from '@/stores/modules'
 
 const rolesStore = useRolesStore()
-const permissionsStore = usePermissionsStore()
 const modulesStore = useModulesStore()
 
 const roleModal = ref(null)
 const roleModalError = ref('')
-const permModal = ref(null)
-const permModalError = ref('')
 const modulesModal = ref(null)
 const modulesModalError = ref('')
 
 onMounted(async () => {
-  await Promise.all([rolesStore.fetchAll(), permissionsStore.fetchAll(), modulesStore.fetchAll()])
+  await Promise.all([rolesStore.fetchAll(), modulesStore.fetchAll()])
 })
 
 function openCreate() {
@@ -198,24 +164,6 @@ async function saveRole() {
 async function deleteRole(role) {
   if (!confirm(`Delete role "${role.name}"?`)) return
   await rolesStore.remove(role.id)
-}
-
-function openPermissions(role) {
-  permModal.value = {
-    role,
-    selected: (role.permissions || []).map((p) => p.id),
-  }
-  permModalError.value = ''
-}
-
-async function savePermissions() {
-  permModalError.value = ''
-  try {
-    await rolesStore.assignPermissions(permModal.value.role.id, permModal.value.selected)
-    permModal.value = null
-  } catch (err) {
-    permModalError.value = err.response?.data?.message || 'Save failed'
-  }
 }
 
 function openModules(role) {

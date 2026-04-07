@@ -1,21 +1,24 @@
 const BaseModule = require('../../server/core/BaseModule')
-const customerRouter = require('./customer.routes')
-const productRouter = require('./product.routes')
-const orderRouter = require('./order.routes')
-const pricingRouter = require('./pricing.routes')
-const productCategoryRouter = require('./product-category.routes')
-const storeRouter = require('./store.routes')
-const uomRouter = require('./uom.routes')
-const goodReceiveRouter = require('./good-receive.routes')
-const stockAdjustRouter = require('./stock-adjust.routes')
-const stockMovementRouter = require('./stock-movement.routes')
-const stockRequestRouter = require('./stock-request.routes')
-const stockCountRouter = require('./stock-count.routes')
-const dashboardRouter = require('./dashboard.routes')
-const uomConversionRouter = require('./uom-conversion.routes')
-const vendorRouter = require('./vendor.routes')
-const stockReturnRouter = require('./stock-return.routes')
-const stockBalanceRouter = require('./stock-balance.routes')
+const customerRouter = require('./customers/customer.routes')
+const customerGroupRouter = require('./customers/customer-group.routes')
+const productRouter = require('./products/product.routes')
+const orderRouter = require('./orders/order.routes')
+const pricingRouter = require('./pricing/pricing.routes')
+const productCategoryRouter = require('./products/product-category.routes')
+const storeRouter = require('./inventory/store.routes')
+const uomRouter = require('./inventory/uom.routes')
+const goodReceiveRouter = require('./stock/good-receive/good-receive.routes')
+const stockAdjustRouter = require('./stock/stock-adjust/stock-adjust.routes')
+const stockMovementRouter = require('./stock/stock-movement/stock-movement.routes')
+const stockRequestRouter = require('./stock/stock-request/stock-request.routes')
+const stockCountRouter = require('./stock/stock-count/stock-count.routes')
+const dashboardRouter = require('./dashboard/dashboard.routes')
+const uomConversionRouter = require('./inventory/uom-conversion.routes')
+const vendorRouter = require('./vendors/vendor.routes')
+const stockReturnRouter = require('./stock/stock-return/stock-return.routes')
+const stockBalanceRouter = require('./stock/stock-balance/stock-balance.routes')
+const sequenceRouter = require('./settings/sequence.routes')
+const stockIssueRouter = require('./stock/stock-issue/stock-issue.routes')
 
 class ERPModule extends BaseModule {
   constructor() {
@@ -28,6 +31,7 @@ class ERPModule extends BaseModule {
       isCore: false,
       permissions: [
         'erp.customers.list', 'erp.customers.edit', 'erp.customers.delete',
+        'erp.customer-groups.list', 'erp.customer-groups.edit', 'erp.customer-groups.delete',
         'erp.products.list', 'erp.products.edit', 'erp.products.delete',
         'erp.orders.list', 'erp.orders.edit', 'erp.orders.delete',
         'erp.pricing.list', 'erp.pricing.manage',
@@ -42,6 +46,7 @@ class ERPModule extends BaseModule {
   register(app) {
     app.use('/api/erp/dashboard', dashboardRouter)
     app.use('/api/erp/customers', customerRouter)
+    app.use('/api/erp/customer-groups', customerGroupRouter)
     app.use('/api/erp/item-master', productRouter)
     app.use('/api/erp/orders', orderRouter)
     app.use('/api/erp/pricing', pricingRouter)
@@ -57,6 +62,8 @@ class ERPModule extends BaseModule {
     app.use('/api/erp/vendors', vendorRouter)
     app.use('/api/erp/stock-return', stockReturnRouter)
     app.use('/api/erp/stock-balance', stockBalanceRouter)
+    app.use('/api/erp/sequences', sequenceRouter)
+    app.use('/api/erp/stock-issue', stockIssueRouter)
   }
 }
 

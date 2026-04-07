@@ -14,7 +14,6 @@ const Product = sequelize.define('Product', {
   sku: {
     type: DataTypes.STRING,
     allowNull: true,
-    unique: true,
   },
   description: {
     type: DataTypes.TEXT,
@@ -55,6 +54,10 @@ const Product = sequelize.define('Product', {
   status: {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
+  },
+  createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
   },
 })
 

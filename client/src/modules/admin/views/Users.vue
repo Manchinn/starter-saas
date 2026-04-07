@@ -100,6 +100,11 @@
               <td class="px-5 py-3 text-right whitespace-nowrap">
                 <button @click="openView(u)" class="text-gray-500 hover:text-gray-800 text-xs mr-3">View</button>
                 <button v-can="'users.edit'" @click="openEdit(u.id)" class="text-primary-600 hover:underline text-xs mr-3">Edit</button>
+                <button @click="seedSequences(u)" :disabled="seedingId === u.id"
+                  class="text-amber-600 hover:underline text-xs mr-3 disabled:opacity-40"
+                  title="Seed default Sequence Numbers for this user if none exist">
+                  {{ seedingId === u.id ? 'Seeding…' : 'Seed Sequences' }}
+                </button>
                 <button v-can="'users.delete'" @click="confirmDelete(u)" class="text-red-500 hover:underline text-xs">Delete</button>
               </td>
             </tr>
@@ -264,6 +269,18 @@
               </select>
             </div>
 
+            <!-- Default Page (role user only) -->
+            <div v-if="form.role === 'user'">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Default Page</label>
+              <input
+                v-model="form.defaultPage"
+                type="text"
+                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="e.g. /erp/dashboard"
+              />
+              <p class="text-xs text-gray-400 mt-1">Page to redirect to after login. Leave blank to use the default dashboard.</p>
+            </div>
+
             <!-- Active (edit only) -->
             <div v-if="form.id" class="flex items-center gap-2">
               <input type="checkbox" id="chk-active" v-model="form.isActive" class="rounded w-4 h-4" />
@@ -330,6 +347,7 @@ const loading = ref(false)
 const allRoles = ref([])
 
 const viewUser = ref(null)   // slide-over
+const seedingId = ref(null)  // user id currently being seeded
 
 const form      = ref(null)  // create/edit modal
 const formError = ref('')
@@ -374,7 +392,7 @@ async function openView(row) {
 // ── Create ────────────────────────────────────────────────────────────────────
 
 function openCreate() {
-  form.value      = { name: '', email: '', password: '', role: 'user', isActive: true, roleIds: [] }
+  form.value      = { name: '', email: '', password: '', role: 'user', isActive: true, defaultPage: '', roleIds: [] }
   formError.value = ''
 }
 
@@ -385,11 +403,12 @@ async function openEdit(id) {
   const { data } = await api.get(`/users/${id}`)
   const u = data.data.user
   form.value = {
-    id:       u.id,
-    name:     u.name,
-    role:     u.role,
-    isActive: u.isActive,
-    roleIds:  (u.roles || []).map((r) => r.id),
+    id:          u.id,
+    name:        u.name,
+    role:        u.role,
+    isActive:    u.isActive,
+    defaultPage: u.defaultPage || '',
+    roleIds:     (u.roles || []).map((r) => r.id),
   }
 }
 
@@ -402,20 +421,22 @@ async function saveForm() {
     if (form.value.id) {
       // Update basic fields
       await api.put(`/users/${form.value.id}`, {
-        name:     form.value.name,
-        role:     form.value.role,
-        isActive: form.value.isActive,
+        name:        form.value.name,
+        role:        form.value.role,
+        isActive:    form.value.isActive,
+        defaultPage: form.value.defaultPage || null,
       })
       // Assign roles
       await api.put(`/users/${form.value.id}/roles`, { roleIds: form.value.roleIds })
     } else {
       // Create with roles included in body
       await api.post('/users', {
-        name:     form.value.name,
-        email:    form.value.email,
-        password: form.value.password,
-        role:     form.value.role,
-        roleIds:  form.value.roleIds,
+        name:        form.value.name,
+        email:       form.value.email,
+        password:    form.value.password,
+        role:        form.value.role,
+        defaultPage: form.value.defaultPage || null,
+        roleIds:     form.value.roleIds,
       })
     }
     form.value = null
@@ -429,6 +450,24 @@ async function saveForm() {
     }
   } finally {
     saving.value = false
+  }
+}
+
+// ── Seed Sequences ────────────────────────────────────────────────────────────
+
+async function seedSequences(u) {
+  seedingId.value = u.id
+  try {
+    const { data } = await api.post(`/erp/sequences/seed-defaults/${u.id}`)
+    if (data.data.seeded) {
+      alert(`Seeded ${data.data.count} default sequence(s) for ${u.name}.`)
+    } else {
+      alert(`${u.name} already has ${data.data.count} sequence(s) — no action taken.`)
+    }
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to seed sequences')
+  } finally {
+    seedingId.value = null
   }
 }
 

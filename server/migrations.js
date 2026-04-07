@@ -27,6 +27,38 @@ const columns = [
 
   // RoleModule join table — added in role-module feature
   // (handled by sync() creating the table fresh if it doesn't exist)
+
+  // ProductCategory — code field
+  `ALTER TABLE ProductCategories ADD COLUMN code TEXT`,
+
+  // Customer — group association
+  `ALTER TABLE Customers ADD COLUMN customerGroupId TEXT`,
+
+  // Pricing — customer group association
+  `ALTER TABLE Pricings ADD COLUMN customerGroupId TEXT`,
+
+  // GoodReceiveItem — stock qty after UOM conversion
+  `ALTER TABLE GoodReceiveItems ADD COLUMN stockQty REAL DEFAULT 0`,
+
+  // UOMConversion — scope per user (createdBy)
+  `ALTER TABLE UOMConversions ADD COLUMN createdBy TEXT`,
+
+  // Sequence — scope per user
+  `ALTER TABLE Sequences ADD COLUMN userId TEXT`,
+
+  // Pricing — code field
+  `ALTER TABLE Pricings ADD COLUMN code TEXT`,
+
+  // User — default landing page after login (role user only)
+  `ALTER TABLE Users ADD COLUMN defaultPage TEXT`,
+
+  // Per-user scoping — createdBy on master data tables
+  `ALTER TABLE Stores ADD COLUMN createdBy TEXT`,
+  `ALTER TABLE UOMs ADD COLUMN createdBy TEXT`,
+  `ALTER TABLE Vendors ADD COLUMN createdBy TEXT`,
+  `ALTER TABLE ProductCategories ADD COLUMN createdBy TEXT`,
+  `ALTER TABLE Products ADD COLUMN createdBy TEXT`,
+  `ALTER TABLE Pricings ADD COLUMN createdBy TEXT`,
 ]
 
 async function runMigrations(sequelize) {
@@ -40,7 +72,83 @@ async function runMigrations(sequelize) {
       }
     }
   }
+  await recreateSequencesTable(sequelize)
   console.log('[Migrations] Done.')
 }
 
-module.exports = { runMigrations }
+// ── Remove UNIQUE constraint on Sequences.code (SQLite table-recreation) ──────
+async function recreateSequencesTable(sequelize) {
+  try {
+    // Check both inline UNIQUE in table SQL and separate UNIQUE INDEX entries
+    const [tableRows] = await sequelize.query(`SELECT sql FROM sqlite_master WHERE type='table' AND name='Sequences'`)
+    const tableSql = tableRows[0]?.sql || ''
+    const [indexRows] = await sequelize.query(`SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name='Sequences' AND sql IS NOT NULL`)
+    const hasUniqueIndex = indexRows.some(r => r.sql && /UNIQUE/i.test(r.sql))
+    const hasInlineUnique = /UNIQUE/i.test(tableSql)
+    if (!hasUniqueIndex && !hasInlineUnique) return // already clean
+
+    await sequelize.query('BEGIN')
+    try {
+      await sequelize.query(`
+        CREATE TABLE Sequences_new (
+          id           TEXT     PRIMARY KEY,
+          code         TEXT     NOT NULL,
+          userId       TEXT,
+          name         TEXT     NOT NULL,
+          initialValue INTEGER  NOT NULL DEFAULT 1,
+          runningValue INTEGER  NOT NULL DEFAULT 1,
+          reseedPeriod TEXT     NOT NULL DEFAULT 'F',
+          lastResetDate TEXT,
+          maxValue     INTEGER  NOT NULL DEFAULT 99999,
+          format       TEXT     NOT NULL DEFAULT '{####}',
+          createdAt    DATETIME NOT NULL,
+          updatedAt    DATETIME NOT NULL
+        )
+      `)
+      await sequelize.query(`INSERT INTO Sequences_new SELECT id, code, userId, name, initialValue, runningValue, reseedPeriod, lastResetDate, maxValue, format, createdAt, updatedAt FROM Sequences`)
+      await sequelize.query(`DROP TABLE Sequences`)
+      await sequelize.query(`ALTER TABLE Sequences_new RENAME TO Sequences`)
+      await sequelize.query('COMMIT')
+      console.log('[Migration] Recreated Sequences table — removed UNIQUE constraint on code.')
+    } catch (err) {
+      await sequelize.query('ROLLBACK')
+      throw err
+    }
+  } catch (err) {
+    console.error('[Migration] recreateSequencesTable failed:', err.message)
+  }
+}
+
+// ── Sequence number seed data ─────────────────────────────────────────────────
+const SEQUENCE_SEEDS = [
+  { code: 'GR',  name: 'Good Receive',     format: 'GR{YY}{MM}{####}',  initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
+  { code: 'ADJ', name: 'Stock Adjustment', format: 'ADJ{YY}{MM}{####}', initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
+  { code: 'CNT', name: 'Stock Count',      format: 'SC{YY}{MM}{####}',  initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
+  { code: 'STR', name: 'Stock Transfer',    format: 'RQ{YY}{MM}{####}',  initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
+  { code: 'RTN', name: 'Stock Return',     format: 'RTN{YY}{MM}{####}', initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
+  { code: 'ISS', name: 'Stock Issue',     format: 'ISS{YY}{MM}{####}', initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
+]
+
+async function seedSequences() {
+  // Lazy-require to avoid circular deps at module load time
+  const { Sequence, User } = require('./models')
+
+  // Delete old global (userId: null) sequences — replaced by per-user ones
+  await Sequence.destroy({ where: { userId: null } })
+
+  // Seed defaults for every existing user
+  const users = await User.findAll({ attributes: ['id'] })
+  let total = 0
+  for (const user of users) {
+    const existing = await Sequence.count({ where: { userId: user.id } })
+    if (existing > 0) continue
+    for (const seed of SEQUENCE_SEEDS) {
+      await Sequence.create({ ...seed, userId: user.id, runningValue: seed.initialValue })
+    }
+    total++
+  }
+  if (total > 0) console.log(`[Seed] Seeded sequences for ${total} user(s).`)
+  else console.log('[Seed] Per-user sequences already present — skipped.')
+}
+
+module.exports = { runMigrations, seedSequences }

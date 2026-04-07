@@ -12,11 +12,11 @@ const userIncludes = [
   },
 ]
 
-const create = async ({ name, email, password, role = 'user', roleIds = [] }) => {
+const create = async ({ name, email, password, role = 'user', defaultPage = null, roleIds = [] }) => {
   const exists = await User.findOne({ where: { email } })
   if (exists) throw { status: 409, message: 'Email already registered' }
 
-  const user = await User.create({ name, email, password, role })
+  const user = await User.create({ name, email, password, role, defaultPage })
 
   if (roleIds.length) {
     const roles = await Role.findAll({ where: { id: roleIds } })
@@ -58,7 +58,7 @@ const getById = async (id) => {
 const update = async (id, data) => {
   const user = await User.findByPk(id)
   if (!user) throw { status: 404, message: 'User not found' }
-  const allowed = ['name', 'role', 'isActive']
+  const allowed = ['name', 'role', 'isActive', 'defaultPage']
   await user.update(Object.fromEntries(Object.entries(data).filter(([k]) => allowed.includes(k))))
   return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }] })
 }

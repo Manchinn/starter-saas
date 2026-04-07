@@ -4,7 +4,7 @@ const cors = require('cors')
 const config = require('./config/config')
 const { sequelize } = require('./models')
 const moduleLoader = require('./core/ModuleLoader')
-const { runMigrations } = require('./migrations')
+const { runMigrations, seedSequences } = require('./migrations')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
 
 const app = express()
@@ -24,6 +24,7 @@ async function bootstrap() {
   await sequelize.authenticate()
   await sequelize.sync()
   await runMigrations(sequelize)
+  await seedSequences()
   console.log('[DB] Connected and synced.')
 
   // Load all HMVC modules (auto-discovers server/modules/*/*.module.js)

@@ -35,6 +35,10 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
+  customerGroupId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
 })
 
 module.exports = Customer

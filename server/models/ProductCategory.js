@@ -7,6 +7,10 @@ const ProductCategory = sequelize.define('ProductCategory', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  code: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -22,6 +26,10 @@ const ProductCategory = sequelize.define('ProductCategory', {
   status: {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
+  },
+  createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
   },
 })
 

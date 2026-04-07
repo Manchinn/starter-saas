@@ -14,7 +14,6 @@ const Vendor = sequelize.define('Vendor', {
   code: {
     type: DataTypes.STRING,
     allowNull: true,
-    unique: true,
   },
   contactPerson: {
     type: DataTypes.STRING,
@@ -39,6 +38,10 @@ const Vendor = sequelize.define('Vendor', {
   status: {
     type: DataTypes.STRING,
     defaultValue: 'active',
+  },
+  createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
   },
 })
 

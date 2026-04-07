@@ -81,7 +81,7 @@ export function getNavSections(userModuleSlugs = null, isAdmin = false, can = ()
 
   const sections = []
   if (sharedItems.length) sections.push({ label: 'Modules', items: sharedItems })
-  if (coreItems.length)   sections.push({ label: 'Core',    items: coreItems })
+  if (coreItems.length && isAdmin) sections.push({ label: 'Core', items: coreItems })
   return sections
 }
 

@@ -31,6 +31,10 @@ const Store = sequelize.define('Store', {
     type: DataTypes.STRING,
     defaultValue: 'active',
   },
+  createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
 })
 
 module.exports = Store

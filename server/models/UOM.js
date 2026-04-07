@@ -23,6 +23,10 @@ const UOM = sequelize.define('UOM', {
     type: DataTypes.STRING,
     defaultValue: 'active',
   },
+  createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
 })
 
 module.exports = UOM

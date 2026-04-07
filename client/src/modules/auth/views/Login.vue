@@ -82,7 +82,7 @@ async function handleLogin() {
     } else {
       localStorage.removeItem('rememberedEmail')
     }
-    router.push('/dashboard')
+    router.push(auth.user?.defaultPage || '/dashboard')
   } catch (err) {
     error.value = err.response?.data?.message || 'Login failed'
   } finally {

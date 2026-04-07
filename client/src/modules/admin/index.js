@@ -19,6 +19,12 @@ export default {
       meta: { requiresAuth: true, requiresAdmin: true, title: 'Roles' },
     },
     {
+      path: '/admin/roles/:id/permissions',
+      name: 'admin-role-permissions',
+      component: () => import('./views/RolePermissions.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Role Permissions' },
+    },
+    {
       path: '/admin/permissions',
       name: 'admin-permissions',
       component: () => import('./views/Permissions.vue'),
@@ -34,7 +40,7 @@ export default {
       path: '/admin/shared-modules',
       name: 'admin-shared-modules',
       component: () => import('./views/SharedModules.vue'),
-      meta: { requiresAuth: true, title: 'Shared Modules' },
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Shared Modules' },
     },
   ],
   // Visible to all users — but hidden for regular users who have no active modules assigned

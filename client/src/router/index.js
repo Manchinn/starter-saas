@@ -64,6 +64,16 @@ router.beforeEach(async (to, from, next) => {
     return next('/login')
   }
 
+  // Token exists but user not loaded (e.g. page refresh) — restore session
+  if (auth.accessToken && !auth.user) {
+    try {
+      await auth.fetchMe()
+    } catch {
+      auth.clearSession()
+      if (to.meta.requiresAuth !== false) return next('/login')
+    }
+  }
+
   const requiresAuth = to.meta.requiresAuth !== false
   const requiresAdmin = to.meta.requiresAdmin === true
   const isGuest = to.meta.guest === true

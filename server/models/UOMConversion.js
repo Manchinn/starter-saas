@@ -25,6 +25,10 @@ const UOMConversion = sequelize.define('UOMConversion', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
 })
 
 module.exports = UOMConversion

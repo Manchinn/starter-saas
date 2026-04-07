@@ -6,7 +6,28 @@
       "Bash(curl -s http://localhost:3000/api/auth/install-status)",
       "Bash(curl:*)",
       "Bash(sqlite3:*)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv shared/erp/customer-group.controller.js shared/erp/customers/)",
+      "Bash(mv shared/erp/customer-group.routes.js shared/erp/customers/)",
+      "Bash(mv shared/erp/customer-group.service.js shared/erp/customers/)",
+      "Bash(mv shared/erp/sequence.controller.js shared/erp/settings/)",
+      "Bash(mv shared/erp/sequence.routes.js shared/erp/settings/)",
+      "Bash(mv shared/erp/sequence.service.js shared/erp/settings/)",
+      "Bash(mv shared/erp/stock-issue.controller.js shared/erp/stock/)",
+      "Bash(mv shared/erp/stock-issue.routes.js shared/erp/stock/)",
+      "Bash(mv shared/erp/stock-issue.service.js shared/erp/stock/)",
+      "Bash(mv shared/erp/views/stock/StockIssueList.vue shared/erp/stock/views/)",
+      "Bash(mv shared/erp/views/stock/StockIssueCreate.vue shared/erp/stock/views/)",
+      "Bash(mv shared/erp/views/stock/StockIssueDetail.vue shared/erp/stock/views/)",
+      "Bash(mv shared/erp/views/settings/SequenceList.vue shared/erp/settings/views/)",
+      "Bash(mv shared/erp/views/settings/SequenceEdit.vue shared/erp/settings/views/)",
+      "Bash(sed -i \"s|../../server/core/BaseController|../../../server/core/BaseController|g\" D:/Projects/starter-saas/shared/erp/settings/sequence.controller.js)",
+      "Bash(sed -i \"s|../../server/middleware/auth|../../../server/middleware/auth|g; s|../../server/middleware/permission|../../../server/middleware/permission|g\" D:/Projects/starter-saas/shared/erp/settings/sequence.routes.js)",
+      "Bash(sed -i \"s|../../server/models|../../../server/models|g; s|../../server/config/database|../../../server/config/database|g\" D:/Projects/starter-saas/shared/erp/settings/sequence.service.js)",
+      "Bash(xargs sed:*)",
+      "Bash(sed:*)"
     ]
   }
 }

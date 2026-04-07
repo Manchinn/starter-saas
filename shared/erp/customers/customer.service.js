@@ -1,0 +1,58 @@
+const { Customer, CustomerGroup } = require('../../../server/models')
+const { Op } = require('sequelize')
+
+const list = async ({ page = 1, limit = 20, search = '', groupId = '' }) => {
+  const offset = (page - 1) * limit
+  const where = {}
+  if (search) {
+    where[Op.or] = [
+      { name: { [Op.like]: `%${search}%` } },
+      { email: { [Op.like]: `%${search}%` } },
+      { company: { [Op.like]: `%${search}%` } },
+    ]
+  }
+  if (groupId) where.customerGroupId = groupId
+
+  const { count, rows } = await Customer.findAndCountAll({
+    where,
+    include: [{ model: CustomerGroup, as: 'group', attributes: ['id', 'name'] }],
+    limit,
+    offset,
+    order: [['createdAt', 'DESC']],
+  })
+
+  return { total: count, page, limit, customers: rows }
+}
+
+const getById = async (id) => {
+  const customer = await Customer.findByPk(id, {
+    include: [{ model: CustomerGroup, as: 'group', attributes: ['id', 'name'] }],
+  })
+  if (!customer) throw { status: 404, message: 'Customer not found' }
+  return customer
+}
+
+const create = async ({ name, email, phone, company, address, notes, status = 'active', customerGroupId }) => {
+  if (!name?.trim()) throw { status: 400, message: 'Name is required' }
+  return Customer.create({ name: name.trim(), email, phone, company, address, notes, status, customerGroupId: customerGroupId || null })
+}
+
+const update = async (id, data) => {
+  const customer = await Customer.findByPk(id)
+  if (!customer) throw { status: 404, message: 'Customer not found' }
+  const allowed = ['name', 'email', 'phone', 'company', 'address', 'notes', 'status', 'customerGroupId']
+  const patch = Object.fromEntries(
+    Object.entries(data).filter(([k, v]) => allowed.includes(k) && v !== undefined)
+  )
+  if ('customerGroupId' in data) patch.customerGroupId = data.customerGroupId || null
+  await customer.update(patch)
+  return customer.reload()
+}
+
+const remove = async (id) => {
+  const customer = await Customer.findByPk(id)
+  if (!customer) throw { status: 404, message: 'Customer not found' }
+  await customer.destroy()
+}
+
+module.exports = { list, getById, create, update, remove }

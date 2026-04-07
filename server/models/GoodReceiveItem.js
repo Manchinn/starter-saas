@@ -25,6 +25,9 @@ const GoodReceiveItem = sequelize.define('GoodReceiveItem', {
   netAmount:     { type: DataTypes.DECIMAL(10, 2), allowNull: true, defaultValue: 0 },
   wac:           { type: DataTypes.DECIMAL(10, 4), allowNull: true, defaultValue: 0 },
 
+  // Stock quantity in base UOM after conversion (computed from qty * UOM conversion factor)
+  stockQty:      { type: DataTypes.DECIMAL(12, 4), allowNull: true, defaultValue: 0 },
+
   // Misc
   comments:      { type: DataTypes.TEXT, allowNull: true },
 })

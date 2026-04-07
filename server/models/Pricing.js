@@ -7,6 +7,10 @@ const Pricing = sequelize.define('Pricing', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  code: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -30,6 +34,14 @@ const Pricing = sequelize.define('Pricing', {
     defaultValue: 'active',
   },
   orderItemId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
+  customerGroupId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
+  createdBy: {
     type: DataTypes.UUID,
     allowNull: true,
   },

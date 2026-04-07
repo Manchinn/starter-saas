@@ -10,6 +10,7 @@ const RoleModule = require('./RoleModule')
 const UserRole = require('./UserRole')
 const Item = require('./Item')
 const Customer = require('./Customer')
+const CustomerGroup = require('./CustomerGroup')
 const Product = require('./Product')
 const Order = require('./Order')
 const OrderItem = require('./OrderItem')
@@ -33,6 +34,9 @@ const Vendor = require('./Vendor')
 const ProductVendor = require('./ProductVendor')
 const StockReturn = require('./StockReturn')
 const StockReturnItem = require('./StockReturnItem')
+const Sequence = require('./Sequence')
+const StockIssue = require('./StockIssue')
+const StockIssueItem = require('./StockIssueItem')
 
 // ── User ↔ Module ───────────────────────────────────────────────────────────
 User.belongsToMany(Module, { through: UserModule, foreignKey: 'userId', as: 'modules' })
@@ -54,6 +58,10 @@ Module.belongsToMany(Role, { through: RoleModule, foreignKey: 'moduleId', as: 'r
 User.belongsToMany(Role, { through: UserRole, foreignKey: 'userId', as: 'roles' })
 Role.belongsToMany(User, { through: UserRole, foreignKey: 'roleId', as: 'users' })
 
+// ── CustomerGroup ↔ Customer ─────────────────────────────────────────────────
+CustomerGroup.hasMany(Customer, { foreignKey: 'customerGroupId', as: 'customers' })
+Customer.belongsTo(CustomerGroup, { foreignKey: 'customerGroupId', as: 'group' })
+
 // ── Order ↔ Customer ────────────────────────────────────────────────────────
 Order.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' })
 Customer.hasMany(Order, { foreignKey: 'customerId', as: 'orders' })
@@ -73,6 +81,10 @@ Item.hasMany(OrderItem, { foreignKey: 'itemId', as: 'orderItems' })
 // ── OrderItem ↔ Pricing ─────────────────────────────────────────────────────
 OrderItem.hasMany(Pricing, { foreignKey: 'orderItemId', as: 'pricings' })
 Pricing.belongsTo(OrderItem, { foreignKey: 'orderItemId', as: 'orderItem' })
+
+// ── CustomerGroup ↔ Pricing ──────────────────────────────────────────────────
+CustomerGroup.hasMany(Pricing, { foreignKey: 'customerGroupId', as: 'pricings' })
+Pricing.belongsTo(CustomerGroup, { foreignKey: 'customerGroupId', as: 'customerGroup' })
 
 // ── ProductCategory self-referential ────────────────────────────────────────
 ProductCategory.belongsTo(ProductCategory, { foreignKey: 'parentId', as: 'parent' })
@@ -141,6 +153,13 @@ UOMConversion.belongsTo(UOM, { foreignKey: 'toUomId',   as: 'toUom' })
 Product.belongsToMany(Vendor, { through: ProductVendor, foreignKey: 'productId', as: 'vendors' })
 Vendor.belongsToMany(Product, { through: ProductVendor, foreignKey: 'vendorId',  as: 'products' })
 
+// ── StockIssue ↔ Store / Items ───────────────────────────────────────────────
+StockIssue.belongsTo(Store, { foreignKey: 'storeId', as: 'store' })
+StockIssue.hasMany(StockIssueItem, { foreignKey: 'stockIssueId', as: 'items', onDelete: 'CASCADE' })
+StockIssueItem.belongsTo(StockIssue, { foreignKey: 'stockIssueId', as: 'stockIssue' })
+StockIssueItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' })
+Product.hasMany(StockIssueItem, { foreignKey: 'productId', as: 'stockIssueItems' })
+
 // ── StockReturn ↔ Store / Customer / Vendor / Items ─────────────────────────
 StockReturn.belongsTo(Store,    { foreignKey: 'storeId',    as: 'store' })
 StockReturn.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' })
@@ -154,7 +173,7 @@ module.exports = {
   User, Module, UserModule, RefreshToken,
   Role, Permission, RolePermission, RoleModule, UserRole,
   Item,
-  Customer, Product, Order, OrderItem,
+  Customer, CustomerGroup, Product, Order, OrderItem,
   Pricing,
   ProductCategory,
   Store, ProductStore,
@@ -168,4 +187,6 @@ module.exports = {
   UOMConversion,
   Vendor, ProductVendor,
   StockReturn, StockReturnItem,
+  StockIssue, StockIssueItem,
+  Sequence,
 }
