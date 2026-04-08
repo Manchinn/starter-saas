@@ -48,24 +48,6 @@ class PricingController extends BaseController {
     }
   }
 
-  async applyToOrderItems(req, res) {
-    try {
-      const result = await service.applyToOrderItems(req.params.id, req.body.orderItemIds || [])
-      return this.ok(res, result, `Pricing applied to ${result.applied} order item(s)`)
-    } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
-    }
-  }
-
-  async listOrderItems(req, res) {
-    try {
-      const { search, draftOnly } = req.query
-      const items = await service.listOrderItems({ search: search || '', draftOnly: draftOnly === 'true' })
-      return this.ok(res, { orderItems: items })
-    } catch (err) {
-      return this.serverError(res)
-    }
-  }
 }
 
 module.exports = new PricingController()

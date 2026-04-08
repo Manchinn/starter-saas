@@ -61,6 +61,7 @@ const columns = [
   `ALTER TABLE Pricings ADD COLUMN createdBy TEXT`,
 ]
 
+
 async function runMigrations(sequelize) {
   for (const sql of columns) {
     try {

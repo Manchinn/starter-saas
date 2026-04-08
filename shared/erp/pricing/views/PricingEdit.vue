@@ -58,15 +58,6 @@
             </select>
           </div>
 
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Order Item</label>
-            <select v-model="form.orderItemId" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white" :disabled="orderItemsLoading">
-              <option value="">— None —</option>
-              <option v-for="item in orderItems" :key="item.id" :value="item.id">
-                {{ item.productName }}<span v-if="item.order"> · {{ item.order.orderNumber }}</span>
-              </option>
-            </select>
-          </div>
         </div>
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
@@ -95,13 +86,11 @@ const router = useRouter()
 const route  = useRoute()
 const id     = route.params.id
 
-const form = ref({ code: '', name: '', description: '', unitPrice: 0, currency: 'USD', status: 'active', orderItemId: '', customerGroupId: '' })
-const groups            = ref([])
-const orderItems        = ref([])
-const orderItemsLoading = ref(false)
-const loading           = ref(true)
-const saving            = ref(false)
-const error             = ref('')
+const form = ref({ code: '', name: '', description: '', unitPrice: 0, currency: 'USD', status: 'active', customerGroupId: '' })
+const groups  = ref([])
+const loading = ref(true)
+const saving  = ref(false)
+const error   = ref('')
 
 onMounted(async () => {
   try {
@@ -118,21 +107,12 @@ onMounted(async () => {
       unitPrice:       Number(p.unitPrice),
       currency:        p.currency,
       status:          p.status,
-      orderItemId:     p.orderItemId     || '',
       customerGroupId: p.customerGroupId || '',
     }
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load price list'
   } finally {
     loading.value = false
-  }
-
-  orderItemsLoading.value = true
-  try {
-    const { data } = await api.get('/erp/pricing/order-items')
-    orderItems.value = data.data.orderItems
-  } finally {
-    orderItemsLoading.value = false
   }
 })
 
@@ -143,7 +123,6 @@ async function save() {
   try {
     await api.put(`/erp/pricing/${id}`, {
       ...form.value,
-      orderItemId:     form.value.orderItemId     || null,
       customerGroupId: form.value.customerGroupId || null,
     })
     router.push('/erp/pricing')

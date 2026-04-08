@@ -4,7 +4,6 @@ import {
   CubeIcon,
   ShoppingCartIcon,
   TagIcon,
-  ClipboardDocumentListIcon,
   BuildingStorefrontIcon,
   ScaleIcon,
   TruckIcon,
@@ -172,7 +171,7 @@ export default {
       path: '/erp/orders',
       name: 'erp-orders',
       component: () => import('./orders/views/OrdersList.vue'),
-      meta: { requiresAuth: true, title: 'Orders' },
+      meta: { requiresAuth: true, title: 'Sales Order' },
     },
     {
       path: '/erp/orders/create',
@@ -378,7 +377,6 @@ export default {
         children: [
           { label: 'Product Category', to: '/erp/product-categories', icon: TagIcon,                    permission: 'erp.products.list' },
           { label: 'Product Master',   to: '/erp/item-master',        icon: CubeIcon,                   permission: 'erp.products.list' },
-          { label: 'Order Items',      to: '/erp/order-items',        icon: ClipboardDocumentListIcon,  permission: 'order-items.list' },
           { label: 'Vendors',          to: '/erp/vendors',            icon: BuildingLibraryIcon,         permission: 'erp.products.list' },
           { label: 'Stores',           to: '/erp/stores',             icon: BuildingStorefrontIcon,         permission: 'erp.stores.list' },
           { label: 'UOM',              to: '/erp/uom',                icon: ScaleIcon,                     permission: 'erp.uom.list' },
@@ -397,9 +395,8 @@ export default {
         label: 'Sale',
         icon: ShoppingCartIcon,
         children: [
-          { label: 'Order Items', to: '/erp/order-items', icon: ClipboardDocumentListIcon, permission: 'order-items.list' },
-          { label: 'Price Lists', to: '/erp/pricing',     icon: TagIcon,                   permission: 'erp.pricing.list' },
-          { label: 'Sales',       to: '/erp/orders',      icon: ShoppingCartIcon,          permission: 'erp.orders.list' },
+          { label: 'Price Lists', to: '/erp/pricing', icon: TagIcon,          permission: 'erp.pricing.list' },
+          { label: 'Sales Order', to: '/erp/orders',  icon: ShoppingCartIcon, permission: 'erp.orders.list' },
         ],
       },
       {

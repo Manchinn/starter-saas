@@ -1,4 +1,6 @@
 const sequelize = require('../config/database')
+
+// ── Core (auth / platform) ───────────────────────────────────────────────────
 const User = require('./User')
 const Module = require('./Module')
 const UserModule = require('./UserModule')
@@ -8,35 +10,51 @@ const Permission = require('./Permission')
 const RolePermission = require('./RolePermission')
 const RoleModule = require('./RoleModule')
 const UserRole = require('./UserRole')
-const Item = require('./Item')
-const Customer = require('./Customer')
-const CustomerGroup = require('./CustomerGroup')
-const Product = require('./Product')
-const Order = require('./Order')
-const OrderItem = require('./OrderItem')
-const Pricing = require('./Pricing')
-const ProductCategory = require('./ProductCategory')
-const Store = require('./Store')
-const ProductStore = require('./ProductStore')
-const UOM = require('./UOM')
-const GoodReceive = require('./GoodReceive')
-const GoodReceiveItem = require('./GoodReceiveItem')
-const StockAdjust = require('./StockAdjust')
-const StockAdjustItem = require('./StockAdjustItem')
-const StockMovement = require('./StockMovement')
-const StoreStock = require('./StoreStock')
-const StockRequest = require('./StockRequest')
-const StockRequestItem = require('./StockRequestItem')
-const StockCount = require('./StockCount')
-const StockCountItem = require('./StockCountItem')
-const UOMConversion = require('./UOMConversion')
-const Vendor = require('./Vendor')
-const ProductVendor = require('./ProductVendor')
-const StockReturn = require('./StockReturn')
-const StockReturnItem = require('./StockReturnItem')
-const Sequence = require('./Sequence')
-const StockIssue = require('./StockIssue')
-const StockIssueItem = require('./StockIssueItem')
+
+// ── ERP: Customers ───────────────────────────────────────────────────────────
+const Customer = require('../../shared/erp/customers/models/Customer')
+const CustomerGroup = require('../../shared/erp/customers/models/CustomerGroup')
+
+// ── ERP: Products ────────────────────────────────────────────────────────────
+const Item = require('../../shared/erp/products/models/Item')
+const Product = require('../../shared/erp/products/models/Product')
+const ProductCategory = require('../../shared/erp/products/models/ProductCategory')
+const ProductStore = require('../../shared/erp/products/models/ProductStore')
+const ProductVendor = require('../../shared/erp/products/models/ProductVendor')
+
+// ── ERP: Orders ──────────────────────────────────────────────────────────────
+const Order = require('../../shared/erp/orders/models/Order')
+const SalesOrderItem = require('../../shared/erp/orders/models/SalesOrderItem')
+
+// ── ERP: Pricing ─────────────────────────────────────────────────────────────
+const Pricing = require('../../shared/erp/pricing/models/Pricing')
+
+// ── ERP: Inventory ───────────────────────────────────────────────────────────
+const Store = require('../../shared/erp/inventory/models/Store')
+const StoreStock = require('../../shared/erp/inventory/models/StoreStock')
+const UOM = require('../../shared/erp/inventory/models/UOM')
+const UOMConversion = require('../../shared/erp/inventory/models/UOMConversion')
+
+// ── ERP: Vendors ─────────────────────────────────────────────────────────────
+const Vendor = require('../../shared/erp/vendors/models/Vendor')
+
+// ── ERP: Stock ───────────────────────────────────────────────────────────────
+const GoodReceive = require('../../shared/erp/stock/good-receive/models/GoodReceive')
+const GoodReceiveItem = require('../../shared/erp/stock/good-receive/models/GoodReceiveItem')
+const StockAdjust = require('../../shared/erp/stock/stock-adjust/models/StockAdjust')
+const StockAdjustItem = require('../../shared/erp/stock/stock-adjust/models/StockAdjustItem')
+const StockMovement = require('../../shared/erp/stock/stock-movement/models/StockMovement')
+const StockRequest = require('../../shared/erp/stock/stock-request/models/StockRequest')
+const StockRequestItem = require('../../shared/erp/stock/stock-request/models/StockRequestItem')
+const StockCount = require('../../shared/erp/stock/stock-count/models/StockCount')
+const StockCountItem = require('../../shared/erp/stock/stock-count/models/StockCountItem')
+const StockReturn = require('../../shared/erp/stock/stock-return/models/StockReturn')
+const StockReturnItem = require('../../shared/erp/stock/stock-return/models/StockReturnItem')
+const StockIssue = require('../../shared/erp/stock/stock-issue/models/StockIssue')
+const StockIssueItem = require('../../shared/erp/stock/stock-issue/models/StockIssueItem')
+
+// ── ERP: Settings ────────────────────────────────────────────────────────────
+const Sequence = require('../../shared/erp/settings/models/Sequence')
 
 // ── User ↔ Module ───────────────────────────────────────────────────────────
 User.belongsToMany(Module, { through: UserModule, foreignKey: 'userId', as: 'modules' })
@@ -66,21 +84,17 @@ Customer.belongsTo(CustomerGroup, { foreignKey: 'customerGroupId', as: 'group' }
 Order.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' })
 Customer.hasMany(Order, { foreignKey: 'customerId', as: 'orders' })
 
-// ── Order ↔ OrderItem ───────────────────────────────────────────────────────
-Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'items', onDelete: 'CASCADE' })
-OrderItem.belongsTo(Order, { foreignKey: 'orderId', as: 'order' })
+// ── Order ↔ SalesOrderItem ───────────────────────────────────────────────────────
+Order.hasMany(SalesOrderItem, { foreignKey: 'orderId', as: 'items', onDelete: 'CASCADE' })
+SalesOrderItem.belongsTo(Order, { foreignKey: 'orderId', as: 'order' })
 
-// ── OrderItem ↔ Product ─────────────────────────────────────────────────────
-OrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' })
-Product.hasMany(OrderItem, { foreignKey: 'productId', as: 'orderItems' })
+// ── SalesOrderItem ↔ Product ─────────────────────────────────────────────────────
+SalesOrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' })
+Product.hasMany(SalesOrderItem, { foreignKey: 'productId', as: 'orderItems' })
 
-// ── OrderItem ↔ Item (master data / stock cut) ──────────────────────────────
-OrderItem.belongsTo(Item, { foreignKey: 'itemId', as: 'item' })
-Item.hasMany(OrderItem, { foreignKey: 'itemId', as: 'orderItems' })
-
-// ── OrderItem ↔ Pricing ─────────────────────────────────────────────────────
-OrderItem.hasMany(Pricing, { foreignKey: 'orderItemId', as: 'pricings' })
-Pricing.belongsTo(OrderItem, { foreignKey: 'orderItemId', as: 'orderItem' })
+// ── SalesOrderItem ↔ Item (master data / stock cut) ──────────────────────────────
+SalesOrderItem.belongsTo(Item, { foreignKey: 'itemId', as: 'item' })
+Item.hasMany(SalesOrderItem, { foreignKey: 'itemId', as: 'orderItems' })
 
 // ── CustomerGroup ↔ Pricing ──────────────────────────────────────────────────
 CustomerGroup.hasMany(Pricing, { foreignKey: 'customerGroupId', as: 'pricings' })
@@ -173,7 +187,7 @@ module.exports = {
   User, Module, UserModule, RefreshToken,
   Role, Permission, RolePermission, RoleModule, UserRole,
   Item,
-  Customer, CustomerGroup, Product, Order, OrderItem,
+  Customer, CustomerGroup, Product, Order, SalesOrderItem,
   Pricing,
   ProductCategory,
   Store, ProductStore,

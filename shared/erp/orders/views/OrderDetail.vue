@@ -6,13 +6,13 @@
         <RouterLink to="/erp/orders" class="text-gray-400 hover:text-gray-600 transition">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
-        <h1 class="text-2xl font-bold text-gray-900">Sale {{ order?.orderNumber }}</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Sales Order {{ order?.orderNumber }}</h1>
         <span v-if="order" :class="statusClass(order.status)" class="ml-2 px-3 py-0.5 rounded-full text-xs font-medium capitalize">{{ order.status }}</span>
       </div>
 
       <div v-if="loading" class="text-gray-400 py-12 text-center">Loading…</div>
       <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
-        Sale not found. <RouterLink to="/erp/orders" class="underline ml-1">Back to list</RouterLink>
+        Sales order not found. <RouterLink to="/erp/orders" class="underline ml-1">Back to list</RouterLink>
       </div>
 
       <template v-else>
@@ -26,7 +26,7 @@
             <p v-if="!order.customer" class="text-sm text-gray-400">No customer</p>
           </div>
           <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Sale Info</p>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Sales Order Info</p>
             <p class="text-sm text-gray-700">Date: <span class="font-medium">{{ order.orderDate }}</span></p>
             <p class="text-sm text-gray-700">Created: <span class="font-medium">{{ fmtDate(order.createdAt) }}</span></p>
           </div>
@@ -72,7 +72,7 @@
 
         <!-- Actions -->
         <div v-can="'erp.orders.edit'" class="bg-white rounded-xl border border-gray-200 p-4">
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Update Sale Status</p>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Update Order Status</p>
           <div class="flex flex-wrap gap-2">
             <button
               v-for="s in availableTransitions"
@@ -88,7 +88,7 @@
 
         <!-- Delete (draft only) -->
         <div v-if="order.status === 'draft'" v-can="'erp.orders.delete'" class="flex justify-end">
-          <button @click="confirmDelete" class="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">Delete Sale</button>
+          <button @click="confirmDelete" class="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">Delete Order</button>
         </div>
 
       </template>
@@ -150,7 +150,7 @@ async function changeStatus(status) {
 }
 
 async function confirmDelete() {
-  if (!confirm(`Delete sale ${order.value.orderNumber}? This cannot be undone.`)) return
+  if (!confirm(`Delete order ${order.value.orderNumber}? This cannot be undone.`)) return
   try {
     await api.delete(`/erp/orders/${order.value.id}`)
     router.push('/erp/orders')

@@ -3,7 +3,7 @@
     <div class="space-y-6">
 
       <div class="flex items-center justify-between gap-4">
-        <h1 class="text-2xl font-bold text-gray-900">Sale Items</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Order Items</h1>
         <div class="flex items-center gap-3">
           <input
             v-model="search"

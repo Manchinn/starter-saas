@@ -63,16 +63,6 @@
               <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Order Item</label>
-            <select v-model="form.orderItemId" :disabled="orderItemsLoading"
-              class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">— None —</option>
-              <option v-for="item in orderItems" :key="item.id" :value="item.id">
-                {{ item.productName }}<span v-if="item.order"> · {{ item.order.orderNumber }}</span>
-              </option>
-            </select>
-          </div>
         </div>
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
@@ -99,10 +89,8 @@ import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 
 const router   = useRouter()
-const form     = ref({ code: '', name: '', description: '', unitPrice: 0, currency: 'USD', status: 'active', orderItemId: '', customerGroupId: '' })
+const form     = ref({ code: '', name: '', description: '', unitPrice: 0, currency: 'USD', status: 'active', customerGroupId: '' })
 const autoCode = useAutoCode('PRC')
-const orderItems = ref([])
-const orderItemsLoading = ref(false)
 const groups = ref([])
 const error = ref('')
 const saving = ref(false)
@@ -110,14 +98,6 @@ const saving = ref(false)
 onMounted(async () => {
   const [groupsRes] = await Promise.allSettled([api.get('/erp/customer-groups/all')])
   if (groupsRes.status === 'fulfilled') groups.value = groupsRes.value.data.data.groups
-
-  orderItemsLoading.value = true
-  try {
-    const { data } = await api.get('/erp/pricing/order-items')
-    orderItems.value = data.data.orderItems
-  } finally {
-    orderItemsLoading.value = false
-  }
 })
 
 async function save() {
@@ -125,7 +105,7 @@ async function save() {
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    const payload = { ...form.value, orderItemId: form.value.orderItemId || null, customerGroupId: form.value.customerGroupId || null }
+    const payload = { ...form.value, customerGroupId: form.value.customerGroupId || null }
     if (autoCode.enabled.value) { payload.autoCode = true; payload.code = null }
     await api.post('/erp/pricing', payload)
     router.push('/erp/pricing')

@@ -3,7 +3,7 @@
     <div class="space-y-6">
 
       <div class="flex items-center justify-between gap-4">
-        <h1 class="text-2xl font-bold text-gray-900">Sales</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Sales Order</h1>
         <div class="flex items-center gap-3">
           <select v-model="statusFilter" @change="fetchOrders" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">All statuses</option>
@@ -24,7 +24,7 @@
             v-can="'erp.orders.edit'"
             to="/erp/orders/create"
             class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition whitespace-nowrap"
-          >+ New Sale</RouterLink>
+          >+ New Order</RouterLink>
         </div>
       </div>
 
@@ -32,7 +32,7 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50 border-b border-gray-200 text-left">
             <tr>
-              <th class="px-5 py-3 font-medium text-gray-600">Sale #</th>
+              <th class="px-5 py-3 font-medium text-gray-600">Order #</th>
               <th class="px-5 py-3 font-medium text-gray-600">Customer</th>
               <th class="px-5 py-3 font-medium text-gray-600">Date</th>
               <th class="px-5 py-3 font-medium text-gray-600">Total</th>
@@ -63,7 +63,7 @@
         </table>
 
         <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 text-sm text-gray-500">
-          <span>{{ total }} sale{{ total !== 1 ? 's' : '' }}</span>
+          <span>{{ total }} order{{ total !== 1 ? 's' : '' }}</span>
           <div class="flex items-center gap-1">
             <button @click="page--" :disabled="page <= 1" class="px-3 py-1 border rounded-lg text-xs disabled:opacity-40 hover:bg-gray-50">Prev</button>
             <span class="px-3 py-1 text-xs">{{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}</span>

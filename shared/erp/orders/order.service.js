@@ -1,4 +1,4 @@
-const { Order, OrderItem, Customer, Product, Item, sequelize } = require('../../../server/models')
+const { Order, SalesOrderItem, Customer, Product, Item, sequelize } = require('../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../server/utils/fmt')
 
@@ -29,7 +29,7 @@ const getById = async (id) => {
   const order = await Order.findByPk(id, {
     include: [
       { model: Customer, as: 'customer' },
-      { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'sku'] }] },
+      { model: SalesOrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'sku'] }] },
     ],
   })
   if (!order) throw { status: 404, message: 'Order not found' }
@@ -55,7 +55,7 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 })
     for (const item of items) {
       const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
       const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
-      await OrderItem.create(
+      await SalesOrderItem.create(
         {
           orderId:     order.id,
           itemId:      item.itemId    || null,
@@ -76,7 +76,7 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 })
 
 const updateStatus = async (id, status) => {
   const order = await Order.findByPk(id, {
-    include: [{ model: OrderItem, as: 'items' }]
+    include: [{ model: SalesOrderItem, as: 'items' }]
   })
   if (!order) throw { status: 404, message: 'Order not found' }
   const oldStatus = order.status
@@ -125,7 +125,7 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
 
   await sequelize.transaction(async (t) => {
     if (items) {
-      await OrderItem.destroy({ where: { orderId: id }, transaction: t })
+      await SalesOrderItem.destroy({ where: { orderId: id }, transaction: t })
 
       const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
       const rate = taxRate !== undefined ? taxRate : 0
@@ -137,7 +137,7 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
       for (const item of items) {
         const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
         const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
-        await OrderItem.create(
+        await SalesOrderItem.create(
           {
             orderId:     id,
             itemId:      item.itemId    || null,
@@ -174,7 +174,7 @@ const listItems = async ({ page = 1, limit = 50, search = '' }) => {
     ]
   }
 
-  const { count, rows } = await OrderItem.findAndCountAll({
+  const { count, rows } = await SalesOrderItem.findAndCountAll({
     where,
     include: [
       { model: Order, as: 'order', attributes: ['orderNumber', 'status', 'orderDate'] },
@@ -189,7 +189,7 @@ const listItems = async ({ page = 1, limit = 50, search = '' }) => {
 }
 
 const getItemById = async (id) => {
-  const item = await OrderItem.findByPk(id, {
+  const item = await SalesOrderItem.findByPk(id, {
     include: [
       { model: Order, as: 'order', attributes: ['id', 'orderNumber', 'status', 'orderDate'] },
       { model: Product, as: 'product', attributes: ['id', 'name', 'sku', 'stock'] },
@@ -200,7 +200,7 @@ const getItemById = async (id) => {
 }
 
 const recalcOrderTotals = async (orderId, t) => {
-  const items = await OrderItem.findAll({ where: { orderId }, transaction: t })
+  const items = await SalesOrderItem.findAll({ where: { orderId }, transaction: t })
   const subtotal = items.reduce((sum, i) => sum + parseFloat(i.total), 0)
   const order = await Order.findByPk(orderId, { transaction: t })
   const taxRate = parseFloat(order.subtotal) > 0 ? (parseFloat(order.tax) / parseFloat(order.subtotal)) : 0
@@ -210,7 +210,7 @@ const recalcOrderTotals = async (orderId, t) => {
 }
 
 const updateItem = async (id, { productId, productName, quantity, unitPrice }) => {
-  const item = await OrderItem.findByPk(id, {
+  const item = await SalesOrderItem.findByPk(id, {
     include: [{ model: Order, as: 'order', attributes: ['id', 'status'] }],
   })
   if (!item) throw { status: 404, message: 'Order item not found' }
@@ -246,7 +246,7 @@ const updateItem = async (id, { productId, productName, quantity, unitPrice }) =
 }
 
 const deleteItem = async (id) => {
-  const item = await OrderItem.findByPk(id, {
+  const item = await SalesOrderItem.findByPk(id, {
     include: [{ model: Order, as: 'order', attributes: ['id', 'status'] }],
   })
   if (!item) throw { status: 404, message: 'Order item not found' }

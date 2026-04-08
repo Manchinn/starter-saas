@@ -9,7 +9,6 @@ const router = Router()
 
 router.use(authenticate)
 
-router.get('/order-items', requirePermission('erp.pricing.list'), (req, res) => controller.listOrderItems(req, res))
 router.get('/', requirePermission('erp.pricing.list'), (req, res) => controller.list(req, res))
 router.get('/:id', requirePermission('erp.pricing.list'), (req, res) => controller.getById(req, res))
 
@@ -29,10 +28,5 @@ router.put('/:id', requirePermission('erp.pricing.manage'), [
 ], (req, res) => controller.update(req, res))
 
 router.delete('/:id', requirePermission('erp.pricing.manage'), (req, res) => controller.remove(req, res))
-
-router.post('/:id/apply', requirePermission('erp.pricing.manage'), [
-  body('orderItemIds').isArray({ min: 1 }).withMessage('Select at least one order item'),
-  validate,
-], (req, res) => controller.applyToOrderItems(req, res))
 
 module.exports = router
