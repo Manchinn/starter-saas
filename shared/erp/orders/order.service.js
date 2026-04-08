@@ -55,6 +55,7 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 })
     for (const item of items) {
       const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
       const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
+      if (item.productId && !item.storeId) throw { status: 400, message: `Store is required for item "${item.productName || 'Unknown'}"` }
       await SalesOrderItem.create(
         {
           orderId:     order.id,
@@ -93,6 +94,11 @@ const updateStatus = async (id, status) => {
   await sequelize.transaction(async (t) => {
     // Cut stock when moving to confirmed
     if (status === 'confirmed' && ['draft', 'cancelled'].includes(oldStatus)) {
+      const storeIds = [...new Set(order.items.map(i => i.storeId).filter(Boolean))]
+      if (storeIds.length) {
+        const { checkStoreLock } = require('../stock/stock-count/stock-count.service')
+        for (const sid of storeIds) await checkStoreLock(sid)
+      }
       for (const item of order.items) {
         const productId = resolveProductId(item)
         if (productId) {
@@ -115,7 +121,7 @@ const updateStatus = async (id, status) => {
               productId,
               storeId:     item.storeId || null,
               type:        'sale',
-              qty:         item.quantity,
+              qty:         -item.quantity,
               stockBefore: before,
               stockAfter:  after,
               refType:     'SalesOrder',
@@ -198,12 +204,14 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
       for (const item of items) {
         const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
         const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
+        if (item.productId && !item.storeId) throw { status: 400, message: `Store is required for item "${item.productName || 'Unknown'}"` }
         await SalesOrderItem.create(
           {
             orderId:     id,
             itemId:      item.itemId    || null,
             productId:   item.productId || null,
             saleItemId:  item.saleItemId || null,
+            storeId:     item.storeId   || null,
             productName: item.productName || masterItem?.title || product?.name || 'Unknown',
             quantity:    item.quantity,
             unitPrice:   item.unitPrice,

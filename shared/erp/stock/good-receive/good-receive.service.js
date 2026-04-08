@@ -132,6 +132,9 @@ const confirm = async (id) => {
   if (!gr) throw { status: 404, message: 'Good Receive not found' }
   if (gr.status === 'confirmed') throw { status: 400, message: 'Already confirmed' }
   if (!gr.storeId) throw { status: 400, message: 'Store is required before confirming' }
+  const { checkStoreLock } = require('../stock-count/stock-count.service')
+  await checkStoreLock(gr.storeId)
+
   const t = await sequelize.transaction()
   try {
     for (const item of gr.items) {

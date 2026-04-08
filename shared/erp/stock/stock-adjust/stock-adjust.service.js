@@ -66,6 +66,9 @@ const confirm = async (id) => {
   if (!adj) throw { status: 404, message: 'Stock Adjustment not found' }
   if (adj.status === 'confirmed') throw { status: 400, message: 'Already confirmed' }
   if (!adj.storeId) throw { status: 400, message: 'Store is required before confirming' }
+  const { checkStoreLock } = require('../stock-count/stock-count.service')
+  await checkStoreLock(adj.storeId)
+
   const t = await sequelize.transaction()
   try {
     for (const item of adj.items) {

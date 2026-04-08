@@ -7,6 +7,18 @@
         </RouterLink>
         <h1 class="text-2xl font-bold text-gray-900">New Stock Count</h1>
       </div>
+      
+      <!-- Existing Lock Warning -->
+      <div v-if="lockedStoreInfo" class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+        <div class="mt-0.5">⚠️</div>
+        <div>
+          <p class="text-sm font-semibold text-amber-800">Store Already Locked</p>
+          <p class="text-xs text-amber-700 mt-1">
+            This store is already locked for movements by another stock count (<strong>{{ lockedStoreInfo.refNo }}</strong>).
+            You can still create this draft, but movements are already being blocked.
+          </p>
+        </div>
+      </div>
 
       <!-- Header -->
       <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -29,6 +41,12 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
             <input v-model="form.notes" type="text" placeholder="Optional notes"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+          <div class="flex items-end pb-1">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" v-model="form.movementLocked" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+              <span class="text-sm font-medium text-gray-700 font-bold text-red-600">Lock Stock Movement</span>
+            </label>
           </div>
         </div>
       </div>
@@ -116,10 +134,11 @@ import api from '@/api'
 const router = useRouter()
 const stores = ref([])
 const items = ref([])
-const form = ref({ date: new Date().toISOString().slice(0, 10), storeId: '', notes: '' })
+const form = ref({ date: new Date().toISOString().slice(0, 10), storeId: '', notes: '', movementLocked: false })
 const error = ref('')
 const saving = ref(false)
 const loadingProducts = ref(false)
+const lockedStoreInfo = ref(null)
 
 onMounted(async () => {
   try {
@@ -132,7 +151,24 @@ onMounted(async () => {
 
 async function onStoreChange() {
   items.value = []
-  if (form.value.storeId) await loadStoreProducts()
+  lockedStoreInfo.value = null
+  if (form.value.storeId) {
+    await Promise.all([
+      loadStoreProducts(),
+      checkStoreLockStatus()
+    ])
+  }
+}
+
+async function checkStoreLockStatus() {
+  try {
+    const { data } = await api.get(`/erp/stock-count/check-lock/${form.value.storeId}`)
+    if (data.data.isLocked) {
+      lockedStoreInfo.value = data.data.lockedBy
+    }
+  } catch (err) {
+    console.error('Failed to check store lock:', err)
+  }
 }
 
 async function loadStoreProducts() {

@@ -58,6 +58,20 @@ class StockCountController extends BaseController {
       return this.fail(res, err.message, err.status || 400)
     }
   }
+
+  async checkLock(req, res) {
+    try {
+      const { storeId } = req.params
+      const { StockCount } = require('../../../../server/models')
+      const locked = await StockCount.findOne({
+        where: { storeId, status: 'draft', movementLocked: true },
+        attributes: ['id', 'refNo']
+      })
+      return this.ok(res, { isLocked: !!locked, lockedBy: locked })
+    } catch (err) {
+      return this.serverError(res)
+    }
+  }
 }
 
 module.exports = new StockCountController()

@@ -100,6 +100,9 @@ const confirm = async (id) => {
   const delta = sr.type === 'customer_return' ? 1 : -1
   const movementType = sr.type === 'customer_return' ? 'customer_return' : 'vendor_return'
 
+  const { checkStoreLock } = require('../stock-count/stock-count.service')
+  if (sr.storeId) await checkStoreLock(sr.storeId)
+
   const t = await sequelize.transaction()
   try {
     for (const item of sr.items) {

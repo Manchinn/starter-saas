@@ -43,7 +43,7 @@
 
           <div v-if="form.items.length" class="grid grid-cols-12 gap-2 mb-1 px-1">
             <div class="col-span-3 text-xs font-medium text-gray-500">Sale Item</div>
-            <div class="col-span-2 text-xs font-medium text-gray-500">Store</div>
+            <div class="col-span-2 text-xs font-medium text-gray-500">Store <span class="text-red-500">*</span></div>
             <div class="col-span-2 text-xs font-medium text-gray-500">Description</div>
             <div class="col-span-2 text-xs font-medium text-gray-500 text-right">Qty</div>
             <div class="col-span-2 text-xs font-medium text-gray-500 text-right">Unit Price</div>
@@ -193,6 +193,7 @@ async function save() {
   if (!form.value.items.length) { error.value = 'Add at least one item'; return }
   for (const item of form.value.items) {
     if (!item.productName?.trim()) { error.value = 'All items need a description'; return }
+    if (item.hasProduct && !item.storeId) { error.value = 'Store is required for product items'; return }
     if (!item.quantity || item.quantity < 1) { error.value = 'All items need a valid quantity'; return }
   }
   saving.value = true

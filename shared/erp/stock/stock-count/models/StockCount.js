@@ -8,6 +8,7 @@ const StockCount = sequelize.define('StockCount', {
   storeId: { type: DataTypes.UUID, allowNull: false },
   notes:   { type: DataTypes.TEXT, allowNull: true },
   status:  { type: DataTypes.STRING, defaultValue: 'draft' },
+  movementLocked: { type: DataTypes.BOOLEAN, defaultValue: false },
 })
 
 module.exports = StockCount

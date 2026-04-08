@@ -8,6 +8,7 @@
         <h1 class="text-2xl font-bold text-gray-900">Stock Count</h1>
         <span v-if="sc" :class="sc.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'"
           class="px-2.5 py-0.5 rounded-full text-xs font-medium capitalize">{{ sc?.status }}</span>
+        <span v-if="sc?.movementLocked" class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Locked</span>
       </div>
 
       <div v-if="loading" class="text-gray-400 py-12 text-center">Loading…</div>
@@ -23,6 +24,13 @@
             <div><p class="text-gray-500 mb-1">Date</p><p class="font-medium text-gray-900">{{ sc.date }}</p></div>
             <div><p class="text-gray-500 mb-1">Store</p><p class="font-medium text-gray-900">{{ sc.store?.name || '—' }}</p></div>
             <div><p class="text-gray-500 mb-1">Notes</p><p class="text-gray-700">{{ sc.notes || '—' }}</p></div>
+            <div v-if="sc.status === 'draft'"><p class="text-gray-500 mb-1">Stock Movement</p>
+              <label class="flex items-center gap-2 cursor-pointer select-none mt-1">
+                <input type="checkbox" v-model="sc.movementLocked" @change="toggleLock" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                <span :class="sc.movementLocked ? 'text-red-600 font-bold' : 'text-gray-400'" class="text-xs uppercase">Lock Movements</span>
+              </label>
+            </div>
+            <div v-else><p class="text-gray-500 mb-1">Movement Locked</p><p class="font-medium text-gray-900">{{ sc.movementLocked ? 'Yes' : 'No' }}</p></div>
           </div>
         </div>
 
@@ -144,6 +152,15 @@ async function confirmSc() {
     error.value = err.response?.data?.message || 'Failed to confirm'
   } finally {
     confirming.value = false
+  }
+}
+
+async function toggleLock() {
+  try {
+    await api.put(`/erp/stock-count/${route.params.id}`, { movementLocked: sc.value.movementLocked })
+  } catch (err) {
+    sc.value.movementLocked = !sc.value.movementLocked
+    error.value = err.response?.data?.message || 'Failed to update lock'
   }
 }
 

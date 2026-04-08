@@ -35,8 +35,11 @@
               <td class="px-5 py-3 text-gray-700 font-medium">{{ row.store?.name || '—' }}</td>
               <td class="px-5 py-3 text-gray-500">{{ row.notes || '—' }}</td>
               <td class="px-5 py-3">
-                <span :class="row.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'"
-                  class="px-2 py-0.5 rounded-full text-xs font-medium capitalize">{{ row.status }}</span>
+                <div class="flex items-center gap-2">
+                  <span :class="row.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'"
+                    class="px-2 py-0.5 rounded-full text-xs font-medium capitalize">{{ row.status }}</span>
+                  <span v-if="row.movementLocked" class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Locked</span>
+                </div>
               </td>
               <td class="px-5 py-3 text-right">
                 <div class="flex items-center justify-end gap-2">
