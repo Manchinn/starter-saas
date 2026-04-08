@@ -52,6 +52,13 @@ const columns = [
   // User — default landing page after login (role user only)
   `ALTER TABLE Users ADD COLUMN defaultPage TEXT`,
 
+  // Pricing — sale item link
+  `ALTER TABLE Pricings ADD COLUMN saleItemId TEXT`,
+
+  // SalesOrderItem — sale item and store links
+  `ALTER TABLE sales_order_items ADD COLUMN saleItemId TEXT`,
+  `ALTER TABLE sales_order_items ADD COLUMN storeId TEXT`,
+
   // Per-user scoping — createdBy on master data tables
   `ALTER TABLE Stores ADD COLUMN createdBy TEXT`,
   `ALTER TABLE UOMs ADD COLUMN createdBy TEXT`,

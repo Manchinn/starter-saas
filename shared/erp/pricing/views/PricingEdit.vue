@@ -57,6 +57,15 @@
               <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
             </select>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sale Item</label>
+            <select v-model="form.saleItemId" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
+              <option value="">— None —</option>
+              <option v-for="si in saleItems" :key="si.id" :value="si.id">
+                {{ si.name }}<span v-if="si.code" class="text-gray-400"> ({{ si.code }})</span>
+              </option>
+            </select>
+          </div>
 
         </div>
 
@@ -86,20 +95,23 @@ const router = useRouter()
 const route  = useRoute()
 const id     = route.params.id
 
-const form = ref({ code: '', name: '', description: '', unitPrice: 0, currency: 'USD', status: 'active', customerGroupId: '' })
-const groups  = ref([])
-const loading = ref(true)
-const saving  = ref(false)
-const error   = ref('')
+const form      = ref({ code: '', name: '', description: '', unitPrice: 0, currency: 'USD', status: 'active', saleItemId: '', customerGroupId: '' })
+const groups    = ref([])
+const saleItems = ref([])
+const loading   = ref(true)
+const saving    = ref(false)
+const error     = ref('')
 
 onMounted(async () => {
   try {
-    const [pricingRes, groupsRes] = await Promise.all([
+    const [pricingRes, groupsRes, saleItemsRes] = await Promise.all([
       api.get(`/erp/pricing/${id}`),
       api.get('/erp/customer-groups/all'),
+      api.get('/erp/sale-items', { params: { limit: 500, status: 'active' } }),
     ])
     const p = pricingRes.data.data.pricing
-    groups.value = groupsRes.data.data.groups
+    groups.value    = groupsRes.data.data.groups
+    saleItems.value = saleItemsRes.data.data.items
     form.value = {
       code:            p.code            || '',
       name:            p.name,
@@ -107,6 +119,7 @@ onMounted(async () => {
       unitPrice:       Number(p.unitPrice),
       currency:        p.currency,
       status:          p.status,
+      saleItemId:      p.saleItemId      || '',
       customerGroupId: p.customerGroupId || '',
     }
   } catch (err) {
@@ -123,6 +136,7 @@ async function save() {
   try {
     await api.put(`/erp/pricing/${id}`, {
       ...form.value,
+      saleItemId:      form.value.saleItemId      || null,
       customerGroupId: form.value.customerGroupId || null,
     })
     router.push('/erp/pricing')

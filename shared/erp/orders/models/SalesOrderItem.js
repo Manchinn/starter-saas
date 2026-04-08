@@ -19,6 +19,14 @@ const SalesOrderItem = sequelize.define('SalesOrderItem', {
     type: DataTypes.UUID,
     allowNull: true,
   },
+  saleItemId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
+  storeId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
   productName: {
     type: DataTypes.STRING,
     allowNull: false,

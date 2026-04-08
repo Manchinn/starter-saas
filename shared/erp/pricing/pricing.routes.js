@@ -16,14 +16,14 @@ router.post('/', requirePermission('erp.pricing.manage'), [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('unitPrice').isFloat({ min: 0 }).withMessage('Unit price must be a non-negative number'),
   body('currency').optional().isLength({ min: 3, max: 10 }).withMessage('Invalid currency'),
-  body('orderItemId').optional({ nullable: true }),
+  body('saleItemId').optional({ nullable: true }),
   validate,
 ], (req, res) => controller.create(req, res))
 
 router.put('/:id', requirePermission('erp.pricing.manage'), [
   body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
   body('unitPrice').optional().isFloat({ min: 0 }).withMessage('Unit price must be a non-negative number'),
-  body('orderItemId').optional({ nullable: true }),
+  body('saleItemId').optional({ nullable: true }),
   validate,
 ], (req, res) => controller.update(req, res))
 

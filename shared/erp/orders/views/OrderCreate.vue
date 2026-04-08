@@ -14,14 +14,14 @@
         <!-- Customer + Date -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
             <select v-model="form.customerId" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="">— No customer —</option>
               <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}{{ c.company ? ` (${c.company})` : '' }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Order Date</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Order Date <span class="text-red-500">*</span></label>
             <input v-model="form.orderDate" type="date" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div>
@@ -42,23 +42,41 @@
           </div>
 
           <div v-if="form.items.length" class="grid grid-cols-12 gap-2 mb-1 px-1">
-            <div class="col-span-5 text-xs font-medium text-gray-500">Description</div>
+            <div class="col-span-3 text-xs font-medium text-gray-500">Sale Item</div>
+            <div class="col-span-2 text-xs font-medium text-gray-500">Store</div>
+            <div class="col-span-2 text-xs font-medium text-gray-500">Description</div>
             <div class="col-span-2 text-xs font-medium text-gray-500 text-right">Qty</div>
-            <div class="col-span-4 text-xs font-medium text-gray-500 text-right">Unit Price</div>
+            <div class="col-span-2 text-xs font-medium text-gray-500 text-right">Unit Price</div>
             <div class="col-span-1"></div>
           </div>
 
           <div class="space-y-2">
             <div v-for="(line, idx) in form.items" :key="idx" class="grid grid-cols-12 gap-2 items-center">
-              <div class="col-span-5">
+              <div class="col-span-3">
+                <select v-model="line.saleItemId" @change="onSaleItemChange(line)"
+                  class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
+                  <option value="">— None —</option>
+                  <option v-for="si in saleItems" :key="si.id" :value="si.id">{{ si.name }}</option>
+                </select>
+              </div>
+              <div class="col-span-2">
+                <select v-if="line.hasProduct" v-model="line.storeId"
+                  class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
+                  <option value="">— None —</option>
+                  <option v-for="st in stores" :key="st.id" :value="st.id">{{ st.name }}</option>
+                </select>
+              </div>
+              <div class="col-span-2">
                 <input v-model="line.productName" type="text" placeholder="Description"
                   class="w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
               <div class="col-span-2">
-                <input v-model.number="line.quantity" type="number" min="1" class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                <input v-model.number="line.quantity" type="number" min="1"
+                  class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
-              <div class="col-span-4">
-                <input v-model.number="line.unitPrice" type="number" min="0" step="0.01" placeholder="0.00" class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <div class="col-span-2">
+                <input v-model.number="line.unitPrice" type="number" min="0" step="0.01" placeholder="0.00"
+                  class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
               <div class="col-span-1 text-right">
                 <button @click="removeLine(idx)" type="button" class="text-red-400 hover:text-red-600 text-xs">✕</button>
@@ -93,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -102,6 +120,8 @@ import { fmtMoney, toFixed } from '@/utils/fmt'
 
 const router    = useRouter()
 const customers = ref([])
+const saleItems = ref([])
+const stores    = ref([])
 const error     = ref('')
 const saving    = ref(false)
 
@@ -109,17 +129,58 @@ const today = new Date().toISOString().slice(0, 10)
 const form  = ref({ customerId: '', orderDate: today, taxRate: 0, notes: '', items: [] })
 
 onMounted(async () => {
-  const { data } = await api.get('/erp/customers', { params: { limit: 200 } })
-  customers.value = data.data.customers
+  const [customersRes, saleItemsRes, storesRes] = await Promise.allSettled([
+    api.get('/erp/customers', { params: { limit: 200 } }),
+    api.get('/erp/sale-items', { params: { limit: 500, status: 'active' } }),
+    api.get('/erp/stores', { params: { limit: 200 } }),
+  ])
+  if (customersRes.status === 'fulfilled') customers.value = customersRes.value.data.data.customers
+  if (saleItemsRes.status === 'fulfilled') saleItems.value = saleItemsRes.value.data.data.items
+  if (storesRes.status === 'fulfilled')    stores.value    = storesRes.value.data.data.stores
 })
 
 function addLine() {
-  form.value.items.push({ productName: '', quantity: 1, unitPrice: 0 })
+  form.value.items.push({ saleItemId: '', storeId: '', hasProduct: false, productName: '', quantity: 1, unitPrice: 0 })
 }
 
 function removeLine(idx) {
   form.value.items.splice(idx, 1)
 }
+
+function getBestPricing(si, customerGroupId) {
+  const pricings = si.pricings || []
+  if (!pricings.length) return null
+  // 1. Exact match: same sale item + same customer group
+  if (customerGroupId) {
+    const match = pricings.find(p => p.customerGroupId === customerGroupId)
+    if (match) return match
+  }
+  // 2. Fallback: pricing with no group restriction
+  return pricings.find(p => !p.customerGroupId) || pricings[0]
+}
+
+function applyPricing(line) {
+  if (!line.saleItemId) return
+  const si = saleItems.value.find(s => s.id === line.saleItemId)
+  if (!si) return
+  const customer = customers.value.find(c => c.id === form.value.customerId)
+  const pricing = getBestPricing(si, customer?.customerGroupId)
+  if (pricing) line.unitPrice = Number(pricing.unitPrice)
+}
+
+function onSaleItemChange(line) {
+  const si = saleItems.value.find(s => s.id === line.saleItemId)
+  if (!si) { line.productName = ''; line.unitPrice = 0; line.hasProduct = false; line.storeId = ''; return }
+  line.productName = si.name
+  line.hasProduct  = !!si.productId
+  if (!line.hasProduct) line.storeId = ''
+  applyPricing(line)
+}
+
+// Re-price all lines when customer changes
+watch(() => form.value.customerId, () => {
+  for (const line of form.value.items) applyPricing(line)
+})
 
 const subtotal   = computed(() => form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0))
 const taxAmount  = computed(() => toFixed(subtotal.value * ((form.value.taxRate || 0) / 100), 2))
@@ -127,6 +188,8 @@ const grandTotal = computed(() => subtotal.value + taxAmount.value)
 
 async function save() {
   error.value = ''
+  if (!form.value.customerId) { error.value = 'Customer is required'; return }
+  if (!form.value.orderDate) { error.value = 'Order date is required'; return }
   if (!form.value.items.length) { error.value = 'Add at least one item'; return }
   for (const item of form.value.items) {
     if (!item.productName?.trim()) { error.value = 'All items need a description'; return }
@@ -136,7 +199,13 @@ async function save() {
   try {
     const payload = {
       ...form.value,
-      items: form.value.items.map(({ productName, quantity, unitPrice }) => ({ productName, quantity, unitPrice })),
+      items: form.value.items.map(({ saleItemId, storeId, productName, quantity, unitPrice }) => ({
+        saleItemId: saleItemId || null,
+        storeId:    storeId    || null,
+        productName,
+        quantity,
+        unitPrice,
+      })),
     }
     const { data } = await api.post('/erp/orders', payload)
     router.push(`/erp/orders/${data.data.order.id}`)

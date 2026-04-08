@@ -1,4 +1,4 @@
-const { Order, SalesOrderItem, Customer, Product, Item, sequelize } = require('../../../server/models')
+const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, Store, StoreStock, StockMovement, sequelize } = require('../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../server/utils/fmt')
 
@@ -60,6 +60,8 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 })
           orderId:     order.id,
           itemId:      item.itemId    || null,
           productId:   item.productId || null,
+          saleItemId:  item.saleItemId || null,
+          storeId:     item.storeId   || null,
           productName: item.productName || masterItem?.title || product?.name || 'Unknown',
           quantity:    item.quantity,
           unitPrice:   item.unitPrice,
@@ -76,20 +78,52 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 })
 
 const updateStatus = async (id, status) => {
   const order = await Order.findByPk(id, {
-    include: [{ model: SalesOrderItem, as: 'items' }]
+    include: [{
+      model: SalesOrderItem, as: 'items',
+      include: [{ model: SaleItem, as: 'saleItem', attributes: ['id', 'productId'] }],
+    }]
   })
   if (!order) throw { status: 404, message: 'Order not found' }
   const oldStatus = order.status
 
   if (oldStatus === status) return getById(id)
 
+  const resolveProductId = (item) => item.productId || item.saleItem?.productId || null
+
   await sequelize.transaction(async (t) => {
     // Cut stock when moving to confirmed
     if (status === 'confirmed' && ['draft', 'cancelled'].includes(oldStatus)) {
       for (const item of order.items) {
-        if (item.productId) {
-          const product = await Product.findByPk(item.productId, { transaction: t })
-          if (product) await product.update({ stock: product.stock - item.quantity }, { transaction: t })
+        const productId = resolveProductId(item)
+        if (productId) {
+          const product = await Product.findByPk(productId, { transaction: t })
+          if (product) {
+            const before = parseFloat(product.stock)
+            const after  = before - item.quantity
+            await product.update({ stock: after }, { transaction: t })
+
+            if (item.storeId) {
+              const [storeStock] = await StoreStock.findOrCreate({
+                where: { productId, storeId: item.storeId },
+                defaults: { stock: 0 },
+                transaction: t,
+              })
+              await storeStock.update({ stock: storeStock.stock - item.quantity }, { transaction: t })
+            }
+
+            await StockMovement.create({
+              productId,
+              storeId:     item.storeId || null,
+              type:        'sale',
+              qty:         item.quantity,
+              stockBefore: before,
+              stockAfter:  after,
+              refType:     'SalesOrder',
+              refId:       order.id,
+              refNo:       order.orderNumber,
+              notes:       `Sales Order ${order.orderNumber}`,
+            }, { transaction: t })
+          }
         }
         if (item.itemId) {
           const masterItem = await Item.findByPk(item.itemId, { transaction: t })
@@ -101,9 +135,36 @@ const updateStatus = async (id, status) => {
     // Return stock when cancelled (if was previously confirmed/shipped/delivered)
     if (status === 'cancelled' && ['confirmed', 'shipped', 'delivered'].includes(oldStatus)) {
       for (const item of order.items) {
-        if (item.productId) {
-          const product = await Product.findByPk(item.productId, { transaction: t })
-          if (product) await product.update({ stock: product.stock + item.quantity }, { transaction: t })
+        const productId = resolveProductId(item)
+        if (productId) {
+          const product = await Product.findByPk(productId, { transaction: t })
+          if (product) {
+            const before = parseFloat(product.stock)
+            const after  = before + item.quantity
+            await product.update({ stock: after }, { transaction: t })
+
+            if (item.storeId) {
+              const [storeStock] = await StoreStock.findOrCreate({
+                where: { productId, storeId: item.storeId },
+                defaults: { stock: 0 },
+                transaction: t,
+              })
+              await storeStock.update({ stock: storeStock.stock + item.quantity }, { transaction: t })
+            }
+
+            await StockMovement.create({
+              productId,
+              storeId:     item.storeId || null,
+              type:        'sale_cancel',
+              qty:         item.quantity,
+              stockBefore: before,
+              stockAfter:  after,
+              refType:     'SalesOrder',
+              refId:       order.id,
+              refNo:       order.orderNumber,
+              notes:       `Cancelled Sales Order ${order.orderNumber}`,
+            }, { transaction: t })
+          }
         }
         if (item.itemId) {
           const masterItem = await Item.findByPk(item.itemId, { transaction: t })
@@ -142,6 +203,7 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
             orderId:     id,
             itemId:      item.itemId    || null,
             productId:   item.productId || null,
+            saleItemId:  item.saleItemId || null,
             productName: item.productName || masterItem?.title || product?.name || 'Unknown',
             quantity:    item.quantity,
             unitPrice:   item.unitPrice,

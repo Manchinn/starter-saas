@@ -4,6 +4,7 @@ import {
   CubeIcon,
   ShoppingCartIcon,
   TagIcon,
+  ClipboardDocumentListIcon,
   BuildingStorefrontIcon,
   ScaleIcon,
   TruckIcon,
@@ -338,6 +339,25 @@ export default {
       component: () => import('./settings/views/SequenceEdit.vue'),
       meta: { requiresAuth: true, title: 'Edit Sequence' },
     },
+    // Sale Items
+    {
+      path: '/erp/sale-items',
+      name: 'erp-sale-items',
+      component: () => import('./sale/views/SaleItemsList.vue'),
+      meta: { requiresAuth: true, title: 'Sale Items' },
+    },
+    {
+      path: '/erp/sale-items/create',
+      name: 'erp-sale-items-create',
+      component: () => import('./sale/views/SaleItemCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Sale Item' },
+    },
+    {
+      path: '/erp/sale-items/:id/edit',
+      name: 'erp-sale-items-edit',
+      component: () => import('./sale/views/SaleItemEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Sale Item' },
+    },
     // Price Lists
     {
       path: '/erp/pricing',
@@ -395,8 +415,9 @@ export default {
         label: 'Sale',
         icon: ShoppingCartIcon,
         children: [
-          { label: 'Price Lists', to: '/erp/pricing', icon: TagIcon,          permission: 'erp.pricing.list' },
-          { label: 'Sales Order', to: '/erp/orders',  icon: ShoppingCartIcon, permission: 'erp.orders.list' },
+          { label: 'Sale Items',  to: '/erp/sale-items', icon: ClipboardDocumentListIcon, permission: 'erp.sale-items.list' },
+          { label: 'Price Lists', to: '/erp/pricing',    icon: TagIcon,                   permission: 'erp.pricing.list' },
+          { label: 'Sales Order', to: '/erp/orders',     icon: ShoppingCartIcon,          permission: 'erp.orders.list' },
         ],
       },
       {

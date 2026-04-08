@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 
-const Pricing = sequelize.define('Pricing', {
+const SaleItem = sequelize.define('SaleItem', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -15,36 +15,20 @@ const Pricing = sequelize.define('Pricing', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  description: {
-    type: DataTypes.TEXT,
+  productId: {
+    type: DataTypes.UUID,
     allowNull: true,
-  },
-  unitPrice: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    defaultValue: 0,
-  },
-  currency: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    defaultValue: 'USD',
   },
   status: {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
-  saleItemId: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
-  customerGroupId: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
   createdBy: {
     type: DataTypes.UUID,
     allowNull: true,
   },
+}, {
+  tableName: 'sale_items',
 })
 
-module.exports = Pricing
+module.exports = SaleItem

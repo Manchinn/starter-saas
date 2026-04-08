@@ -16,6 +16,7 @@ const DEFAULTS = {
   WHS: { name: 'Store / Warehouse Code',format: 'WHS{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   PRC: { name: 'Price List Code',       format: 'PRC{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   OI:  { name: 'Order Item Code',       format: 'OI{####}',          initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  SI:  { name: 'Sale Item Code',        format: 'SI{####}',          initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
 }
 
 // ── Format engine ─────────────────────────────────────────────────────────────

@@ -19,6 +19,7 @@ const stockReturnRouter = require('./stock/stock-return/stock-return.routes')
 const stockBalanceRouter = require('./stock/stock-balance/stock-balance.routes')
 const sequenceRouter = require('./settings/sequence.routes')
 const stockIssueRouter = require('./stock/stock-issue/stock-issue.routes')
+const saleItemRouter   = require('./sale/sale-item.routes')
 
 class ERPModule extends BaseModule {
   constructor() {
@@ -38,6 +39,7 @@ class ERPModule extends BaseModule {
         'erp.stores.list', 'erp.stores.edit', 'erp.stores.delete',
         'erp.uom.list', 'erp.uom.edit', 'erp.uom.delete',
         'erp.stock.list', 'erp.stock.edit', 'erp.stock.delete',
+        'erp.sale-items.list', 'erp.sale-items.manage',
       ],
       meta: { mountPath: '/api/erp' },
     })
@@ -64,6 +66,7 @@ class ERPModule extends BaseModule {
     app.use('/api/erp/stock-balance', stockBalanceRouter)
     app.use('/api/erp/sequences', sequenceRouter)
     app.use('/api/erp/stock-issue', stockIssueRouter)
+    app.use('/api/erp/sale-items', saleItemRouter)
   }
 }
 

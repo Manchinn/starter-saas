@@ -53,6 +53,9 @@ const StockReturnItem = require('../../shared/erp/stock/stock-return/models/Stoc
 const StockIssue = require('../../shared/erp/stock/stock-issue/models/StockIssue')
 const StockIssueItem = require('../../shared/erp/stock/stock-issue/models/StockIssueItem')
 
+// ── ERP: Sale ────────────────────────────────────────────────────────────────
+const SaleItem = require('../../shared/erp/sale/models/SaleItem')
+
 // ── ERP: Settings ────────────────────────────────────────────────────────────
 const Sequence = require('../../shared/erp/settings/models/Sequence')
 
@@ -182,12 +185,29 @@ StockReturn.hasMany(StockReturnItem, { foreignKey: 'stockReturnId', as: 'items',
 StockReturnItem.belongsTo(StockReturn, { foreignKey: 'stockReturnId', as: 'stockReturn' })
 StockReturnItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' })
 
+// ── SalesOrderItem ↔ Store ───────────────────────────────────────────────────
+SalesOrderItem.belongsTo(Store, { foreignKey: 'storeId', as: 'store' })
+Store.hasMany(SalesOrderItem, { foreignKey: 'storeId', as: 'orderItems' })
+
+// ── SalesOrderItem ↔ SaleItem ────────────────────────────────────────────────
+SalesOrderItem.belongsTo(SaleItem, { foreignKey: 'saleItemId', as: 'saleItem' })
+SaleItem.hasMany(SalesOrderItem, { foreignKey: 'saleItemId', as: 'orderItems' })
+
+// ── SaleItem ↔ Product ───────────────────────────────────────────────────────
+SaleItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' })
+Product.hasMany(SaleItem, { foreignKey: 'productId', as: 'saleItems' })
+
+// ── Pricing ↔ SaleItem (price list linked to a sale item catalog entry) ──────
+Pricing.belongsTo(SaleItem, { foreignKey: 'saleItemId', as: 'saleItem' })
+SaleItem.hasMany(Pricing, { foreignKey: 'saleItemId', as: 'pricings' })
+
 module.exports = {
   sequelize,
   User, Module, UserModule, RefreshToken,
   Role, Permission, RolePermission, RoleModule, UserRole,
   Item,
   Customer, CustomerGroup, Product, Order, SalesOrderItem,
+  SaleItem,
   Pricing,
   ProductCategory,
   Store, ProductStore,
