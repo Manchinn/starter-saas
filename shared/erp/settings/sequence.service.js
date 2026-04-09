@@ -10,6 +10,7 @@ const DEFAULTS = {
   STR: { name: 'Stock Transfer',        format: 'RQ{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   RTN: { name: 'Stock Return',          format: 'RTN{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   ISS: { name: 'Stock Issue',           format: 'ISS{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  CUS: { name: 'Customer Code',          format: 'CUS{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   VND: { name: 'Vendor Code',           format: 'VND{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   PRD: { name: 'Product Code / SKU',    format: 'PRD{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   CAT: { name: 'Category Code',         format: 'CAT{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },

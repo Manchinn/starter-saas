@@ -1,4 +1,4 @@
-import { UsersIcon, PuzzlePieceIcon, ShieldCheckIcon, KeyIcon, Squares2X2Icon } from '@heroicons/vue/24/outline'
+import { UsersIcon, PuzzlePieceIcon, ShieldCheckIcon, KeyIcon, Squares2X2Icon, SparklesIcon } from '@heroicons/vue/24/outline'
 
 export default {
   slug: 'admin',
@@ -42,6 +42,12 @@ export default {
       component: () => import('./views/SharedModules.vue'),
       meta: { requiresAuth: true, requiresAdmin: true, title: 'Shared Modules' },
     },
+    {
+      path: '/admin/templates',
+      name: 'admin-templates',
+      component: () => import('./views/Templates.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Templates' },
+    },
   ],
   // Visible to all users — but hidden for regular users who have no active modules assigned
   navItem: {
@@ -60,6 +66,7 @@ export default {
       { label: 'Roles',        to: '/admin/roles',       icon: ShieldCheckIcon, permission: 'roles.list' },
       { label: 'Permissions',  to: '/admin/permissions', icon: KeyIcon,         permission: 'permissions.list' },
       { label: 'Core Modules', to: '/admin/modules',     icon: PuzzlePieceIcon, permission: 'modules.list' },
+      { label: 'Templates',    to: '/admin/templates',   icon: SparklesIcon },
     ],
   },
 }

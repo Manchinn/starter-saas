@@ -32,15 +32,24 @@ const getById = async (id) => {
   return customer
 }
 
-const create = async ({ name, email, phone, company, address, notes, status = 'active', customerGroupId }) => {
+const create = async ({ name, code, autoCode, email, phone, company, address, notes, status = 'active', customerGroupId, userId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
-  return Customer.create({ name: name.trim(), email, phone, company, address, notes, status, customerGroupId: customerGroupId || null })
+  let customerCode = null
+  if (autoCode) {
+    const seqSvc = require('../settings/sequence.service')
+    customerCode = await seqSvc.getNext('CUS', userId)
+  } else if (code?.trim()) {
+    const existing = await Customer.findOne({ where: { code: code.trim() } })
+    if (existing) throw { status: 400, message: 'Customer code already exists' }
+    customerCode = code.trim()
+  }
+  return Customer.create({ code: customerCode, name: name.trim(), email, phone, company, address, notes, status, customerGroupId: customerGroupId || null })
 }
 
 const update = async (id, data) => {
   const customer = await Customer.findByPk(id)
   if (!customer) throw { status: 404, message: 'Customer not found' }
-  const allowed = ['name', 'email', 'phone', 'company', 'address', 'notes', 'status', 'customerGroupId']
+  const allowed = ['code', 'name', 'email', 'phone', 'company', 'address', 'notes', 'status', 'customerGroupId']
   const patch = Object.fromEntries(
     Object.entries(data).filter(([k, v]) => allowed.includes(k) && v !== undefined)
   )

@@ -18,6 +18,7 @@ const vendorRouter = require('./vendors/vendor.routes')
 const stockReturnRouter = require('./stock/stock-return/stock-return.routes')
 const stockBalanceRouter = require('./stock/stock-balance/stock-balance.routes')
 const sequenceRouter = require('./settings/sequence.routes')
+const generalSettingsRouter = require('./settings/general.routes')
 const stockIssueRouter = require('./stock/stock-issue/stock-issue.routes')
 const saleItemRouter   = require('./sale/sale-item.routes')
 
@@ -65,6 +66,7 @@ class ERPModule extends BaseModule {
     app.use('/api/erp/stock-return', stockReturnRouter)
     app.use('/api/erp/stock-balance', stockBalanceRouter)
     app.use('/api/erp/sequences', sequenceRouter)
+    app.use('/api/erp/settings/general', generalSettingsRouter)
     app.use('/api/erp/stock-issue', stockIssueRouter)
     app.use('/api/erp/sale-items', saleItemRouter)
   }

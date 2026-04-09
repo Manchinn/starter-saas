@@ -37,12 +37,6 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-            <input v-model="form.currency" type="text" maxlength="10"
-              class="w-full px-3 py-2 border rounded-lg text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="USD" />
-          </div>
-
-          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
             <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="active">Active</option>
@@ -95,7 +89,7 @@ const router = useRouter()
 const route  = useRoute()
 const id     = route.params.id
 
-const form      = ref({ code: '', name: '', description: '', unitPrice: 0, currency: 'USD', status: 'active', saleItemId: '', customerGroupId: '' })
+const form      = ref({ code: '', name: '', description: '', unitPrice: 0, status: 'active', saleItemId: '', customerGroupId: '' })
 const groups    = ref([])
 const saleItems = ref([])
 const loading   = ref(true)
@@ -117,7 +111,6 @@ onMounted(async () => {
       name:            p.name,
       description:     p.description     || '',
       unitPrice:       Number(p.unitPrice),
-      currency:        p.currency,
       status:          p.status,
       saleItemId:      p.saleItemId      || '',
       customerGroupId: p.customerGroupId || '',

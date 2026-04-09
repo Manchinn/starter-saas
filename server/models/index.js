@@ -58,6 +58,7 @@ const SaleItem = require('../../shared/erp/sale/models/SaleItem')
 
 // ── ERP: Settings ────────────────────────────────────────────────────────────
 const Sequence = require('../../shared/erp/settings/models/Sequence')
+const Setting  = require('../../shared/erp/settings/models/Setting')
 
 // ── User ↔ Module ───────────────────────────────────────────────────────────
 User.belongsToMany(Module, { through: UserModule, foreignKey: 'userId', as: 'modules' })
@@ -223,4 +224,5 @@ module.exports = {
   StockReturn, StockReturnItem,
   StockIssue, StockIssueItem,
   Sequence,
+  Setting,
 }

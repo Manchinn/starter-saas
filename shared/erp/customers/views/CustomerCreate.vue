@@ -12,6 +12,17 @@
       <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
 
         <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Customer Code</label>
+            <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" placeholder="e.g. CUS-001"
+              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <input v-else :value="autoCode.preview.value" type="text" readonly
+              class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 text-gray-500 font-mono cursor-not-allowed" />
+            <label class="mt-1 flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
+              Auto-generate
+            </label>
+          </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text" placeholder="Full name" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
@@ -72,12 +83,14 @@ import { useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { useAutoCode } from '@/composables/useAutoCode'
 
-const router = useRouter()
-const form   = ref({ name: '', company: '', email: '', phone: '', address: '', notes: '', status: 'active', customerGroupId: '' })
-const groups = ref([])
-const error  = ref('')
-const saving = ref(false)
+const router   = useRouter()
+const form     = ref({ code: '', name: '', company: '', email: '', phone: '', address: '', notes: '', status: 'active', customerGroupId: '' })
+const groups   = ref([])
+const error    = ref('')
+const saving   = ref(false)
+const autoCode = useAutoCode('CUS')
 
 onMounted(async () => {
   const { data } = await api.get('/erp/customer-groups/all')
@@ -89,7 +102,9 @@ async function save() {
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await api.post('/erp/customers', { ...form.value, customerGroupId: form.value.customerGroupId || null })
+    const payload = { ...form.value, customerGroupId: form.value.customerGroupId || null }
+    if (autoCode.enabled.value) { payload.autoCode = true; payload.code = null }
+    await api.post('/erp/customers', payload)
     router.push('/erp/customers')
   } catch (err) {
     const d = err.response?.data

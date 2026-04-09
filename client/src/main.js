@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { useAuthStore } from '@/stores/auth'
+import { useSettingsStore } from '@/stores/settings'
 import { vCan } from '@/directives/can'
 import './assets/main.css'
 
@@ -22,6 +23,9 @@ if (auth.accessToken) {
     auth.clearSession()
   }
 }
+
+const settings = useSettingsStore()
+if (auth.accessToken) await settings.load()
 
 app.use(router)
 app.directive('can', vCan)

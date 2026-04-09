@@ -42,12 +42,6 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-            <input v-model="form.currency" type="text" maxlength="10" placeholder="USD"
-              class="w-full px-3 py-2 border rounded-lg text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-
-          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
             <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="active">Active</option>
@@ -99,7 +93,7 @@ import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 
 const router   = useRouter()
-const form      = ref({ code: '', name: '', description: '', unitPrice: 0, currency: 'USD', status: 'active', saleItemId: '', customerGroupId: '' })
+const form      = ref({ code: '', name: '', description: '', unitPrice: 0, status: 'active', saleItemId: '', customerGroupId: '' })
 const autoCode  = useAutoCode('PRC')
 const groups    = ref([])
 const saleItems = ref([])

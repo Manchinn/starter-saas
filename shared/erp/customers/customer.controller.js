@@ -23,7 +23,7 @@ class CustomerController extends BaseController {
 
   async create(req, res) {
     try {
-      const customer = await service.create(req.body)
+      const customer = await service.create({ ...req.body, userId: req.user?.id })
       return this.created(res, { customer }, 'Customer created')
     } catch (err) {
       return this.fail(res, err.message, err.status || 400)

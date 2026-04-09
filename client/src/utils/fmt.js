@@ -4,26 +4,43 @@
  * Usage:
  *   import { fmtMoney, fmtNumber, fmtQty, fmtRate } from '@/utils/fmt'
  *
- *   fmtMoney(1234.5)       → "1,234.50"
- *   fmtMoney(1234.5, '$')  → "$1,234.50"
- *   fmtNumber(9876.543, 3) → "9,876.543"
- *   fmtQty(42)             → "42"
- *   fmtRate(1.23456789)    → "1.2346"
+ *   fmtMoney(1234.5)        → "1,234.50 ฿"  (uses currency settings)
+ *   fmtMoney(1234.5, '$')   → "$1,234.50"    (explicit symbol override, prefix)
+ *   fmtNumber(9876.543, 3)  → "9,876.543"
+ *   fmtQty(42)              → "42"
+ *   fmtRate(1.23456789)     → "1.2346"
  */
 import * as accounting from 'accounting-js'
+import { useSettingsStore } from '@/stores/settings'
 
-// Global defaults
-accounting.settings.number = { precision: 2, thousand: ',', decimal: '.' }
-accounting.settings.currency = { symbol: '', format: '%s%v', thousand: ',', decimal: '.', precision: 2 }
+function getCurrency() {
+  try {
+    return useSettingsStore().currency
+  } catch {
+    return { symbol: '฿', position: 'suffix', thousandSep: ',', decimalSep: '.', precision: 2 }
+  }
+}
 
 /**
- * Format a financial/monetary value.
+ * Format a financial/monetary value using the configured currency settings.
  * @param {number|string} value
- * @param {string}  symbol    Currency symbol (default: none)
- * @param {number}  precision Decimal places (default: 2)
+ * @param {string}  symbolOverride  If provided, overrides the currency symbol (forces prefix position)
+ * @param {number}  precisionOverride  If provided, overrides the configured decimal places
  */
-export function fmtMoney(value, symbol = '', precision = 2) {
-  return accounting.formatMoney(value, symbol, precision, ',', '.')
+export function fmtMoney(value, symbolOverride = undefined, precisionOverride = undefined) {
+  const c = getCurrency()
+  const symbol    = symbolOverride !== undefined ? symbolOverride : (c.symbol || '')
+  const precision = precisionOverride !== undefined ? precisionOverride : (c.precision ?? 2)
+  const format    = symbolOverride !== undefined
+    ? '%s%v'
+    : (c.position === 'prefix' ? '%s%v' : (symbol ? '%v\u00a0%s' : '%v'))
+  return accounting.formatMoney(value, {
+    symbol,
+    format,
+    thousand: c.thousandSep ?? ',',
+    decimal:  c.decimalSep  ?? '.',
+    precision,
+  })
 }
 
 /**

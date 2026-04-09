@@ -19,6 +19,7 @@ import {
   ChartBarIcon,
   Cog6ToothIcon,
   HashtagIcon,
+  CurrencyDollarIcon,
 } from '@heroicons/vue/24/outline'
 
 export default {
@@ -320,6 +321,13 @@ export default {
       component: () => import('./stock/stock-issue/views/StockIssueDetail.vue'),
       meta: { requiresAuth: true, title: 'Stock Issue Detail' },
     },
+    // Settings: General
+    {
+      path: '/erp/settings/general',
+      name: 'erp-settings-general',
+      component: () => import('./settings/views/GeneralSettings.vue'),
+      meta: { requiresAuth: true, title: 'General Settings' },
+    },
     // Settings: Sequence Numbers
     {
       path: '/erp/settings/sequence',
@@ -424,7 +432,8 @@ export default {
         label: 'Settings',
         icon: Cog6ToothIcon,
         children: [
-          { label: 'Sequence Numbers', to: '/erp/settings/sequence', icon: HashtagIcon, permission: 'erp.stock.edit' },
+          { label: 'General',          to: '/erp/settings/general',  icon: CurrencyDollarIcon, permission: 'erp.stock.edit' },
+          { label: 'Sequence Numbers', to: '/erp/settings/sequence', icon: HashtagIcon,        permission: 'erp.stock.edit' },
         ],
       },
     ],

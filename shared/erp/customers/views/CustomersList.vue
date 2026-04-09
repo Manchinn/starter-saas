@@ -1,79 +1,129 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
+    <div class="space-y-5">
 
       <!-- Header -->
       <div class="flex items-center justify-between gap-4">
-        <h1 class="text-2xl font-bold text-gray-900">Customers</h1>
-        <div class="flex items-center gap-3">
-          <input
-            v-model="search"
-            @input="onSearch"
-            type="search"
-            placeholder="Search customers…"
-            class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-56"
-          />
+        <div>
+          <h1 class="text-xl font-semibold text-gray-900">Customers</h1>
+          <p class="text-sm text-gray-500 mt-0.5">{{ total }} customer{{ total !== 1 ? 's' : '' }}</p>
+        </div>
+        <RouterLink
+          v-can="'erp.customers.edit'"
+          to="/erp/customers/create"
+          class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm
+                 font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
+          <PlusIcon class="w-4 h-4" />
+          New Customer
+        </RouterLink>
+      </div>
+
+      <!-- Table card -->
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+
+        <!-- Filter bar -->
+        <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3 flex-wrap">
+          <div class="relative flex-1 min-w-48 max-w-64">
+            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input v-model="search" @input="onSearch" type="search" placeholder="Search customers…"
+              class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
+                     focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
+                     focus:border-transparent transition-colors" />
+          </div>
           <select v-model="filterGroup" @change="() => { page = 1; fetchCustomers() }"
-            class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
+                   focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
+                   focus:border-transparent text-gray-700 transition-colors">
             <option value="">All Groups</option>
             <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
           </select>
-          <RouterLink
-            v-can="'erp.customers.edit'"
-            to="/erp/customers/create"
-            class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition whitespace-nowrap"
-          >+ New Customer</RouterLink>
         </div>
-      </div>
 
-      <!-- Table -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 border-b border-gray-200 text-left">
-            <tr>
-              <th class="px-5 py-3 font-medium text-gray-600">Name</th>
-              <th class="px-5 py-3 font-medium text-gray-600">Company</th>
-              <th class="px-5 py-3 font-medium text-gray-600">Group</th>
-              <th class="px-5 py-3 font-medium text-gray-600">Email</th>
-              <th class="px-5 py-3 font-medium text-gray-600">Phone</th>
-              <th class="px-5 py-3 font-medium text-gray-600">Status</th>
-              <th class="px-5 py-3"></th>
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100 text-left">
+              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
+              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Company</th>
+              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Group</th>
+              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Contact</th>
+              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+              <th class="px-5 py-3 w-20"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody class="divide-y divide-gray-50">
             <tr v-if="loading">
-              <td colspan="7" class="text-center py-12 text-gray-400">Loading…</td>
+              <td colspan="6" class="text-center py-16">
+                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+              </td>
             </tr>
             <tr v-else-if="!customers.length">
-              <td colspan="7" class="text-center py-12 text-gray-400">No customers found.</td>
-            </tr>
-            <tr v-for="c in customers" :key="c.id" class="hover:bg-gray-50 transition">
-              <td class="px-5 py-3 font-medium text-gray-900">{{ c.name }}</td>
-              <td class="px-5 py-3 text-gray-500">{{ c.company || '—' }}</td>
-              <td class="px-5 py-3 text-gray-500">{{ c.group?.name || '—' }}</td>
-              <td class="px-5 py-3 text-gray-500">{{ c.email || '—' }}</td>
-              <td class="px-5 py-3 text-gray-500">{{ c.phone || '—' }}</td>
-              <td class="px-5 py-3">
-                <span
-                  :class="c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
-                  class="px-2 py-0.5 rounded-full text-xs font-medium capitalize"
-                >{{ c.status }}</span>
+              <td colspan="6" class="text-center py-16">
+                <div class="flex flex-col items-center gap-2">
+                  <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <UsersIcon class="w-5 h-5 text-gray-400" />
+                  </div>
+                  <p class="text-sm text-gray-400 font-medium">No customers found</p>
+                </div>
               </td>
-              <td class="px-5 py-3 text-right whitespace-nowrap">
-                <RouterLink v-can="'erp.customers.edit'" :to="`/erp/customers/${c.id}/edit`" class="text-primary-600 hover:underline text-xs mr-3">Edit</RouterLink>
-                <button v-can="'erp.customers.delete'" @click="confirmDelete(c)" class="text-red-500 hover:underline text-xs">Delete</button>
+            </tr>
+            <tr v-for="c in customers" :key="c.id"
+              class="hover:bg-gray-50 transition-colors group">
+              <td class="px-5 py-3.5 font-medium text-gray-900">{{ c.name }}</td>
+              <td class="px-5 py-3.5 text-gray-500">{{ c.company || '—' }}</td>
+              <td class="px-5 py-3.5 text-gray-500">{{ c.group?.name || '—' }}</td>
+              <td class="px-5 py-3.5">
+                <div class="space-y-0.5">
+                  <p class="text-gray-600 text-xs">{{ c.email || '—' }}</p>
+                  <p class="text-gray-400 text-xs">{{ c.phone || '' }}</p>
+                </div>
+              </td>
+              <td class="px-5 py-3.5">
+                <span :class="c.status === 'active'
+                  ? 'bg-green-50 text-green-700'
+                  : 'bg-gray-100 text-gray-500'"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize">
+                  <span class="w-1.5 h-1.5 rounded-full"
+                    :class="c.status === 'active' ? 'bg-green-500' : 'bg-gray-400'"></span>
+                  {{ c.status }}
+                </span>
+              </td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center justify-end gap-1 transition-opacity">
+                  <RouterLink v-can="'erp.customers.edit'" :to="`/erp/customers/${c.id}/edit`"
+                    class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
+                    title="Edit">
+                    <PencilIcon class="w-4 h-4" />
+                  </RouterLink>
+                  <button v-can="'erp.customers.delete'" @click="confirmDelete(c)"
+                    class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    title="Delete">
+                    <TrashIcon class="w-4 h-4" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 text-sm text-gray-500">
-          <span>{{ total }} customer{{ total !== 1 ? 's' : '' }}</span>
+        <div class="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
+          <span class="text-xs text-gray-500">
+            Showing {{ customers.length ? (page - 1) * limit + 1 : 0 }}–{{ Math.min(page * limit, total) }} of {{ total }}
+          </span>
           <div class="flex items-center gap-1">
-            <button @click="page--" :disabled="page <= 1" class="px-3 py-1 border rounded-lg text-xs disabled:opacity-40 hover:bg-gray-50">Prev</button>
-            <span class="px-3 py-1 text-xs">{{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}</span>
-            <button @click="page++" :disabled="page * limit >= total" class="px-3 py-1 border rounded-lg text-xs disabled:opacity-40 hover:bg-gray-50">Next</button>
+            <button @click="page--" :disabled="page <= 1"
+              class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200
+                     text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
+              <ChevronLeftIcon class="w-4 h-4" />
+            </button>
+            <span class="text-xs text-gray-600 font-medium px-2 tabular-nums">
+              {{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}
+            </span>
+            <button @click="page++" :disabled="page * limit >= total"
+              class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200
+                     text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
+              <ChevronRightIcon class="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -84,17 +134,21 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import {
+  PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon,
+  ChevronLeftIcon, ChevronRightIcon, UsersIcon,
+} from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
-const customers  = ref([])
-const groups     = ref([])
-const total      = ref(0)
-const page       = ref(1)
-const limit      = 20
-const search     = ref('')
+const customers   = ref([])
+const groups      = ref([])
+const total       = ref(0)
+const page        = ref(1)
+const limit       = 20
+const search      = ref('')
 const filterGroup = ref('')
-const loading    = ref(false)
+const loading     = ref(false)
 let searchTimeout = null
 
 async function fetchGroups() {
