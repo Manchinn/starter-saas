@@ -35,11 +35,28 @@ const Vendor = sequelize.define('Vendor', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  vendorTypes: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    defaultValue: '[]',
+    get() {
+      const raw = this.getDataValue('vendorTypes')
+      if (!raw) return []
+      try { return JSON.parse(raw) } catch { return [] }
+    },
+    set(val) {
+      this.setDataValue('vendorTypes', JSON.stringify(val || []))
+    },
+  },
   status: {
     type: DataTypes.STRING,
     defaultValue: 'active',
   },
   createdBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
+  organizationId: {
     type: DataTypes.UUID,
     allowNull: true,
   },

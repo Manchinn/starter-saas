@@ -1,4 +1,4 @@
-import { UsersIcon, PuzzlePieceIcon, ShieldCheckIcon, KeyIcon, Squares2X2Icon, SparklesIcon } from '@heroicons/vue/24/outline'
+import { BuildingOffice2Icon, PuzzlePieceIcon, ShieldCheckIcon, KeyIcon, Squares2X2Icon, SparklesIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 
 export default {
   slug: 'admin',
@@ -7,10 +7,28 @@ export default {
   order: 90,
   routes: [
     {
-      path: '/admin/users',
-      name: 'admin-users',
-      component: () => import('./views/Users.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true, title: 'Users' },
+      path: '/admin/organizations',
+      name: 'admin-organizations',
+      component: () => import('./views/Organizations.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Organizations' },
+    },
+    {
+      path: '/admin/staff',
+      name: 'admin-staff',
+      component: () => import('./views/Staff.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Staff Accounts' },
+    },
+    {
+      path: '/admin/staff/create',
+      name: 'admin-staff-create',
+      component: () => import('./views/StaffCreate.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'New Staff Member' },
+    },
+    {
+      path: '/admin/staff/:id/edit',
+      name: 'admin-staff-edit',
+      component: () => import('./views/StaffEdit.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Edit Staff Member' },
     },
     {
       path: '/admin/roles',
@@ -62,11 +80,11 @@ export default {
     label: 'Admin',
     icon: ShieldCheckIcon,
     children: [
-      { label: 'Users',        to: '/admin/users',       icon: UsersIcon,       permission: 'users.list' },
-      { label: 'Roles',        to: '/admin/roles',       icon: ShieldCheckIcon, permission: 'roles.list' },
-      { label: 'Permissions',  to: '/admin/permissions', icon: KeyIcon,         permission: 'permissions.list' },
-      { label: 'Core Modules', to: '/admin/modules',     icon: PuzzlePieceIcon, permission: 'modules.list' },
-      { label: 'Templates',    to: '/admin/templates',   icon: SparklesIcon },
+      { label: 'Organizations', to: '/admin/organizations', icon: BuildingOffice2Icon, permission: 'organizations.list' },
+      { label: 'Roles',         to: '/admin/roles',         icon: ShieldCheckIcon,   permission: 'roles.list' },
+      { label: 'Permissions',   to: '/admin/permissions',   icon: KeyIcon,           permission: 'permissions.list' },
+      { label: 'Core Modules',  to: '/admin/modules',       icon: PuzzlePieceIcon,   permission: 'modules.list' },
+      { label: 'Templates',     to: '/admin/templates',     icon: SparklesIcon },
     ],
   },
 }

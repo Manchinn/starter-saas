@@ -36,6 +36,14 @@
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
+          <select v-model="typeFilter" @change="page = 1; load()"
+            class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
+                   focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
+                   focus:border-transparent text-gray-700 transition-colors">
+            <option value="">All Types</option>
+            <option value="supplier">Supplier</option>
+            <option value="service_provider">Service Provider</option>
+          </select>
         </div>
 
         <table class="w-full text-sm">
@@ -46,18 +54,19 @@
               <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Contact</th>
               <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</th>
               <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</th>
+              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</th>
               <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
               <th class="px-5 py-3 w-20"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
             <tr v-if="loading">
-              <td colspan="7" class="text-center py-16">
+              <td colspan="8" class="text-center py-16">
                 <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
               </td>
             </tr>
             <tr v-else-if="!vendors.length">
-              <td colspan="7" class="text-center py-16">
+              <td colspan="8" class="text-center py-16">
                 <div class="flex flex-col items-center gap-2">
                   <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
                     <BuildingOfficeIcon class="w-5 h-5 text-gray-400" />
@@ -73,6 +82,16 @@
               <td class="px-5 py-3.5 text-gray-600">{{ v.contactPerson || '—' }}</td>
               <td class="px-5 py-3.5 text-gray-500 text-xs">{{ v.email || '—' }}</td>
               <td class="px-5 py-3.5 text-gray-500 text-xs">{{ v.phone || '—' }}</td>
+              <td class="px-5 py-3.5">
+                <div class="flex flex-wrap gap-1">
+                  <span v-if="!v.vendorTypes?.length" class="text-gray-400 text-xs">—</span>
+                  <span v-for="t in (v.vendorTypes || [])" :key="t"
+                    :class="t === 'service_provider' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">
+                    {{ t === 'service_provider' ? 'Service Provider' : 'Supplier' }}
+                  </span>
+                </div>
+              </td>
               <td class="px-5 py-3.5">
                 <span :class="v.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'"
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize">
@@ -141,6 +160,7 @@ const page         = ref(1)
 const limit        = 20
 const search       = ref('')
 const statusFilter = ref('')
+const typeFilter   = ref('')
 const loading      = ref(false)
 let searchTimeout  = null
 
@@ -148,7 +168,7 @@ async function load() {
   loading.value = true
   try {
     const { data } = await api.get('/erp/vendors', {
-      params: { page: page.value, limit, search: search.value, status: statusFilter.value },
+      params: { page: page.value, limit, search: search.value, status: statusFilter.value, typeFilter: typeFilter.value },
     })
     vendors.value = data.data.vendors
     total.value   = data.data.total

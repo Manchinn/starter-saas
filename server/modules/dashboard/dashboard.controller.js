@@ -1,7 +1,7 @@
-const BaseController = require('../../core/BaseController')
+const { ok, serverError } = require('../../core/response')
 const { User, Module } = require('../../models')
 
-class DashboardController extends BaseController {
+module.exports = {
   async stats(req, res) {
     try {
       const [totalUsers, totalModules, activeModules] = await Promise.all([
@@ -9,11 +9,9 @@ class DashboardController extends BaseController {
         Module.count(),
         Module.count({ where: { isActive: true } }),
       ])
-      return this.ok(res, { totalUsers, totalModules, activeModules })
+      return ok(res, { totalUsers, totalModules, activeModules })
     } catch (err) {
-      return this.serverError(res)
+      return serverError(res)
     }
-  }
+  },
 }
-
-module.exports = new DashboardController()

@@ -1,50 +1,52 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 
-const Pricing = sequelize.define('Pricing', {
+const Customer = sequelize.define('Customer', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
   code: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING,
     allowNull: true,
   },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  description: {
+  email: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  company: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  address: {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  unitPrice: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    defaultValue: 0,
-  },
-  currency: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    defaultValue: 'USD',
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true,
   },
   status: {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
-  saleItemId: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
   customerGroupId: {
     type: DataTypes.UUID,
     allowNull: true,
   },
-  createdBy: {
+  organizationId: {
     type: DataTypes.UUID,
     allowNull: true,
   },
 })
 
-module.exports = Pricing
+module.exports = Customer

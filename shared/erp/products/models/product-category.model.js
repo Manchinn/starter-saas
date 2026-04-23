@@ -1,40 +1,40 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 
-const Store = sequelize.define('Store', {
+const ProductCategory = sequelize.define('ProductCategory', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  code: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  code: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  address: {
+  description: {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  phone: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  email: {
-    type: DataTypes.STRING,
+  parentId: {
+    type: DataTypes.UUID,
     allowNull: true,
   },
   status: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
   createdBy: {
     type: DataTypes.UUID,
     allowNull: true,
   },
+  organizationId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
 })
 
-module.exports = Store
+module.exports = ProductCategory

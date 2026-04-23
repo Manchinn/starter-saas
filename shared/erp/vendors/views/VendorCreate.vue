@@ -59,6 +59,21 @@
               <option value="inactive">Inactive</option>
             </select>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Vendor Type</label>
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                <input type="checkbox" value="supplier" v-model="form.vendorTypes"
+                  class="rounded text-primary-600 focus:ring-primary-500" />
+                Supplier
+              </label>
+              <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                <input type="checkbox" value="service_provider" v-model="form.vendorTypes"
+                  class="rounded text-primary-600 focus:ring-primary-500" />
+                Service Provider
+              </label>
+            </div>
+          </div>
         </div>
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
@@ -85,7 +100,7 @@ import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 
 const router  = useRouter()
-const form    = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', status: 'active' })
+const form    = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active' })
 const error   = ref('')
 const saving  = ref(false)
 const autoCode = useAutoCode('VND')

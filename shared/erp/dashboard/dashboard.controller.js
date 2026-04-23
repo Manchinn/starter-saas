@@ -1,15 +1,13 @@
-const BaseController = require('../../../server/core/BaseController')
+const { ok, serverError } = require('../../../server/core/response')
 const service = require('./dashboard.service')
 
-class DashboardController extends BaseController {
+module.exports = {
   async stats(req, res) {
     try {
       const data = await service.getStats()
-      return this.ok(res, data)
+      return ok(res, data)
     } catch (err) {
-      return this.serverError(res)
+      return serverError(res)
     }
-  }
+  },
 }
-
-module.exports = new DashboardController()

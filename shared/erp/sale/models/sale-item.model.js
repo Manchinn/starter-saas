@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 
-const ProductCategory = sequelize.define('ProductCategory', {
+const SaleItem = sequelize.define('SaleItem', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -15,11 +15,7 @@ const ProductCategory = sequelize.define('ProductCategory', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  parentId: {
+  productId: {
     type: DataTypes.UUID,
     allowNull: true,
   },
@@ -31,6 +27,12 @@ const ProductCategory = sequelize.define('ProductCategory', {
     type: DataTypes.UUID,
     allowNull: true,
   },
+  organizationId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
+}, {
+  tableName: 'sale_items',
 })
 
-module.exports = ProductCategory
+module.exports = SaleItem

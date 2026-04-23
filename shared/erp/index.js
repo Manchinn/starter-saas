@@ -20,6 +20,9 @@ import {
   Cog6ToothIcon,
   HashtagIcon,
   CurrencyDollarIcon,
+  IdentificationIcon,
+  UserGroupIcon,
+  SparklesIcon,
 } from '@heroicons/vue/24/outline'
 
 export default {
@@ -321,6 +324,44 @@ export default {
       component: () => import('./stock/stock-issue/views/StockIssueDetail.vue'),
       meta: { requiresAuth: true, title: 'Stock Issue Detail' },
     },
+    // HRMS: Employees
+    {
+      path: '/erp/hrms/employees',
+      name: 'erp-hrms-employees',
+      component: () => import('./hrms/views/EmployeesList.vue'),
+      meta: { requiresAuth: true, title: 'Employees' },
+    },
+    {
+      path: '/erp/hrms/employees/create',
+      name: 'erp-hrms-employees-create',
+      component: () => import('./hrms/views/EmployeeCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Employee' },
+    },
+    {
+      path: '/erp/hrms/employees/:id/edit',
+      name: 'erp-hrms-employees-edit',
+      component: () => import('./hrms/views/EmployeeEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Employee' },
+    },
+    // HRMS: Departments
+    {
+      path: '/erp/hrms/departments',
+      name: 'erp-hrms-departments',
+      component: () => import('./hrms/views/DepartmentsList.vue'),
+      meta: { requiresAuth: true, title: 'Departments' },
+    },
+    {
+      path: '/erp/hrms/departments/create',
+      name: 'erp-hrms-departments-create',
+      component: () => import('./hrms/views/DepartmentCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Department' },
+    },
+    {
+      path: '/erp/hrms/departments/:id/edit',
+      name: 'erp-hrms-departments-edit',
+      component: () => import('./hrms/views/DepartmentEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Department' },
+    },
     // Settings: General
     {
       path: '/erp/settings/general',
@@ -385,6 +426,13 @@ export default {
       component: () => import('./pricing/views/PricingEdit.vue'),
       meta: { requiresAuth: true, title: 'Edit Price List' },
     },
+    // Settings — Demo Data
+    {
+      path: '/erp/settings/demo-data',
+      name: 'erp-settings-demo-data',
+      component: () => import('./settings/views/DemoData.vue'),
+      meta: { requiresAuth: true, title: 'Demo Data' },
+    },
   ],
   navItem: {
     label: 'ERP',
@@ -399,13 +447,13 @@ export default {
           { label: 'Groups',           to: '/erp/customer-groups', icon: TagIcon,      permission: 'erp.customer-groups.list' },
         ],
       },
+      { label: 'Vendors', to: '/erp/vendors', icon: BuildingLibraryIcon, permission: 'erp.products.list' },
       {
         label: 'Inventory',
         icon: CubeIcon,
         children: [
           { label: 'Product Category', to: '/erp/product-categories', icon: TagIcon,                    permission: 'erp.products.list' },
           { label: 'Product Master',   to: '/erp/item-master',        icon: CubeIcon,                   permission: 'erp.products.list' },
-          { label: 'Vendors',          to: '/erp/vendors',            icon: BuildingLibraryIcon,         permission: 'erp.products.list' },
           { label: 'Stores',           to: '/erp/stores',             icon: BuildingStorefrontIcon,         permission: 'erp.stores.list' },
           { label: 'UOM',              to: '/erp/uom',                icon: ScaleIcon,                     permission: 'erp.uom.list' },
           { label: 'UOM Conversion',   to: '/erp/uom-conversion',     icon: ArrowUturnRightIcon,           permission: 'erp.uom.list' },
@@ -420,7 +468,7 @@ export default {
         ],
       },
       {
-        label: 'Sale',
+        label: 'Sales',
         icon: ShoppingCartIcon,
         children: [
           { label: 'Sale Items',  to: '/erp/sale-items', icon: ClipboardDocumentListIcon, permission: 'erp.sale-items.list' },
@@ -429,11 +477,20 @@ export default {
         ],
       },
       {
+        label: 'HRMS',
+        icon: UserGroupIcon,
+        children: [
+          { label: 'Employees', to: '/erp/hrms/employees', icon: IdentificationIcon, permission: 'erp.hrms.list' },
+          { label: 'Departments', to: '/erp/hrms/departments', icon: UserGroupIcon, permission: 'erp.departments.list' },
+        ],
+      },
+      {
         label: 'Settings',
         icon: Cog6ToothIcon,
         children: [
-          { label: 'General',          to: '/erp/settings/general',  icon: CurrencyDollarIcon, permission: 'erp.stock.edit' },
-          { label: 'Sequence Numbers', to: '/erp/settings/sequence', icon: HashtagIcon,        permission: 'erp.stock.edit' },
+          { label: 'General',          to: '/erp/settings/general',    icon: CurrencyDollarIcon, permission: 'erp.stock.edit' },
+          { label: 'Sequence Numbers', to: '/erp/settings/sequence',  icon: HashtagIcon,        permission: 'erp.stock.edit' },
+          { label: 'Demo Data',        to: '/erp/settings/demo-data', icon: SparklesIcon,       permission: 'erp.stock.edit' },
         ],
       },
     ],

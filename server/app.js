@@ -3,7 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const config = require('./config/config')
 const { sequelize } = require('./models')
-const moduleLoader = require('./core/ModuleLoader')
+const moduleLoader = require('./core/module.loader')
 const { runMigrations, seedSequences } = require('./migrations')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
 

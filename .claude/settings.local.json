@@ -27,7 +27,11 @@
       "Bash(sed -i \"s|../../server/middleware/auth|../../../server/middleware/auth|g; s|../../server/middleware/permission|../../../server/middleware/permission|g\" D:/Projects/starter-saas/shared/erp/settings/sequence.routes.js)",
       "Bash(sed -i \"s|../../server/models|../../../server/models|g; s|../../server/config/database|../../../server/config/database|g\" D:/Projects/starter-saas/shared/erp/settings/sequence.service.js)",
       "Bash(xargs sed:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(mv \"shared/erp/hrms/models/Department.js\"         \"shared/erp/hrms/models/department.model.js\")",
+      "Bash(mv \"shared/erp/hrms/models/Employee.js\"           \"shared/erp/hrms/models/employee.model.js\")",
+      "Bash(mv \"shared/erp/hrms/models/EmployeeDepartment.js\" \"shared/erp/hrms/models/employee-department.model.js\")",
+      "Bash(git mv *)"
     ]
   }
 }

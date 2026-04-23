@@ -11,6 +11,8 @@ const DEFAULTS = {
   RTN: { name: 'Stock Return',          format: 'RTN{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   ISS: { name: 'Stock Issue',           format: 'ISS{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   CUS: { name: 'Customer Code',          format: 'CUS{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  EMP: { name: 'Employee Code',          format: 'EMP{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  DEP: { name: 'Department Code',        format: 'DEP{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   VND: { name: 'Vendor Code',           format: 'VND{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   PRD: { name: 'Product Code / SKU',    format: 'PRD{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   CAT: { name: 'Category Code',         format: 'CAT{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
@@ -118,16 +120,18 @@ const getById = async (id) => {
   return { ...seq.toJSON(), preview: preview(seq) }
 }
 
-const create = async ({ code, name, initialValue, runningValue, reseedPeriod, maxValue, format }) => {
+const create = async ({ code, name, initialValue, runningValue, reseedPeriod, maxValue, format }, userId) => {
   if (!code?.trim()) throw { status: 400, message: 'Code is required' }
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   if (!format?.trim()) throw { status: 400, message: 'Format is required' }
-  const exists = await Sequence.findOne({ where: { code: code.trim().toUpperCase() } })
-  if (exists) throw { status: 400, message: `Sequence code '${code}' already exists` }
+  const normalizedCode = code.trim().toUpperCase()
+  const exists = await Sequence.findOne({ where: { code: normalizedCode, userId: userId || null } })
+  if (exists) throw { status: 400, message: `Sequence code '${normalizedCode}' already exists for this organization` }
 
   const iv = parseInt(initialValue) || 1
   const seq = await Sequence.create({
-    code:         code.trim().toUpperCase(),
+    code:         normalizedCode,
+    userId:       userId || null,
     name:         name.trim(),
     initialValue: iv,
     runningValue: parseInt(runningValue) || iv,

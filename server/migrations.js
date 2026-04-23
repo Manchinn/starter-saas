@@ -63,9 +63,28 @@ const columns = [
   `ALTER TABLE Stores ADD COLUMN createdBy TEXT`,
   `ALTER TABLE UOMs ADD COLUMN createdBy TEXT`,
   `ALTER TABLE Vendors ADD COLUMN createdBy TEXT`,
+  `ALTER TABLE Vendors ADD COLUMN vendorTypes TEXT`,
   `ALTER TABLE ProductCategories ADD COLUMN createdBy TEXT`,
   `ALTER TABLE Products ADD COLUMN createdBy TEXT`,
   `ALTER TABLE Pricings ADD COLUMN createdBy TEXT`,
+
+  // Organization-scoped code uniqueness — add organizationId to master data tables
+  `ALTER TABLE Customers ADD COLUMN organizationId TEXT`,
+  `ALTER TABLE sale_items ADD COLUMN organizationId TEXT`,
+  `ALTER TABLE Pricings ADD COLUMN organizationId TEXT`,
+  `ALTER TABLE Vendors ADD COLUMN organizationId TEXT`,
+  `ALTER TABLE Stores ADD COLUMN organizationId TEXT`,
+  `ALTER TABLE ProductCategories ADD COLUMN organizationId TEXT`,
+
+  // Unique indexes: code must be unique per organization (NULLs are treated as distinct in SQLite)
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_code_org      ON Customers        (code, organizationId)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_sale_items_code_org     ON sale_items        (code, organizationId)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_pricings_code_org       ON Pricings          (code, organizationId)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_vendors_code_org        ON Vendors           (code, organizationId)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_stores_code_org         ON Stores            (code, organizationId)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_code_org     ON ProductCategories (code, organizationId)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_departments_code_org    ON Departments       (code, organizationId)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_sequences_code_user     ON Sequences         (code, userId)`,
 ]
 
 
@@ -135,6 +154,7 @@ const SEQUENCE_SEEDS = [
   { code: 'STR', name: 'Stock Transfer',    format: 'RQ{YY}{MM}{####}',  initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
   { code: 'RTN', name: 'Stock Return',     format: 'RTN{YY}{MM}{####}', initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
   { code: 'ISS', name: 'Stock Issue',     format: 'ISS{YY}{MM}{####}', initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
+  { code: 'DEP', name: 'Department Code', format: 'DEP{####}',         initialValue: 1, runningValue: 1, reseedPeriod: 'F', maxValue: 99999 },
 ]
 
 async function seedSequences() {

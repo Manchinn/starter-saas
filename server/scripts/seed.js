@@ -4,10 +4,10 @@ const { sequelize, User, Module, Role, Permission } = require('../models')
 const DEFAULT_PERMISSIONS = [
   // Dashboard
   { name: 'View Dashboard', slug: 'dashboard.view', group: 'dashboard', description: 'Access the dashboard' },
-  // Users
-  { name: 'List Users', slug: 'users.list', group: 'users', description: 'View list of users' },
-  { name: 'Edit Users', slug: 'users.edit', group: 'users', description: 'Edit user details' },
-  { name: 'Delete Users', slug: 'users.delete', group: 'users', description: 'Delete users' },
+  // Organizations
+  { name: 'List Organizations', slug: 'organizations.list', group: 'organizations', description: 'View list of organizations' },
+  { name: 'Edit Organizations', slug: 'organizations.edit', group: 'organizations', description: 'Edit organization details' },
+  { name: 'Delete Organizations', slug: 'organizations.delete', group: 'organizations', description: 'Delete organizations' },
   // Modules
   { name: 'List Modules', slug: 'modules.list', group: 'modules', description: 'View modules' },
   { name: 'Manage Modules', slug: 'modules.manage', group: 'modules', description: 'Create/edit/toggle modules' },
@@ -31,10 +31,10 @@ const DEFAULT_ROLES = [
   {
     name: 'Manager',
     slug: 'manager',
-    description: 'Can manage users and view modules',
+    description: 'Can manage organizations and view modules',
     color: '#2563eb',
     isSystem: false,
-    permissionSlugs: ['dashboard.view', 'users.list', 'users.edit', 'modules.list', 'roles.list', 'permissions.list'],
+    permissionSlugs: ['dashboard.view', 'organizations.list', 'organizations.edit', 'modules.list', 'roles.list', 'permissions.list'],
   },
   {
     name: 'Viewer',
@@ -42,7 +42,7 @@ const DEFAULT_ROLES = [
     description: 'Read-only access',
     color: '#16a34a',
     isSystem: false,
-    permissionSlugs: ['dashboard.view', 'users.list', 'modules.list'],
+    permissionSlugs: ['dashboard.view', 'organizations.list', 'modules.list'],
   },
 ]
 

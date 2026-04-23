@@ -1,63 +1,63 @@
-const BaseController = require('../../../../server/core/BaseController')
+const { ok, created, fail, serverError } = require('../../../../server/core/response')
 const service = require('./stock-count.service')
 
-class StockCountController extends BaseController {
+module.exports = {
   async list(req, res) {
     try {
       const { page, limit, search } = req.query
       const result = await service.list({ page: +page || 1, limit: +limit || 20, search: search || '' })
-      return this.ok(res, result)
+      return ok(res, result)
     } catch (err) {
-      return this.serverError(res)
+      return serverError(res)
     }
-  }
+  },
 
   async getById(req, res) {
     try {
       const sc = await service.getById(req.params.id)
-      return this.ok(res, { stockCount: sc })
+      return ok(res, { stockCount: sc })
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 
   async getStoreProducts(req, res) {
     try {
       const { storeId } = req.query
-      if (!storeId) return this.fail(res, 'storeId is required', 400)
+      if (!storeId) return fail(res, 'storeId is required', 400)
       const products = await service.getStoreProducts(storeId)
-      return this.ok(res, { products })
+      return ok(res, { products })
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 
   async create(req, res) {
     try {
       const sc = await service.create({ ...req.body, userId: req.user?.id })
-      return this.created(res, { stockCount: sc }, 'Stock Count created')
+      return created(res, { stockCount: sc }, 'Stock Count created')
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 
   async confirm(req, res) {
     try {
       const sc = await service.confirm(req.params.id)
-      return this.ok(res, { stockCount: sc }, 'Stock Count confirmed')
+      return ok(res, { stockCount: sc }, 'Stock Count confirmed')
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 
   async remove(req, res) {
     try {
       await service.remove(req.params.id)
-      return this.ok(res, null, 'Stock Count deleted')
+      return ok(res, null, 'Stock Count deleted')
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 
   async checkLock(req, res) {
     try {
@@ -65,13 +65,11 @@ class StockCountController extends BaseController {
       const { StockCount } = require('../../../../server/models')
       const locked = await StockCount.findOne({
         where: { storeId, status: 'draft', movementLocked: true },
-        attributes: ['id', 'refNo']
+        attributes: ['id', 'refNo'],
       })
-      return this.ok(res, { isLocked: !!locked, lockedBy: locked })
+      return ok(res, { isLocked: !!locked, lockedBy: locked })
     } catch (err) {
-      return this.serverError(res)
+      return serverError(res)
     }
-  }
+  },
 }
-
-module.exports = new StockCountController()

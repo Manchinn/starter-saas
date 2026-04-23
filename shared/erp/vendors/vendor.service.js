@@ -1,7 +1,7 @@
 const { Vendor } = require('../../../server/models')
 const { Op } = require('sequelize')
 
-const list = async ({ page = 1, limit = 20, search = '', status = '', createdBy }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', typeFilter = '', createdBy }) => {
   const offset = (page - 1) * limit
   const where = { createdBy: createdBy || null }
   if (search) where[Op.or] = [
@@ -10,6 +10,7 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', createdBy 
     { email: { [Op.like]: `%${search}%` } },
   ]
   if (status) where.status = status
+  if (typeFilter) where.vendorTypes = { [Op.like]: `%${typeFilter}%` }
 
   const { count, rows } = await Vendor.findAndCountAll({
     where, limit, offset,
@@ -24,7 +25,7 @@ const getById = async (id) => {
   return vendor
 }
 
-const create = async ({ name, code, contactPerson, email, phone, address, notes, status = 'active', autoCode, userId }) => {
+const create = async ({ name, code, contactPerson, email, phone, address, notes, vendorTypes, status = 'active', autoCode, userId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   if (autoCode) {
     const seqSvc = require('../settings/sequence.service')
@@ -33,10 +34,10 @@ const create = async ({ name, code, contactPerson, email, phone, address, notes,
     const existing = await Vendor.findOne({ where: { code: code.trim(), createdBy: userId || null } })
     if (existing) throw { status: 400, message: 'Vendor code already exists' }
   }
-  return Vendor.create({ name: name.trim(), code: code?.trim() || null, contactPerson, email, phone, address, notes, status, createdBy: userId || null })
+  return Vendor.create({ name: name.trim(), code: code?.trim() || null, contactPerson, email, phone, address, notes, vendorTypes: vendorTypes || [], status, createdBy: userId || null })
 }
 
-const update = async (id, { name, code, contactPerson, email, phone, address, notes, status }, userId) => {
+const update = async (id, { name, code, contactPerson, email, phone, address, notes, vendorTypes, status }, userId) => {
   const vendor = await Vendor.findByPk(id)
   if (!vendor) throw { status: 404, message: 'Vendor not found' }
   if (code?.trim()) {
@@ -51,6 +52,7 @@ const update = async (id, { name, code, contactPerson, email, phone, address, no
     ...(phone         !== undefined && { phone }),
     ...(address       !== undefined && { address }),
     ...(notes         !== undefined && { notes }),
+    ...(vendorTypes   !== undefined && { vendorTypes }),
     ...(status        !== undefined && { status }),
   })
   return vendor

@@ -5,14 +5,14 @@
       <!-- Header -->
       <div class="flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">Users</h1>
-          <p class="text-sm text-gray-500 mt-0.5">{{ total }} user{{ total !== 1 ? 's' : '' }}</p>
+          <h1 class="text-xl font-semibold text-gray-900">Organizations</h1>
+          <p class="text-sm text-gray-500 mt-0.5">{{ total }} organization{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <button v-can="'users.edit'" @click="openCreate"
+        <button v-can="'organizations.edit'" @click="openCreate"
           class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm
                  font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
           <PlusIcon class="w-4 h-4" />
-          New User
+          New Organization
         </button>
       </div>
 
@@ -23,7 +23,7 @@
         <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3">
           <div class="relative flex-1 min-w-48 max-w-64">
             <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input v-model="search" @input="onSearch" type="search" placeholder="Search users…"
+            <input v-model="search" @input="onSearch" type="search" placeholder="Search organizations…"
               class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
                      focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
                      focus:border-transparent transition-colors" />
@@ -33,7 +33,7 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-gray-50 border-b border-gray-100 text-left">
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">User</th>
+              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Organization</th>
               <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">System Role</th>
               <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Assigned Roles</th>
               <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
@@ -48,19 +48,19 @@
                 <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
               </td>
             </tr>
-            <tr v-else-if="!users.length">
+            <tr v-else-if="!organizations.length">
               <td colspan="7" class="text-center py-16">
                 <div class="flex flex-col items-center gap-2">
                   <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <UsersIcon class="w-5 h-5 text-gray-400" />
+                    <BuildingOffice2Icon class="w-5 h-5 text-gray-400" />
                   </div>
-                  <p class="text-sm text-gray-400 font-medium">No users found</p>
+                  <p class="text-sm text-gray-400 font-medium">No organizations found</p>
                 </div>
               </td>
             </tr>
-            <tr v-for="u in users" :key="u.id" class="hover:bg-gray-50 transition-colors group">
+            <tr v-for="u in organizations" :key="u.id" class="hover:bg-gray-50 transition-colors group">
 
-              <!-- User -->
+              <!-- Organization -->
               <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
@@ -113,15 +113,19 @@
                     class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors" title="View">
                     <EyeIcon class="w-4 h-4" />
                   </button>
-                  <button v-can="'users.edit'" @click="openEdit(u.id)"
+                  <button v-can="'organizations.edit'" @click="openEdit(u.id)"
                     class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors" title="Edit">
                     <PencilIcon class="w-4 h-4" />
                   </button>
+                  <RouterLink :to="`/admin/staff?organizationId=${u.id}`"
+                    class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Manage Staff Accounts">
+                    <UserGroupIcon class="w-4 h-4" />
+                  </RouterLink>
                   <button @click="seedSequences(u)" :disabled="seedingId === u.id"
                     class="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors disabled:opacity-40" title="Seed Sequences">
                     <CpuChipIcon class="w-4 h-4" />
                   </button>
-                  <button v-can="'users.delete'" @click="confirmDelete(u)"
+                  <button v-can="'organizations.delete'" @click="confirmDelete(u)"
                     class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
                     <TrashIcon class="w-4 h-4" />
                   </button>
@@ -133,7 +137,7 @@
 
         <!-- Pagination -->
         <div class="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
-          <span class="text-xs text-gray-500">Showing {{ users.length ? (page-1)*limit+1 : 0 }}–{{ Math.min(page*limit,total) }} of {{ total }}</span>
+          <span class="text-xs text-gray-500">Showing {{ organizations.length ? (page-1)*limit+1 : 0 }}–{{ Math.min(page*limit,total) }} of {{ total }}</span>
           <div class="flex items-center gap-1">
             <button @click="page--" :disabled="page <= 1"
               class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
@@ -148,15 +152,15 @@
         </div>
       </div>
 
-      <!-- ── View User Slide-over ──────────────────────────────────────────── -->
+      <!-- ── View Organization Slide-over ──────────────────────────────────────────── -->
       <Transition name="slide">
-        <div v-if="viewUser" class="fixed inset-0 z-50 flex justify-end">
-          <div class="absolute inset-0 bg-black/30" @click="viewUser = null" />
+        <div v-if="viewOrganization" class="fixed inset-0 z-50 flex justify-end">
+          <div class="absolute inset-0 bg-black/30" @click="viewOrganization = null" />
           <div class="relative w-full max-w-md bg-white shadow-xl flex flex-col h-full">
             <!-- Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b">
-              <h2 class="text-lg font-semibold">User Details</h2>
-              <button @click="viewUser = null" class="text-gray-400 hover:text-gray-600">✕</button>
+              <h2 class="text-lg font-semibold">Organization Details</h2>
+              <button @click="viewOrganization = null" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
 
             <!-- Body -->
@@ -164,11 +168,11 @@
               <!-- Avatar + name -->
               <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-2xl font-bold">
-                  {{ viewUser.name.charAt(0).toUpperCase() }}
+                  {{ viewOrganization.name.charAt(0).toUpperCase() }}
                 </div>
                 <div>
-                  <p class="text-lg font-semibold text-gray-900">{{ viewUser.name }}</p>
-                  <p class="text-sm text-gray-500">{{ viewUser.email }}</p>
+                  <p class="text-lg font-semibold text-gray-900">{{ viewOrganization.name }}</p>
+                  <p class="text-sm text-gray-500">{{ viewOrganization.email }}</p>
                 </div>
               </div>
 
@@ -177,34 +181,34 @@
                 <div>
                   <dt class="text-xs font-medium text-gray-400 uppercase tracking-wide">System Role</dt>
                   <dd class="mt-1">
-                    <span :class="systemRoleBadge(viewUser.role)" class="px-2 py-0.5 rounded-full text-xs font-medium capitalize">
-                      {{ viewUser.role }}
+                    <span :class="systemRoleBadge(viewOrganization.role)" class="px-2 py-0.5 rounded-full text-xs font-medium capitalize">
+                      {{ viewOrganization.role }}
                     </span>
                   </dd>
                 </div>
                 <div>
                   <dt class="text-xs font-medium text-gray-400 uppercase tracking-wide">Status</dt>
                   <dd class="mt-1">
-                    <span :class="viewUser.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="px-2 py-0.5 rounded-full text-xs font-medium">
-                      {{ viewUser.isActive ? 'Active' : 'Inactive' }}
+                    <span :class="viewOrganization.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="px-2 py-0.5 rounded-full text-xs font-medium">
+                      {{ viewOrganization.isActive ? 'Active' : 'Inactive' }}
                     </span>
                   </dd>
                 </div>
                 <div>
                   <dt class="text-xs font-medium text-gray-400 uppercase tracking-wide">Joined</dt>
-                  <dd class="mt-1 text-sm text-gray-700">{{ fmtDateLong(viewUser.createdAt) }}</dd>
+                  <dd class="mt-1 text-sm text-gray-700">{{ fmtDateLong(viewOrganization.createdAt) }}</dd>
                 </div>
                 <div>
                   <dt class="text-xs font-medium text-gray-400 uppercase tracking-wide">Last Login</dt>
-                  <dd class="mt-1 text-sm text-gray-700">{{ viewUser.lastLoginAt ? fmtDateLong(viewUser.lastLoginAt) : 'Never' }}</dd>
+                  <dd class="mt-1 text-sm text-gray-700">{{ viewOrganization.lastLoginAt ? fmtDateLong(viewOrganization.lastLoginAt) : 'Never' }}</dd>
                 </div>
               </dl>
 
               <!-- Roles & Permissions -->
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Roles & Permissions</p>
-                <div v-if="!viewUser.roles?.length" class="text-sm text-gray-400 italic">No roles assigned.</div>
-                <div v-for="role in viewUser.roles" :key="role.id" class="mb-3">
+                <div v-if="!viewOrganization.roles?.length" class="text-sm text-gray-400 italic">No roles assigned.</div>
+                <div v-for="role in viewOrganization.roles" :key="role.id" class="mb-3">
                   <div class="flex items-center gap-2 mb-1.5">
                     <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: role.color }" />
                     <span class="font-medium text-gray-800 text-sm">{{ role.name }}</span>
@@ -224,11 +228,11 @@
             <!-- Footer -->
             <div class="px-6 py-4 border-t flex gap-3">
               <button
-                v-can="'users.edit'"
-                @click="() => { const id = viewUser.id; viewUser = null; openEdit(id) }"
+                v-can="'organizations.edit'"
+                @click="() => { const id = viewOrganization.id; viewOrganization = null; openEdit(id) }"
                 class="flex-1 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-              >Edit User</button>
-              <button @click="viewUser = null" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50">Close</button>
+              >Edit Organization</button>
+              <button @click="viewOrganization = null" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50">Close</button>
             </div>
           </div>
         </div>
@@ -239,7 +243,7 @@
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
           <!-- Header -->
           <div class="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
-            <h2 class="text-lg font-semibold">{{ form.id ? 'Edit User' : 'New User' }}</h2>
+            <h2 class="text-lg font-semibold">{{ form.id ? 'Edit Organization' : 'New Organization' }}</h2>
             <button @click="form = null" class="text-gray-400 hover:text-gray-600">✕</button>
           </div>
 
@@ -338,7 +342,7 @@
               :disabled="saving"
               class="px-5 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
-              {{ saving ? 'Saving…' : (form.id ? 'Save Changes' : 'Create User') }}
+              {{ saving ? 'Saving…' : (form.id ? 'Save Changes' : 'Create Organization') }}
             </button>
           </div>
         </div>
@@ -352,24 +356,24 @@
 import { ref, watch, onMounted } from 'vue'
 import {
   PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilIcon, TrashIcon,
-  ChevronLeftIcon, ChevronRightIcon, UsersIcon, CpuChipIcon,
+  ChevronLeftIcon, ChevronRightIcon, BuildingOffice2Icon, CpuChipIcon, UserGroupIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-const users   = ref([])
-const total   = ref(0)
-const page    = ref(1)
-const limit   = 20
-const search  = ref('')
-const loading = ref(false)
+const organizations = ref([])
+const total         = ref(0)
+const page          = ref(1)
+const limit         = 20
+const search        = ref('')
+const loading       = ref(false)
 
 const allRoles = ref([])
 
-const viewUser = ref(null)   // slide-over
-const seedingId = ref(null)  // user id currently being seeded
+const viewOrganization = ref(null)   // slide-over
+const seedingId        = ref(null)  // organization id currently being seeded
 
 const form      = ref(null)  // create/edit modal
 const formError = ref('')
@@ -379,12 +383,12 @@ let searchTimeout = null
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
 
-async function fetchUsers() {
+async function fetchOrganizations() {
   loading.value = true
   try {
-    const { data } = await api.get('/users', { params: { page: page.value, limit, search: search.value } })
-    users.value  = data.data.users
-    total.value  = data.data.total
+    const { data } = await api.get('/organizations', { params: { page: page.value, limit, search: search.value } })
+    organizations.value = data.data.organizations
+    total.value         = data.data.total
   } finally {
     loading.value = false
   }
@@ -397,18 +401,18 @@ async function fetchRoles() {
 
 function onSearch() {
   clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => { page.value = 1; fetchUsers() }, 350)
+  searchTimeout = setTimeout(() => { page.value = 1; fetchOrganizations() }, 350)
 }
 
-watch(page, fetchUsers)
-onMounted(() => Promise.all([fetchUsers(), fetchRoles()]))
+watch(page, fetchOrganizations)
+onMounted(() => Promise.all([fetchOrganizations(), fetchRoles()]))
 
 // ── View (slide-over) ─────────────────────────────────────────────────────────
 
 async function openView(row) {
-  // Fetch full user with role permissions
-  const { data } = await api.get(`/users/${row.id}`)
-  viewUser.value = data.data.user
+  // Fetch full organization with role permissions
+  const { data } = await api.get(`/organizations/${row.id}`)
+  viewOrganization.value = data.data.organization
 }
 
 // ── Create ────────────────────────────────────────────────────────────────────
@@ -422,8 +426,8 @@ function openCreate() {
 
 async function openEdit(id) {
   formError.value = ''
-  const { data } = await api.get(`/users/${id}`)
-  const u = data.data.user
+  const { data } = await api.get(`/organizations/${id}`)
+  const u = data.data.organization
   form.value = {
     id:          u.id,
     name:        u.name,
@@ -442,17 +446,17 @@ async function saveForm() {
   try {
     if (form.value.id) {
       // Update basic fields
-      await api.put(`/users/${form.value.id}`, {
+      await api.put(`/organizations/${form.value.id}`, {
         name:        form.value.name,
         role:        form.value.role,
         isActive:    form.value.isActive,
         defaultPage: form.value.defaultPage || null,
       })
       // Assign roles
-      await api.put(`/users/${form.value.id}/roles`, { roleIds: form.value.roleIds })
+      await api.put(`/organizations/${form.value.id}/roles`, { roleIds: form.value.roleIds })
     } else {
       // Create with roles included in body
-      await api.post('/users', {
+      await api.post('/organizations', {
         name:        form.value.name,
         email:       form.value.email,
         password:    form.value.password,
@@ -462,7 +466,7 @@ async function saveForm() {
       })
     }
     form.value = null
-    fetchUsers()
+    fetchOrganizations()
   } catch (err) {
     const d = err.response?.data
     if (d?.errors?.length) {
@@ -498,8 +502,8 @@ async function seedSequences(u) {
 async function confirmDelete(u) {
   if (!confirm(`Delete "${u.name}" (${u.email})? This cannot be undone.`)) return
   try {
-    await api.delete(`/users/${u.id}`)
-    fetchUsers()
+    await api.delete(`/organizations/${u.id}`)
+    fetchOrganizations()
   } catch (err) {
     alert(err.response?.data?.message || 'Delete failed')
   }

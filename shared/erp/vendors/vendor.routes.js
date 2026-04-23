@@ -13,8 +13,8 @@ router.get('/all', wrap(async (req, res) => {
 }))
 
 router.get('/', wrap(async (req, res) => {
-  const { page = 1, limit = 20, search = '', status = '' } = req.query
-  const result = await svc.list({ page: +page, limit: +limit, search, status, createdBy: req.user?.id })
+  const { page = 1, limit = 20, search = '', status = '', typeFilter = '' } = req.query
+  const result = await svc.list({ page: +page, limit: +limit, search, status, typeFilter, createdBy: req.user?.id })
   res.json({ data: result })
 }))
 

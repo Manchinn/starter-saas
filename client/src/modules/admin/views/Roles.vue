@@ -91,7 +91,7 @@
       <div v-if="modulesModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 max-h-[80vh] flex flex-col">
           <h2 class="text-lg font-semibold">Modules — {{ modulesModal.role.name }}</h2>
-          <p class="text-sm text-gray-500">Users with this role will automatically have access to the selected modules.</p>
+          <p class="text-sm text-gray-500">Organizations with this role will automatically have access to the selected modules.</p>
           <div class="flex-1 overflow-y-auto space-y-1">
             <label
               v-for="mod in modulesStore.modules"

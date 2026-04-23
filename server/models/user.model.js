@@ -38,6 +38,11 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  organizationId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    comment: 'Link to parent Organization (User ID 1). If null, this user is the Organization itself.'
+  },
 }, {
   hooks: {
     beforeCreate: async (user) => {

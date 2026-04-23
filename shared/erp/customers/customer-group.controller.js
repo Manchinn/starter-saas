@@ -1,61 +1,59 @@
-const BaseController = require('../../../server/core/BaseController')
+const { ok, created, fail, serverError } = require('../../../server/core/response')
 const service = require('./customer-group.service')
 
-class CustomerGroupController extends BaseController {
+module.exports = {
   async list(req, res) {
     try {
       const { page, limit, search } = req.query
       const result = await service.list({ page: +page || 1, limit: +limit || 20, search: search || '' })
-      return this.ok(res, result)
+      return ok(res, result)
     } catch (err) {
-      return this.serverError(res)
+      return serverError(res)
     }
-  }
+  },
 
   async listAll(req, res) {
     try {
       const groups = await service.listAll()
-      return this.ok(res, { groups })
+      return ok(res, { groups })
     } catch (err) {
-      return this.serverError(res)
+      return serverError(res)
     }
-  }
+  },
 
   async getById(req, res) {
     try {
       const group = await service.getById(req.params.id)
-      return this.ok(res, { group })
+      return ok(res, { group })
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 
   async create(req, res) {
     try {
       const group = await service.create(req.body)
-      return this.created(res, { group }, 'Customer group created')
+      return created(res, { group }, 'Customer group created')
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 
   async update(req, res) {
     try {
       const group = await service.update(req.params.id, req.body)
-      return this.ok(res, { group }, 'Customer group updated')
+      return ok(res, { group }, 'Customer group updated')
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 
   async remove(req, res) {
     try {
       await service.remove(req.params.id)
-      return this.ok(res, null, 'Customer group deleted')
+      return ok(res, null, 'Customer group deleted')
     } catch (err) {
-      return this.fail(res, err.message, err.status || 400)
+      return fail(res, err.message, err.status || 400)
     }
-  }
+  },
 }
-
-module.exports = new CustomerGroupController()
