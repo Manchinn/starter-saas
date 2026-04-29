@@ -4,156 +4,46 @@
 
       <div class="flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">Employees</h1>
-          <p class="text-sm text-gray-500 mt-0.5">{{ total }} employee{{ total !== 1 ? 's' : '' }}</p>
+          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.employees.title') }}</h1>
+          <p class="text-sm text-[#637381] mt-0.5">{{ total }} employee{{ total !== 1 ? 's' : '' }}</p>
         </div>
         <RouterLink to="/erp/hrms/employees/create"
-          class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm
-                 font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
+          class="btn-primary">
           <PlusIcon class="w-4 h-4" />
-          New Employee
+          {{ t('erp.employees.new') }}
         </RouterLink>
       </div>
 
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
 
-        <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3 flex-wrap">
+        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3 flex-wrap">
           <div class="relative flex-1 min-w-48 max-w-72">
-            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input v-model="search" @input="onSearch" type="search" placeholder="Search name, code, position…"
-              class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
-                     focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
-                     focus:border-transparent transition-colors" />
+            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
+            <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.employees.searchPh')"
+              class="input pl-9" />
           </div>
           <select v-model="filterStatus" @change="() => { page = 1; load() }"
-            class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white
-                   focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-700 transition-colors">
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="terminated">Terminated</option>
+            class="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-[#F7F9FC] focus:bg-white
+                   focus:outline-none focus:ring-2 focus:ring-primary-500 text-[#374151] transition-colors">
+            <option value="">{{ t('erp.common.allStatuses') }}</option>
+            <option value="active">{{ t('erp.employees.active') }}</option>
+            <option value="inactive">{{ t('erp.employees.inactive') }}</option>
+            <option value="terminated">{{ t('erp.employees.terminated') }}</option>
           </select>
         </div>
 
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="bg-gray-50 border-b border-gray-100 text-left">
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Code</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Employee</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Position</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Department</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Start Date</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Login</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-              <th class="px-5 py-3 w-20"></th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-50">
-            <tr v-if="loading">
-              <td colspan="8" class="text-center py-16">
-                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-              </td>
-            </tr>
-            <tr v-else-if="!employees.length">
-              <td colspan="8" class="text-center py-16">
-                <div class="flex flex-col items-center gap-2">
-                  <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <IdentificationIcon class="w-5 h-5 text-gray-400" />
-                  </div>
-                  <p class="text-sm text-gray-400 font-medium">No employees found</p>
-                </div>
-              </td>
-            </tr>
-            <tr v-for="emp in employees" :key="emp.id" class="hover:bg-gray-50 transition-colors group">
+        <DataTable :columns="columns" :data="employees" :loading="loading" :total="total"
+          v-model:page="page" :page-size="limit">
+          <template #empty>
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+                <IdentificationIcon class="w-5 h-5 text-[#9BA7B0]" />
+              </div>
+              <p class="text-sm text-[#9BA7B0] font-medium">{{ t('erp.employees.noFound') }}</p>
+            </div>
+          </template>
+        </DataTable>
 
-              <!-- Code -->
-              <td class="px-5 py-3.5 font-mono text-xs text-gray-500">{{ emp.employeeCode || '—' }}</td>
-
-              <!-- Employee name + avatar -->
-              <td class="px-5 py-3.5">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center
-                              justify-center font-bold text-sm flex-shrink-0">
-                    {{ emp.firstName.charAt(0).toUpperCase() }}
-                  </div>
-                  <div>
-                    <p class="font-medium text-gray-900 leading-tight">{{ emp.firstName }} {{ emp.lastName }}</p>
-                    <p class="text-xs text-gray-400">{{ emp.phone || '—' }}</p>
-                  </div>
-                </div>
-              </td>
-
-              <!-- Position -->
-              <td class="px-5 py-3.5 text-gray-600">{{ emp.position || '—' }}</td>
-
-              <!-- Department -->
-              <td class="px-5 py-3.5 text-gray-600">
-                <div v-if="emp.departments && emp.departments.length" class="flex flex-wrap gap-1">
-                  <span v-for="d in emp.departments" :key="d.id" 
-                    class="inline-block px-1.5 py-0.5 bg-gray-100 text-[10px] font-medium text-gray-600 rounded">
-                    {{ d.name }}
-                  </span>
-                </div>
-                <span v-else class="text-gray-400">—</span>
-              </td>
-
-              <!-- Start date -->
-              <td class="px-5 py-3.5 text-gray-500 text-xs">{{ emp.startDate || '—' }}</td>
-
-              <!-- Login (user email + active badge) -->
-              <td class="px-5 py-3.5">
-                <div v-if="emp.user" class="space-y-0.5">
-                  <p class="text-xs text-gray-600">{{ emp.user.email }}</p>
-                  <span :class="emp.user.isActive ? 'text-green-600' : 'text-red-500'"
-                    class="text-xs font-medium">
-                    {{ emp.user.isActive ? 'Active' : 'Disabled' }}
-                  </span>
-                </div>
-                <span v-else class="text-gray-400 text-xs">—</span>
-              </td>
-
-              <!-- Status -->
-              <td class="px-5 py-3.5">
-                <span :class="statusClass(emp.status)"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize">
-                  <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(emp.status)"></span>
-                  {{ emp.status }}
-                </span>
-              </td>
-
-              <!-- Actions -->
-              <td class="px-5 py-3.5">
-                <div class="flex items-center justify-end gap-1 transition-opacity">
-                  <RouterLink :to="`/erp/hrms/employees/${emp.id}/edit`"
-                    class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors" title="Edit">
-                    <PencilIcon class="w-4 h-4" />
-                  </RouterLink>
-                  <button @click="confirmDelete(emp)"
-                    class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
-                    <TrashIcon class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
-          <span class="text-xs text-gray-500">
-            Showing {{ employees.length ? (page - 1) * limit + 1 : 0 }}–{{ Math.min(page * limit, total) }} of {{ total }}
-          </span>
-          <div class="flex items-center gap-1">
-            <button @click="page--" :disabled="page <= 1"
-              class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
-              <ChevronLeftIcon class="w-4 h-4" />
-            </button>
-            <span class="text-xs text-gray-600 font-medium px-2 tabular-nums">{{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}</span>
-            <button @click="page++" :disabled="page * limit >= total"
-              class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
-              <ChevronRightIcon class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -161,15 +51,15 @@
     <Teleport to="body">
       <div v-if="deleteModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
-          <h2 class="text-base font-semibold text-gray-900">Delete Employee</h2>
-          <p class="text-sm text-gray-600">
+          <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.employees.deleteEmployee') }}</h2>
+          <p class="text-sm text-[#637381]">
             Delete <span class="font-semibold">{{ deleteModal.emp?.firstName }} {{ deleteModal.emp?.lastName }}</span>?
             <span v-if="deleteModal.emp?.userId" class="block mt-1">Note: Their linked login account will also be disconnected from this record.</span>
             This action cannot be undone.
           </p>
           <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">{{ deleteModal.error }}</div>
           <div class="flex justify-end gap-3">
-            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors">{{ t('common.cancel') }}</button>
             <button @click="doDelete" :disabled="deleteModal.saving"
               class="px-5 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
               {{ deleteModal.saving ? 'Deleting…' : 'Delete' }}
@@ -182,13 +72,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { h, ref, reactive, watch, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
-  PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon,
-  ChevronLeftIcon, ChevronRightIcon, IdentificationIcon,
+  PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, IdentificationIcon,
 } from '@heroicons/vue/24/outline'
+import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
+
+const { t } = useI18n()
 
 const employees    = ref([])
 const total        = ref(0)
@@ -221,10 +116,10 @@ watch(page, load)
 onMounted(load)
 
 function statusClass(s) {
-  return s === 'active' ? 'bg-green-50 text-green-700' : s === 'terminated' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-500'
+  return s === 'active' ? 'bg-green-50 text-green-700' : s === 'terminated' ? 'bg-red-50 text-red-700' : 'bg-[#F1F5F9] text-[#637381]'
 }
 function statusDot(s) {
-  return s === 'active' ? 'bg-green-500' : s === 'terminated' ? 'bg-red-500' : 'bg-gray-400'
+  return s === 'active' ? 'bg-green-500' : s === 'terminated' ? 'bg-red-500' : 'bg-slate-400'
 }
 
 function confirmDelete(emp) { deleteModal.emp = emp; deleteModal.error = ''; deleteModal.open = true }
@@ -239,4 +134,95 @@ async function doDelete() {
     deleteModal.error = err.response?.data?.message || 'Delete failed'
   } finally { deleteModal.saving = false }
 }
+
+const columnHelper = createColumnHelper()
+
+const columns = [
+  columnHelper.accessor('employeeCode', {
+    header: () => t('erp.employees.colCode'),
+    cell: info => h('span', { class: 'font-mono text-xs text-[#637381]' }, info.getValue() || '—'),
+  }),
+  columnHelper.display({
+    id: 'employee',
+    header: () => t('erp.employees.colEmployee'),
+    cell: info => {
+      const emp = info.row.original
+      return h('div', { class: 'flex items-center gap-2.5' }, [
+        h('div', { class: 'w-8 h-8 rounded-full bg-primary-100 text-primary-500 flex items-center justify-center font-bold text-sm flex-shrink-0' },
+          emp.firstName.charAt(0).toUpperCase()
+        ),
+        h('div', {}, [
+          h('p', { class: 'font-medium text-[#1C2434] leading-tight' }, `${emp.firstName} ${emp.lastName}`),
+          h('p', { class: 'text-xs text-[#9BA7B0]' }, emp.phone || '—'),
+        ]),
+      ])
+    },
+  }),
+  columnHelper.accessor('position', {
+    header: () => t('erp.employees.colPosition'),
+    cell: info => info.getValue() || '—',
+  }),
+  columnHelper.display({
+    id: 'departments',
+    header: () => t('erp.employees.colDepartment'),
+    cell: info => {
+      const emp = info.row.original
+      if (emp.departments && emp.departments.length) {
+        return h('div', { class: 'flex flex-wrap gap-1' }, emp.departments.map(d =>
+          h('span', { key: d.id, class: 'inline-block px-1.5 py-0.5 bg-[#F1F5F9] text-[10px] font-medium text-[#637381] rounded' }, d.name)
+        ))
+      }
+      return h('span', { class: 'text-[#9BA7B0]' }, '—')
+    },
+  }),
+  columnHelper.accessor('startDate', {
+    header: () => t('erp.employees.colStartDate'),
+    cell: info => h('span', { class: 'text-xs' }, info.getValue() || '—'),
+  }),
+  columnHelper.display({
+    id: 'login',
+    header: () => t('erp.employees.colLogin'),
+    cell: info => {
+      const emp = info.row.original
+      if (emp.user) {
+        return h('div', { class: 'space-y-0.5' }, [
+          h('p', { class: 'text-xs text-[#637381]' }, emp.user.email),
+          h('span', { class: `text-xs font-medium ${emp.user.isActive ? 'text-green-600' : 'text-red-500'}` },
+            emp.user.isActive ? t('erp.employees.active') : t('common.inactive')
+          ),
+        ])
+      }
+      return h('span', { class: 'text-[#9BA7B0] text-xs' }, '—')
+    },
+  }),
+  columnHelper.accessor('status', {
+    header: () => t('erp.employees.colStatus'),
+    cell: info => {
+      const s = info.getValue()
+      return h('span', {
+        class: `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusClass(s)}`
+      }, [
+        h('span', { class: `w-1.5 h-1.5 rounded-full ${statusDot(s)}` }),
+        s,
+      ])
+    },
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: () => '',
+    meta: { thClass: 'w-20', tdClass: '' },
+    cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
+      h(RouterLink, {
+        to: `/erp/hrms/employees/${info.row.original.id}/edit`,
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+        title: 'Edit',
+      }, () => h(PencilIcon, { class: 'w-4 h-4' })),
+      h('button', {
+        onClick: () => confirmDelete(info.row.original),
+        class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+        title: 'Delete',
+      }, h(TrashIcon, { class: 'w-4 h-4' })),
+    ]),
+  }),
+]
 </script>

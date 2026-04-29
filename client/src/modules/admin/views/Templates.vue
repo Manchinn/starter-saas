@@ -1,13 +1,11 @@
 <template>
   <AppLayout>
-    <div class="max-w-4xl mx-auto space-y-6">
+    <div class="space-y-6">
 
       <!-- Header -->
       <div>
-        <h1 class="text-xl font-semibold text-gray-900">Templates</h1>
-        <p class="mt-1 text-sm text-gray-500">
-          Choose a template to change the look and feel of the entire application.
-        </p>
+        <h1 class="page-title">{{ t('templates.title') }}</h1>
+        <p class="page-subtitle">{{ t('templates.desc') }}</p>
       </div>
 
       <!-- Template grid -->
@@ -16,11 +14,11 @@
           v-for="tmpl in templateStore.templates"
           :key="tmpl.slug"
           @click="apply(tmpl.slug)"
-          class="group text-left rounded-xl border-2 overflow-hidden transition-all duration-150
+          class="group text-left rounded-2xl border-2 overflow-hidden transition-all duration-150
                  focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           :class="templateStore.currentSlug === tmpl.slug
-            ? 'border-primary-600 shadow-md'
-            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'"
+            ? 'border-primary-600 shadow-card-md'
+            : 'border-[#E2E8F0] hover:border-[#CBD5E1] hover:shadow-card'"
         >
           <!-- Preview mockup -->
           <div class="h-36 relative overflow-hidden" :style="{ background: tmpl.preview.content }">
@@ -39,7 +37,7 @@
               <!-- Sub-header -->
               <div class="absolute inset-x-0 top-7 h-5 bg-white flex items-center px-3"
                    style="border-bottom:1px solid #e5e7eb">
-                <div class="w-16 h-1.5 rounded bg-gray-300"></div>
+                <div class="w-16 h-1.5 rounded bg-slate-300"></div>
               </div>
               <!-- Content blocks -->
               <div class="absolute inset-x-0 top-12 bottom-0 p-3 grid grid-cols-3 gap-2">
@@ -84,36 +82,36 @@
             <!-- Active badge -->
             <div
               v-if="templateStore.currentSlug === tmpl.slug"
-              class="absolute top-2 right-2 flex items-center gap-1 bg-primary-600 text-white
+              class="absolute top-2 right-2 flex items-center gap-1 bg-primary-500 text-white
                      text-xs font-semibold px-2 py-0.5 rounded-full"
             >
               <CheckIcon class="w-3 h-3" />
-              Active
+              {{ t('templates.active') }}
             </div>
           </div>
 
           <!-- Info -->
-          <div class="px-4 py-3 bg-white"
-               :class="templateStore.currentSlug === tmpl.slug ? 'bg-primary-50' : ''">
+          <div class="px-4 py-3"
+               :class="templateStore.currentSlug === tmpl.slug ? 'bg-primary-50' : 'bg-white'">
             <div class="flex items-center justify-between">
-              <p class="text-sm font-semibold text-gray-900">{{ tmpl.name }}</p>
+              <p class="text-sm font-semibold text-[#1C2434]">{{ tmpl.name }}</p>
               <div
                 class="w-3 h-3 rounded-full border-2 border-white ring-2 flex-shrink-0 transition-all"
                 :class="templateStore.currentSlug === tmpl.slug
-                  ? 'ring-primary-600 bg-primary-600'
-                  : 'ring-gray-300 bg-white group-hover:ring-gray-400'"
+                  ? 'ring-primary-600 bg-primary-500'
+                  : 'ring-slate-300 bg-white group-hover:ring-slate-400'"
               ></div>
             </div>
-            <p class="text-xs text-gray-500 mt-0.5">{{ tmpl.description }}</p>
+            <p class="text-xs text-[#637381] mt-0.5">{{ tmpl.description }}</p>
           </div>
         </button>
       </div>
 
       <!-- Applied notice -->
-      <div v-if="applied" class="flex items-center gap-2 text-sm text-green-700 bg-green-50
-                                  border border-green-200 rounded-lg px-4 py-2.5">
+      <div v-if="applied" class="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50
+                                  border border-emerald-200 rounded-lg px-4 py-2.5">
         <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
-        Template applied successfully.
+        {{ t('templates.applied') }}
       </div>
 
     </div>
@@ -122,12 +120,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { CheckIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useTemplateStore } from '@/stores/template'
 
 const templateStore = useTemplateStore()
 const applied       = ref(false)
+const { t }         = useI18n()
 
 function apply(slug) {
   if (templateStore.currentSlug === slug) return

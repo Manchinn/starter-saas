@@ -1,75 +1,75 @@
 <template>
   <AppLayout>
-    <div class="max-w-2xl space-y-6">
+    <div class="space-y-6">
 
       <div class="flex items-center gap-3">
-        <RouterLink to="/erp/vendors" class="text-gray-400 hover:text-gray-600 transition">
+        <RouterLink to="/erp/vendors" class="text-[#9BA7B0] hover:text-[#637381] transition">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
-        <h1 class="text-2xl font-bold text-gray-900">Edit Vendor</h1>
+        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.vendors.edit') }}</h1>
       </div>
 
-      <div v-if="loading" class="text-gray-400 py-12 text-center">Loading…</div>
+      <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
       <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
-        Vendor not found. <RouterLink to="/erp/vendors" class="underline ml-1">Back to list</RouterLink>
+        {{ t('erp.vendors.notFound') }} <RouterLink to="/erp/vendors" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
       </div>
 
-      <div v-else class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+      <div v-else class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Code</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.code') }}</label>
             <input v-model="form.code" type="text"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.contactPerson') }}</label>
             <input v-model="form.contactPerson" type="text"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.email') }}</label>
             <input v-model="form.email" type="email"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.phone') }}</label>
             <input v-model="form.phone" type="text"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.address') }}</label>
             <textarea v-model="form.address" rows="2"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.notes') }}</label>
             <textarea v-model="form.notes" rows="2"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.status') }}</label>
             <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="active">{{ t('common.active') }}</option>
+              <option value="inactive">{{ t('common.inactive') }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Vendor Type</label>
+            <label class="block text-sm font-medium text-[#374151] mb-2">{{ t('erp.vendors.vendorType') }}</label>
             <div class="flex flex-col gap-2">
-              <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+              <label class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
                 <input type="checkbox" value="supplier" v-model="form.vendorTypes"
-                  class="rounded text-primary-600 focus:ring-primary-500" />
-                Supplier
+                  class="rounded text-primary-500 focus:ring-primary-500" />
+                {{ t('erp.vendors.supplier') }}
               </label>
-              <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+              <label class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
                 <input type="checkbox" value="service_provider" v-model="form.vendorTypes"
-                  class="rounded text-primary-600 focus:ring-primary-500" />
-                Service Provider
+                  class="rounded text-primary-500 focus:ring-primary-500" />
+                {{ t('erp.vendors.serviceProvider') }}
               </label>
             </div>
           </div>
@@ -80,13 +80,13 @@
         <div class="flex justify-between items-center pt-2">
           <button @click="confirmDelete"
             class="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
-            Delete Vendor
+            {{ t('erp.vendors.deleteVendor') }}
           </button>
           <div class="flex gap-3">
-            <RouterLink to="/erp/vendors" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition">Cancel</RouterLink>
+            <RouterLink to="/erp/vendors" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">Cancel</RouterLink>
             <button @click="save" :disabled="saving"
-              class="px-5 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
-              {{ saving ? 'Saving…' : 'Save Changes' }}
+              class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+              {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
             </button>
           </div>
         </div>
@@ -99,10 +99,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
+const { t } = useI18n()
 const route    = useRoute()
 const router   = useRouter()
 const form     = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active' })

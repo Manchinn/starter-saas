@@ -9,11 +9,11 @@ export default {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('./views/Dashboard.vue'),
-      meta: { requiresAuth: true, title: 'Dashboard' },
+      meta: { requiresAuth: true, title: 'nav.dashboard' },
     },
   ],
   navItem: {
-    label: 'Dashboard',
+    label: 'nav.dashboard',
     to: '/dashboard',
     icon: ChartBarIcon,
   },

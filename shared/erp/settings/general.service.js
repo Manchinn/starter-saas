@@ -10,6 +10,10 @@ const DEFAULTS = {
     decimalSep:  '.',
     precision:   2,
   },
+  tax: {
+    rate:      0,
+    inclusive: false,  // false = tax before total (exclusive), true = tax after total (inclusive)
+  },
 }
 
 const get = async (userId) => {
@@ -17,17 +21,23 @@ const get = async (userId) => {
   if (!row) return structuredClone(DEFAULTS)
   try {
     const parsed = JSON.parse(row.value)
-    return { ...DEFAULTS, ...parsed, currency: { ...DEFAULTS.currency, ...parsed.currency } }
+    return {
+      ...DEFAULTS,
+      ...parsed,
+      currency: { ...DEFAULTS.currency, ...parsed.currency },
+      tax:      { ...DEFAULTS.tax,      ...parsed.tax },
+    }
   } catch {
     return structuredClone(DEFAULTS)
   }
 }
 
-const save = async (userId, { currency }) => {
+const save = async (userId, { currency, tax }) => {
   const current = await get(userId)
   const merged = {
     ...current,
-    currency: { ...current.currency, ...currency },
+    ...(currency && { currency: { ...current.currency, ...currency } }),
+    ...(tax      && { tax:      { ...current.tax,      ...tax      } }),
   }
   await Setting.upsert({ key: KEY, userId: userId || null, value: JSON.stringify(merged) })
   return merged

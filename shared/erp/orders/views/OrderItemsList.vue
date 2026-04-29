@@ -3,81 +3,24 @@
     <div class="space-y-6">
 
       <div class="flex items-center justify-between gap-4">
-        <h1 class="text-2xl font-bold text-gray-900">Order Items</h1>
+        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.orderItems.title') }}</h1>
         <div class="flex items-center gap-3">
           <input
             v-model="search"
             @input="onSearch"
             type="search"
-            placeholder="Search item name…"
-            class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-64"
+            :placeholder="t('erp.orderItems.colProduct')"
+            class="px-4 py-2 border border-[#CBD5E1] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-64"
           />
         </div>
       </div>
 
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-50 border-b border-gray-200 text-left">
-            <tr>
-              <th class="px-5 py-3 font-medium text-gray-600">Product / Description</th>
-              <th class="px-5 py-3 font-medium text-gray-600">Order #</th>
-              <th class="px-5 py-3 font-medium text-gray-600 text-right">Qty</th>
-              <th class="px-5 py-3 font-medium text-gray-600 text-right">Price</th>
-              <th class="px-5 py-3 font-medium text-gray-600">Stock Link</th>
-              <th class="px-5 py-3 font-medium text-gray-600">Order Status</th>
-              <th class="px-5 py-3 font-medium text-gray-600 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-if="loading">
-              <td colspan="7" class="text-center py-12 text-gray-400">Loading…</td>
-            </tr>
-            <tr v-else-if="!items.length">
-              <td colspan="7" class="text-center py-12 text-gray-400">No order items found.</td>
-            </tr>
-            <tr v-for="item in items" :key="item.id" class="hover:bg-gray-50 transition">
-              <td class="px-5 py-3">
-                <div class="font-medium text-gray-900">{{ item.productName }}</div>
-                <div v-if="item.product?.sku" class="text-xs text-gray-500 font-mono">{{ item.product.sku }}</div>
-              </td>
-              <td class="px-5 py-3">
-                <RouterLink :to="`/erp/orders/${item.order?.id}`" class="text-primary-600 hover:underline font-mono">{{ item.order?.orderNumber }}</RouterLink>
-                <div class="text-[10px] text-gray-400">{{ item.order?.orderDate }}</div>
-              </td>
-              <td class="px-5 py-3 text-right text-gray-700 font-medium">{{ item.quantity }}</td>
-              <td class="px-5 py-3 text-right text-gray-600">{{ fmtMoney(item.unitPrice) }}</td>
-              <td class="px-5 py-3">
-                <div v-if="item.product" class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                  <span class="text-xs text-gray-600">Linked to Master</span>
-                </div>
-                <div v-else class="flex items-center gap-2 opacity-50">
-                  <span class="w-2 h-2 rounded-full bg-gray-300"></span>
-                  <span class="text-xs text-gray-400">Custom Item</span>
-                </div>
-              </td>
-              <td class="px-5 py-3">
-                <span :class="statusClass(item.order?.status)" class="px-2 py-0.5 rounded-full text-[10px] font-medium capitalize">{{ item.order?.status }}</span>
-              </td>
-              <td class="px-5 py-3 text-right">
-                <div v-if="item.order?.status === 'draft'" class="flex items-center justify-end gap-2">
-                  <button @click="openEdit(item)" class="text-xs text-primary-600 hover:underline">Edit</button>
-                  <button @click="confirmDelete(item)" class="text-xs text-red-500 hover:underline">Delete</button>
-                </div>
-                <span v-else class="text-xs text-gray-300">—</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 text-sm text-gray-500">
-          <span>{{ total }} record{{ total !== 1 ? 's' : '' }}</span>
-          <div class="flex items-center gap-1">
-            <button @click="page--" :disabled="page <= 1" class="px-3 py-1 border rounded-lg text-xs disabled:opacity-40 hover:bg-gray-50">Prev</button>
-            <span class="px-3 py-1 text-xs">{{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}</span>
-            <button @click="page++" :disabled="page * limit >= total" class="px-3 py-1 border rounded-lg text-xs disabled:opacity-40 hover:bg-gray-50">Next</button>
-          </div>
-        </div>
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
+        <DataTable :columns="columns" :data="items" :loading="loading" :total="total" v-model:page="page" :page-size="limit">
+          <template #empty>
+            <p class="text-center text-sm text-[#9BA7B0]">{{ t('erp.common.noRecords') }}</p>
+          </template>
+        </DataTable>
       </div>
 
     </div>
@@ -87,51 +30,51 @@
       <div v-if="editModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-5">
           <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold text-gray-900">Edit Order Item</h2>
-            <button @click="closeEdit" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
+            <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.orderItems.editItem') }}</h2>
+            <button @click="closeEdit" class="text-[#9BA7B0] hover:text-[#637381] text-lg leading-none">&times;</button>
           </div>
 
           <div class="space-y-4">
             <!-- Link toggle -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Item Master Link</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.orderItems.itemMasterLink') }}</label>
               <select v-model="editForm.productId" @change="onEditProductSelected" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                 <option value="">Custom item (no link)</option>
                 <option v-for="p in masterItems" :key="p.id" :value="p.id">{{ p.name }}{{ p.sku ? ` — ${p.sku}` : '' }}</option>
               </select>
               <p v-if="editForm.productId" class="mt-1 text-xs text-green-600">Linked to Item Master</p>
-              <p v-else class="mt-1 text-xs text-gray-400">Not linked — custom description</p>
+              <p v-else class="mt-1 text-xs text-[#9BA7B0]">Not linked — custom description</p>
             </div>
 
             <!-- Description -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.orderItems.description') }}</label>
               <input v-model="editForm.productName" type="text" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Item description" />
             </div>
 
             <!-- Qty + Price -->
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.orderItems.quantity') }}</label>
                 <input v-model.number="editForm.quantity" type="number" min="1" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-right" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
+                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.orderItems.unitPrice') }}</label>
                 <input v-model.number="editForm.unitPrice" type="number" min="0" step="0.01" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-right" />
               </div>
             </div>
 
-            <div class="text-right text-sm text-gray-500">
-              Line total: <span class="font-semibold text-gray-800">{{ fmtMoney((editForm.quantity || 0) * (editForm.unitPrice || 0)) }}</span>
+            <div class="text-right text-sm text-[#637381]">
+              Line total: <span class="font-semibold text-[#1C2434]">{{ fmtMoney((editForm.quantity || 0) * (editForm.unitPrice || 0)) }}</span>
             </div>
 
             <div v-if="editModal.error" class="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{{ editModal.error }}</div>
           </div>
 
           <div class="flex justify-end gap-3 pt-1">
-            <button @click="closeEdit" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition">Cancel</button>
-            <button @click="saveEdit" :disabled="editModal.saving" class="px-5 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
-              {{ editModal.saving ? 'Saving…' : 'Save Changes' }}
+            <button @click="closeEdit" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</button>
+            <button @click="saveEdit" :disabled="editModal.saving" class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+              {{ editModal.saving ? t('erp.common.saving') : t('common.saveChanges') }}
             </button>
           </div>
         </div>
@@ -142,11 +85,11 @@
     <Teleport to="body">
       <div v-if="deleteModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
-          <h2 class="text-base font-semibold text-gray-900">Delete Order Item</h2>
-          <p class="text-sm text-gray-600">Remove <span class="font-medium">{{ deleteModal.item?.productName }}</span> from order <span class="font-mono font-medium">{{ deleteModal.item?.order?.orderNumber }}</span>? This will recalculate the order total.</p>
+          <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.orderItems.deleteItem') }}</h2>
+          <p class="text-sm text-[#637381]">Remove <span class="font-medium">{{ deleteModal.item?.productName }}</span> from order <span class="font-mono font-medium">{{ deleteModal.item?.order?.orderNumber }}</span>? This will recalculate the order total.</p>
           <div v-if="deleteModal.error" class="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{{ deleteModal.error }}</div>
           <div class="flex justify-end gap-3">
-            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</button>
             <button @click="doDelete" :disabled="deleteModal.saving" class="px-5 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition">
               {{ deleteModal.saving ? 'Deleting…' : 'Delete' }}
             </button>
@@ -159,10 +102,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { h, ref, reactive, watch, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
+
+const { t } = useI18n()
 
 const items        = ref([])
 const total        = ref(0)
@@ -178,6 +127,95 @@ const editModal  = reactive({ open: false, item: null, saving: false, error: '' 
 const editForm   = reactive({ productId: '', productName: '', quantity: 1, unitPrice: 0 })
 
 const deleteModal = reactive({ open: false, item: null, saving: false, error: '' })
+
+const STATUS_CLASSES = {
+  draft:     'bg-[#F1F5F9] text-[#637381]',
+  confirmed: 'bg-blue-100 text-blue-700',
+  shipped:   'bg-yellow-100 text-yellow-700',
+  delivered: 'bg-green-100 text-green-700',
+  cancelled: 'bg-red-100 text-red-600',
+}
+const statusClass = (s) => STATUS_CLASSES[s] || 'bg-[#F1F5F9] text-[#637381]'
+
+const ch = createColumnHelper()
+
+const columns = [
+  ch.display({
+    id: 'product',
+    header: () => t('erp.orderItems.colProduct'),
+    cell: ({ row }) => {
+      const item = row.original
+      return h('div', {}, [
+        h('div', { class: 'font-medium text-[#1C2434]' }, item.productName),
+        item.product?.sku && h('div', { class: 'text-xs text-[#637381] font-mono' }, item.product.sku),
+      ].filter(Boolean))
+    },
+  }),
+  ch.display({
+    id: 'orderNo',
+    header: () => t('erp.orderItems.colOrderNo'),
+    cell: ({ row }) => {
+      const item = row.original
+      return h('div', {}, [
+        h(RouterLink, {
+          to: `/erp/orders/${item.order?.id}`,
+          class: 'text-primary-500 hover:underline font-mono',
+        }, () => item.order?.orderNumber),
+        h('div', { class: 'text-[10px] text-[#9BA7B0]' }, item.order?.orderDate),
+      ])
+    },
+  }),
+  ch.accessor('quantity', {
+    header: () => t('erp.orderItems.colQty'),
+    meta: { thClass: 'text-right', tdClass: 'text-right' },
+    cell: info => h('span', { class: 'text-[#374151] font-medium' }, info.getValue()),
+  }),
+  ch.accessor('unitPrice', {
+    header: () => t('erp.orderItems.colPrice'),
+    meta: { thClass: 'text-right', tdClass: 'text-right' },
+    cell: info => h('span', { class: 'text-[#637381]' }, fmtMoney(info.getValue())),
+  }),
+  ch.display({
+    id: 'stockLink',
+    header: () => t('erp.orderItems.colStockLink'),
+    cell: ({ row }) => {
+      const item = row.original
+      if (item.product) {
+        return h('div', { class: 'flex items-center gap-2' }, [
+          h('span', { class: 'w-2 h-2 rounded-full bg-green-500' }),
+          h('span', { class: 'text-xs text-[#637381]' }, 'Linked to Master'),
+        ])
+      }
+      return h('div', { class: 'flex items-center gap-2 opacity-50' }, [
+        h('span', { class: 'w-2 h-2 rounded-full bg-slate-300' }),
+        h('span', { class: 'text-xs text-[#9BA7B0]' }, 'Custom Item'),
+      ])
+    },
+  }),
+  ch.display({
+    id: 'orderStatus',
+    header: () => t('erp.orderItems.colOrderStatus'),
+    cell: ({ row }) => {
+      const s = row.original.order?.status
+      return h('span', { class: `px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${statusClass(s)}` }, s)
+    },
+  }),
+  ch.display({
+    id: 'actions',
+    header: () => t('erp.orderItems.colActions'),
+    meta: { thClass: 'text-right', tdClass: 'text-right' },
+    cell: ({ row }) => {
+      const item = row.original
+      if (item.order?.status === 'draft') {
+        return h('div', { class: 'flex items-center justify-end gap-2' }, [
+          h('button', { onClick: () => openEdit(item), class: 'text-xs text-primary-500 hover:underline' }, 'Edit'),
+          h('button', { onClick: () => confirmDelete(item), class: 'text-xs text-red-500 hover:underline' }, 'Delete'),
+        ])
+      }
+      return h('span', { class: 'text-xs text-[#CBD5E1]' }, '—')
+    },
+  }),
+]
 
 async function fetchItems() {
   loading.value = true
@@ -273,14 +311,4 @@ async function doDelete() {
     deleteModal.saving = false
   }
 }
-
-
-const STATUS_CLASSES = {
-  draft:     'bg-gray-100 text-gray-600',
-  confirmed: 'bg-blue-100 text-blue-700',
-  shipped:   'bg-yellow-100 text-yellow-700',
-  delivered: 'bg-green-100 text-green-700',
-  cancelled: 'bg-red-100 text-red-600',
-}
-function statusClass(s) { return STATUS_CLASSES[s] || 'bg-gray-100 text-gray-600' }
 </script>

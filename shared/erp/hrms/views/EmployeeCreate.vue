@@ -3,12 +3,12 @@
     <div class="space-y-6">
 
       <div class="flex items-center gap-3">
-        <RouterLink to="/erp/hrms/employees" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+        <RouterLink to="/erp/hrms/employees" class="p-1.5 rounded-lg text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">New Employee</h1>
-          <p class="text-sm text-gray-500 mt-0.5">Link an existing user account to an employee record</p>
+          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.employees.new') }}</h1>
+          <p class="text-sm text-[#637381] mt-0.5">Link an existing user account to an employee record</p>
         </div>
       </div>
 
@@ -16,38 +16,38 @@
       <div class="grid grid-cols-2 gap-6 items-start">
 
         <!-- Left: Employee Information -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-sm font-semibold text-gray-700">Employee Information</h2>
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.employeeInfo') }}</h2>
           </div>
           <div class="px-6 py-5 grid grid-cols-2 gap-4">
 
             <div class="col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Employee Code</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.employeeCode') }}</label>
               <input v-if="!autoCode.enabled.value" v-model="form.employeeCode" type="text" placeholder="e.g. EMP-001"
                 class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
               <input v-else :value="autoCode.preview.value" type="text" readonly
-                class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 text-gray-500 font-mono cursor-not-allowed" />
-              <label class="mt-1 flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+                class="w-full px-3 py-2 border rounded-lg text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+              <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
                 <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
-                Auto-generate
+                {{ t('erp.common.autoGenerate') }}
               </label>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.firstName') }} <span class="text-red-500">*</span></label>
               <input v-model="form.firstName" type="text" placeholder="First name"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Last Name <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.lastName') }} <span class="text-red-500">*</span></label>
               <input v-model="form.lastName" type="text" placeholder="Last name"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.position') }}</label>
               <input v-model="form.position" type="text" placeholder="e.g. Software Engineer"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
@@ -55,23 +55,23 @@
 
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.phone') }}</label>
               <input v-model="form.phone" type="text" placeholder="+1 555 000 0000"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.startDate') }}</label>
               <input v-model="form.startDate" type="date"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.status') }}</label>
               <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="terminated">Terminated</option>
+                <option value="active">{{ t('erp.employees.active') }}</option>
+                <option value="inactive">{{ t('erp.employees.inactive') }}</option>
+                <option value="terminated">{{ t('erp.employees.terminated') }}</option>
               </select>
             </div>
 
@@ -79,53 +79,53 @@
         </div>
 
         <!-- Right: Login Credentials (Optional) -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-sm font-semibold text-gray-700">Login Credentials</h2>
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.loginCredentials') }}</h2>
           </div>
 
           <div class="px-6 py-5 space-y-4">
             <label class="flex items-center gap-2 cursor-pointer select-none mb-2">
-              <input type="checkbox" v-model="createAccount" class="rounded text-primary-600 focus:ring-primary-500" />
-              <span class="text-sm font-medium text-gray-700">Create login account for this employee</span>
+              <input type="checkbox" v-model="createAccount" class="rounded text-primary-500 focus:ring-primary-500" />
+              <span class="text-sm font-medium text-[#374151]">{{ t('erp.employees.createLogin') }}</span>
             </label>
 
-            <div v-if="createAccount" class="space-y-4 pt-4 border-t border-gray-50">
+            <div v-if="createAccount" class="space-y-4 pt-4 border-t border-slate-50">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email / Username <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.emailUsername') }} <span class="text-red-500">*</span></label>
                 <input v-model="form.email" type="email" placeholder="employee@company.com"
                   class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.password') }} <span class="text-red-500">*</span></label>
                 <div class="relative">
                   <input v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="Min 8 characters"
                     class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10" />
                   <button type="button" @click="showPassword = !showPassword"
-                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9BA7B0] hover:text-[#637381]">
                     <EyeSlashIcon v-if="showPassword" class="w-4 h-4" />
                     <EyeIcon v-else class="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <p class="text-xs text-gray-500 italic">
+              <p class="text-xs text-[#637381] italic">
                 A system user account will be created and linked to this employee.
               </p>
             </div>
-            <div v-else class="text-xs text-gray-400 py-2">
+            <div v-else class="text-xs text-[#9BA7B0] py-2">
               This employee record will not have a login account associated with it.
             </div>
 
             <!-- Moved Department Selection here -->
-            <div class="pt-6 border-t border-gray-100">
-              <label class="block text-sm font-medium text-gray-700 mb-3">Department Assignments</label>
-              <div class="grid grid-cols-2 gap-2 p-3 border border-gray-100 bg-gray-50/50 rounded-xl max-h-48 overflow-y-auto">
+            <div class="pt-6 border-t border-[#E2E8F0]">
+              <label class="block text-sm font-medium text-[#374151] mb-3">{{ t('erp.employees.deptAssignments') }}</label>
+              <div class="grid grid-cols-2 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/80 rounded-xl max-h-48 overflow-y-auto">
                 <label v-for="d in departments" :key="d.id" class="flex items-center gap-2 px-2 py-1.5 hover:bg-white rounded-lg cursor-pointer transition-colors">
-                  <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="rounded text-primary-600 focus:ring-primary-500" />
-                  <span class="text-xs font-medium text-gray-700 truncate" :title="d.name">{{ d.name }}</span>
+                  <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="rounded text-primary-500 focus:ring-primary-500" />
+                  <span class="text-xs font-medium text-[#374151] truncate" :title="d.name">{{ d.name }}</span>
                 </label>
               </div>
-              <p v-if="!departments.length" class="text-xs text-gray-400 mt-2 italic flex items-center gap-1.5">
+              <p v-if="!departments.length" class="text-xs text-[#9BA7B0] mt-2 italic flex items-center gap-1.5">
                 <InformationCircleIcon class="w-3.5 h-3.5" />
                 No departments configured.
               </p>
@@ -141,14 +141,14 @@
       </div>
 
       <div class="flex justify-end gap-3">
-        <RouterLink to="/erp/hrms/employees" class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-          Cancel
+        <RouterLink to="/erp/hrms/employees" class="px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors">
+          {{ t('common.cancel') }}
         </RouterLink>
         <button @click="save" :disabled="saving"
-          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-600 text-white
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white
                  rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors shadow-sm">
           <CheckIcon v-if="!saving" class="w-4 h-4" />
-          {{ saving ? 'Creating…' : 'Create Employee' }}
+          {{ saving ? t('erp.common.creating') : t('erp.employees.create') }}
         </button>
       </div>
 
@@ -158,12 +158,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 
+const { t } = useI18n()
 const router         = useRouter()
 const autoCode       = useAutoCode('EMP')
 const users          = ref([])

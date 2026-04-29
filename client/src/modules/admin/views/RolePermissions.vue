@@ -1,57 +1,62 @@
 <template>
   <AppLayout>
-    <div class="space-y-6 max-w-2xl mx-auto">
+    <div class="space-y-6">
 
       <!-- Header -->
-      <div class="flex items-center gap-4">
-        <RouterLink to="/admin/roles" class="text-gray-400 hover:text-gray-600 transition">
-          ← Back
+      <div class="flex items-center gap-3">
+        <RouterLink to="/admin/roles" class="btn-secondary px-2.5 py-2">
+          <ArrowLeftIcon class="w-4 h-4" />
         </RouterLink>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Permissions</h1>
-          <p v-if="role" class="text-sm text-gray-500 mt-0.5">
-            Role: <span class="font-medium" :style="{ color: role.color }">{{ role.name }}</span>
+          <h1 class="page-title">{{ t('nav.permissions') }}</h1>
+          <p v-if="role" class="text-sm text-[#637381] mt-0.5">
+            {{ t('perms.roleLabel') }}
+            <span class="font-semibold" :style="{ color: role.color }">{{ role.name }}</span>
           </p>
         </div>
       </div>
 
-      <div v-if="loading" class="text-center py-12 text-gray-400">Loading…</div>
+      <div v-if="loading" class="card p-12 text-center text-[#9BA7B0] text-sm animate-pulse">
+        {{ t('common.loading') }}
+      </div>
 
       <template v-else>
-        <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+        <div class="table-wrap overflow-hidden">
           <div v-for="(perms, group) in grouped" :key="group">
-            <div class="px-5 py-3 bg-gray-50 flex items-center justify-between">
-              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ group }}</p>
-              <button @click="toggleGroup(group)" class="text-xs text-primary-600 hover:underline">
-                {{ allGroupSelected(group) ? 'Deselect all' : 'Select all' }}
+            <div class="px-5 py-3 bg-[#F7F9FC] border-b border-[#E2E8F0] flex items-center justify-between">
+              <p class="text-[11px] font-bold text-[#9BA7B0] uppercase tracking-widest">{{ group }}</p>
+              <button @click="toggleGroup(group)"
+                      class="text-xs font-medium text-primary-500 hover:text-primary-800 transition-colors">
+                {{ allGroupSelected(group) ? t('perms.deselectAll') : t('perms.selectAll') }}
               </button>
             </div>
-            <div class="divide-y divide-gray-50">
+            <div class="divide-y divide-slate-50">
               <label
                 v-for="perm in perms"
                 :key="perm.id"
-                class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 cursor-pointer"
+                class="flex items-center gap-3 px-5 py-3 hover:bg-[#F7F9FC] cursor-pointer"
               >
-                <input type="checkbox" :value="perm.id" v-model="selected" class="rounded w-4 h-4" />
+                <input type="checkbox" :value="perm.id" v-model="selected"
+                       class="rounded border-[#CBD5E1] w-4 h-4 accent-primary-500" />
                 <div>
-                  <span class="text-sm font-medium text-gray-800">{{ perm.name }}</span>
-                  <span class="ml-2 text-xs font-mono text-gray-400">{{ perm.slug }}</span>
+                  <span class="text-sm font-medium text-[#1C2434]">{{ perm.name }}</span>
+                  <span class="ml-2 text-xs font-mono text-[#9BA7B0] bg-[#F1F5F9] px-1.5 py-0.5 rounded">{{ perm.slug }}</span>
                 </div>
               </label>
             </div>
           </div>
         </div>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+        <div v-if="error"
+             class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg">
+          {{ error }}
+        </div>
 
-        <!-- Actions -->
         <div class="flex justify-end gap-3">
-          <RouterLink to="/admin/roles" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50">Cancel</RouterLink>
-          <button
-            @click="save"
-            :disabled="saving"
-            class="px-5 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-          >{{ saving ? 'Saving…' : 'Save Permissions' }}</button>
+          <RouterLink to="/admin/roles" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
+          <button @click="save" :disabled="saving" class="btn-primary">
+            {{ saving ? t('common.saving') : t('perms.savePerms') }}
+          </button>
         </div>
       </template>
 
@@ -62,7 +67,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import api from '@/api'
 import { usePermissionsStore } from '@/stores/permissions'
 import { useRolesStore } from '@/stores/roles'
@@ -71,6 +78,7 @@ const route = useRoute()
 const router = useRouter()
 const permissionsStore = usePermissionsStore()
 const rolesStore = useRolesStore()
+const { t } = useI18n()
 
 const role     = ref(null)
 const selected = ref([])
@@ -113,7 +121,7 @@ async function save() {
     await rolesStore.assignPermissions(route.params.id, selected.value)
     router.push('/admin/roles')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Save failed'
+    error.value = err.response?.data?.message || t('perms.saveFailed')
   } finally {
     saving.value = false
   }

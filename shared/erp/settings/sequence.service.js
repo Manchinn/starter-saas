@@ -4,6 +4,7 @@ const sequelize = require('../../../server/config/database')
 
 // ── Default sequences seeded on first use ────────────────────────────────────
 const DEFAULTS = {
+  QT:  { name: 'Quotation',              format: 'QT{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   GR:  { name: 'Good Receive',          format: 'GR{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   ADJ: { name: 'Stock Adjustment',      format: 'ADJ{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   CNT: { name: 'Stock Count',           format: 'SC{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },

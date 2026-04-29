@@ -5,140 +5,52 @@
       <!-- Header -->
       <div class="flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">Vendors</h1>
-          <p class="text-sm text-gray-500 mt-0.5">{{ total }} vendor{{ total !== 1 ? 's' : '' }}</p>
+          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.vendors.title') }}</h1>
+          <p class="text-sm text-[#637381] mt-0.5">{{ total }} vendor{{ total !== 1 ? 's' : '' }}</p>
         </div>
         <RouterLink to="/erp/vendors/create"
-          class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm
-                 font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
+          class="btn-primary">
           <PlusIcon class="w-4 h-4" />
-          New Vendor
+          {{ t('erp.vendors.new') }}
         </RouterLink>
       </div>
 
       <!-- Table card -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
 
         <!-- Filter bar -->
-        <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3 flex-wrap">
+        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3 flex-wrap">
           <div class="relative flex-1 min-w-48 max-w-64">
-            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input v-model="search" @input="onSearch" type="search" placeholder="Search vendors…"
-              class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
-                     focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
-                     focus:border-transparent transition-colors" />
+            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
+            <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.vendors.searchPh')"
+              class="input pl-9" />
           </div>
           <select v-model="statusFilter" @change="page = 1; load()"
-            class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
-                   focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
-                   focus:border-transparent text-gray-700 transition-colors">
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            class="input">
+            <option value="">{{ t('erp.common.allStatuses') }}</option>
+            <option value="active">{{ t('common.active') }}</option>
+            <option value="inactive">{{ t('common.inactive') }}</option>
           </select>
           <select v-model="typeFilter" @change="page = 1; load()"
-            class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
-                   focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
-                   focus:border-transparent text-gray-700 transition-colors">
-            <option value="">All Types</option>
-            <option value="supplier">Supplier</option>
-            <option value="service_provider">Service Provider</option>
+            class="input">
+            <option value="">{{ t('erp.vendors.allTypes') }}</option>
+            <option value="supplier">{{ t('erp.vendors.supplier') }}</option>
+            <option value="service_provider">{{ t('erp.vendors.serviceProvider') }}</option>
           </select>
         </div>
 
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="bg-gray-50 border-b border-gray-100 text-left">
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Code</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Contact</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-              <th class="px-5 py-3 w-20"></th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-50">
-            <tr v-if="loading">
-              <td colspan="8" class="text-center py-16">
-                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-              </td>
-            </tr>
-            <tr v-else-if="!vendors.length">
-              <td colspan="8" class="text-center py-16">
-                <div class="flex flex-col items-center gap-2">
-                  <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <BuildingOfficeIcon class="w-5 h-5 text-gray-400" />
-                  </div>
-                  <p class="text-sm text-gray-400 font-medium">No vendors found</p>
-                </div>
-              </td>
-            </tr>
-            <tr v-for="v in vendors" :key="v.id"
-              class="hover:bg-gray-50 transition-colors group">
-              <td class="px-5 py-3.5 font-mono text-xs text-gray-500">{{ v.code || '—' }}</td>
-              <td class="px-5 py-3.5 font-medium text-gray-900">{{ v.name }}</td>
-              <td class="px-5 py-3.5 text-gray-600">{{ v.contactPerson || '—' }}</td>
-              <td class="px-5 py-3.5 text-gray-500 text-xs">{{ v.email || '—' }}</td>
-              <td class="px-5 py-3.5 text-gray-500 text-xs">{{ v.phone || '—' }}</td>
-              <td class="px-5 py-3.5">
-                <div class="flex flex-wrap gap-1">
-                  <span v-if="!v.vendorTypes?.length" class="text-gray-400 text-xs">—</span>
-                  <span v-for="t in (v.vendorTypes || [])" :key="t"
-                    :class="t === 'service_provider' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'"
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">
-                    {{ t === 'service_provider' ? 'Service Provider' : 'Supplier' }}
-                  </span>
-                </div>
-              </td>
-              <td class="px-5 py-3.5">
-                <span :class="v.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize">
-                  <span class="w-1.5 h-1.5 rounded-full"
-                    :class="v.status === 'active' ? 'bg-green-500' : 'bg-gray-400'"></span>
-                  {{ v.status }}
-                </span>
-              </td>
-              <td class="px-5 py-3.5">
-                <div class="flex items-center justify-end gap-1 transition-opacity">
-                  <RouterLink :to="`/erp/vendors/${v.id}/edit`"
-                    class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
-                    title="Edit">
-                    <PencilIcon class="w-4 h-4" />
-                  </RouterLink>
-                  <button @click="confirmDelete(v)"
-                    class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                    title="Delete">
-                    <TrashIcon class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable :columns="columns" :data="vendors" :loading="loading" :total="total"
+          v-model:page="page" :page-size="limit">
+          <template #empty>
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+                <BuildingOfficeIcon class="w-5 h-5 text-[#9BA7B0]" />
+              </div>
+              <p class="text-sm text-[#9BA7B0] font-medium">{{ t('erp.vendors.noFound') }}</p>
+            </div>
+          </template>
+        </DataTable>
 
-        <!-- Pagination -->
-        <div class="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
-          <span class="text-xs text-gray-500">
-            Showing {{ vendors.length ? (page - 1) * limit + 1 : 0 }}–{{ Math.min(page * limit, total) }} of {{ total }}
-          </span>
-          <div class="flex items-center gap-1">
-            <button @click="page--" :disabled="page <= 1"
-              class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200
-                     text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
-              <ChevronLeftIcon class="w-4 h-4" />
-            </button>
-            <span class="text-xs text-gray-600 font-medium px-2 tabular-nums">
-              {{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}
-            </span>
-            <button @click="page++" :disabled="page * limit >= total"
-              class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200
-                     text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
-              <ChevronRightIcon class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -146,14 +58,18 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { h, ref, watch, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
-  PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon,
-  ChevronLeftIcon, ChevronRightIcon, BuildingOfficeIcon,
+  PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, BuildingOfficeIcon,
 } from '@heroicons/vue/24/outline'
+import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
 
+const { t } = useI18n()
 const vendors      = ref([])
 const total        = ref(0)
 const page         = ref(1)
@@ -194,4 +110,72 @@ async function confirmDelete(v) {
     alert(err.response?.data?.message || 'Delete failed')
   }
 }
+
+const columnHelper = createColumnHelper()
+
+const columns = [
+  columnHelper.accessor('code', {
+    header: () => t('erp.vendors.colCode'),
+    cell: info => h('span', { class: 'font-mono text-xs text-[#637381]' }, info.getValue() || '—'),
+  }),
+  columnHelper.accessor('name', {
+    header: () => t('erp.vendors.colName'),
+    cell: info => info.getValue() || '—',
+  }),
+  columnHelper.accessor('contactPerson', {
+    header: () => t('erp.vendors.colContact'),
+    cell: info => info.getValue() || '—',
+  }),
+  columnHelper.accessor('email', {
+    header: () => t('erp.vendors.colEmail'),
+    cell: info => h('span', { class: 'text-xs' }, info.getValue() || '—'),
+  }),
+  columnHelper.accessor('phone', {
+    header: () => t('erp.vendors.colPhone'),
+    cell: info => h('span', { class: 'text-xs' }, info.getValue() || '—'),
+  }),
+  columnHelper.display({
+    id: 'vendorTypes',
+    header: () => t('erp.vendors.colType'),
+    cell: info => {
+      const types = info.row.original.vendorTypes
+      if (!types?.length) return h('span', { class: 'text-[#9BA7B0] text-xs' }, '—')
+      return h('div', { class: 'flex flex-wrap gap-1' }, types.map(vType =>
+        h('span', {
+          key: vType,
+          class: `inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${vType === 'service_provider' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'}`
+        }, vType === 'service_provider' ? t('erp.vendors.serviceProvider') : t('erp.vendors.supplier'))
+      ))
+    },
+  }),
+  columnHelper.accessor('status', {
+    header: () => t('erp.vendors.colStatus'),
+    cell: info => {
+      const s = info.getValue()
+      return h('span', {
+        class: `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${s === 'active' ? 'bg-green-50 text-green-700' : 'bg-[#F1F5F9] text-[#637381]'}`
+      }, [
+        h('span', { class: `w-1.5 h-1.5 rounded-full ${s === 'active' ? 'bg-green-500' : 'bg-slate-400'}` }),
+        s,
+      ])
+    },
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: () => '',
+    meta: { thClass: 'w-20', tdClass: '' },
+    cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
+      h(RouterLink, {
+        to: `/erp/vendors/${info.row.original.id}/edit`,
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+        title: 'Edit',
+      }, () => h(PencilIcon, { class: 'w-4 h-4' })),
+      h('button', {
+        onClick: () => confirmDelete(info.row.original),
+        class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+        title: 'Delete',
+      }, h(TrashIcon, { class: 'w-4 h-4' })),
+    ]),
+  }),
+]
 </script>

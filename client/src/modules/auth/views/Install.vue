@@ -1,58 +1,73 @@
 <template>
-  <AuthLayout subtitle="Set up your administrator account">
-    <form @submit.prevent="handleInstall" class="space-y-5">
+  <AuthLayout :subtitle="t('auth.installSubtitle')">
+    <form @submit.prevent="handleInstall" class="space-y-4">
+
+      <div class="mb-2 px-4 py-3.5 bg-primary-50 border border-primary-100 rounded-xl">
+        <p class="text-[13px] font-semibold text-primary-700">{{ t('auth.setupTitle') }}</p>
+        <p class="text-[12px] text-primary-600 mt-0.5">{{ t('auth.setupDesc') }}</p>
+      </div>
+
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+        <label class="label">{{ t('auth.fullName') }}</label>
         <input
           v-model="form.name"
           type="text"
           required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          placeholder="Your name"
+          autocomplete="name"
+          class="input-lg"
+          :placeholder="t('auth.yourNamePh')"
         />
       </div>
+
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label class="label">{{ t('auth.email') }}</label>
         <input
           v-model="form.email"
           type="email"
           required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          placeholder="admin@example.com"
+          autocomplete="email"
+          class="input-lg"
+          :placeholder="t('auth.adminEmailPh')"
         />
       </div>
+
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label class="label">{{ t('auth.password') }}</label>
         <input
           v-model="form.password"
           type="password"
           required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          placeholder="••••••••"
+          autocomplete="new-password"
+          class="input-lg"
+          :placeholder="t('auth.passwordMinPh')"
         />
       </div>
+
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+        <label class="label">{{ t('auth.confirmPassword') }}</label>
         <input
           v-model="form.confirmPassword"
           type="password"
           required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          placeholder="••••••••"
+          autocomplete="new-password"
+          class="input-lg"
+          :placeholder="t('auth.repeatPh')"
         />
       </div>
 
-      <div v-if="errors.length" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg space-y-1">
+      <div v-if="errors.length"
+           class="px-4 py-3 bg-[#FEE2E2] border border-[#FECACA] text-[#B91C1C] text-sm rounded-xl space-y-1">
         <p v-for="e in errors" :key="e">{{ e }}</p>
       </div>
 
       <button
         type="submit"
         :disabled="loading"
-        class="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+        class="btn-primary w-full py-3 text-[15px] mt-2"
       >
-        {{ loading ? 'Installing...' : 'Create Admin Account' }}
+        {{ loading ? t('auth.installing') : t('auth.createAdmin') }}
       </button>
+
     </form>
   </AuthLayout>
 </template>
@@ -60,21 +75,23 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 import { resetInstallCache } from '@/router'
 
-const auth = useAuthStore()
+const auth   = useAuthStore()
 const router = useRouter()
+const { t }  = useI18n()
 
-const form = ref({ name: '', email: '', password: '', confirmPassword: '' })
+const form    = ref({ name: '', email: '', password: '', confirmPassword: '' })
 const loading = ref(false)
-const errors = ref([])
+const errors  = ref([])
 
 async function handleInstall() {
-  errors.value = []
+  errors.value  = []
   if (form.value.password !== form.value.confirmPassword) {
-    errors.value = ['Passwords do not match']
+    errors.value = [t('auth.passwordsNoMatch')]
     return
   }
   loading.value = true
@@ -87,7 +104,7 @@ async function handleInstall() {
     if (data?.errors?.length) {
       errors.value = data.errors.map((e) => e.message)
     } else {
-      errors.value = [data?.message || 'Installation failed']
+      errors.value = [data?.message || t('auth.installationFailed')]
     }
   } finally {
     loading.value = false

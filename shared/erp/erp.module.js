@@ -1,4 +1,5 @@
 const defineModule = require('../../server/core/module')
+const quotationRouter       = require('./quotations/quotation.routes')
 const customerRouter        = require('./customers/customer.routes')
 const customerGroupRouter   = require('./customers/customer-group.routes')
 const productRouter         = require('./products/product.routes')
@@ -21,6 +22,8 @@ const sequenceRouter        = require('./settings/sequence.routes')
 const generalSettingsRouter = require('./settings/general.routes')
 const demoDataRouter        = require('./settings/demo-data.routes')
 const stockIssueRouter      = require('./stock/stock-issue/stock-issue.routes')
+const invoiceRouter         = require('./invoices/invoice.routes')
+const receiptRouter         = require('./receipts/receipt.routes')
 const saleItemRouter        = require('./sale/sale-item.routes')
 const employeeRouter        = require('./hrms/employee.routes')
 const departmentRouter      = require('./hrms/department.routes')
@@ -41,12 +44,16 @@ module.exports = defineModule({
     'erp.stores.list', 'erp.stores.edit', 'erp.stores.delete',
     'erp.uom.list', 'erp.uom.edit', 'erp.uom.delete',
     'erp.stock.list', 'erp.stock.edit', 'erp.stock.delete',
+    'erp.quotations.list', 'erp.quotations.edit', 'erp.quotations.delete',
     'erp.sale-items.list', 'erp.sale-items.manage',
     'erp.hrms.list', 'erp.hrms.edit', 'erp.hrms.delete',
     'erp.departments.list', 'erp.departments.edit', 'erp.departments.delete',
+    'erp.invoices.list', 'erp.invoices.edit', 'erp.invoices.delete',
+    'erp.receipts.list', 'erp.receipts.edit', 'erp.receipts.delete',
   ],
   meta: { mountPath: '/api/erp' },
   register(app) {
+    app.use('/api/erp/quotations',        quotationRouter)
     app.use('/api/erp/dashboard',        dashboardRouter)
     app.use('/api/erp/customers',        customerRouter)
     app.use('/api/erp/customer-groups',  customerGroupRouter)
@@ -69,6 +76,8 @@ module.exports = defineModule({
     app.use('/api/erp/settings/general',    generalSettingsRouter)
     app.use('/api/erp/settings/demo-data', demoDataRouter)
     app.use('/api/erp/stock-issue',      stockIssueRouter)
+    app.use('/api/erp/invoices',         invoiceRouter)
+    app.use('/api/erp/receipts',         receiptRouter)
     app.use('/api/erp/sale-items',       saleItemRouter)
     app.use('/api/erp/hrms/employees',   employeeRouter)
     app.use('/api/erp/hrms/departments', departmentRouter)

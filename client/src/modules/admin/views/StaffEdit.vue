@@ -1,86 +1,81 @@
 <template>
   <AppLayout>
-    <div class="max-w-2xl mx-auto space-y-6">
-      <div class="flex items-center gap-4">
-        <button @click="router.back()" class="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-          <ArrowLeftIcon class="w-5 h-5 text-gray-500" />
+    <div class="max-w-xl mx-auto space-y-5">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3">
+        <button @click="router.back()" class="btn-secondary px-2.5 py-2">
+          <ArrowLeftIcon class="w-4 h-4" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Edit Staff Member</h1>
-          <p v-if="loading" class="text-sm text-gray-400 mt-0.5 animate-pulse">Loading identity…</p>
-          <p v-else class="text-sm text-gray-500 mt-0.5">Update login credentials and access for {{ form.name }}.</p>
+          <h1 class="page-title">{{ t('staff.editTitle') }}</h1>
+          <p v-if="loading" class="page-subtitle animate-pulse">{{ t('common.loading') }}</p>
+          <p v-else class="page-subtitle">{{ t('staff.updateDesc', { name: form.name }) }}</p>
         </div>
       </div>
 
-      <div v-if="loading" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-400">
-        Loading staff information…
+      <div v-if="loading" class="card p-12 text-center text-[#9BA7B0] text-sm animate-pulse">
+        {{ t('staff.loadingInfo') }}
       </div>
 
-      <div v-else class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name *</label>
-            <input
-              v-model="form.name"
-              type="text"
-              class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
-              placeholder="Staff full name"
-            />
+      <div v-else class="card overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center gap-2">
+          <div class="p-1.5 rounded-lg bg-primary-50">
+            <UserIcon class="w-4 h-4 text-primary-500" />
           </div>
+          <h3 class="text-[13px] font-semibold text-[#374151]">{{ t('staff.accountInfo') }}</h3>
+        </div>
+
+        <div class="p-6 space-y-4">
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Email / Username <span class="text-xs font-normal text-gray-400">(ReadOnly)</span></label>
+            <label class="label">{{ t('staff.fullName') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
+            <input v-model="form.name" type="text" class="input" :placeholder="t('staff.fullNamePh')" />
+          </div>
+
+          <div>
+            <label class="label">
+              {{ t('staff.emailUser') }}
+              <span class="ml-1 text-xs text-[#9BA7B0] font-normal">{{ t('common.readOnly') }}</span>
+            </label>
             <input
               :value="form.email"
               type="email"
               disabled
-              class="w-full px-4 py-2 border border-gray-100 bg-gray-50 rounded-xl text-gray-400 cursor-not-allowed"
+              class="input bg-[#F7F9FC] text-[#9BA7B0] cursor-not-allowed"
             />
           </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Role</label>
-              <select
-                v-model="form.role"
-                class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none bg-white font-medium"
-              >
-                <option value="user">User</option>
+              <label class="label">{{ t('staff.roleLabel') }}</label>
+              <select v-model="form.role" class="input">
+                <option value="user">{{ t('org.roleUser') }}</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
-              <select
-                v-model="form.isActive"
-                class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none bg-white font-medium"
-                :class="form.isActive ? 'text-green-600' : 'text-red-600'"
-              >
-                <option :value="true">Active</option>
-                <option :value="false">Inactive</option>
+              <label class="label">{{ t('staff.statusLabel') }}</label>
+              <select v-model="form.isActive" class="input">
+                <option :value="true">{{ t('common.active') }}</option>
+                <option :value="false">{{ t('common.inactive') }}</option>
               </select>
             </div>
           </div>
-        </div>
 
-        <div v-if="error" class="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">
-          {{ error }}
-        </div>
+          <div v-if="error"
+               class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg">
+            {{ error }}
+          </div>
 
-        <div class="flex justify-end gap-3 pt-6 border-t border-gray-100">
-          <button
-            @click="router.back()"
-            class="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            @click="save"
-            :disabled="saving"
-            class="px-6 py-2 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 transition shadow-lg shadow-primary-200 disabled:opacity-50"
-          >
-            {{ saving ? 'Saving…' : 'Save Changes' }}
-          </button>
+          <div class="flex justify-end gap-3 pt-2 border-t border-[#E2E8F0]">
+            <button @click="router.back()" class="btn-secondary">{{ t('common.cancel') }}</button>
+            <button @click="save" :disabled="saving" class="btn-primary">
+              {{ saving ? t('common.saving') : t('common.saveChanges') }}
+            </button>
+          </div>
         </div>
       </div>
+
     </div>
   </AppLayout>
 </template>
@@ -88,39 +83,29 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import { ArrowLeftIcon, UserIcon } from '@heroicons/vue/24/outline'
 import api from '@/api'
 
-const route   = useRoute()
-const router  = useRouter()
-const id      = route.params.id
+const route  = useRoute()
+const router = useRouter()
+const { t }  = useI18n()
+const id     = route.params.id
 
 const loading = ref(true)
 const error   = ref('')
 const saving  = ref(false)
 
-const form = ref({
-  id: '',
-  name: '',
-  email: '',
-  role: 'user',
-  isActive: true,
-})
+const form = ref({ id: '', name: '', email: '', role: 'user', isActive: true })
 
 onMounted(async () => {
   try {
     const { data } = await api.get(`/organizations/${id}`)
     const u = data.data.organization
-    form.value = {
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role: u.role,
-      isActive: u.isActive,
-    }
-  } catch (err) {
-    error.value = 'Failed to load staff information'
+    form.value = { id: u.id, name: u.name, email: u.email, role: u.role, isActive: u.isActive }
+  } catch {
+    error.value = t('staff.loadFailed')
   } finally {
     loading.value = false
   }
@@ -128,14 +113,13 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
-  if (!form.value.name.trim()) { error.value = 'Name is required'; return }
-
+  if (!form.value.name.trim()) { error.value = t('staff.nameRequired'); return }
   saving.value = true
   try {
     await api.put(`/organizations/${id}`, form.value)
     router.back()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Update failed'
+    error.value = err.response?.data?.message || t('staff.updateFailed')
   } finally {
     saving.value = false
   }

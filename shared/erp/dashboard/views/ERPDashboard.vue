@@ -5,22 +5,22 @@
       <!-- ── Header ──────────────────────────────────────────────────────────── -->
       <div class="flex items-start justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">ERP Dashboard</h1>
-          <p class="text-sm text-gray-500 mt-0.5">
-            Good {{ greeting }}, <span class="font-medium text-gray-700">{{ auth.user?.name }}</span>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.dashboard.title') }}</h1>
+          <p class="text-sm text-[#637381] mt-0.5">
+            {{ greeting }}, <span class="font-medium text-[#374151]">{{ auth.user?.name }}</span>
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <span class="hidden sm:block text-xs text-gray-400 text-right leading-5">
+          <span class="hidden sm:block text-xs text-[#9BA7B0] text-right leading-5">
             {{ todayLabel }}<br />
-            <span v-if="lastUpdated" class="text-gray-300">Updated {{ lastUpdated }}</span>
+            <span v-if="lastUpdated" class="text-[#CBD5E1]">Updated {{ lastUpdated }}</span>
           </span>
           <button @click="loadStats" :disabled="loading"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600
-                   bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#637381]
+                   bg-white border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors
                    disabled:opacity-50">
             <ArrowPathIcon class="w-3.5 h-3.5" :class="loading ? 'animate-spin' : ''" />
-            Refresh
+            {{ t('erp.dashboard.refresh') }}
           </button>
         </div>
       </div>
@@ -30,7 +30,7 @@
         class="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-5 py-4">
         <ExclamationTriangleIcon class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-semibold text-red-800">Action Required</p>
+          <p class="text-sm font-semibold text-red-800">{{ t('erp.dashboard.actionRequired') }}</p>
           <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
             <span v-for="alert in criticalAlerts" :key="alert" class="text-xs text-red-600">· {{ alert }}</span>
           </div>
@@ -41,70 +41,70 @@
       <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 
         <!-- Active Products -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4">
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4">
           <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
             <CubeIcon class="w-5 h-5 text-blue-600" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-gray-500">Active Products</p>
-            <div v-if="loading" class="mt-1 h-7 w-16 bg-gray-100 rounded animate-pulse" />
-            <p v-else class="text-2xl font-extrabold text-gray-900 leading-none mt-1">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.activeProducts') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-16 bg-[#F1F5F9] rounded animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1">
               {{ stats.products?.active ?? '—' }}
             </p>
-            <p v-if="!loading && stats.products" class="text-xs text-gray-400 mt-1">
+            <p v-if="!loading && stats.products" class="text-xs text-[#9BA7B0] mt-1">
               of {{ stats.products.total }} total
             </p>
           </div>
         </div>
 
         <!-- Total Stock -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4">
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4">
           <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
             <ArchiveBoxIcon class="w-5 h-5 text-emerald-600" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-gray-500">Stock on Hand</p>
-            <div v-if="loading" class="mt-1 h-7 w-20 bg-gray-100 rounded animate-pulse" />
-            <p v-else class="text-2xl font-extrabold text-gray-900 leading-none mt-1">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.stockOnHand') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-20 bg-[#F1F5F9] rounded animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1">
               {{ fmtNumber(stats.products?.totalStock) }}
             </p>
-            <p class="text-xs text-gray-400 mt-1">across all stores</p>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.dashboard.acrossAllStores') }}</p>
           </div>
         </div>
 
         <!-- Out of Stock -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4"
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4"
           :class="(stats.products?.zeroStock ?? 0) > 0 ? 'border-red-200 bg-red-50/30' : ''">
           <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-            :class="(stats.products?.zeroStock ?? 0) > 0 ? 'bg-red-100' : 'bg-gray-100'">
+            :class="(stats.products?.zeroStock ?? 0) > 0 ? 'bg-red-100' : 'bg-[#F1F5F9]'">
             <ExclamationTriangleIcon class="w-5 h-5"
-              :class="(stats.products?.zeroStock ?? 0) > 0 ? 'text-red-600' : 'text-gray-400'" />
+              :class="(stats.products?.zeroStock ?? 0) > 0 ? 'text-red-600' : 'text-[#9BA7B0]'" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-gray-500">Out of Stock</p>
-            <div v-if="loading" class="mt-1 h-7 w-10 bg-gray-100 rounded animate-pulse" />
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.outOfStock') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-10 bg-[#F1F5F9] rounded animate-pulse" />
             <p v-else class="text-2xl font-extrabold leading-none mt-1"
-              :class="(stats.products?.zeroStock ?? 0) > 0 ? 'text-red-600' : 'text-gray-400'">
+              :class="(stats.products?.zeroStock ?? 0) > 0 ? 'text-red-600' : 'text-[#9BA7B0]'">
               {{ stats.products?.zeroStock ?? '—' }}
             </p>
-            <p class="text-xs mt-1" :class="(stats.products?.zeroStock ?? 0) > 0 ? 'text-red-400' : 'text-gray-400'">
-              {{ (stats.products?.zeroStock ?? 0) > 0 ? 'needs restocking' : 'all stocked' }}
+            <p class="text-xs mt-1" :class="(stats.products?.zeroStock ?? 0) > 0 ? 'text-red-400' : 'text-[#9BA7B0]'">
+              {{ (stats.products?.zeroStock ?? 0) > 0 ? t('erp.dashboard.needsRestocking') : t('erp.dashboard.allStocked') }}
             </p>
           </div>
         </div>
 
         <!-- Today Receives -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4">
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4">
           <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
             <TruckIcon class="w-5 h-5 text-amber-600" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-gray-500">Today's Receives</p>
-            <div v-if="loading" class="mt-1 h-7 w-10 bg-gray-100 rounded animate-pulse" />
-            <p v-else class="text-2xl font-extrabold text-gray-900 leading-none mt-1">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.todayReceives') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-10 bg-[#F1F5F9] rounded animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1">
               {{ stats.todayGoodReceives ?? '—' }}
             </p>
-            <p class="text-xs text-gray-400 mt-1">goods received today</p>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.dashboard.goodsReceivedToday') }}</p>
           </div>
         </div>
 
@@ -114,13 +114,13 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         <!-- Pending Approvals ──────────────────────────────────────────────── -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
                 <ClockIcon class="w-4 h-4 text-amber-600" />
               </div>
-              <h2 class="text-sm font-semibold text-gray-800">Pending Approvals</h2>
+              <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.dashboard.pendingApprovals') }}</h2>
             </div>
             <span v-if="!loading && totalPending > 0"
               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold
@@ -128,68 +128,68 @@
               {{ totalPending }}
             </span>
           </div>
-          <div class="divide-y divide-gray-100">
+          <div class="divide-y divide-[#E2E8F0]">
 
             <!-- Good Receives -->
             <RouterLink to="/erp/good-receive"
-              class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
+              class="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F9FC] transition-colors group">
               <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
                 <TruckIcon class="w-4.5 h-4.5 text-blue-500" />
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-800">Goods Receive</p>
-                <p class="text-xs text-gray-400">Pending confirmation</p>
+                <p class="text-sm font-medium text-[#1C2434]">{{ t('erp.dashboard.goodsReceive') }}</p>
+                <p class="text-xs text-[#9BA7B0]">{{ t('erp.dashboard.pendingConfirm') }}</p>
               </div>
               <div class="flex items-center gap-2 flex-shrink-0">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold"
                   :class="(stats.pending?.goodReceives ?? 0) > 0
                     ? 'bg-amber-100 text-amber-700'
-                    : 'bg-gray-100 text-gray-400'">
+                    : 'bg-[#F1F5F9] text-[#9BA7B0]'">
                   {{ loading ? '…' : (stats.pending?.goodReceives ?? 0) }}
                 </span>
-                <ChevronRightIcon class="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                <ChevronRightIcon class="w-4 h-4 text-[#CBD5E1] group-hover:text-[#637381] transition-colors" />
               </div>
             </RouterLink>
 
             <!-- Stock Adjustments -->
             <RouterLink to="/erp/stock-adjust"
-              class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
+              class="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F9FC] transition-colors group">
               <div class="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
                 <AdjustmentsHorizontalIcon class="w-4.5 h-4.5 text-purple-500" />
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-800">Stock Adjustments</p>
-                <p class="text-xs text-gray-400">Awaiting approval</p>
+                <p class="text-sm font-medium text-[#1C2434]">{{ t('erp.dashboard.stockAdjustments') }}</p>
+                <p class="text-xs text-[#9BA7B0]">{{ t('erp.dashboard.awaitingApproval') }}</p>
               </div>
               <div class="flex items-center gap-2 flex-shrink-0">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold"
                   :class="(stats.pending?.adjustments ?? 0) > 0
                     ? 'bg-amber-100 text-amber-700'
-                    : 'bg-gray-100 text-gray-400'">
+                    : 'bg-[#F1F5F9] text-[#9BA7B0]'">
                   {{ loading ? '…' : (stats.pending?.adjustments ?? 0) }}
                 </span>
-                <ChevronRightIcon class="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                <ChevronRightIcon class="w-4 h-4 text-[#CBD5E1] group-hover:text-[#637381] transition-colors" />
               </div>
             </RouterLink>
 
             <!-- Stock Transfers -->
             <RouterLink to="/erp/stock-request"
-              class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
+              class="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F9FC] transition-colors group">
               <div class="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
                 <ArrowsRightLeftIcon class="w-4.5 h-4.5 text-teal-500" />
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-800">Stock Transfers</p>
-                <p class="text-xs text-gray-400">In transit / pending</p>
+                <p class="text-sm font-medium text-[#1C2434]">{{ t('erp.dashboard.stockTransfers') }}</p>
+                <p class="text-xs text-[#9BA7B0]">{{ t('erp.dashboard.inTransit') }}</p>
               </div>
               <div class="flex items-center gap-2 flex-shrink-0">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold"
                   :class="(stats.pending?.stockRequests ?? 0) > 0
                     ? 'bg-amber-100 text-amber-700'
-                    : 'bg-gray-100 text-gray-400'">
+                    : 'bg-[#F1F5F9] text-[#9BA7B0]'">
                   {{ loading ? '…' : (stats.pending?.stockRequests ?? 0) }}
                 </span>
-                <ChevronRightIcon class="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                <ChevronRightIcon class="w-4 h-4 text-[#CBD5E1] group-hover:text-[#637381] transition-colors" />
               </div>
             </RouterLink>
 
@@ -197,37 +197,37 @@
         </div>
 
         <!-- Stock by Store ──────────────────────────────────────────────────── -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
               <BuildingStorefrontIcon class="w-4 h-4 text-emerald-600" />
             </div>
-            <h2 class="text-sm font-semibold text-gray-800">Stock by Store</h2>
+            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.dashboard.stockByStore') }}</h2>
           </div>
           <div class="px-5 py-4">
             <!-- Skeleton -->
             <div v-if="loading" class="space-y-4">
               <div v-for="i in 4" :key="i" class="space-y-1.5">
-                <div class="h-3 bg-gray-100 rounded animate-pulse w-1/2" />
-                <div class="h-2 bg-gray-100 rounded-full animate-pulse" />
+                <div class="h-3 bg-[#F1F5F9] rounded animate-pulse w-1/2" />
+                <div class="h-2 bg-[#F1F5F9] rounded-full animate-pulse" />
               </div>
             </div>
             <!-- Empty -->
             <div v-else-if="!stats.storeStockSummary?.length"
               class="flex flex-col items-center justify-center py-8 text-center">
-              <BuildingStorefrontIcon class="w-8 h-8 text-gray-200 mb-2" />
-              <p class="text-sm text-gray-400">No store stock data</p>
+              <BuildingStorefrontIcon class="w-8 h-8 text-slate-200 mb-2" />
+              <p class="text-sm text-[#9BA7B0]">{{ t('erp.dashboard.noStoreStock') }}</p>
             </div>
             <!-- Data -->
             <div v-else class="space-y-4">
               <div v-for="s in stats.storeStockSummary" :key="s.store?.id">
                 <div class="flex items-center justify-between mb-1.5">
-                  <span class="text-sm font-medium text-gray-700 truncate">{{ s.store?.name }}</span>
-                  <span class="text-sm font-bold text-gray-800 tabular-nums ml-2 flex-shrink-0">
+                  <span class="text-sm font-medium text-[#374151] truncate">{{ s.store?.name }}</span>
+                  <span class="text-sm font-bold text-[#1C2434] tabular-nums ml-2 flex-shrink-0">
                     {{ fmtNumber(s.totalStock) }}
                   </span>
                 </div>
-                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-2 bg-[#F1F5F9] rounded-full overflow-hidden">
                   <div class="h-full bg-emerald-400 rounded-full transition-all duration-500"
                     :style="{ width: storeBarWidth(s.totalStock) }" />
                 </div>
@@ -237,52 +237,52 @@
         </div>
 
         <!-- Low Stock Alert ─────────────────────────────────────────────────── -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
                 <ExclamationTriangleIcon class="w-4 h-4 text-red-500" />
               </div>
               <div>
-                <h2 class="text-sm font-semibold text-gray-800">Low Stock</h2>
-                <p class="text-xs text-gray-400">≤ 5 units remaining</p>
+                <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.dashboard.lowStock') }}</h2>
+                <p class="text-xs text-[#9BA7B0]">{{ t('erp.dashboard.lowStockDesc') }}</p>
               </div>
             </div>
             <RouterLink to="/erp/item-master"
-              class="text-xs font-medium text-primary-600 hover:text-primary-700 hover:underline">
-              View all
+              class="text-xs font-medium text-primary-500 hover:text-primary-500 hover:underline">
+              {{ t('erp.dashboard.viewAll') }}
             </RouterLink>
           </div>
-          <div class="divide-y divide-gray-100">
+          <div class="divide-y divide-[#E2E8F0]">
             <!-- Skeleton -->
             <template v-if="loading">
               <div v-for="i in 5" :key="i" class="px-5 py-3 flex items-center gap-3">
-                <div class="w-2 h-2 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
+                <div class="w-2 h-2 rounded-full bg-[#F1F5F9] animate-pulse flex-shrink-0" />
                 <div class="flex-1 space-y-1">
-                  <div class="h-3 bg-gray-100 rounded animate-pulse w-3/4" />
-                  <div class="h-2.5 bg-gray-100 rounded animate-pulse w-1/3" />
+                  <div class="h-3 bg-[#F1F5F9] rounded animate-pulse w-3/4" />
+                  <div class="h-2.5 bg-[#F1F5F9] rounded animate-pulse w-1/3" />
                 </div>
-                <div class="w-6 h-5 bg-gray-100 rounded animate-pulse" />
+                <div class="w-6 h-5 bg-[#F1F5F9] rounded animate-pulse" />
               </div>
             </template>
             <!-- Empty -->
             <div v-else-if="!stats.lowStockProducts?.length"
               class="flex flex-col items-center justify-center py-10 text-center">
               <CheckCircleIcon class="w-9 h-9 text-emerald-300 mb-2" />
-              <p class="text-sm font-medium text-gray-500">All products stocked</p>
-              <p class="text-xs text-gray-400 mt-0.5">No items below 5 units</p>
+              <p class="text-sm font-medium text-[#637381]">{{ t('erp.dashboard.allProductsStocked') }}</p>
+              <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.dashboard.noItemsBelow5') }}</p>
             </div>
             <!-- Items -->
             <RouterLink v-else v-for="p in stats.lowStockProducts" :key="p.id"
               :to="`/erp/item-master/${p.id}/edit`"
-              class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors group">
+              class="flex items-center gap-3 px-5 py-3 hover:bg-[#F7F9FC] transition-colors group">
               <span class="w-2 h-2 rounded-full flex-shrink-0"
                 :class="p.stock <= 0 ? 'bg-red-500' : p.stock <= 2 ? 'bg-orange-400' : 'bg-yellow-400'" />
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-800 truncate group-hover:text-primary-600 transition-colors">
+                <p class="text-sm font-medium text-[#1C2434] truncate group-hover:text-primary-500 transition-colors">
                   {{ p.name }}
                 </p>
-                <p v-if="p.sku" class="text-xs font-mono text-gray-400">{{ p.sku }}</p>
+                <p v-if="p.sku" class="text-xs font-mono text-[#9BA7B0]">{{ p.sku }}</p>
               </div>
               <span class="flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-md"
                 :class="p.stock <= 0
@@ -299,59 +299,59 @@
       </div>
 
       <!-- ── Recent Stock Movements ──────────────────────────────────────────── -->
-      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
               <ArrowsRightLeftIcon class="w-4 h-4 text-indigo-600" />
             </div>
-            <h2 class="text-sm font-semibold text-gray-800">Recent Stock Movements</h2>
+            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.dashboard.recentMovements') }}</h2>
           </div>
           <RouterLink to="/erp/stock-movements"
-            class="text-xs font-medium text-primary-600 hover:text-primary-700 hover:underline">
-            View all
+            class="text-xs font-medium text-primary-500 hover:text-primary-500 hover:underline">
+            {{ t('erp.dashboard.viewAll') }}
           </RouterLink>
         </div>
 
         <!-- Skeleton -->
-        <div v-if="loading" class="divide-y divide-gray-100">
+        <div v-if="loading" class="divide-y divide-[#E2E8F0]">
           <div v-for="i in 5" :key="i" class="px-6 py-3.5 flex items-center gap-4">
-            <div class="w-8 h-8 rounded-lg bg-gray-100 animate-pulse flex-shrink-0" />
+            <div class="w-8 h-8 rounded-lg bg-[#F1F5F9] animate-pulse flex-shrink-0" />
             <div class="flex-1 space-y-1.5">
-              <div class="h-3 bg-gray-100 rounded animate-pulse w-40" />
-              <div class="h-2.5 bg-gray-100 rounded animate-pulse w-24" />
+              <div class="h-3 bg-[#F1F5F9] rounded animate-pulse w-40" />
+              <div class="h-2.5 bg-[#F1F5F9] rounded animate-pulse w-24" />
             </div>
-            <div class="h-3 bg-gray-100 rounded animate-pulse w-16 hidden sm:block" />
-            <div class="h-5 bg-gray-100 rounded-full animate-pulse w-20 hidden md:block" />
-            <div class="h-4 bg-gray-100 rounded animate-pulse w-10" />
+            <div class="h-3 bg-[#F1F5F9] rounded animate-pulse w-16 hidden sm:block" />
+            <div class="h-5 bg-[#F1F5F9] rounded-full animate-pulse w-20 hidden md:block" />
+            <div class="h-4 bg-[#F1F5F9] rounded animate-pulse w-10" />
           </div>
         </div>
 
         <!-- Empty -->
         <div v-else-if="!stats.recentMovements?.length"
           class="flex flex-col items-center justify-center py-14 text-center">
-          <ArrowsRightLeftIcon class="w-10 h-10 text-gray-200 mb-3" />
-          <p class="text-sm font-medium text-gray-500">No movements yet</p>
-          <p class="text-xs text-gray-400 mt-0.5">Stock movements will appear here</p>
+          <ArrowsRightLeftIcon class="w-10 h-10 text-slate-200 mb-3" />
+          <p class="text-sm font-medium text-[#637381]">{{ t('erp.dashboard.noMovements') }}</p>
+          <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.dashboard.movementsAppear') }}</p>
         </div>
 
         <!-- Table -->
         <div v-else class="overflow-x-auto">
           <table class="w-full text-sm min-w-[640px]">
             <thead>
-              <tr class="bg-gray-50 border-b border-gray-100">
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Type</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Product</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Store</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Reference</th>
-                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide">Qty</th>
-                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide">Stock After</th>
-                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide">Date</th>
+              <tr class="bg-[#F7F9FC] border-b border-[#E2E8F0]">
+                <th class="px-6 py-3 text-left text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.dashboard.colType') }}</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.dashboard.colProduct') }}</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.dashboard.colStore') }}</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.dashboard.colRef') }}</th>
+                <th class="px-6 py-3 text-right text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.dashboard.colQty') }}</th>
+                <th class="px-6 py-3 text-right text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.dashboard.colStockAfter') }}</th>
+                <th class="px-6 py-3 text-right text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.dashboard.colDate') }}</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-[#E2E8F0]">
               <tr v-for="m in stats.recentMovements" :key="m.id"
-                class="hover:bg-gray-50/60 transition-colors">
+                class="hover:bg-[#F7F9FC]/60 transition-colors">
 
                 <!-- Type with icon -->
                 <td class="px-6 py-3.5">
@@ -362,23 +362,23 @@
                     </div>
                     <span class="text-xs font-semibold capitalize px-2 py-0.5 rounded-md"
                       :class="movementBadge(m.type)">
-                      {{ m.type.replace(/_/g, ' ') }}
+                      {{ t('erp.movementTypes.' + m.type, m.type.replace(/_/g, ' ')) }}
                     </span>
                   </div>
                 </td>
 
                 <!-- Product -->
                 <td class="px-6 py-3.5">
-                  <p class="font-semibold text-gray-800">{{ m.product?.name ?? '—' }}</p>
-                  <p v-if="m.product?.sku" class="text-xs font-mono text-gray-400 mt-0.5">{{ m.product.sku }}</p>
+                  <p class="font-semibold text-[#1C2434]">{{ m.product?.name ?? '—' }}</p>
+                  <p v-if="m.product?.sku" class="text-xs font-mono text-[#9BA7B0] mt-0.5">{{ m.product.sku }}</p>
                 </td>
 
                 <!-- Store -->
-                <td class="px-6 py-3.5 text-sm text-gray-500">{{ m.store?.name ?? '—' }}</td>
+                <td class="px-6 py-3.5 text-sm text-[#637381]">{{ m.store?.name ?? '—' }}</td>
 
                 <!-- Reference -->
                 <td class="px-6 py-3.5">
-                  <span class="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                  <span class="font-mono text-xs text-[#637381] bg-[#F1F5F9] px-2 py-0.5 rounded">
                     {{ m.refNo ?? '—' }}
                   </span>
                 </td>
@@ -393,13 +393,13 @@
 
                 <!-- Stock After -->
                 <td class="px-6 py-3.5 text-right">
-                  <span class="text-sm font-semibold tabular-nums text-gray-600">
+                  <span class="text-sm font-semibold tabular-nums text-[#637381]">
                     {{ m.stockAfter ?? '—' }}
                   </span>
                 </td>
 
                 <!-- Date -->
-                <td class="px-6 py-3.5 text-right text-xs text-gray-400 whitespace-nowrap">
+                <td class="px-6 py-3.5 text-right text-xs text-[#9BA7B0] whitespace-nowrap">
                   {{ fmtDate(m.createdAt) }}
                 </td>
               </tr>
@@ -409,51 +409,51 @@
       </div>
 
       <!-- ── Quick Actions ───────────────────────────────────────────────────── -->
-      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Quick Actions</p>
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
+        <p class="text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide mb-4">{{ t('erp.dashboard.quickActions') }}</p>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
 
           <RouterLink to="/erp/good-receive/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-xl border border-gray-200
+            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
                    hover:border-blue-300 hover:bg-blue-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
               <TruckIcon class="w-5 h-5 text-blue-600" />
             </div>
-            <span class="text-xs font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">
-              New GR
+            <span class="text-xs font-semibold text-[#374151] group-hover:text-blue-700 transition-colors">
+              {{ t('erp.dashboard.newGR') }}
             </span>
           </RouterLink>
 
           <RouterLink to="/erp/orders/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-xl border border-gray-200
+            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
                    hover:border-emerald-300 hover:bg-emerald-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition-colors">
               <ShoppingCartIcon class="w-5 h-5 text-emerald-600" />
             </div>
-            <span class="text-xs font-semibold text-gray-700 group-hover:text-emerald-700 transition-colors">
-              New Order
+            <span class="text-xs font-semibold text-[#374151] group-hover:text-emerald-700 transition-colors">
+              {{ t('erp.dashboard.newOrder') }}
             </span>
           </RouterLink>
 
           <RouterLink to="/erp/stock-count/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-xl border border-gray-200
+            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
                    hover:border-purple-300 hover:bg-purple-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center transition-colors">
               <ClipboardDocumentCheckIcon class="w-5 h-5 text-purple-600" />
             </div>
-            <span class="text-xs font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">
-              Stock Count
+            <span class="text-xs font-semibold text-[#374151] group-hover:text-purple-700 transition-colors">
+              {{ t('erp.dashboard.stockCount') }}
             </span>
           </RouterLink>
 
           <RouterLink to="/erp/stock-adjust/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-xl border border-gray-200
+            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
                    hover:border-amber-300 hover:bg-amber-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-amber-100 group-hover:bg-amber-200 flex items-center justify-center transition-colors">
               <AdjustmentsHorizontalIcon class="w-5 h-5 text-amber-600" />
             </div>
-            <span class="text-xs font-semibold text-gray-700 group-hover:text-amber-700 transition-colors">
-              Adjustment
+            <span class="text-xs font-semibold text-[#374151] group-hover:text-amber-700 transition-colors">
+              {{ t('erp.dashboard.adjustment') }}
             </span>
           </RouterLink>
 
@@ -467,6 +467,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 import {
@@ -480,6 +481,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import api from '@/api'
 
+const { t } = useI18n()
 const auth    = useAuthStore()
 const stats   = ref({})
 const loading = ref(true)
@@ -488,9 +490,9 @@ const lastUpdated = ref('')
 // ── Greeting ──────────────────────────────────────────────────────────────────
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 12) return 'morning'
-  if (h < 17) return 'afternoon'
-  return 'evening'
+  if (h < 12) return t('erp.dashboard.greetMorning')
+  if (h < 17) return t('erp.dashboard.greetAfternoon')
+  return t('erp.dashboard.greetEvening')
 })
 
 const todayLabel = new Date().toLocaleDateString(undefined, {
@@ -569,7 +571,7 @@ function movementIconBg(type) {
   if (type === 'transfer_out')  return 'bg-orange-100 text-orange-600'
   if (type === 'sale')          return 'bg-red-100 text-red-600'
   if (type === 'return')        return 'bg-teal-100 text-teal-600'
-  return 'bg-gray-100 text-gray-500'
+  return 'bg-[#F1F5F9] text-[#637381]'
 }
 
 function movementBadge(type) {
@@ -579,6 +581,6 @@ function movementBadge(type) {
   if (type === 'transfer_out')  return 'bg-orange-50 text-orange-700'
   if (type === 'sale')          return 'bg-red-50 text-red-700'
   if (type === 'return')        return 'bg-teal-50 text-teal-700'
-  return 'bg-gray-100 text-gray-600'
+  return 'bg-[#F1F5F9] text-[#637381]'
 }
 </script>

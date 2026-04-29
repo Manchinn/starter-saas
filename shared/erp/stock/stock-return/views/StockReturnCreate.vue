@@ -2,54 +2,54 @@
   <AppLayout>
     <div class="space-y-6">
       <div class="flex items-center gap-3">
-        <RouterLink to="/erp/stock-return" class="text-gray-400 hover:text-gray-600 transition">
+        <RouterLink to="/erp/stock-return" class="text-[#9BA7B0] hover:text-[#637381] transition">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
-        <h1 class="text-2xl font-bold text-gray-900">New Stock Return</h1>
+        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.stockReturn.new') }}</h1>
       </div>
 
       <!-- Header -->
-      <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h2 class="text-sm font-semibold text-gray-700">Header</h2>
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-4">
+        <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.common.header') }}</h2>
 
         <!-- Row 1: Type toggle + Date + Store + Notes -->
         <div class="flex items-start gap-6">
           <!-- Type selector -->
           <div class="shrink-0">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Return Type <span class="text-red-500">*</span></label>
-            <div class="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+            <label class="block text-sm font-medium text-[#374151] mb-2">{{ t('erp.stockReturn.returnType') }} <span class="text-red-500">*</span></label>
+            <div class="flex items-center gap-1 p-1 bg-[#F1F5F9] rounded-lg">
               <button type="button" @click="form.type = 'customer_return'"
-                :class="form.type === 'customer_return' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'"
+                :class="form.type === 'customer_return' ? 'bg-white shadow text-[#1C2434]' : 'text-[#637381] hover:text-[#374151]'"
                 class="px-4 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap">
-                Customer Return
+                {{ t('erp.stockReturn.customerReturn') }}
               </button>
               <button type="button" @click="form.type = 'vendor_return'"
-                :class="form.type === 'vendor_return' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'"
+                :class="form.type === 'vendor_return' ? 'bg-white shadow text-[#1C2434]' : 'text-[#637381] hover:text-[#374151]'"
                 class="px-4 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap">
-                Return to Vendor
+                {{ t('erp.stockReturn.returnToVendor') }}
               </button>
             </div>
           </div>
 
           <!-- Date -->
           <div class="w-40">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.date') }} <span class="text-red-500">*</span></label>
             <input v-model="form.date" type="date"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
 
           <!-- Store -->
           <div class="w-52">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Store <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.store') }} <span class="text-red-500">*</span></label>
             <select v-model="form.storeId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">— Select store —</option>
+              <option value="">{{ t('erp.common.selectStore') }}</option>
               <option v-for="s in stores" :key="s.id" :value="s.id">{{ s.name }}{{ s.code ? ` (${s.code})` : '' }}</option>
             </select>
           </div>
 
           <!-- Customer (customer_return) -->
           <div v-if="form.type === 'customer_return'" class="w-52">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stockReturn.customer') }}</label>
             <select v-model="form.customerId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="">— Select customer —</option>
               <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}{{ c.company ? ` (${c.company})` : '' }}</option>
@@ -58,7 +58,7 @@
 
           <!-- Vendor (vendor_return) -->
           <div v-if="form.type === 'vendor_return'" class="w-52">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stockReturn.vendor') }}</label>
             <select v-model="form.vendorId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="">— Select vendor —</option>
               <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.name }}{{ v.code ? ` (${v.code})` : '' }}</option>
@@ -67,7 +67,7 @@
 
           <!-- Notes -->
           <div class="flex-1">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.notes') }}</label>
             <input v-model="form.notes" type="text" placeholder="Optional notes"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
@@ -76,40 +76,40 @@
         <!-- Type description -->
         <div class="text-xs pt-1 pb-0" :class="form.type === 'customer_return' ? 'text-blue-600' : 'text-orange-600'">
           <span v-if="form.type === 'customer_return'">
-            Customer Return — items received back from a customer. Stock will <strong>increase</strong> when confirmed.
+            {{ t('erp.stockReturn.descCustomer') }}
           </span>
           <span v-else>
-            Return to Vendor — items sent back to supplier. Stock will <strong>decrease</strong> when confirmed.
+            {{ t('erp.stockReturn.descVendor') }}
           </span>
         </div>
       </div>
 
       <!-- Items -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-          <h2 class="text-sm font-semibold text-gray-700">Items</h2>
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-[#E2E8F0]">
+          <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.common.items') }}</h2>
           <button @click="addRow" :disabled="products.length > 0 && allUsedIds.length >= products.length"
-            class="text-sm px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition">+ Add Item</button>
+            class="text-sm px-3 py-1.5 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition">{{ t('erp.common.addItem') }}</button>
         </div>
 
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 border-b border-gray-200 text-left">
+          <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
             <tr>
-              <th class="px-3 py-2 font-medium text-gray-600">Product <span class="text-red-500">*</span></th>
-              <th class="px-3 py-2 font-medium text-gray-600 w-28 text-right">Qty <span class="text-red-500">*</span></th>
-              <th class="px-3 py-2 font-medium text-gray-600 w-32 text-right">Cost / Unit</th>
-              <th class="px-3 py-2 font-medium text-gray-600">Reason</th>
+              <th class="px-3 py-2 font-medium text-[#637381]">{{ t('erp.stockReturn.colProduct') }} <span class="text-red-500">*</span></th>
+              <th class="px-3 py-2 font-medium text-[#637381] w-28 text-right">{{ t('erp.stockReturn.colQty') }} <span class="text-red-500">*</span></th>
+              <th class="px-3 py-2 font-medium text-[#637381] w-32 text-right">{{ t('erp.stockReturn.costPerUnit') }}</th>
+              <th class="px-3 py-2 font-medium text-[#637381]">{{ t('erp.common.reason') }}</th>
               <th class="px-3 py-2 w-10"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody class="divide-y divide-[#E2E8F0]">
             <tr v-if="!items.length">
-              <td colspan="5" class="px-3 py-8 text-center text-gray-400">No items yet. Click "+ Add Item" to start.</td>
+              <td colspan="5" class="px-3 py-8 text-center text-[#9BA7B0]">{{ t('erp.common.noItems') }}</td>
             </tr>
-            <tr v-for="(item, i) in items" :key="i" class="hover:bg-gray-50">
+            <tr v-for="(item, i) in items" :key="i" class="hover:bg-[#F7F9FC]">
               <td class="px-3 py-2">
                 <select v-model="item.productId" class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary-500">
-                  <option value="">— Select product —</option>
+                  <option value="">{{ t('erp.common.selectProduct') }}</option>
                   <option v-for="p in availableProducts(i)" :key="p.id" :value="p.id">
                     {{ p.name }}{{ p.sku ? ` [${p.sku}]` : '' }} (stock: {{ p.stock }})
                   </option>
@@ -128,13 +128,13 @@
                   class="w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-3 py-2 text-center">
-                <button @click="removeRow(i)" class="text-gray-400 hover:text-red-500 transition text-lg leading-none">&times;</button>
+                <button @click="removeRow(i)" class="text-[#9BA7B0] hover:text-red-500 transition text-lg leading-none">&times;</button>
               </td>
             </tr>
           </tbody>
-          <tfoot v-if="items.length" class="border-t-2 border-gray-200 bg-gray-50">
+          <tfoot v-if="items.length" class="border-t-2 border-[#E2E8F0] bg-[#F7F9FC]">
             <tr>
-              <td colspan="4" class="px-3 py-2 text-xs font-medium text-gray-500">{{ items.length }} item(s)</td>
+              <td colspan="4" class="px-3 py-2 text-xs font-medium text-[#637381]">{{ items.length }} item(s)</td>
               <td></td>
             </tr>
           </tfoot>
@@ -144,10 +144,10 @@
       <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
 
       <div class="flex justify-end gap-3">
-        <RouterLink to="/erp/stock-return" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition">Cancel</RouterLink>
+        <RouterLink to="/erp/stock-return" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
         <button @click="save" :disabled="saving"
-          class="px-5 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
-          {{ saving ? 'Saving…' : 'Save as Draft' }}
+          class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+          {{ saving ? t('erp.common.saving') : t('erp.common.saveDraft') }}
         </button>
       </div>
     </div>
@@ -157,10 +157,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
+const { t } = useI18n()
 const router    = useRouter()
 const products  = ref([])
 const stores    = ref([])

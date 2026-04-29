@@ -1,5 +1,6 @@
 import { computed, reactive, watchEffect, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useModulesStore } from '@/stores/modules'
 import { usePermission } from '@/composables/usePermission'
@@ -11,6 +12,7 @@ export function useAppLayout() {
   const { can }      = usePermission()
   const router       = useRouter()
   const route        = useRoute()
+  const { t, te }    = useI18n()
 
   onMounted(async () => {
     if (auth.isAdmin) {
@@ -56,7 +58,11 @@ export function useAppLayout() {
   }
 
   const userInitial      = computed(() => auth.user?.name?.charAt(0).toUpperCase() || '?')
-  const currentPageTitle = computed(() => route.meta?.title || 'Dashboard')
+  const currentPageTitle = computed(() => {
+    const title = route.meta?.title
+    if (!title) return t('nav.dashboard')
+    return te(title) ? t(title) : title
+  })
 
   async function handleLogout() {
     await auth.logout()

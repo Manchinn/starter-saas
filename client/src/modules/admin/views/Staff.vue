@@ -1,122 +1,141 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <button v-if="organizationId" @click="router.back()" class="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-            <ArrowLeftIcon class="w-5 h-5 text-gray-500" />
+    <div class="space-y-5">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button v-if="organizationId" @click="router.back()" class="btn-secondary px-2.5 py-2">
+            <ArrowLeftIcon class="w-4 h-4" />
           </button>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ organizationId ? 'Organization Staff' : 'Staff Accounts' }}</h1>
-            <p class="text-sm text-gray-500 mt-0.5">
-              {{ organizationId ? 'Manage user accounts for this specific organization.' : 'Manage user accounts across all organizations.' }}
+            <h1 class="page-title">
+              {{ organizationId ? t('staff.titleOrg') : t('staff.title') }}
+            </h1>
+            <p class="page-subtitle">
+              {{ organizationId ? t('staff.descOrg') : t('staff.desc') }}
             </p>
           </div>
         </div>
-        <RouterLink :to="organizationId ? `/admin/staff/create?organizationId=${organizationId}` : '/admin/staff/create'"
-          class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
+        <RouterLink
+          :to="organizationId ? `/admin/staff/create?organizationId=${organizationId}` : '/admin/staff/create'"
+          class="btn-primary"
+        >
           <PlusIcon class="w-4 h-4" />
-          New Staff Member
+          {{ t('staff.new') }}
         </RouterLink>
       </div>
 
-      <!-- Filters -->
-      <div class="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-        <div class="relative flex-1 max-w-md">
-          <MagnifyingGlassIcon class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            v-model="search"
-            @input="onSearch"
-            type="text"
-            placeholder="Search staff by name or email…"
-            class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
-          />
-        </div>
-      </div>
-
       <!-- Table -->
-      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50/50 border-b border-gray-100">
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Staff Member</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Organization</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr v-if="loading" class="animate-pulse">
-                <td colspan="5" class="px-6 py-12 text-center text-gray-400">Loading staff accounts…</td>
-              </tr>
-              <tr v-else-if="!staff.length">
-                <td colspan="5" class="px-6 py-12 text-center text-gray-400">No staff found matches your search.</td>
-              </tr>
-              <tr v-for="member in staff" :key="member.id" class="hover:bg-gray-50/50 transition-colors">
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm">
-                      {{ member.name.charAt(0).toUpperCase() }}
-                    </div>
-                    <div>
-                      <p class="font-medium text-gray-900">{{ member.name }}</p>
-                      <p class="text-xs text-gray-500">{{ member.email }}</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-600 font-medium">
-                    {{ member.organization?.name || 'Unknown' }}
-                  </span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full capitalize">
-                    {{ member.role }}
-                  </span>
-                </td>
-                <td class="px-6 py-4">
-                  <span
-                    :class="member.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                    class="px-2.5 py-1 text-xs font-medium rounded-full"
-                  >
-                    {{ member.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-1">
-                    <RouterLink :to="`/admin/staff/${member.id}/edit`" class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors" title="Edit">
-                      <PencilIcon class="w-4 h-4" />
-                    </RouterLink>
-                    <button @click="confirmDelete(member)" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                      <TrashIcon class="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="table-wrap">
+
+        <!-- Toolbar -->
+        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
+          <div class="relative flex-1 min-w-48 max-w-64">
+            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
+            <input
+              v-model="search"
+              @input="onSearch"
+              type="search"
+              :placeholder="t('staff.searchPh')"
+              class="input pl-9"
+            />
+          </div>
         </div>
+
+        <table class="w-full text-left">
+          <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0]">
+            <tr>
+              <th class="th">{{ t('staff.colMember') }}</th>
+              <th class="th">{{ t('staff.colOrg') }}</th>
+              <th class="th">{{ t('staff.colRole') }}</th>
+              <th class="th">{{ t('staff.colStatus') }}</th>
+              <th class="th text-right">{{ t('staff.colActions') }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            <tr v-if="loading">
+              <td colspan="5" class="px-5 py-14 text-center">
+                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+              </td>
+            </tr>
+            <tr v-else-if="!staff.length">
+              <td colspan="5" class="px-5 py-14 text-center">
+                <div class="flex flex-col items-center gap-2 text-[#9BA7B0]">
+                  <UsersIcon class="w-8 h-8 opacity-40" />
+                  <p class="text-sm font-medium">{{ t('staff.noFound') }}</p>
+                </div>
+              </td>
+            </tr>
+            <tr v-for="member in staff" :key="member.id"
+                class="hover:bg-[#F7F9FC]/60 transition-colors">
+              <td class="td">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-primary-100 text-primary-500
+                              flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    {{ member.name.charAt(0).toUpperCase() }}
+                  </div>
+                  <div>
+                    <p class="font-semibold text-[#1C2434] text-sm leading-tight">{{ member.name }}</p>
+                    <p class="text-xs text-[#9BA7B0] mt-0.5">{{ member.email }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="td">
+                <span class="text-sm text-[#637381]">{{ member.organization?.name || '—' }}</span>
+              </td>
+              <td class="td">
+                <span class="badge badge-gray capitalize">{{ member.role }}</span>
+              </td>
+              <td class="td">
+                <span :class="member.isActive ? 'badge-green' : 'badge-red'" class="badge">
+                  <span class="w-1.5 h-1.5 rounded-full"
+                        :class="member.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                  {{ member.isActive ? t('common.active') : t('common.inactive') }}
+                </span>
+              </td>
+              <td class="td text-right">
+                <div class="flex items-center justify-end gap-0.5">
+                  <RouterLink :to="`/admin/staff/${member.id}/edit`"
+                              class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors"
+                              :title="t('common.edit')">
+                    <PencilIcon class="w-4 h-4" />
+                  </RouterLink>
+                  <button @click="confirmDelete(member)"
+                          class="p-1.5 rounded-md text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors"
+                          :title="t('common.delete')">
+                    <TrashIcon class="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
         <!-- Pagination -->
-        <div class="px-6 py-4 bg-gray-50/30 border-t border-gray-100 flex items-center justify-between">
-          <p class="text-xs text-gray-500">Showing {{ staff.length }} of {{ total }} staff members</p>
-          <div class="flex items-center gap-2">
+        <div class="px-5 py-3.5 border-t border-[#E2E8F0] bg-[#F7F9FC]/60 flex items-center justify-between">
+          <p class="text-xs text-[#637381]">
+            {{ t('common.showing') }} {{ staff.length ? (page - 1) * limit + 1 : 0 }}–{{ Math.min(page * limit, total) }} {{ t('common.of') }} {{ total }}
+          </p>
+          <div class="flex items-center gap-1.5">
             <button
               :disabled="page <= 1"
               @click="page--; load()"
-              class="p-1 rounded border border-gray-200 hover:bg-white disabled:opacity-30 transition-colors"
+              class="h-7 w-7 flex items-center justify-center rounded-lg border border-[#E2E8F0]
+                     text-[#637381] hover:bg-white disabled:opacity-30 transition-colors"
             >
-              <ChevronLeftIcon class="w-4 h-4" />
+              <ChevronLeftIcon class="w-3.5 h-3.5" />
             </button>
-            <span class="text-xs font-medium text-gray-600">Page {{ page }}</span>
+            <span class="text-xs font-medium text-[#637381] px-1 tabular">
+              {{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}
+            </span>
             <button
               :disabled="page * limit >= total"
               @click="page++; load()"
-              class="p-1 rounded border border-gray-200 hover:bg-white disabled:opacity-30 transition-colors"
+              class="h-7 w-7 flex items-center justify-center rounded-lg border border-[#E2E8F0]
+                     text-[#637381] hover:bg-white disabled:opacity-30 transition-colors"
             >
-              <ChevronRightIcon class="w-4 h-4" />
+              <ChevronRightIcon class="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -129,38 +148,35 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { MagnifyingGlassIcon, XMarkIcon, ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, PlusIcon, TrashIcon, PencilIcon } from '@heroicons/vue/24/outline'
+import {
+  MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon,
+  ArrowLeftIcon, PlusIcon, TrashIcon, PencilIcon, UsersIcon,
+} from '@heroicons/vue/24/outline'
 import api from '@/api'
 
 const route          = useRoute()
 const router         = useRouter()
+const { t }          = useI18n()
 const organizationId = computed(() => route.query.organizationId)
 
-const staff          = ref([])
-const organizations  = ref([]) // for selection if global
-const total          = ref(0)
-const loading        = ref(false)
-const search         = ref('')
-const page           = ref(1)
-const limit          = ref(20)
+const staff   = ref([])
+const total   = ref(0)
+const loading = ref(false)
+const search  = ref('')
+const page    = ref(1)
+const limit   = ref(20)
 
 let searchTimer = null
 
-onMounted(async () => {
-  load()
-})
+onMounted(() => load())
 
 async function load() {
   loading.value = true
   try {
     const { data } = await api.get('/organizations/all-staff', {
-      params: { 
-        page: page.value, 
-        limit: limit.value, 
-        search: search.value,
-        organizationId: organizationId.value 
-      }
+      params: { page: page.value, limit: limit.value, search: search.value, organizationId: organizationId.value },
     })
     staff.value = data.data.staff
     total.value = data.data.total
@@ -173,19 +189,16 @@ async function load() {
 
 function onSearch() {
   clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  searchTimer = setTimeout(() => { page.value = 1; load() }, 400)
 }
 
 async function confirmDelete(member) {
-  if (!confirm(`Delete staff account for "${member.name}"? This will disable their login access across the platform. This cannot be undone.`)) return
+  if (!confirm(t('staff.confirmDelete', { name: member.name }))) return
   try {
     await api.delete(`/organizations/${member.id}`)
     load()
   } catch (err) {
-    alert(err.response?.data?.message || 'Delete failed')
+    alert(err.response?.data?.message || t('staff.deleteFailed'))
   }
 }
 </script>

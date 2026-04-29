@@ -4,6 +4,7 @@ import {
   CubeIcon,
   ShoppingCartIcon,
   TagIcon,
+  DocumentTextIcon,
   ClipboardDocumentListIcon,
   BuildingStorefrontIcon,
   ScaleIcon,
@@ -15,6 +16,7 @@ import {
   ClipboardDocumentCheckIcon,
   ArrowUturnRightIcon,
   BuildingLibraryIcon,
+  CreditCardIcon,
   ReceiptRefundIcon,
   ChartBarIcon,
   Cog6ToothIcon,
@@ -107,6 +109,12 @@ export default {
       component: () => import('./products/views/ProductCategoryCreate.vue'),
       meta: { requiresAuth: true, title: 'New Category' },
     },
+    {
+      path: '/erp/product-categories/:id/edit',
+      name: 'erp-product-categories-edit',
+      component: () => import('./products/views/ProductCategoryEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Category' },
+    },
     // Stores
     {
       path: '/erp/stores',
@@ -152,6 +160,18 @@ export default {
       component: () => import('./inventory/views/UOMConversionList.vue'),
       meta: { requiresAuth: true, title: 'UOM Conversion' },
     },
+    {
+      path: '/erp/uom-conversion/create',
+      name: 'erp-uom-conversion-create',
+      component: () => import('./inventory/views/UOMConversionCreate.vue'),
+      meta: { requiresAuth: true, title: 'New UOM Conversion' },
+    },
+    {
+      path: '/erp/uom-conversion/:id/edit',
+      name: 'erp-uom-conversion-edit',
+      component: () => import('./inventory/views/UOMConversionEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit UOM Conversion' },
+    },
     // Vendors
     {
       path: '/erp/vendors',
@@ -171,6 +191,25 @@ export default {
       component: () => import('./vendors/views/VendorEdit.vue'),
       meta: { requiresAuth: true, title: 'Edit Vendor' },
     },
+    // Quotations
+    {
+      path: '/erp/quotations',
+      name: 'erp-quotations',
+      component: () => import('./quotations/views/QuotationsList.vue'),
+      meta: { requiresAuth: true, title: 'Quotations' },
+    },
+    {
+      path: '/erp/quotations/create',
+      name: 'erp-quotations-create',
+      component: () => import('./quotations/views/QuotationCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Quotation' },
+    },
+    {
+      path: '/erp/quotations/:id',
+      name: 'erp-quotations-detail',
+      component: () => import('./quotations/views/QuotationDetail.vue'),
+      meta: { requiresAuth: true, title: 'Quotation Detail' },
+    },
     // Orders
     {
       path: '/erp/orders',
@@ -189,6 +228,44 @@ export default {
       name: 'erp-orders-detail',
       component: () => import('./orders/views/OrderDetail.vue'),
       meta: { requiresAuth: true, title: 'Order Detail' },
+    },
+    // Invoices
+    {
+      path: '/erp/invoices',
+      name: 'erp-invoices',
+      component: () => import('./invoices/views/InvoicesList.vue'),
+      meta: { requiresAuth: true, title: 'Invoices' },
+    },
+    {
+      path: '/erp/invoices/create',
+      name: 'erp-invoices-create',
+      component: () => import('./invoices/views/InvoiceCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Invoice' },
+    },
+    {
+      path: '/erp/invoices/:id',
+      name: 'erp-invoices-detail',
+      component: () => import('./invoices/views/InvoiceDetail.vue'),
+      meta: { requiresAuth: true, title: 'Invoice Detail' },
+    },
+    // Receipts
+    {
+      path: '/erp/receipts',
+      name: 'erp-receipts',
+      component: () => import('./receipts/views/ReceiptsList.vue'),
+      meta: { requiresAuth: true, title: 'Receipts' },
+    },
+    {
+      path: '/erp/receipts/create',
+      name: 'erp-receipts-create',
+      component: () => import('./receipts/views/ReceiptCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Receipt' },
+    },
+    {
+      path: '/erp/receipts/:id',
+      name: 'erp-receipts-detail',
+      component: () => import('./receipts/views/ReceiptDetail.vue'),
+      meta: { requiresAuth: true, title: 'Receipt Detail' },
     },
     // Goods Receive
     {
@@ -435,62 +512,71 @@ export default {
     },
   ],
   navItem: {
-    label: 'ERP',
+    label: 'nav.erp',
     icon: BuildingOffice2Icon,
     children: [
-      { label: 'Dashboard', to: '/erp/dashboard', icon: HomeIcon },
+      { label: 'nav.erpDashboard', to: '/erp/dashboard', icon: HomeIcon },
       {
-        label: 'Customers',
+        label: 'nav.customers',
         icon: UsersIcon,
         children: [
-          { label: 'Customers',        to: '/erp/customers',       icon: UsersIcon,    permission: 'erp.customers.list' },
-          { label: 'Groups',           to: '/erp/customer-groups', icon: TagIcon,      permission: 'erp.customer-groups.list' },
+          { label: 'nav.customers',      to: '/erp/customers',       icon: UsersIcon,    permission: 'erp.customers.list' },
+          { label: 'nav.customerGroups', to: '/erp/customer-groups', icon: TagIcon,      permission: 'erp.customer-groups.list' },
         ],
       },
-      { label: 'Vendors', to: '/erp/vendors', icon: BuildingLibraryIcon, permission: 'erp.products.list' },
+      { label: 'nav.vendors', to: '/erp/vendors', icon: BuildingLibraryIcon, permission: 'erp.products.list' },
       {
-        label: 'Inventory',
+        label: 'nav.inventory',
         icon: CubeIcon,
         children: [
-          { label: 'Product Category', to: '/erp/product-categories', icon: TagIcon,                    permission: 'erp.products.list' },
-          { label: 'Product Master',   to: '/erp/item-master',        icon: CubeIcon,                   permission: 'erp.products.list' },
-          { label: 'Stores',           to: '/erp/stores',             icon: BuildingStorefrontIcon,         permission: 'erp.stores.list' },
-          { label: 'UOM',              to: '/erp/uom',                icon: ScaleIcon,                     permission: 'erp.uom.list' },
-          { label: 'UOM Conversion',   to: '/erp/uom-conversion',     icon: ArrowUturnRightIcon,           permission: 'erp.uom.list' },
-          { label: 'Goods Receive',     to: '/erp/good-receive',       icon: TruckIcon,                  permission: 'erp.stock.list' },
-          { label: 'Stock Adjustment', to: '/erp/stock-adjust',       icon: AdjustmentsHorizontalIcon,    permission: 'erp.stock.list' },
-          { label: 'Stock Count',      to: '/erp/stock-count',        icon: ClipboardDocumentCheckIcon,  permission: 'erp.stock.list' },
-          { label: 'Stock Transfer',    to: '/erp/stock-request',      icon: ArrowPathIcon,               permission: 'erp.stock.list' },
-          { label: 'Stock Return',     to: '/erp/stock-return',       icon: ReceiptRefundIcon,           permission: 'erp.stock.list' },
-          { label: 'Stock Issue',      to: '/erp/stock-issue',        icon: ArrowPathIcon,               permission: 'erp.stock.list' },
-          { label: 'Stock Balance',    to: '/erp/stock-balance',      icon: ChartBarIcon,                permission: 'erp.stock.list' },
-          { label: 'Stock Movement',   to: '/erp/stock-movements',    icon: ArrowsRightLeftIcon,         permission: 'erp.stock.list' },
+          { label: 'nav.productCategory', to: '/erp/product-categories', icon: TagIcon,                   permission: 'erp.products.list' },
+          { label: 'nav.productMaster',   to: '/erp/item-master',        icon: CubeIcon,                  permission: 'erp.products.list' },
+          { label: 'nav.stores',          to: '/erp/stores',             icon: BuildingStorefrontIcon,     permission: 'erp.stores.list' },
+          { label: 'nav.uom',             to: '/erp/uom',                icon: ScaleIcon,                 permission: 'erp.uom.list' },
+          { label: 'nav.uomConversion',   to: '/erp/uom-conversion',     icon: ArrowUturnRightIcon,       permission: 'erp.uom.list' },
+          { label: 'nav.goodsReceive',    to: '/erp/good-receive',       icon: TruckIcon,                 permission: 'erp.stock.list' },
+          { label: 'nav.stockAdjustment', to: '/erp/stock-adjust',       icon: AdjustmentsHorizontalIcon, permission: 'erp.stock.list' },
+          { label: 'nav.stockCount',      to: '/erp/stock-count',        icon: ClipboardDocumentCheckIcon, permission: 'erp.stock.list' },
+          { label: 'nav.stockTransfer',   to: '/erp/stock-request',      icon: ArrowPathIcon,             permission: 'erp.stock.list' },
+          { label: 'nav.stockReturn',     to: '/erp/stock-return',       icon: ReceiptRefundIcon,         permission: 'erp.stock.list' },
+          { label: 'nav.stockIssue',      to: '/erp/stock-issue',        icon: ArrowPathIcon,             permission: 'erp.stock.list' },
+          { label: 'nav.stockBalance',    to: '/erp/stock-balance',      icon: ChartBarIcon,              permission: 'erp.stock.list' },
+          { label: 'nav.stockMovement',   to: '/erp/stock-movements',    icon: ArrowsRightLeftIcon,       permission: 'erp.stock.list' },
         ],
       },
       {
-        label: 'Sales',
+        label: 'nav.sales',
         icon: ShoppingCartIcon,
         children: [
-          { label: 'Sale Items',  to: '/erp/sale-items', icon: ClipboardDocumentListIcon, permission: 'erp.sale-items.list' },
-          { label: 'Price Lists', to: '/erp/pricing',    icon: TagIcon,                   permission: 'erp.pricing.list' },
-          { label: 'Sales Order', to: '/erp/orders',     icon: ShoppingCartIcon,          permission: 'erp.orders.list' },
+          { label: 'nav.saleItems',    to: '/erp/sale-items',  icon: ClipboardDocumentListIcon, permission: 'erp.sale-items.list' },
+          { label: 'nav.priceLists',   to: '/erp/pricing',     icon: TagIcon,                   permission: 'erp.pricing.list' },
+          { label: 'nav.quotations',   to: '/erp/quotations',  icon: DocumentTextIcon,          permission: 'erp.quotations.list' },
+          { label: 'nav.salesOrder',   to: '/erp/orders',      icon: ShoppingCartIcon,          permission: 'erp.orders.list' },
         ],
       },
       {
-        label: 'HRMS',
+        label: 'nav.billing',
+        icon: CreditCardIcon,
+        children: [
+          { label: 'nav.invoices', to: '/erp/invoices', icon: DocumentTextIcon,  permission: 'erp.invoices.list' },
+          { label: 'nav.receipts', to: '/erp/receipts', icon: ReceiptRefundIcon, permission: 'erp.receipts.list' },
+        ],
+      },
+      {
+        label: 'nav.hrms',
         icon: UserGroupIcon,
         children: [
-          { label: 'Employees', to: '/erp/hrms/employees', icon: IdentificationIcon, permission: 'erp.hrms.list' },
-          { label: 'Departments', to: '/erp/hrms/departments', icon: UserGroupIcon, permission: 'erp.departments.list' },
+          { label: 'nav.employees',   to: '/erp/hrms/employees',   icon: IdentificationIcon, permission: 'erp.hrms.list' },
+          { label: 'nav.departments', to: '/erp/hrms/departments', icon: UserGroupIcon,      permission: 'erp.departments.list' },
         ],
       },
       {
-        label: 'Settings',
+        label: 'nav.settings',
         icon: Cog6ToothIcon,
         children: [
-          { label: 'General',          to: '/erp/settings/general',    icon: CurrencyDollarIcon, permission: 'erp.stock.edit' },
-          { label: 'Sequence Numbers', to: '/erp/settings/sequence',  icon: HashtagIcon,        permission: 'erp.stock.edit' },
-          { label: 'Demo Data',        to: '/erp/settings/demo-data', icon: SparklesIcon,       permission: 'erp.stock.edit' },
+          { label: 'nav.general',         to: '/erp/settings/general',    icon: CurrencyDollarIcon, permission: 'erp.stock.edit' },
+          { label: 'nav.sequenceNumbers', to: '/erp/settings/sequence',   icon: HashtagIcon,        permission: 'erp.stock.edit' },
+          { label: 'nav.demoData',        to: '/erp/settings/demo-data',  icon: SparklesIcon,       permission: 'erp.stock.edit' },
         ],
       },
     ],

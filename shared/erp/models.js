@@ -18,6 +18,10 @@ const ProductCategory = require('./products/models/product-category.model')
 const ProductStore    = require('./products/models/product-store.model')
 const ProductVendor   = require('./products/models/product-vendor.model')
 
+// ── Quotations ───────────────────────────────────────────────────────────────
+const Quotation      = require('./quotations/models/quotation.model')
+const QuotationItem  = require('./quotations/models/quotation-item.model')
+
 // ── Orders ───────────────────────────────────────────────────────────────────
 const Order          = require('./orders/models/order.model')
 const SalesOrderItem = require('./orders/models/sales-order-item.model')
@@ -52,6 +56,13 @@ const StockIssueItem   = require('./stock/stock-issue/models/stock-issue-item.mo
 // ── Sale ─────────────────────────────────────────────────────────────────────
 const SaleItem = require('./sale/models/sale-item.model')
 
+// ── Invoices ─────────────────────────────────────────────────────────────────
+const Invoice     = require('./invoices/models/invoice.model')
+const InvoiceItem = require('./invoices/models/invoice-item.model')
+
+// ── Receipts ─────────────────────────────────────────────────────────────────
+const Receipt = require('./receipts/models/receipt.model')
+
 // ── HRMS ─────────────────────────────────────────────────────────────────────
 const Employee           = require('./hrms/models/employee.model')
 const Department         = require('./hrms/models/department.model')
@@ -66,7 +77,10 @@ const erpModels = {
   Item,
   Customer, CustomerGroup,
   Product, ProductCategory, ProductStore, ProductVendor,
+  Quotation, QuotationItem,
   Order, SalesOrderItem,
+  Invoice, InvoiceItem,
+  Receipt,
   SaleItem,
   Pricing,
   Store, StoreStock,
@@ -85,7 +99,10 @@ const erpModels = {
 
 // ── Intra-ERP associations ────────────────────────────────────────────────────
 require('./customers/models/customerAssociations')(erpModels)
+require('./quotations/models/quotationAssociations')(erpModels)
 require('./orders/models/orderAssociations')(erpModels)
+require('./invoices/models/invoiceAssociations')(erpModels)
+require('./receipts/models/receiptAssociations')(erpModels)
 require('./pricing/models/pricingAssociations')(erpModels)
 require('./products/models/productAssociations')(erpModels)
 require('./inventory/models/inventoryAssociations')(erpModels)

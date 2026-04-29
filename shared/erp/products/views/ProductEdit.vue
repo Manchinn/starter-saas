@@ -3,35 +3,35 @@
     <div class="space-y-6">
 
       <div class="flex items-center gap-3">
-        <RouterLink to="/erp/item-master" class="text-gray-400 hover:text-gray-600 transition">
+        <RouterLink to="/erp/item-master" class="text-[#9BA7B0] hover:text-[#637381] transition">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
-        <h1 class="text-2xl font-bold text-gray-900">Edit Product Master</h1>
+        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.products.edit') }}</h1>
       </div>
 
-      <div v-if="loading" class="text-gray-400 py-12 text-center">Loading…</div>
+      <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">{{ t('common.loading') }}</div>
       <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
-        Product Master not found. <RouterLink to="/erp/item-master" class="underline ml-1">Back to list</RouterLink>
+        {{ t('erp.products.notFound') }} <RouterLink to="/erp/item-master" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
       </div>
 
       <!-- Two-column layout -->
       <div v-else class="flex gap-6 items-start">
 
         <!-- Left: product fields -->
-        <div class="flex-1 bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+        <div class="flex-1 bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Code / SKU</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.codeSku') }}</label>
               <input v-model="form.sku" type="text"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.name') }} <span class="text-red-500">*</span></label>
               <input v-model="form.name" type="text"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.category') }}</label>
               <select v-model="form.category" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
                 <option value="">— None —</option>
                 <template v-for="cat in categories" :key="cat.id">
@@ -41,64 +41,64 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.costPrice') }}</label>
               <input v-model="form.cost" type="number" min="0" step="0.01"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
             <div class="col-span-2">
               <div class="flex items-center justify-between mb-2">
-                <label class="block text-sm font-medium text-gray-700">
-                  Current Stock
-                  <span class="ml-2 text-gray-400 font-normal text-xs">(total: {{ currentStock }})</span>
+                <label class="block text-sm font-medium text-[#374151]">
+                  {{ t('erp.products.currentStock') }}
+                  <span class="ml-2 text-[#9BA7B0] font-normal text-xs">(total: {{ currentStock }})</span>
                 </label>
                 <RouterLink :to="`/erp/stock-movements?productId=${route.params.id}`"
-                  class="text-xs px-3 py-1 border rounded-lg hover:bg-gray-50 text-primary-600 transition">
-                  View Movements
+                  class="text-xs px-3 py-1 border rounded-lg hover:bg-[#F7F9FC] text-primary-500 transition">
+                  {{ t('erp.products.viewMovements') }}
                 </RouterLink>
               </div>
-              <div v-if="storeStocks.length" class="border border-gray-200 rounded-lg overflow-hidden">
+              <div v-if="storeStocks.length" class="border border-[#E2E8F0] rounded-lg overflow-hidden">
                 <table class="w-full text-sm">
-                  <thead class="bg-gray-50 border-b border-gray-100">
+                  <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0]">
                     <tr>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Store</th>
-                      <th class="px-4 py-2 text-right text-xs font-medium text-gray-500">Stock</th>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-[#637381]">{{ t('erp.common.store') }}</th>
+                      <th class="px-4 py-2 text-right text-xs font-medium text-[#637381]">{{ t('erp.products.currentStock') }}</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-gray-100">
+                  <tbody class="divide-y divide-[#E2E8F0]">
                     <tr v-for="ss in storeStocks" :key="ss.id">
-                      <td class="px-4 py-2 text-gray-700">{{ ss.store?.name }}</td>
-                      <td class="px-4 py-2 text-right font-medium" :class="ss.stock <= 0 ? 'text-red-600' : 'text-gray-900'">{{ ss.stock }}</td>
+                      <td class="px-4 py-2 text-[#374151]">{{ ss.store?.name }}</td>
+                      <td class="px-4 py-2 text-right font-medium" :class="ss.stock <= 0 ? 'text-red-600' : 'text-[#1C2434]'">{{ ss.stock }}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-              <p v-else class="text-sm text-gray-400 px-1">No store stock recorded yet.</p>
-              <p class="text-xs text-gray-400 mt-1">Managed via Good Receive &amp; Stock Adjustment.</p>
+              <p v-else class="text-sm text-[#9BA7B0] px-1">{{ t('erp.products.noStoreStock') }}</p>
+              <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.products.managedVia') }}</p>
             </div>
             <div class="col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.description') }}</label>
               <textarea v-model="form.description" rows="3"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Selling UOM</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.sellingUom') }}</label>
               <select v-model="form.sellingUomId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
                 <option value="">— None —</option>
                 <option v-for="u in uoms" :key="u.id" :value="u.id">{{ u.name }}{{ u.abbreviation ? ` (${u.abbreviation})` : '' }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Purchasing UOM</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.purchasingUom') }}</label>
               <select v-model="form.purchasingUomId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
                 <option value="">— None —</option>
                 <option v-for="u in uoms" :key="u.id" :value="u.id">{{ u.name }}{{ u.abbreviation ? ` (${u.abbreviation})` : '' }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.status') }}</label>
               <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">{{ t('common.active') }}</option>
+                <option value="inactive">{{ t('common.inactive') }}</option>
               </select>
             </div>
           </div>
@@ -108,13 +108,13 @@
           <div class="flex justify-between items-center pt-2">
             <button v-can="'erp.products.delete'" @click="confirmDelete"
               class="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
-              Delete Product Master
+              {{ t('erp.products.deleteProduct') }}
             </button>
             <div class="flex gap-3">
-              <RouterLink to="/erp/item-master" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition">Cancel</RouterLink>
+              <RouterLink to="/erp/item-master" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
               <button @click="save" :disabled="saving"
-                class="px-5 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
-                {{ saving ? 'Saving…' : 'Save Changes' }}
+                class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+                {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
               </button>
             </div>
           </div>
@@ -124,35 +124,35 @@
         <div class="w-72 space-y-4 flex-shrink-0">
 
           <!-- Stores panel -->
-          <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-semibold text-gray-700">Linked Stores</h2>
+          <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5 space-y-4">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.linkedStores') }}</h2>
             <div class="flex gap-2">
               <select v-model="selectedStoreId"
                 class="flex-1 px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">— Select store —</option>
+                <option value="">{{ t('erp.common.selectStore') }}</option>
                 <option v-for="s in availableStores" :key="s.id" :value="s.id">{{ s.name }}{{ s.code ? ` (${s.code})` : '' }}</option>
               </select>
               <button @click="addStore" :disabled="!selectedStoreId"
-                class="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
+                class="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
                 +
               </button>
             </div>
             <div class="space-y-2 min-h-[40px]">
-              <div v-if="!linkedStores.length" class="text-sm text-gray-400 text-center py-3">No stores linked.</div>
+              <div v-if="!linkedStores.length" class="text-sm text-[#9BA7B0] text-center py-3">No stores linked.</div>
               <div v-for="s in linkedStores" :key="s.id"
-                class="flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                class="flex items-center justify-between gap-2 px-3 py-2 bg-[#F7F9FC] rounded-lg border border-[#E2E8F0]">
                 <div class="min-w-0">
-                  <p class="text-sm font-medium text-gray-800 truncate">{{ s.name }}</p>
-                  <p v-if="s.code" class="text-xs text-gray-400 font-mono">{{ s.code }}</p>
+                  <p class="text-sm font-medium text-[#1C2434] truncate">{{ s.name }}</p>
+                  <p v-if="s.code" class="text-xs text-[#9BA7B0] font-mono">{{ s.code }}</p>
                 </div>
-                <button @click="removeStore(s.id)" class="text-gray-400 hover:text-red-500 transition flex-shrink-0 text-lg leading-none">&times;</button>
+                <button @click="removeStore(s.id)" class="text-[#9BA7B0] hover:text-red-500 transition flex-shrink-0 text-lg leading-none">&times;</button>
               </div>
             </div>
           </div>
 
           <!-- Vendors panel -->
-          <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-semibold text-gray-700">Linked Vendors</h2>
+          <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5 space-y-4">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.linkedVendors') }}</h2>
             <div class="flex gap-2">
               <select v-model="selectedVendorId"
                 class="flex-1 px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -160,19 +160,19 @@
                 <option v-for="v in availableVendors" :key="v.id" :value="v.id">{{ v.name }}{{ v.code ? ` (${v.code})` : '' }}</option>
               </select>
               <button @click="addVendor" :disabled="!selectedVendorId"
-                class="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
+                class="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
                 +
               </button>
             </div>
             <div class="space-y-2 min-h-[40px]">
-              <div v-if="!linkedVendors.length" class="text-sm text-gray-400 text-center py-3">No vendors linked.</div>
+              <div v-if="!linkedVendors.length" class="text-sm text-[#9BA7B0] text-center py-3">No vendors linked.</div>
               <div v-for="v in linkedVendors" :key="v.id"
-                class="flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                class="flex items-center justify-between gap-2 px-3 py-2 bg-[#F7F9FC] rounded-lg border border-[#E2E8F0]">
                 <div class="min-w-0">
-                  <p class="text-sm font-medium text-gray-800 truncate">{{ v.name }}</p>
-                  <p v-if="v.code" class="text-xs text-gray-400 font-mono">{{ v.code }}</p>
+                  <p class="text-sm font-medium text-[#1C2434] truncate">{{ v.name }}</p>
+                  <p v-if="v.code" class="text-xs text-[#9BA7B0] font-mono">{{ v.code }}</p>
                 </div>
-                <button @click="removeVendor(v.id)" class="text-gray-400 hover:text-red-500 transition flex-shrink-0 text-lg leading-none">&times;</button>
+                <button @click="removeVendor(v.id)" class="text-[#9BA7B0] hover:text-red-500 transition flex-shrink-0 text-lg leading-none">&times;</button>
               </div>
             </div>
           </div>
@@ -187,10 +187,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
+const { t } = useI18n()
 const route    = useRoute()
 const router   = useRouter()
 const form         = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', sellingUomId: '', purchasingUomId: '' })

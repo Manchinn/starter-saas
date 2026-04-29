@@ -1,54 +1,62 @@
 <template>
-  <AuthLayout subtitle="Create your account">
-    <form @submit.prevent="handleRegister" class="space-y-5">
+  <AuthLayout :subtitle="t('auth.registerSubtitle')">
+    <form @submit.prevent="handleRegister" class="space-y-4">
+
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <label class="label">{{ t('auth.fullName') }}</label>
         <input
           v-model="form.name"
           type="text"
           required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-          placeholder="John Doe"
+          autocomplete="name"
+          class="input-lg"
+          :placeholder="t('auth.fullNamePh')"
         />
       </div>
+
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label class="label">{{ t('auth.email') }}</label>
         <input
           v-model="form.email"
           type="email"
           required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-          placeholder="you@example.com"
+          autocomplete="email"
+          class="input-lg"
+          :placeholder="t('auth.emailPh')"
         />
       </div>
+
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label class="label">{{ t('auth.password') }}</label>
         <input
           v-model="form.password"
           type="password"
           required
           minlength="8"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-          placeholder="Min. 8 characters"
+          autocomplete="new-password"
+          class="input-lg"
+          :placeholder="t('auth.passwordMinPh')"
         />
       </div>
 
-      <div v-if="errors.length" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg space-y-1">
+      <div v-if="errors.length"
+           class="px-4 py-3 bg-[#FEE2E2] border border-[#FECACA] text-[#B91C1C] text-sm rounded-xl space-y-1">
         <p v-for="e in errors" :key="e">{{ e }}</p>
       </div>
 
       <button
         type="submit"
         :disabled="loading"
-        class="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+        class="btn-primary w-full py-3 text-[15px] mt-2"
       >
-        {{ loading ? 'Creating account...' : 'Create account' }}
+        {{ loading ? t('auth.creatingAccount') : t('auth.createAccount') }}
       </button>
 
-      <p class="text-center text-sm text-gray-500">
-        Already have an account?
-        <RouterLink to="/login" class="text-primary-600 hover:underline">Sign in</RouterLink>
+      <p class="text-center text-[13px] text-[#637381]">
+        {{ t('auth.alreadyAccount') }}
+        <RouterLink to="/login" class="font-semibold text-primary-500 hover:text-primary-600">{{ t('auth.signInLink') }}</RouterLink>
       </p>
+
     </form>
   </AuthLayout>
 </template>
@@ -56,18 +64,20 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 
-const auth = useAuthStore()
+const auth   = useAuthStore()
 const router = useRouter()
+const { t }  = useI18n()
 
-const form = ref({ name: '', email: '', password: '' })
+const form    = ref({ name: '', email: '', password: '' })
 const loading = ref(false)
-const errors = ref([])
+const errors  = ref([])
 
 async function handleRegister() {
-  errors.value = []
+  errors.value  = []
   loading.value = true
   try {
     await auth.register(form.value.name, form.value.email, form.value.password)
@@ -77,7 +87,7 @@ async function handleRegister() {
     if (data?.errors) {
       errors.value = data.errors.map((e) => e.message)
     } else {
-      errors.value = [data?.message || 'Registration failed']
+      errors.value = [data?.message || t('auth.registrationFailed')]
     }
   } finally {
     loading.value = false

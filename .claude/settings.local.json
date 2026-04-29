@@ -31,7 +31,14 @@
       "Bash(mv \"shared/erp/hrms/models/Department.js\"         \"shared/erp/hrms/models/department.model.js\")",
       "Bash(mv \"shared/erp/hrms/models/Employee.js\"           \"shared/erp/hrms/models/employee.model.js\")",
       "Bash(mv \"shared/erp/hrms/models/EmployeeDepartment.js\" \"shared/erp/hrms/models/employee-department.model.js\")",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(xargs ls *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:tailadmin.com)",
+      "Bash(npm run *)",
+      "WebFetch(domain:tanstack.com)"
     ]
   }
 }

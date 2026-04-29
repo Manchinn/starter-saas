@@ -5,127 +5,47 @@
       <!-- Header -->
       <div class="flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">Customers</h1>
-          <p class="text-sm text-gray-500 mt-0.5">{{ total }} customer{{ total !== 1 ? 's' : '' }}</p>
+          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.customers.title') }}</h1>
+          <p class="text-sm text-[#637381] mt-0.5">{{ total }} customer{{ total !== 1 ? 's' : '' }}</p>
         </div>
         <RouterLink
           v-can="'erp.customers.edit'"
           to="/erp/customers/create"
-          class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm
-                 font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
+          class="btn-primary">
           <PlusIcon class="w-4 h-4" />
-          New Customer
+          {{ t('erp.customers.new') }}
         </RouterLink>
       </div>
 
       <!-- Table card -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
 
         <!-- Filter bar -->
-        <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3 flex-wrap">
+        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3 flex-wrap">
           <div class="relative flex-1 min-w-48 max-w-64">
-            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input v-model="search" @input="onSearch" type="search" placeholder="Search customers…"
-              class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
-                     focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
-                     focus:border-transparent transition-colors" />
+            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
+            <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.customers.searchPh')"
+              class="input pl-9" />
           </div>
           <select v-model="filterGroup" @change="() => { page = 1; fetchCustomers() }"
-            class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
-                   focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
-                   focus:border-transparent text-gray-700 transition-colors">
-            <option value="">All Groups</option>
+            class="input">
+            <option value="">{{ t('erp.customers.allGroups') }}</option>
             <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
           </select>
         </div>
 
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="bg-gray-50 border-b border-gray-100 text-left">
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Company</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Group</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Contact</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-              <th class="px-5 py-3 w-20"></th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-50">
-            <tr v-if="loading">
-              <td colspan="6" class="text-center py-16">
-                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-              </td>
-            </tr>
-            <tr v-else-if="!customers.length">
-              <td colspan="6" class="text-center py-16">
-                <div class="flex flex-col items-center gap-2">
-                  <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <UsersIcon class="w-5 h-5 text-gray-400" />
-                  </div>
-                  <p class="text-sm text-gray-400 font-medium">No customers found</p>
-                </div>
-              </td>
-            </tr>
-            <tr v-for="c in customers" :key="c.id"
-              class="hover:bg-gray-50 transition-colors group">
-              <td class="px-5 py-3.5 font-medium text-gray-900">{{ c.name }}</td>
-              <td class="px-5 py-3.5 text-gray-500">{{ c.company || '—' }}</td>
-              <td class="px-5 py-3.5 text-gray-500">{{ c.group?.name || '—' }}</td>
-              <td class="px-5 py-3.5">
-                <div class="space-y-0.5">
-                  <p class="text-gray-600 text-xs">{{ c.email || '—' }}</p>
-                  <p class="text-gray-400 text-xs">{{ c.phone || '' }}</p>
-                </div>
-              </td>
-              <td class="px-5 py-3.5">
-                <span :class="c.status === 'active'
-                  ? 'bg-green-50 text-green-700'
-                  : 'bg-gray-100 text-gray-500'"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize">
-                  <span class="w-1.5 h-1.5 rounded-full"
-                    :class="c.status === 'active' ? 'bg-green-500' : 'bg-gray-400'"></span>
-                  {{ c.status }}
-                </span>
-              </td>
-              <td class="px-5 py-3.5">
-                <div class="flex items-center justify-end gap-1 transition-opacity">
-                  <RouterLink v-can="'erp.customers.edit'" :to="`/erp/customers/${c.id}/edit`"
-                    class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
-                    title="Edit">
-                    <PencilIcon class="w-4 h-4" />
-                  </RouterLink>
-                  <button v-can="'erp.customers.delete'" @click="confirmDelete(c)"
-                    class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                    title="Delete">
-                    <TrashIcon class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable :columns="columns" :data="customers" :loading="loading" :total="total"
+          v-model:page="page" :page-size="limit">
+          <template #empty>
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+                <UsersIcon class="w-5 h-5 text-[#9BA7B0]" />
+              </div>
+              <p class="text-sm text-[#9BA7B0] font-medium">{{ t('erp.customers.noFound') }}</p>
+            </div>
+          </template>
+        </DataTable>
 
-        <!-- Pagination -->
-        <div class="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
-          <span class="text-xs text-gray-500">
-            Showing {{ customers.length ? (page - 1) * limit + 1 : 0 }}–{{ Math.min(page * limit, total) }} of {{ total }}
-          </span>
-          <div class="flex items-center gap-1">
-            <button @click="page--" :disabled="page <= 1"
-              class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200
-                     text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
-              <ChevronLeftIcon class="w-4 h-4" />
-            </button>
-            <span class="text-xs text-gray-600 font-medium px-2 tabular-nums">
-              {{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}
-            </span>
-            <button @click="page++" :disabled="page * limit >= total"
-              class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200
-                     text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
-              <ChevronRightIcon class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -133,14 +53,20 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { h, ref, watch, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
-  PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon,
-  ChevronLeftIcon, ChevronRightIcon, UsersIcon,
+  PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UsersIcon,
 } from '@heroicons/vue/24/outline'
+import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
+import { useAuthStore } from '@/stores/auth'
 
+const { t } = useI18n()
+const auth = useAuthStore()
 const customers   = ref([])
 const groups      = ref([])
 const total       = ref(0)
@@ -186,4 +112,62 @@ async function confirmDelete(c) {
     alert(err.response?.data?.message || 'Delete failed')
   }
 }
+
+const columnHelper = createColumnHelper()
+
+const columns = [
+  columnHelper.accessor('name', {
+    header: () => t('erp.customers.colName'),
+    cell: info => info.getValue() || '—',
+  }),
+  columnHelper.accessor('company', {
+    header: () => t('erp.customers.colCompany'),
+    cell: info => info.getValue() || '—',
+  }),
+  columnHelper.display({
+    id: 'group',
+    header: () => t('erp.customers.colGroup'),
+    cell: info => info.row.original.group?.name || '—',
+  }),
+  columnHelper.display({
+    id: 'contact',
+    header: () => t('erp.customers.colContact'),
+    cell: info => {
+      const c = info.row.original
+      return h('div', { class: 'space-y-0.5' }, [
+        h('p', { class: 'text-[#637381] text-xs' }, c.email || '—'),
+        h('p', { class: 'text-[#9BA7B0] text-xs' }, c.phone || ''),
+      ])
+    },
+  }),
+  columnHelper.accessor('status', {
+    header: () => t('erp.customers.colStatus'),
+    cell: info => {
+      const s = info.getValue()
+      return h('span', {
+        class: `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${s === 'active' ? 'bg-green-50 text-green-700' : 'bg-[#F1F5F9] text-[#637381]'}`
+      }, [
+        h('span', { class: `w-1.5 h-1.5 rounded-full ${s === 'active' ? 'bg-green-500' : 'bg-slate-400'}` }),
+        s,
+      ])
+    },
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: () => '',
+    meta: { thClass: 'w-20', tdClass: '' },
+    cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
+      auth.hasPermission('erp.customers.edit') ? h(RouterLink, {
+        to: `/erp/customers/${info.row.original.id}/edit`,
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+        title: 'Edit',
+      }, () => h(PencilIcon, { class: 'w-4 h-4' })) : null,
+      auth.hasPermission('erp.customers.delete') ? h('button', {
+        onClick: () => confirmDelete(info.row.original),
+        class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+        title: 'Delete',
+      }, h(TrashIcon, { class: 'w-4 h-4' })) : null,
+    ]),
+  }),
+]
 </script>

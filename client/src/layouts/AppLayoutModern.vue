@@ -1,11 +1,18 @@
 <template>
-  <div class="flex flex-col h-screen bg-gray-50">
+  <div class="flex flex-col h-screen bg-[#F1F5F9]">
 
     <!-- ── Topbar ─────────────────────────────────────────────────────────── -->
-    <header class="h-14 bg-primary-700 flex items-center px-6 gap-4 flex-shrink-0 shadow-md">
+    <header class="h-[64px] bg-[#1C2434] flex items-center px-6 gap-4 flex-shrink-0 shadow-lg">
 
       <!-- Logo -->
-      <span class="text-white text-lg font-bold mr-4 flex-shrink-0">Starter SaaS</span>
+      <div class="flex items-center gap-2 mr-4 flex-shrink-0">
+        <div class="w-6 h-6 bg-white/20 rounded-md flex items-center justify-center flex-shrink-0">
+          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <span class="text-white text-[15px] font-bold tracking-tight">Starter SaaS</span>
+      </div>
 
       <!-- Horizontal nav — overflow visible so teleported dropdowns aren't clipped -->
       <nav class="flex items-center gap-1 flex-1 overflow-x-auto" style="overflow-y:visible">
@@ -16,12 +23,12 @@
             <RouterLink
               v-if="!item.children"
               :to="item.to"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-primary-200
-                     hover:bg-primary-600 hover:text-white transition-colors whitespace-nowrap flex-shrink-0"
-              active-class="bg-primary-800 text-white font-medium"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] text-[#DEE4EE]
+                     hover:bg-white/[0.08] hover:text-white transition-colors whitespace-nowrap flex-shrink-0"
+              active-class="bg-white/[0.15] text-white font-medium"
             >
               <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
-              <span>{{ item.label }}</span>
+              <span>{{ t(item.label) }}</span>
             </RouterLink>
 
             <!-- Dropdown group -->
@@ -32,12 +39,12 @@
               @mouseleave="scheduleClose"
             >
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-primary-200
-                       hover:bg-primary-600 hover:text-white transition-colors whitespace-nowrap"
-                :class="{ 'bg-primary-800 text-white': openDropdown === item.label || isGroupActive(item) }"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] text-[#DEE4EE]
+                       hover:bg-white/[0.08] hover:text-white transition-colors whitespace-nowrap"
+                :class="{ 'bg-white/[0.15] text-white': openDropdown === item.label || isGroupActive(item) }"
               >
                 <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
-                <span>{{ item.label }}</span>
+                <span>{{ t(item.label) }}</span>
                 <ChevronDownIcon class="w-3.5 h-3.5" />
               </button>
             </div>
@@ -47,27 +54,29 @@
       </nav>
 
       <!-- Right: user info + logout -->
-      <div class="flex items-center gap-3 flex-shrink-0 ml-auto">
-        <div class="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center
-                    text-white text-xs font-bold border-2 border-primary-400">
-          {{ userInitial }}
+      <div class="flex items-center gap-2.5 flex-shrink-0 ml-auto">
+        <div class="hidden sm:flex items-center gap-2.5 pl-2.5 pr-3.5 py-1.5 rounded-xl border border-white/[0.12] bg-white/[0.06]">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+                      text-white text-[11px] font-bold flex-shrink-0">
+            {{ userInitial }}
+          </div>
+          <span class="text-[13px] text-[#DEE4EE] font-medium truncate max-w-28">{{ auth.user?.name }}</span>
         </div>
-        <span class="text-sm text-primary-200 hidden sm:block">{{ auth.user?.name }}</span>
-        <button @click="handleLogout" title="Logout"
-                class="text-primary-300 hover:text-white transition-colors">
-          <ArrowRightOnRectangleIcon class="w-5 h-5" />
+        <button @click="handleLogout" title="Sign out"
+                class="p-2 rounded-xl text-[#DEE4EE] hover:text-white hover:bg-white/[0.10] transition-colors">
+          <ArrowRightOnRectangleIcon class="w-4 h-4" />
         </button>
       </div>
     </header>
 
     <!-- ── Page title bar ─────────────────────────────────────────────────── -->
-    <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-shrink-0">
-      <h2 class="text-base font-semibold text-gray-800">{{ currentPageTitle }}</h2>
-      <div class="ml-auto text-xs text-gray-400">{{ auth.user?.email }}</div>
+    <div class="bg-white border-b border-[#E2E8F0] px-6 py-3.5 flex items-center gap-3 flex-shrink-0">
+      <h2 class="text-[14px] font-semibold text-[#1C2434] truncate">{{ currentPageTitle }}</h2>
+      <div class="ml-auto text-[12px] text-[#637381] truncate max-w-48 hidden sm:block">{{ auth.user?.email }}</div>
     </div>
 
     <!-- ── Page content ───────────────────────────────────────────────────── -->
-    <main class="flex-1 overflow-y-auto p-6">
+    <main class="flex-1 overflow-y-auto p-6 scrollbar-thin">
       <slot />
     </main>
 
@@ -90,7 +99,7 @@
           <!-- Sub-group header -->
           <div v-if="child.children" class="px-3 pt-3 pb-1">
             <p class="text-[10px] font-semibold tracking-widest text-gray-400 uppercase">
-              {{ child.label }}
+              {{ t(child.label) }}
             </p>
             <ul class="mt-1 space-y-0.5">
               <li v-for="gc in child.children" :key="gc.to">
@@ -102,7 +111,7 @@
                   @click="openDropdown = null"
                 >
                   <component v-if="gc.icon" :is="gc.icon" class="w-4 h-4 flex-shrink-0" />
-                  <span>{{ gc.label }}</span>
+                  <span>{{ t(gc.label) }}</span>
                 </RouterLink>
               </li>
             </ul>
@@ -118,7 +127,7 @@
             @click="openDropdown = null"
           >
             <component :is="child.icon" class="w-4 h-4 flex-shrink-0" />
-            <span>{{ child.label }}</span>
+            <span>{{ t(child.label) }}</span>
           </RouterLink>
 
         </template>
@@ -132,6 +141,7 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ChevronDownIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
 import { useAppLayout } from '@/composables/useAppLayout'
 
 const {
@@ -142,6 +152,7 @@ const {
   handleLogout,
 } = useAppLayout()
 
+const { t } = useI18n()
 const route        = useRoute()
 const openDropdown = ref(null)
 const dropdownPos  = ref({ top: 0, left: 0 })

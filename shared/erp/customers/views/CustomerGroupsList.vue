@@ -4,99 +4,56 @@
 
       <div class="flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">Customer Groups</h1>
-          <p class="text-sm text-gray-500 mt-0.5">{{ total }} group{{ total !== 1 ? 's' : '' }}</p>
+          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.customerGroups.title') }}</h1>
+          <p class="text-sm text-[#637381] mt-0.5">{{ total }} group{{ total !== 1 ? 's' : '' }}</p>
         </div>
         <RouterLink v-can="'erp.customer-groups.edit'" to="/erp/customer-groups/create"
-          class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm
-                 font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
+          class="btn-primary">
           <PlusIcon class="w-4 h-4" />
-          New Group
+          {{ t('erp.customerGroups.new') }}
         </RouterLink>
       </div>
 
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
 
-        <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3">
+        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
           <div class="relative flex-1 min-w-48 max-w-64">
-            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input v-model="search" @input="onSearch" type="search" placeholder="Search groups…"
-              class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50
-                     focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500
-                     focus:border-transparent transition-colors" />
+            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
+            <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.customerGroups.searchPh')"
+              class="input pl-9" />
           </div>
         </div>
 
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="bg-gray-50 border-b border-gray-100 text-left">
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Description</th>
-              <th class="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-              <th class="px-5 py-3 w-20"></th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-50">
-            <tr v-if="loading">
-              <td colspan="4" class="text-center py-16">
-                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-              </td>
-            </tr>
-            <tr v-else-if="!groups.length">
-              <td colspan="4" class="text-center py-16">
-                <div class="flex flex-col items-center gap-2">
-                  <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <UserGroupIcon class="w-5 h-5 text-gray-400" />
-                  </div>
-                  <p class="text-sm text-gray-400 font-medium">No groups found</p>
-                </div>
-              </td>
-            </tr>
-            <tr v-for="g in groups" :key="g.id" class="hover:bg-gray-50 transition-colors group">
-              <td class="px-5 py-3.5 font-medium text-gray-900">{{ g.name }}</td>
-              <td class="px-5 py-3.5 text-gray-500 max-w-xs truncate">{{ g.description || '—' }}</td>
-              <td class="px-5 py-3.5">
-                <span :class="g.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize">
-                  <span class="w-1.5 h-1.5 rounded-full" :class="g.status === 'active' ? 'bg-green-500' : 'bg-gray-400'"></span>
-                  {{ g.status }}
-                </span>
-              </td>
-              <td class="px-5 py-3.5">
-                <div class="flex items-center justify-end gap-1 transition-opacity">
-                  <RouterLink v-can="'erp.customer-groups.edit'" :to="`/erp/customer-groups/${g.id}/edit`"
-                    class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors" title="Edit">
-                    <PencilIcon class="w-4 h-4" />
-                  </RouterLink>
-                  <button v-can="'erp.customer-groups.delete'" @click="confirmDelete(g)"
-                    class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
-                    <TrashIcon class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable :columns="columns" :data="groups" :loading="loading" :total="total"
+          v-model:page="page" :page-size="limit">
+          <template #empty>
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+                <UserGroupIcon class="w-5 h-5 text-[#9BA7B0]" />
+              </div>
+              <p class="text-sm text-[#9BA7B0] font-medium">{{ t('erp.customerGroups.noFound') }}</p>
+            </div>
+          </template>
+        </DataTable>
 
-        <div class="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
-          <span class="text-xs text-gray-500">Showing {{ groups.length ? (page-1)*limit+1 : 0 }}–{{ Math.min(page*limit,total) }} of {{ total }}</span>
-          <div class="flex items-center gap-1">
-            <button @click="page--" :disabled="page <= 1" class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors"><ChevronLeftIcon class="w-4 h-4" /></button>
-            <span class="text-xs text-gray-600 font-medium px-2 tabular-nums">{{ page }} / {{ Math.max(1,Math.ceil(total/limit)) }}</span>
-            <button @click="page++" :disabled="page*limit>=total" class="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors"><ChevronRightIcon class="w-4 h-4" /></button>
-          </div>
-        </div>
       </div>
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+import { h, ref, watch, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
+import { useAuthStore } from '@/stores/auth'
 
+const { t } = useI18n()
+const auth = useAuthStore()
 const groups  = ref([])
 const total   = ref(0)
 const page    = ref(1)
@@ -123,4 +80,46 @@ async function confirmDelete(g) {
   try { await api.delete(`/erp/customer-groups/${g.id}`); fetchGroups() }
   catch (err) { alert(err.response?.data?.message || 'Delete failed') }
 }
+
+const columnHelper = createColumnHelper()
+
+const columns = [
+  columnHelper.accessor('name', {
+    header: () => t('erp.customerGroups.colName'),
+    cell: info => info.getValue() || '—',
+  }),
+  columnHelper.accessor('description', {
+    header: () => t('erp.customerGroups.colDesc'),
+    cell: info => info.getValue() || '—',
+  }),
+  columnHelper.accessor('status', {
+    header: () => t('erp.customerGroups.colStatus'),
+    cell: info => {
+      const s = info.getValue()
+      return h('span', {
+        class: `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${s === 'active' ? 'bg-green-50 text-green-700' : 'bg-[#F1F5F9] text-[#637381]'}`
+      }, [
+        h('span', { class: `w-1.5 h-1.5 rounded-full ${s === 'active' ? 'bg-green-500' : 'bg-slate-400'}` }),
+        s,
+      ])
+    },
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: () => '',
+    meta: { thClass: 'w-20', tdClass: '' },
+    cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
+      auth.hasPermission('erp.customer-groups.edit') ? h(RouterLink, {
+        to: `/erp/customer-groups/${info.row.original.id}/edit`,
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+        title: 'Edit',
+      }, () => h(PencilIcon, { class: 'w-4 h-4' })) : null,
+      auth.hasPermission('erp.customer-groups.delete') ? h('button', {
+        onClick: () => confirmDelete(info.row.original),
+        class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+        title: 'Delete',
+      }, h(TrashIcon, { class: 'w-4 h-4' })) : null,
+    ]),
+  }),
+]
 </script>

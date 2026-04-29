@@ -1,132 +1,290 @@
 <template>
   <AppLayout>
     <div class="space-y-6">
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/good-receive" class="text-gray-400 hover:text-gray-600 transition">
-          <ArrowLeftIcon class="w-5 h-5" />
+
+      <!-- Page Header -->
+      <div class="flex items-start gap-4">
+        <RouterLink to="/erp/good-receive"
+          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
+                 hover:border-[#E2E8F0] transition-all flex-shrink-0">
+          <ArrowLeftIcon class="w-[18px] h-[18px]" />
         </RouterLink>
-        <h1 class="text-2xl font-bold text-gray-900">Good Receive</h1>
-        <span v-if="gr" :class="gr.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'"
-          class="px-2.5 py-0.5 rounded-full text-xs font-medium capitalize">{{ gr?.status }}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.goodReceive.title') }}</h1>
+            <template v-if="gr">
+              <span v-if="gr.status === 'draft'"
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                       bg-amber-50 text-amber-600 border border-amber-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                {{ t('erp.common.draft') }}
+              </span>
+              <span v-else
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                       bg-green-50 text-green-700 border border-green-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                {{ t('erp.common.confirmed') }}
+              </span>
+            </template>
+          </div>
+          <nav v-if="gr" class="flex items-center gap-1.5 mt-1">
+            <RouterLink to="/erp/good-receive" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
+              {{ t('erp.goodReceive.title') }}
+            </RouterLink>
+            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
+            <span class="text-[12px] text-[#637381] font-mono">{{ gr.refNo }}</span>
+          </nav>
+        </div>
+        <div v-if="gr?.status === 'draft'" class="flex items-center gap-2.5 flex-shrink-0">
+          <button @click="deleteGR"
+            class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium
+                   text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+            <TrashIcon class="w-4 h-4" />
+            {{ t('erp.common.deleteDraft') }}
+          </button>
+          <button @click="confirmGR" :disabled="confirming"
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
+                   bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-sm
+                   disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <ArrowPathIcon v-if="confirming" class="w-4 h-4 animate-spin" />
+            <CheckIcon v-else class="w-4 h-4" />
+            {{ confirming ? t('erp.common.confirming') : t('erp.goodReceive.confirmStock') }}
+          </button>
+        </div>
       </div>
 
-      <div v-if="loading" class="text-gray-400 py-12 text-center">Loading…</div>
-      <div v-else-if="!gr" class="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
-        Record not found. <RouterLink to="/erp/good-receive" class="underline ml-1">Back to list</RouterLink>
+      <!-- Loading -->
+      <div v-if="loading" class="bg-white rounded-2xl border border-[#E2E8F0] p-12 text-center text-[#9BA7B0] text-sm animate-pulse">
+        {{ t('common.loading') }}
+      </div>
+
+      <!-- Not found -->
+      <div v-else-if="!gr"
+        class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl">
+        <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0" />
+        <span>{{ t('erp.goodReceive.notFound') }}</span>
+        <RouterLink to="/erp/good-receive" class="underline ml-1 font-medium">{{ t('erp.common.backToList') }}</RouterLink>
       </div>
 
       <template v-else>
-        <!-- Header info -->
-        <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <!-- Row 1: core fields -->
-          <div class="grid grid-cols-5 gap-6 text-sm">
-            <div><p class="text-gray-500 mb-1">Ref No</p><p class="font-mono font-semibold text-gray-900">{{ gr.refNo }}</p></div>
-            <div><p class="text-gray-500 mb-1">Date</p><p class="font-medium text-gray-900">{{ gr.date }}</p></div>
-            <div><p class="text-gray-500 mb-1">Store</p><p class="font-medium text-gray-900">{{ gr.store?.name || '—' }}</p></div>
-            <div><p class="text-gray-500 mb-1">Supplier</p><p class="font-medium text-gray-900">{{ gr.supplier || '—' }}</p></div>
-            <div><p class="text-gray-500 mb-1">Notes</p><p class="text-gray-700">{{ gr.notes || '—' }}</p></div>
-          </div>
-          <!-- Row 2: document type -->
-          <div class="flex items-center gap-6 pt-3 border-t border-gray-100 text-sm">
-            <div>
-              <p class="text-gray-500 mb-1">Document Type</p>
-              <span :class="gr.docType === 'invoice' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'"
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize">
-                {{ gr.docType || 'invoice' }}
-              </span>
-            </div>
-            <template v-if="gr.docType === 'invoice' || !gr.docType">
-              <div><p class="text-gray-500 mb-1">Invoice No</p><p class="font-mono font-medium text-gray-900">{{ gr.invoiceNo || '—' }}</p></div>
-              <div><p class="text-gray-500 mb-1">Invoice Date</p><p class="font-medium text-gray-900">{{ gr.invoiceDate || '—' }}</p></div>
-              <div><p class="text-gray-500 mb-1">Invoice Discount</p><p class="font-medium text-gray-900">{{ fmtMoney(gr.invoiceDiscount) }}</p></div>
-              <div class="px-4 py-2 bg-green-50 rounded-lg border border-green-100">
-                <p class="text-gray-500 mb-1 text-xs">Net Amount</p>
-                <p class="font-bold text-green-800 text-lg">{{ fmtMoney(gr.invoiceNetAmount) }}</p>
+        <div class="space-y-5">
+
+          <!-- Section 1: GR Info -->
+          <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+            <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                <TruckIcon class="w-4 h-4 text-primary-500" />
               </div>
-            </template>
-            <template v-if="gr.docType === 'delivery'">
-              <div><p class="text-gray-500 mb-1">Delivery No</p><p class="font-mono font-medium text-gray-900">{{ gr.deliveryNo || '—' }}</p></div>
-            </template>
-          </div>
-        </div>
+              <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.header') }}</h2>
+            </div>
+            <div class="px-6 py-5 space-y-5">
 
-        <!-- Items -->
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h2 class="text-sm font-semibold text-gray-700">Items</h2>
-            <div class="flex gap-6 text-xs text-gray-500">
-              <span>Gross: <span class="font-semibold text-gray-800">{{ fmtMoney(totalGross) }}</span></span>
-              <span>Net Total: <span class="font-bold text-gray-900">{{ fmtMoney(totalNet) }}</span></span>
+              <!-- Core fields -->
+              <div class="grid grid-cols-3 gap-x-8 gap-y-5">
+                <div>
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.common.refNo') }}</p>
+                  <p class="font-mono font-semibold text-[#1C2434] text-sm">{{ gr.refNo }}</p>
+                </div>
+                <div>
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.common.date') }}</p>
+                  <p class="text-sm text-[#1C2434]">{{ gr.date }}</p>
+                </div>
+                <div>
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.common.store') }}</p>
+                  <p class="text-sm font-medium text-[#1C2434]">{{ gr.store?.name || '—' }}</p>
+                </div>
+                <div>
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.goodReceive.supplier') }}</p>
+                  <p class="text-sm text-[#1C2434]">{{ gr.supplier || '—' }}</p>
+                </div>
+                <div class="col-span-2">
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.common.notes') }}</p>
+                  <p class="text-sm text-[#637381]">{{ gr.notes || '—' }}</p>
+                </div>
+              </div>
+
+              <!-- Document type -->
+              <div class="pt-4 border-t border-[#E2E8F0]">
+                <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-3">{{ t('erp.goodReceive.docType') }}</p>
+                <div class="flex items-start gap-6 flex-wrap">
+                  <span
+                    :class="gr.docType === 'delivery'
+                      ? 'bg-purple-50 text-purple-700 border-purple-200'
+                      : 'bg-blue-50 text-blue-700 border-blue-200'"
+                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold border capitalize">
+                    {{ gr.docType === 'delivery' ? t('erp.goodReceive.delivery') : t('erp.goodReceive.invoice') }}
+                  </span>
+
+                  <template v-if="gr.docType !== 'delivery'">
+                    <div>
+                      <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.goodReceive.invoiceNo') }}</p>
+                      <p class="font-mono text-sm text-[#1C2434]">{{ gr.invoiceNo || '—' }}</p>
+                    </div>
+                    <div>
+                      <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.goodReceive.invoiceDate') }}</p>
+                      <p class="text-sm text-[#1C2434]">{{ gr.invoiceDate || '—' }}</p>
+                    </div>
+                    <div>
+                      <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.goodReceive.invoiceDiscount') }}</p>
+                      <p class="text-sm text-[#1C2434] tabular-nums">{{ fmtMoney(gr.invoiceDiscount) }}</p>
+                    </div>
+                    <div class="px-4 py-2.5 bg-green-50 rounded-xl border border-green-100">
+                      <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.goodReceive.netAmount') }}</p>
+                      <p class="font-bold text-green-700 text-lg tabular-nums leading-none">{{ fmtMoney(gr.invoiceNetAmount) }}</p>
+                    </div>
+                  </template>
+
+                  <template v-else>
+                    <div>
+                      <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.goodReceive.deliveryNo') }}</p>
+                      <p class="font-mono text-sm text-[#1C2434]">{{ gr.deliveryNo || '—' }}</p>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
             </div>
           </div>
-          <div class="overflow-x-auto">
-            <table class="text-sm" style="min-width: 1200px">
-              <thead class="bg-gray-50 border-b border-gray-200 text-left">
-                <tr>
-                  <th class="px-3 py-2.5 font-medium text-gray-600">Product</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600">SKU</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600 text-right">Qty</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600">Qty UOM</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600 text-right">Free Qty</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600">Free UOM</th>
-                  <th class="px-3 py-2.5 font-medium text-indigo-600 text-right">Stock Qty</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600">Batch ID</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600">Expiry</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600 text-right">Cost/Unit</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600 text-right">Disc %</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600 text-right">Discount</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600 text-right">Net Amt</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600 text-right">WAC</th>
-                  <th class="px-3 py-2.5 font-medium text-gray-600">Comments</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <tr v-for="item in gr.items" :key="item.id" class="hover:bg-gray-50">
-                  <td class="px-3 py-2.5 font-medium text-gray-900">{{ item.product?.name }}</td>
-                  <td class="px-3 py-2.5 font-mono text-xs text-gray-400">{{ item.product?.sku || '—' }}</td>
-                  <td class="px-3 py-2.5 text-right font-medium text-gray-900">{{ Number(item.qty) }}</td>
-                  <td class="px-3 py-2.5 text-gray-500 text-xs">{{ item.qtyUom?.abbreviation || item.qtyUom?.name || '—' }}</td>
-                  <td class="px-3 py-2.5 text-right text-gray-600">{{ Number(item.freeQty) || '—' }}</td>
-                  <td class="px-3 py-2.5 text-gray-500 text-xs">{{ item.freeQtyUom?.abbreviation || item.freeQtyUom?.name || '—' }}</td>
-                  <td class="px-3 py-2.5 text-right font-semibold text-indigo-700">{{ Number(item.stockQty) || Number(item.qty) }}</td>
-                  <td class="px-3 py-2.5 font-mono text-xs text-gray-500">{{ item.batchId || '—' }}</td>
-                  <td class="px-3 py-2.5 text-xs text-gray-500">{{ item.expiryDate || '—' }}</td>
-                  <td class="px-3 py-2.5 text-right text-gray-700">{{ fmtMoney(item.cost) }}</td>
-                  <td class="px-3 py-2.5 text-right text-gray-600">{{ Number(item.discountPct) ? `${Number(item.discountPct)}%` : '—' }}</td>
-                  <td class="px-3 py-2.5 text-right text-gray-600">{{ fmtMoney(item.discount) !== '0.00' ? fmtMoney(item.discount) : '—' }}</td>
-                  <td class="px-3 py-2.5 text-right font-semibold text-gray-900">{{ fmtMoney(item.netAmount) }}</td>
-                  <td class="px-3 py-2.5 text-right text-xs text-blue-700 font-mono">{{ fmtRate(item.wac) }}</td>
-                  <td class="px-3 py-2.5 text-gray-500 text-xs">{{ item.comments || '—' }}</td>
-                </tr>
-              </tbody>
-              <tfoot class="border-t-2 border-gray-200 bg-gray-50">
-                <tr>
-                  <td colspan="9" class="px-3 py-2 text-xs font-medium text-gray-500">Totals</td>
-                  <td class="px-3 py-2 text-right text-xs font-semibold text-gray-700">{{ fmtMoney(totalGross) }}</td>
-                  <td colspan="2"></td>
-                  <td class="px-3 py-2 text-right text-xs font-bold text-gray-900">{{ fmtMoney(totalNet) }}</td>
-                  <td colspan="2"></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+          <!-- Section 2: Items -->
+          <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+            <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+                  <ClipboardDocumentListIcon class="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.items') }}</h2>
+                  <p class="text-[11px] text-[#9BA7B0]">
+                    {{ gr.items?.length || 0 }} item{{ (gr.items?.length || 0) !== 1 ? 's' : '' }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-5 text-xs text-[#637381]">
+                <span>Gross: <span class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(totalGross) }}</span></span>
+                <span class="font-semibold text-[#374151]">Net: <span class="font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(totalNet) }}</span></span>
+              </div>
+            </div>
 
-        <!-- Actions -->
-        <div class="flex justify-between items-center">
-          <button v-if="gr.status === 'draft'" @click="deleteGR"
-            class="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
-            Delete Draft
-          </button>
-          <div class="flex gap-3 ml-auto">
-            <RouterLink to="/erp/good-receive" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition">Back</RouterLink>
-            <button v-if="gr.status === 'draft'" @click="confirmGR" :disabled="confirming"
-              class="px-5 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition">
-              {{ confirming ? 'Confirming…' : 'Confirm & Update Stock' }}
-            </button>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm" style="min-width: 1200px">
+                <thead>
+                  <tr class="bg-[#F7F9FC] border-b border-[#E2E8F0]">
+                    <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.product') }}</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">SKU</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.qty') }}</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">UOM</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.freeQty') }}</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.freeUom') }}</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-semibold text-indigo-400 uppercase tracking-wider">Stock Qty</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.batchId') }}</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.expiryDate') }}</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Cost/Unit</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.discPct') }}</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.discount') }}</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.netAmount') }}</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.wac') }}</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.comments') }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#F1F5F9]">
+                  <tr v-for="item in gr.items" :key="item.id" class="hover:bg-[#F7F9FC] transition-colors">
+                    <td class="px-4 py-3 font-medium text-[#1C2434]">{{ item.product?.name }}</td>
+                    <td class="px-4 py-3 font-mono text-xs text-[#9BA7B0]">{{ item.product?.sku || '—' }}</td>
+                    <td class="px-4 py-3 text-right font-semibold text-[#1C2434] tabular-nums">{{ Number(item.qty) }}</td>
+                    <td class="px-4 py-3 text-xs text-[#637381]">{{ item.qtyUom?.abbreviation || item.qtyUom?.name || '—' }}</td>
+                    <td class="px-4 py-3 text-right text-[#637381] tabular-nums">{{ Number(item.freeQty) || '—' }}</td>
+                    <td class="px-4 py-3 text-xs text-[#637381]">{{ item.freeQtyUom?.abbreviation || item.freeQtyUom?.name || '—' }}</td>
+                    <td class="px-4 py-3 text-right font-semibold text-indigo-600 tabular-nums">{{ Number(item.stockQty) || Number(item.qty) }}</td>
+                    <td class="px-4 py-3 font-mono text-xs text-[#637381]">{{ item.batchId || '—' }}</td>
+                    <td class="px-4 py-3 text-xs text-[#637381]">{{ item.expiryDate || '—' }}</td>
+                    <td class="px-4 py-3 text-right text-[#374151] tabular-nums">{{ fmtMoney(item.cost) }}</td>
+                    <td class="px-4 py-3 text-right text-[#637381] tabular-nums">{{ Number(item.discountPct) ? `${Number(item.discountPct)}%` : '—' }}</td>
+                    <td class="px-4 py-3 text-right text-[#637381] tabular-nums">{{ fmtMoney(item.discount) !== '0.00' ? fmtMoney(item.discount) : '—' }}</td>
+                    <td class="px-4 py-3 text-right font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(item.netAmount) }}</td>
+                    <td class="px-4 py-3 text-right font-mono text-xs text-blue-600 tabular-nums">{{ fmtRate(item.wac) }}</td>
+                    <td class="px-4 py-3 text-xs text-[#637381]">{{ item.comments || '—' }}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="border-t-2 border-[#E2E8F0] bg-[#F7F9FC]">
+                    <td colspan="9" class="px-4 py-3 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">
+                      {{ t('erp.goodReceive.totals') }}
+                    </td>
+                    <td class="px-4 py-3 text-right text-xs font-semibold text-[#374151] tabular-nums">{{ fmtMoney(totalGross) }}</td>
+                    <td colspan="2"></td>
+                    <td class="px-4 py-3 text-right text-sm font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(totalNet) }}</td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
+
+          <!-- Error -->
+          <div v-if="error"
+            class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700
+                   text-sm px-4 py-3.5 rounded-xl">
+            <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <span>{{ error }}</span>
+          </div>
+
+          <!-- Summary card -->
+          <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+            <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
+              <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
+              <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.summary') }}</h2>
+            </div>
+
+            <div class="px-6 py-4 grid grid-cols-4 gap-6">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.items') }}</span>
+                <span class="text-sm font-semibold text-[#1C2434]">{{ gr.items?.length || 0 }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Gross Amount</span>
+                <span class="text-sm font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(totalGross) }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Net Amount</span>
+                <span class="text-sm font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(totalNet) }}</span>
+              </div>
+              <div v-if="gr.docType !== 'delivery'" class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.goodReceive.netAmount') }}</span>
+                <span class="text-sm font-semibold text-green-700 tabular-nums">{{ fmtMoney(gr.invoiceNetAmount) }}</span>
+              </div>
+            </div>
+
+            <div class="px-6 py-5 bg-[#F7F9FC] border-t border-[#E2E8F0] flex items-center justify-between">
+              <div>
+                <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">Total Net Amount</p>
+                <p class="text-3xl font-extrabold text-primary-500 tabular-nums leading-none">{{ fmtMoney(totalNet) }}</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <RouterLink to="/erp/good-receive"
+                  class="px-5 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
+                  {{ t('erp.common.back') }}
+                </RouterLink>
+                <template v-if="gr.status === 'draft'">
+                  <button @click="deleteGR"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium
+                           text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                    <TrashIcon class="w-4 h-4" />
+                    {{ t('erp.common.deleteDraft') }}
+                  </button>
+                  <button @click="confirmGR" :disabled="confirming"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold
+                           bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-sm
+                           disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <ArrowPathIcon v-if="confirming" class="w-4 h-4 animate-spin" />
+                    <CheckIcon v-else class="w-4 h-4" />
+                    {{ confirming ? t('erp.common.confirming') : t('erp.goodReceive.confirmStock') }}
+                  </button>
+                </template>
+              </div>
+            </div>
+          </div>
+
         </div>
       </template>
     </div>
@@ -135,18 +293,24 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import {
+  ArrowLeftIcon, ChevronRightIcon, TruckIcon, ClipboardDocumentListIcon,
+  CalculatorIcon, CheckIcon, TrashIcon, ExclamationCircleIcon, ArrowPathIcon,
+} from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 import { fmtMoney, fmtRate } from '@/utils/fmt'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const gr = ref(null)
-const loading = ref(true)
+
+const gr         = ref(null)
+const loading    = ref(true)
 const confirming = ref(false)
-const error = ref('')
+const error      = ref('')
 
 async function load() {
   try {
@@ -162,7 +326,7 @@ async function load() {
 onMounted(load)
 
 const totalGross = computed(() =>
-  (gr.value?.items || []).reduce((s, i) => s + (Number(i.qty) * Number(i.cost)), 0)
+  (gr.value?.items || []).reduce((s, i) => s + Number(i.qty) * Number(i.cost), 0)
 )
 const totalNet = computed(() =>
   (gr.value?.items || []).reduce((s, i) => s + Number(i.netAmount || 0), 0)
