@@ -4,7 +4,8 @@ const service = require('./demo-data.service')
 module.exports = {
   async seed(req, res) {
     try {
-      const result = await service.seedDemo(req.user?.id)
+      const orgId = req.user.organizationId || req.user.id
+      const result = await service.seedDemo(req.user?.id, orgId)
       return ok(res, result, result.message)
     } catch (err) {
       console.error('[demo-data] seed error:', err)
