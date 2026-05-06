@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -47,6 +47,16 @@
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.notes') }}</label>
             <textarea v-model="form.notes" rows="3" :placeholder="t('erp.customers.notes')" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
           </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+          </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.status') }}</label>
             <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -88,7 +98,7 @@ import { useAutoCode } from '@/composables/useAutoCode'
 
 const { t } = useI18n()
 const router   = useRouter()
-const form     = ref({ code: '', name: '', company: '', email: '', phone: '', address: '', notes: '', status: 'active', customerGroupId: '' })
+const form     = ref({ code: '', name: '', company: '', email: '', phone: '', address: '', notes: '', status: 'active', activeFrom: '', activeTo: '', customerGroupId: '' })
 const groups   = ref([])
 const error    = ref('')
 const saving   = ref(false)

@@ -15,7 +15,11 @@ const Quotation = sequelize.define('Quotation', {
   taxRate:  { type: DataTypes.DECIMAL(5, 2),  defaultValue: 0 },
   tax:      { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
   total:    { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
-  notes:    { type: DataTypes.TEXT, allowNull: true },
+  notes:          { type: DataTypes.TEXT, allowNull: true },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:      { type: DataTypes.UUID, allowNull: true },
+  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
 }, { tableName: 'quotations' })
 
 module.exports = Quotation

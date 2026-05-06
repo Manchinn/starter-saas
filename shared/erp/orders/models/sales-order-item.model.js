@@ -45,11 +45,11 @@ const SalesOrderItem = sequelize.define('SalesOrderItem', {
     allowNull: false,
     defaultValue: 0,
   },
-  total: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    defaultValue: 0,
-  },
+  total:          { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:      { type: DataTypes.UUID, allowNull: true },
+  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
 }, {
   tableName: 'sales_order_items',
 })

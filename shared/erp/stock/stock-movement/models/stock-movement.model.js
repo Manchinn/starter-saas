@@ -12,7 +12,9 @@ const StockMovement = sequelize.define('StockMovement', {
   refId:       { type: DataTypes.UUID, allowNull: true },
   storeId:     { type: DataTypes.UUID, allowNull: true },
   refNo:       { type: DataTypes.STRING, allowNull: true },
-  notes:       { type: DataTypes.TEXT, allowNull: true },
+  notes:          { type: DataTypes.TEXT, allowNull: true },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
 })
 
 module.exports = StockMovement

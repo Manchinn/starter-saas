@@ -32,6 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
   const isAdmin         = computed(() => user.value?.role === 'admin')
+  const impersonating   = computed(() => !!localStorage.getItem('impersonatedFrom'))
 
   function hasPermission(slug) {
     if (isAdmin.value) return true
@@ -108,11 +109,35 @@ export const useAuthStore = defineStore('auth', () => {
     await api.put('/auth/change-password', { currentPassword, newPassword })
   }
 
+  async function loginAs(targetUserId) {
+    localStorage.setItem('impersonatedFrom', JSON.stringify({
+      user:         user.value,
+      permissions:  permissions.value,
+      accessToken:  accessToken.value,
+      refreshToken: refreshToken.value,
+    }))
+    const { data } = await api.post(`/auth/login-as/${targetUserId}`)
+    setTokens(data.data.accessToken, data.data.refreshToken, true)
+    applySession(data.data)
+  }
+
+  function returnToAdmin() {
+    const raw = localStorage.getItem('impersonatedFrom')
+    if (!raw) return
+    const prev = JSON.parse(raw)
+    localStorage.removeItem('impersonatedFrom')
+    setTokens(prev.accessToken, prev.refreshToken, true)
+    user.value        = prev.user
+    roles.value       = prev.user?.roles ?? []
+    permissions.value = prev.permissions ?? []
+  }
+
   return {
     user, roles, permissions, accessToken,
-    isAuthenticated, isAdmin,
+    isAuthenticated, isAdmin, impersonating,
     hasPermission, hasRole,
     fetchMe, login, register, install, logout, changePassword,
+    loginAs, returnToAdmin,
     clearSession, syncTokensFromRefresh,
   }
 })

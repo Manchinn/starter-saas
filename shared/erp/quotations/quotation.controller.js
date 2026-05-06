@@ -5,9 +5,10 @@ module.exports = {
   async list(req, res) {
     try {
       const { page, limit, search, status } = req.query
+      const orgId = req.user?.organizationId || req.user?.id
       const result = await service.list({
         page: +page || 1, limit: +limit || 20,
-        search: search || '', status: status || '',
+        search: search || '', status: status || '', organizationId: orgId,
       })
       return ok(res, result)
     } catch (err) { return serverError(res) }
@@ -22,14 +23,15 @@ module.exports = {
 
   async create(req, res) {
     try {
-      const q = await service.create(req.body)
+      const orgId = req.user?.organizationId || req.user?.id
+      const q = await service.create({ ...req.body, userId: req.user?.id, organizationId: orgId })
       return created(res, { quotation: q }, 'Quotation created')
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },
 
   async update(req, res) {
     try {
-      const q = await service.update(req.params.id, req.body)
+      const q = await service.update(req.params.id, req.body, req.user?.id)
       return ok(res, { quotation: q }, 'Quotation updated')
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -48,8 +48,7 @@
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                 {{ t('erp.common.date') }} <span class="text-red-500">*</span>
               </label>
-              <input v-model="form.date" type="date"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition" />
+              <DateInput v-model="form.date" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition" />
             </div>
             <div>
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
@@ -65,7 +64,13 @@
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                 {{ t('erp.stockIssue.reason') }}
               </label>
-              <input v-model="form.reason" type="text" :placeholder="t('erp.stockIssue.reasonPh')"
+              <select v-if="issueReasons.length" v-model="form.reason"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] rounded-xl text-sm bg-white text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition">
+                <option value="">{{ t('erp.masterData.selectPh') }}</option>
+                <option v-for="r in issueReasons" :key="r.id" :value="r.name">{{ r.name }}</option>
+              </select>
+              <input v-else v-model="form.reason" type="text" :placeholder="t('erp.stockIssue.reasonPh')"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition" />
             </div>
             <div>
@@ -248,12 +253,15 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { useMasterDataStore } from '@/stores/masterData'
 
 const { t } = useI18n()
 const router               = useRouter()
+const masterDataStore      = useMasterDataStore()
 const stores               = ref([])
 const storeProducts        = ref([])
 const loadingStoreProducts = ref(false)
+const issueReasons         = ref([])
 const form   = ref({ date: new Date().toISOString().slice(0, 10), storeId: '', reason: '', notes: '' })
 const items  = ref([])
 const error  = ref('')
@@ -266,6 +274,7 @@ onMounted(async () => {
   } catch (err) {
     console.error('Failed to load stores:', err.message)
   }
+  issueReasons.value = await masterDataStore.getValues('issue-reasons')
 })
 
 watch(() => form.value.storeId, async (storeId) => {

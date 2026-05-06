@@ -12,6 +12,10 @@ module.exports = function associate({
   User.belongsTo(User, { foreignKey: 'organizationId', as: 'organization' })
   User.hasMany(User,   { foreignKey: 'organizationId', as: 'staff' })
 
+  // ── Organization parent-child (sub-org hierarchy) ────────────────────────────
+  User.belongsTo(User, { foreignKey: 'parentId', as: 'parent' })
+  User.hasMany(User,   { foreignKey: 'parentId', as: 'children' })
+
   // ── User ↔ Module ───────────────────────────────────────────────────────────
   User.belongsToMany(Module, { through: UserModule, foreignKey: 'userId',   as: 'modules' })
   Module.belongsToMany(User, { through: UserModule, foreignKey: 'moduleId', as: 'users' })

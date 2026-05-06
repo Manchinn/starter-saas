@@ -1,9 +1,9 @@
 const { Customer, CustomerGroup } = require('../../../server/models')
 const { Op } = require('sequelize')
 
-const list = async ({ page = 1, limit = 20, search = '', groupId = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', groupId = '', status = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (search) {
     where[Op.or] = [
       { name: { [Op.like]: `%${search}%` } },
@@ -12,6 +12,9 @@ const list = async ({ page = 1, limit = 20, search = '', groupId = '' }) => {
     ]
   }
   if (groupId) where.customerGroupId = groupId
+  if (status) where.status = status
+  if (activeFrom) where.activeFrom = { [Op.gte]: activeFrom }
+  if (activeTo) where.activeTo = { [Op.lte]: activeTo }
 
   const { count, rows } = await Customer.findAndCountAll({
     where,
@@ -32,7 +35,7 @@ const getById = async (id) => {
   return customer
 }
 
-const create = async ({ name, code, autoCode, email, phone, company, address, notes, status = 'active', customerGroupId, userId }) => {
+const create = async ({ name, code, autoCode, email, phone, company, address, notes, status = 'active', activeFrom, activeTo, customerGroupId, userId, organizationId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   let customerCode = null
   if (autoCode) {
@@ -43,17 +46,20 @@ const create = async ({ name, code, autoCode, email, phone, company, address, no
     if (existing) throw { status: 400, message: 'Customer code already exists' }
     customerCode = code.trim()
   }
-  return Customer.create({ code: customerCode, name: name.trim(), email, phone, company, address, notes, status, customerGroupId: customerGroupId || null })
+  return Customer.create({ code: customerCode, name: name.trim(), email, phone, company, address, notes, status, activeFrom: activeFrom || null, activeTo: activeTo || null, customerGroupId: customerGroupId || null, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null })
 }
 
-const update = async (id, data) => {
+const update = async (id, data, userId) => {
   const customer = await Customer.findByPk(id)
   if (!customer) throw { status: 404, message: 'Customer not found' }
-  const allowed = ['code', 'name', 'email', 'phone', 'company', 'address', 'notes', 'status', 'customerGroupId']
+  const allowed = ['code', 'name', 'email', 'phone', 'company', 'address', 'notes', 'status', 'activeFrom', 'activeTo', 'customerGroupId']
   const patch = Object.fromEntries(
     Object.entries(data).filter(([k, v]) => allowed.includes(k) && v !== undefined)
   )
   if ('customerGroupId' in data) patch.customerGroupId = data.customerGroupId || null
+  if ('activeFrom' in patch) patch.activeFrom = patch.activeFrom || null
+  if ('activeTo'   in patch) patch.activeTo   = patch.activeTo   || null
+  patch.modifiedBy = userId || null
   await customer.update(patch)
   return customer.reload()
 }

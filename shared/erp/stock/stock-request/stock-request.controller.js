@@ -5,7 +5,8 @@ module.exports = {
   async list(req, res) {
     try {
       const { page, limit, search } = req.query
-      const result = await service.list({ page: +page || 1, limit: +limit || 20, search: search || '' })
+      const orgId = req.user?.organizationId || req.user?.id
+      const result = await service.list({ page: +page || 1, limit: +limit || 20, search: search || '', organizationId: orgId })
       return ok(res, result)
     } catch (err) {
       return serverError(res)
@@ -23,7 +24,8 @@ module.exports = {
 
   async create(req, res) {
     try {
-      const request = await service.create({ ...req.body, userId: req.user?.id })
+      const orgId = req.user?.organizationId || req.user?.id
+      const request = await service.create({ ...req.body, userId: req.user?.id, organizationId: orgId })
       return created(res, { request }, 'Stock Transfer created')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

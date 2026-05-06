@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -90,6 +90,17 @@
               </select>
             </div>
 
+            <!-- Active Period -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeFrom') }}</label>
+                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeTo') }}</label>
+                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+              </div>
+            </div>
             <!-- Status -->
             <div>
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.status') }}</label>
@@ -212,7 +223,7 @@ import { useAutoCode } from '@/composables/useAutoCode'
 
 const { t } = useI18n()
 const router   = useRouter()
-const form     = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', sellingUomId: '', purchasingUomId: '' })
+const form     = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', activeFrom: '', activeTo: '', sellingUomId: '', purchasingUomId: '' })
 const autoCode = useAutoCode('PRD')
 const stores     = ref([])
 const vendors    = ref([])

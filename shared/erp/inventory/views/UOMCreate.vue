@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -25,6 +25,16 @@
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.description') }}</label>
             <textarea v-model="form.description" rows="2" placeholder="Optional description…"
               class="w-full px-3 py-2 border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.status') }}</label>
@@ -60,7 +70,7 @@ import api from '@/api'
 
 const { t } = useI18n()
 const router = useRouter()
-const form   = ref({ name: '', abbreviation: '', description: '', status: 'active' })
+const form   = ref({ name: '', abbreviation: '', description: '', status: 'active', activeFrom: '', activeTo: '' })
 const error  = ref('')
 const saving = ref(false)
 

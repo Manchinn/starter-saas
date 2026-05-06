@@ -15,11 +15,11 @@ const storeInclude = { model: Store, as: 'store', attributes: ['id', 'name', 'co
 
 const nextRefNo = (userId) => getNext('ISS', userId)
 
-const list = async ({ page = 1, limit = 20, search = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', organizationId }) => {
   const offset = (page - 1) * limit
   const where = search
-    ? { [Op.or]: [{ refNo: { [Op.like]: `%${search}%` } }, { reason: { [Op.like]: `%${search}%` } }] }
-    : {}
+    ? { [Op.or]: [{ refNo: { [Op.like]: `%${search}%` } }, { reason: { [Op.like]: `%${search}%` } }], organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
+    : { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   const { count, rows } = await StockIssue.findAndCountAll({
     where, limit, offset,
     order: [['createdAt', 'DESC']],
@@ -35,7 +35,7 @@ const getById = async (id) => {
   return issue
 }
 
-const create = async ({ date, storeId, reason, notes, items = [], userId }) => {
+const create = async ({ date, storeId, reason, notes, items = [], userId, organizationId }) => {
   if (!date)    throw { status: 400, message: 'Date is required' }
   if (!storeId) throw { status: 400, message: 'Store is required' }
   if (!items.length) throw { status: 400, message: 'At least one item is required' }
@@ -46,12 +46,12 @@ const create = async ({ date, storeId, reason, notes, items = [], userId }) => {
   const refNo = await nextRefNo(userId)
   const t = await sequelize.transaction()
   try {
-    const issue = await StockIssue.create({ refNo, date, storeId, reason, notes }, { transaction: t })
+    const issue = await StockIssue.create({ refNo, date, storeId, reason, notes, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null }, { transaction: t })
     for (const item of items) {
       if (!item.productId) throw { status: 400, message: 'Product is required on all items' }
       if (!item.qty || item.qty <= 0) throw { status: 400, message: 'Quantity must be greater than 0' }
       await StockIssueItem.create(
-        { stockIssueId: issue.id, productId: item.productId, qty: item.qty, notes: item.notes || null },
+        { stockIssueId: issue.id, productId: item.productId, qty: item.qty, notes: item.notes || null, organizationId: organizationId || null },
         { transaction: t }
       )
     }

@@ -207,6 +207,18 @@
         </div>
       </header>
 
+      <!-- Impersonation banner -->
+      <div v-if="auth.impersonating" class="flex-shrink-0 bg-amber-400 px-6 py-2 flex items-center gap-3">
+        <UserCircleIcon class="w-4 h-4 text-amber-900 flex-shrink-0" />
+        <p class="text-[13px] font-semibold text-amber-900 flex-1 leading-none">
+          Viewing as <span class="font-bold">{{ auth.user?.name }}</span> ({{ auth.user?.email }})
+        </p>
+        <button @click="handleReturnToAdmin"
+          class="text-[12px] font-bold text-amber-900 bg-amber-900/15 hover:bg-amber-900/25 px-3 py-1 rounded-lg transition-colors flex-shrink-0">
+          Return to Admin
+        </button>
+      </div>
+
       <!-- Content -->
       <main class="flex-1 overflow-y-auto p-6 scrollbar-thin">
         <slot />
@@ -218,8 +230,9 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { ChevronDownIcon, ArrowRightOnRectangleIcon, BellIcon } from '@heroicons/vue/24/outline'
+import { ChevronDownIcon, ArrowRightOnRectangleIcon, BellIcon, UserCircleIcon } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useAppLayout } from '@/composables/useAppLayout'
 
 const {
@@ -231,6 +244,13 @@ const {
   currentPageTitle,
   handleLogout,
 } = useAppLayout()
+
+const router = useRouter()
+
+function handleReturnToAdmin() {
+  auth.returnToAdmin()
+  router.push('/admin/organizations')
+}
 
 const { locale, t } = useI18n()
 

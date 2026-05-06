@@ -34,6 +34,10 @@ const InvoiceItem = sequelize.define('InvoiceItem', {
     allowNull: false,
     defaultValue: 0,
   },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:  { type: DataTypes.UUID, allowNull: true },
+  modifiedBy: { type: DataTypes.UUID, allowNull: true },
 }, {
   tableName: 'invoice_items',
 })

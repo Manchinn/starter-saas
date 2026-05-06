@@ -11,7 +11,11 @@ const QuotationItem = sequelize.define('QuotationItem', {
   unitPrice:   { type: DataTypes.DECIMAL(12, 2), allowNull: false, defaultValue: 0 },
   discount:    { type: DataTypes.DECIMAL(5, 2),  defaultValue: 0 },
   total:       { type: DataTypes.DECIMAL(12, 2), allowNull: false, defaultValue: 0 },
-  notes:       { type: DataTypes.TEXT, allowNull: true },
+  notes:          { type: DataTypes.TEXT, allowNull: true },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:      { type: DataTypes.UUID, allowNull: true },
+  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
 }, { tableName: 'quotation_items' })
 
 module.exports = QuotationItem

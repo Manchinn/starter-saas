@@ -33,6 +33,8 @@ const Pricing = sequelize.define('Pricing', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
+  activeFrom: { type: DataTypes.DATEONLY, allowNull: true },
+  activeTo:   { type: DataTypes.DATEONLY, allowNull: true },
   saleItemId: {
     type: DataTypes.UUID,
     allowNull: true,
@@ -41,14 +43,13 @@ const Pricing = sequelize.define('Pricing', {
     type: DataTypes.UUID,
     allowNull: true,
   },
-  createdBy: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
   organizationId: {
     type: DataTypes.UUID,
     allowNull: true,
   },
+  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:  { type: DataTypes.UUID, allowNull: true },
+  modifiedBy: { type: DataTypes.UUID, allowNull: true },
 })
 
 module.exports = Pricing

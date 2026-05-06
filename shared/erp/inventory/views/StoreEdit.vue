@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -41,6 +41,16 @@
             <textarea v-model="form.address" rows="2"
               class="w-full px-3 py-2 border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+          </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.status') }}</label>
             <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -79,7 +89,7 @@ import api from '@/api'
 const { t } = useI18n()
 const route    = useRoute()
 const router   = useRouter()
-const form     = ref({ name: '', code: '', phone: '', email: '', address: '', status: 'active' })
+const form     = ref({ name: '', code: '', phone: '', email: '', address: '', status: 'active', activeFrom: '', activeTo: '' })
 const loading  = ref(true)
 const notFound = ref(false)
 const error    = ref('')
@@ -89,7 +99,7 @@ onMounted(async () => {
   try {
     const { data } = await api.get(`/erp/stores/${route.params.id}`)
     const s = data.data.store
-    form.value = { name: s.name, code: s.code || '', phone: s.phone || '', email: s.email || '', address: s.address || '', status: s.status }
+    form.value = { name: s.name, code: s.code || '', phone: s.phone || '', email: s.email || '', address: s.address || '', status: s.status, activeFrom: s.activeFrom || '', activeTo: s.activeTo || '' }
   } catch {
     notFound.value = true
   } finally {

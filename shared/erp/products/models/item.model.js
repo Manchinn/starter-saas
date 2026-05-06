@@ -24,6 +24,8 @@ const Item = sequelize.define('Item', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag: { type: DataTypes.INTEGER, defaultValue: 1 },
 })
 
 module.exports = Item

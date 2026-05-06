@@ -38,7 +38,9 @@
       "WebFetch(domain:api.github.com)",
       "WebFetch(domain:tailadmin.com)",
       "Bash(npm run *)",
-      "WebFetch(domain:tanstack.com)"
+      "WebFetch(domain:tanstack.com)",
+      "Bash(python3 -c ' *)",
+      "Bash(powershell -Command 'Get-Content '\\\\''C:\\\\Users\\\\Windows 11\\\\.claude\\\\projects\\\\D--Projects-starter-saas\\\\5738b89c-906d-4f29-9fb8-830eb75f780e.jsonl'\\\\'' -Tail 5 | ForEach-Object { $_ } | Out-String')"
     ]
   }
 }

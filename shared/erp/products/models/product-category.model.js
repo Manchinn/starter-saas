@@ -27,14 +27,15 @@ const ProductCategory = sequelize.define('ProductCategory', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
-  createdBy: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
+  activeFrom: { type: DataTypes.DATEONLY, allowNull: true },
+  activeTo:   { type: DataTypes.DATEONLY, allowNull: true },
   organizationId: {
     type: DataTypes.UUID,
     allowNull: true,
   },
+  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:  { type: DataTypes.UUID, allowNull: true },
+  modifiedBy: { type: DataTypes.UUID, allowNull: true },
 })
 
 module.exports = ProductCategory

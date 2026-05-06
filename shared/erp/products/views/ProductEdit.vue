@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -93,6 +93,16 @@
                 <option value="">— None —</option>
                 <option v-for="u in uoms" :key="u.id" :value="u.id">{{ u.name }}{{ u.abbreviation ? ` (${u.abbreviation})` : '' }}</option>
               </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.status') }}</label>
@@ -195,7 +205,7 @@ import api from '@/api'
 const { t } = useI18n()
 const route    = useRoute()
 const router   = useRouter()
-const form         = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', sellingUomId: '', purchasingUomId: '' })
+const form         = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', activeFrom: '', activeTo: '', sellingUomId: '', purchasingUomId: '' })
 const currentStock = ref(0)
 const storeStocks  = ref([])
 const stores     = ref([])
@@ -229,6 +239,8 @@ onMounted(async () => {
       name: p.name, sku: p.sku || '', category: p.category || '',
       cost: p.cost || '', description: p.description || '',
       status: p.status,
+      activeFrom:   p.activeFrom   || '',
+      activeTo:     p.activeTo     || '',
       sellingUomId:    p.sellingUomId    || '',
       purchasingUomId: p.purchasingUomId || '',
     }

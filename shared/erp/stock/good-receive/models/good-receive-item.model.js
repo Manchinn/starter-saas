@@ -23,7 +23,9 @@ const GoodReceiveItem = sequelize.define('GoodReceiveItem', {
 
   stockQty:      { type: DataTypes.DECIMAL(12, 4), allowNull: true, defaultValue: 0 },
 
-  comments:      { type: DataTypes.TEXT, allowNull: true },
+  comments:       { type: DataTypes.TEXT, allowNull: true },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
 })
 
 module.exports = GoodReceiveItem

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -36,6 +36,16 @@
               class="w-full px-3 py-2 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
 
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+          </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.status') }}</label>
             <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -91,7 +101,7 @@ const router = useRouter()
 const route  = useRoute()
 const id     = route.params.id
 
-const form      = ref({ code: '', name: '', description: '', unitPrice: 0, status: 'active', saleItemId: '', customerGroupId: '' })
+const form      = ref({ code: '', name: '', description: '', unitPrice: 0, status: 'active', activeFrom: '', activeTo: '', saleItemId: '', customerGroupId: '' })
 const groups    = ref([])
 const saleItems = ref([])
 const loading   = ref(true)
@@ -114,6 +124,8 @@ onMounted(async () => {
       description:     p.description     || '',
       unitPrice:       Number(p.unitPrice),
       status:          p.status,
+      activeFrom:      p.activeFrom      || '',
+      activeTo:        p.activeTo        || '',
       saleItemId:      p.saleItemId      || '',
       customerGroupId: p.customerGroupId || '',
     }

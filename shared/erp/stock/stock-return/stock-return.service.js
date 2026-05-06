@@ -19,9 +19,9 @@ const headerIncludes = [
 
 const nextRefNo = (userId) => getNext('RTN', userId)
 
-const list = async ({ page = 1, limit = 20, search = '', type = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', type = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (search) where[Op.or] = [
     { refNo: { [Op.like]: `%${search}%` } },
   ]
@@ -42,7 +42,7 @@ const getById = async (id) => {
   return sr
 }
 
-const create = async ({ date, type, storeId, customerId, vendorId, notes, items = [], userId }) => {
+const create = async ({ date, type, storeId, customerId, vendorId, notes, items = [], userId, organizationId }) => {
   if (!date)    throw { status: 400, message: 'Date is required' }
   if (!type || !['customer_return', 'vendor_return'].includes(type))
     throw { status: 400, message: 'Type must be customer_return or vendor_return' }
@@ -68,6 +68,8 @@ const create = async ({ date, type, storeId, customerId, vendorId, notes, items 
       refNo, date, type, storeId, notes,
       customerId: type === 'customer_return' ? (customerId || null) : null,
       vendorId:   type === 'vendor_return'   ? (vendorId   || null) : null,
+      organizationId: organizationId || null,
+      createdBy: userId || null, modifiedBy: userId || null,
     }, { transaction: t })
 
     for (const item of items) {
@@ -79,6 +81,7 @@ const create = async ({ date, type, storeId, customerId, vendorId, notes, items 
         qty:    parseFloat(item.qty),
         cost:   parseFloat(item.cost || 0),
         reason: item.reason || null,
+        organizationId: organizationId || null,
       }, { transaction: t })
     }
 

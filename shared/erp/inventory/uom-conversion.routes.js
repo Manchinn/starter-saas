@@ -9,17 +9,19 @@ router.use(authenticate)
 const wrap = fn => (req, res, next) => fn(req, res, next).catch(next)
 
 router.get('/', requirePermission('erp.uom.list'), wrap(async (req, res) => {
-  const conversions = await svc.list({ createdBy: req.user.id })
+  const orgId = req.user?.organizationId || req.user?.id
+  const conversions = await svc.list({ organizationId: orgId })
   res.json({ data: { conversions } })
 }))
 
 router.post('/', requirePermission('erp.uom.edit'), wrap(async (req, res) => {
-  const conv = await svc.create({ ...req.body, createdBy: req.user.id })
+  const orgId = req.user?.organizationId || req.user?.id
+  const conv = await svc.create({ ...req.body, createdBy: req.user.id, organizationId: orgId })
   res.status(201).json({ data: { conversion: conv } })
 }))
 
 router.put('/:id', requirePermission('erp.uom.edit'), wrap(async (req, res) => {
-  const conv = await svc.update(req.params.id, req.body)
+  const conv = await svc.update(req.params.id, req.body, req.user?.id)
   res.json({ data: { conversion: conv } })
 }))
 

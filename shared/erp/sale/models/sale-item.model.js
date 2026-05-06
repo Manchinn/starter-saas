@@ -23,14 +23,13 @@ const SaleItem = sequelize.define('SaleItem', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
-  createdBy: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
   organizationId: {
     type: DataTypes.UUID,
     allowNull: true,
   },
+  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:  { type: DataTypes.UUID, allowNull: true },
+  modifiedBy: { type: DataTypes.UUID, allowNull: true },
 }, {
   tableName: 'sale_items',
 })

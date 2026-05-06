@@ -66,6 +66,16 @@
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
 
+            <div class="grid grid-cols-2 gap-4 col-span-2">
+              <div>
+                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              </div>
+            </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.status') }}</label>
               <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -166,27 +176,29 @@ import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 
 const { t } = useI18n()
-const router         = useRouter()
-const autoCode       = useAutoCode('EMP')
-const users          = ref([])
-const departments    = ref([])
-const error          = ref('')
-const saving         = ref(false)
-const createAccount  = ref(false)
-const showPassword   = ref(false)
+const router        = useRouter()
+const autoCode      = useAutoCode('EMP')
+const users         = ref([])
+const departments   = ref([])
+const error         = ref('')
+const saving        = ref(false)
+const createAccount = ref(false)
+const showPassword  = ref(false)
 
 const form = ref({
-  employeeCode: '',
-  firstName:    '',
-  lastName:     '',
-  position:     '',
+  employeeCode:  '',
+  firstName:     '',
+  lastName:      '',
+  position:      '',
   departmentIds: [],
-  phone:        '',
-  startDate:    '',
-  status:       'active',
-  userId:       '',
-  email:        '',
-  password:     '',
+  phone:         '',
+  startDate:     '',
+  status:        'active',
+  activeFrom:    '',
+  activeTo:      '',
+  userId:        '',
+  email:         '',
+  password:      '',
 })
 
 const selectedUser = computed(() => users.value.find(u => u.id === form.value.userId) || null)
@@ -195,9 +207,9 @@ onMounted(async () => {
   try {
     const [staffRes, deptRes] = await Promise.all([
       api.get('/organizations/staff', { params: { limit: 500 } }),
-      api.get('/erp/hrms/departments', { params: { limit: 1000 } })
+      api.get('/erp/hrms/departments', { params: { limit: 1000 } }),
     ])
-    users.value = staffRes.data.data.staff
+    users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
   } catch (err) {
     console.error('Failed to load initial data:', err)
@@ -217,9 +229,9 @@ async function save() {
 
   saving.value = true
   try {
-    const payload = { 
-      ...form.value, 
-      credentialMode: createAccount.value ? 'new' : 'existing' 
+    const payload = {
+      ...form.value,
+      credentialMode: createAccount.value ? 'new' : 'existing'
     }
     if (autoCode.enabled.value) { payload.autoCode = true; payload.employeeCode = null }
     await api.post('/erp/hrms/employees', payload)

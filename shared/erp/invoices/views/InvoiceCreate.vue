@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -70,7 +70,7 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                   Invoice Date <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
-                <input v-model="form.invoiceDate" type="date"
+                <DateInput v-model="form.invoiceDate"
                   :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                            'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
                            errors.invoiceDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
@@ -80,8 +80,7 @@
               <!-- Due Date -->
               <div>
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">Due Date</label>
-                <input v-model="form.dueDate" type="date"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                <DateInput v-model="form.dueDate" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
               </div>
 

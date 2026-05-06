@@ -30,6 +30,7 @@
           <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0]">
             <tr class="text-left">
               <th class="th">{{ $t('org.colOrg') }}</th>
+              <th class="th">{{ $t('org.colParent') }}</th>
               <th class="th">{{ $t('org.colSystemRole') }}</th>
               <th class="th">{{ $t('org.colAssignedRoles') }}</th>
               <th class="th">{{ $t('org.colStatus') }}</th>
@@ -40,12 +41,12 @@
           </thead>
           <tbody class="divide-y divide-slate-50">
             <tr v-if="loading">
-              <td colspan="7" class="text-center py-14">
+              <td colspan="8" class="text-center py-14">
                 <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
               </td>
             </tr>
             <tr v-else-if="!organizations.length">
-              <td colspan="7" class="text-center py-14">
+              <td colspan="8" class="text-center py-14">
                 <div class="flex flex-col items-center gap-2 text-[#9BA7B0]">
                   <BuildingOffice2Icon class="w-8 h-8 opacity-40" />
                   <p class="text-sm font-medium">{{ $t('org.noFound') }}</p>
@@ -65,6 +66,12 @@
                     <p class="text-[#9BA7B0] text-xs mt-0.5">{{ u.email }}</p>
                   </div>
                 </div>
+              </td>
+
+              <!-- Parent org -->
+              <td class="td">
+                <span v-if="u.parent" class="text-xs text-[#637381]">{{ u.parent.name }}</span>
+                <span v-else class="text-xs text-[#9BA7B0]">—</span>
               </td>
 
               <!-- System role -->
@@ -110,6 +117,11 @@
                   </RouterLink>
                   <button @click="seedSequences(u)" :disabled="seedingId === u.id" class="p-1.5 text-[#9BA7B0] hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors disabled:opacity-40">
                     <CpuChipIcon class="w-4 h-4" />
+                  </button>
+                  <button @click="loginAs(u)" :disabled="loggingInAsId === u.id"
+                    class="p-1.5 text-[#9BA7B0] hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors disabled:opacity-40"
+                    :title="$t('org.loginAs')">
+                    <ArrowRightEndOnRectangleIcon class="w-4 h-4" />
                   </button>
                   <button v-can="'organizations.delete'" @click="confirmDelete(u)" class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" :title="$t('common.delete')">
                     <TrashIcon class="w-4 h-4" />
@@ -190,6 +202,21 @@
                 </div>
               </dl>
 
+              <!-- Parent org -->
+              <div v-if="viewOrganization.parent || viewOrganization.children?.length" class="col-span-2">
+                <div v-if="viewOrganization.parent" class="mb-3">
+                  <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-1">{{ $t('org.parentOrg') }}</dt>
+                  <dd class="text-sm text-[#374151]">{{ viewOrganization.parent.name }}</dd>
+                </div>
+                <div v-if="viewOrganization.children?.length">
+                  <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-1.5">{{ $t('org.childOrgs') }}</dt>
+                  <dd class="flex flex-wrap gap-1.5">
+                    <span v-for="c in viewOrganization.children" :key="c.id"
+                      class="px-2 py-0.5 bg-[#F1F5F9] text-[#374151] rounded-full text-xs font-medium">{{ c.name }}</span>
+                  </dd>
+                </div>
+              </div>
+
               <div>
                 <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-3">{{ $t('org.rolesPermissions') }}</p>
                 <div v-if="!viewOrganization.roles?.length" class="text-sm text-[#9BA7B0] italic">{{ $t('org.noRolesAssigned') }}</div>
@@ -208,6 +235,11 @@
             </div>
 
             <div class="px-6 py-4 border-t border-[#E2E8F0] flex gap-2">
+              <button @click="loginAs(viewOrganization)" :disabled="loggingInAsId === viewOrganization.id"
+                class="btn-secondary flex items-center gap-1.5 disabled:opacity-40">
+                <ArrowRightEndOnRectangleIcon class="w-4 h-4" />
+                {{ $t('org.loginAs') }}
+              </button>
               <RouterLink
                 v-can="'organizations.edit'"
                 :to="`/admin/organizations/${viewOrganization.id}/edit`"
@@ -226,15 +258,20 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilIcon, TrashIcon,
   ChevronLeftIcon, ChevronRightIcon, BuildingOffice2Icon, CpuChipIcon, UserGroupIcon, XMarkIcon,
+  ArrowRightEndOnRectangleIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
+const router = useRouter()
+const auth   = useAuthStore()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -247,6 +284,7 @@ const loading       = ref(false)
 
 const viewOrganization = ref(null)
 const seedingId        = ref(null)
+const loggingInAsId    = ref(null)
 
 let searchTimeout = null
 
@@ -293,6 +331,20 @@ async function seedSequences(u) {
     alert(err.response?.data?.message || t('org.seedFailed'))
   } finally {
     seedingId.value = null
+  }
+}
+
+// ── Login As ──────────────────────────────────────────────────────────────────
+
+async function loginAs(u) {
+  loggingInAsId.value = u.id
+  try {
+    await auth.loginAs(u.id)
+    router.push('/dashboard')
+  } catch (err) {
+    alert(err.response?.data?.message || t('org.loginAsFailed'))
+  } finally {
+    loggingInAsId.value = null
   }
 }
 

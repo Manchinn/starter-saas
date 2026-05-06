@@ -8,9 +8,9 @@ const generateOrderNumber = async () => {
   return `ORD-${pad}`
 }
 
-const list = async ({ page = 1, limit = 20, search = '', status = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (search) where.orderNumber = { [Op.like]: `%${search}%` }
   if (status) where.status = status
 
@@ -36,7 +36,7 @@ const getById = async (id) => {
   return order
 }
 
-const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 }) => {
+const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Order must have at least one item' }
 
   const orderNumber = await generateOrderNumber()
@@ -47,7 +47,7 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 })
   let createdId
   await sequelize.transaction(async (t) => {
     const order = await Order.create(
-      { orderNumber, customerId: customerId || null, orderDate: orderDate || new Date(), notes, subtotal, tax, total },
+      { orderNumber, customerId: customerId || null, orderDate: orderDate || new Date(), notes, subtotal, tax, total, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null },
       { transaction: t }
     )
     createdId = order.id
@@ -62,11 +62,12 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0 })
           itemId:      item.itemId    || null,
           productId:   item.productId || null,
           saleItemId:  item.saleItemId || null,
-          storeId:     item.storeId   || null,
-          productName: item.productName || masterItem?.title || product?.name || 'Unknown',
-          quantity:    item.quantity,
-          unitPrice:   item.unitPrice,
-          total:       toFixed(item.quantity * item.unitPrice, 2),
+          storeId:        item.storeId   || null,
+          productName:    item.productName || masterItem?.title || product?.name || 'Unknown',
+          quantity:       item.quantity,
+          unitPrice:      item.unitPrice,
+          total:          toFixed(item.quantity * item.unitPrice, 2),
+          organizationId: organizationId || null,
         },
         { transaction: t }
       )
@@ -185,7 +186,7 @@ const updateStatus = async (id, status) => {
   return getById(id)
 }
 
-const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
+const update = async (id, { customerId, orderDate, notes, taxRate, items }, userId) => {
   const order = await Order.findByPk(id)
   if (!order) throw { status: 404, message: 'Order not found' }
   if (order.status !== 'draft') throw { status: 400, message: 'Only draft orders can be edited' }
@@ -199,7 +200,7 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
       const tax   = toFixed(subtotal * (rate / 100), 2)
       const total = toFixed(subtotal + tax, 2)
 
-      await order.update({ customerId: customerId || null, orderDate, notes, subtotal, tax, total }, { transaction: t })
+      await order.update({ customerId: customerId || null, orderDate, notes, subtotal, tax, total, modifiedBy: userId || null }, { transaction: t })
 
       for (const item of items) {
         const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
@@ -221,7 +222,7 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }) => {
         )
       }
     } else {
-      await order.update({ customerId: customerId || null, orderDate, notes }, { transaction: t })
+      await order.update({ customerId: customerId || null, orderDate, notes, modifiedBy: userId || null }, { transaction: t })
     }
   })
 

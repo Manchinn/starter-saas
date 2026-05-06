@@ -63,6 +63,17 @@
         </div>
         <div class="px-6 py-5 space-y-5">
 
+          <!-- Parent Organization -->
+          <div>
+            <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ $t('org.parentOrg') }}</label>
+            <select v-model="form.parentId"
+              class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white
+                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+              <option value="">{{ $t('org.noParent') }}</option>
+              <option v-for="o in allOrgs" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+          </div>
+
           <!-- System Role -->
           <div>
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ $t('org.systemRole') }}</label>
@@ -144,6 +155,7 @@ import api from '@/api'
 const router = useRouter()
 
 const allRoles = ref([])
+const allOrgs  = ref([])
 const error    = ref('')
 const saving   = ref(false)
 
@@ -153,12 +165,17 @@ const form = reactive({
   password:    '',
   role:        'user',
   defaultPage: '',
+  parentId:    '',
   roleIds:     [],
 })
 
 onMounted(async () => {
-  const { data } = await api.get('/roles')
-  allRoles.value = data.data.roles
+  const [rolesRes, orgsRes] = await Promise.all([
+    api.get('/roles'),
+    api.get('/organizations/all'),
+  ])
+  allRoles.value = rolesRes.data.data.roles
+  allOrgs.value  = orgsRes.data.data.organizations
 })
 
 async function save() {
@@ -171,6 +188,7 @@ async function save() {
       password:    form.password,
       role:        form.role,
       defaultPage: form.defaultPage || null,
+      parentId:    form.parentId    || null,
       roleIds:     form.roleIds,
     })
     router.push('/admin/organizations')

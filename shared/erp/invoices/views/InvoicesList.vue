@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -18,30 +18,106 @@
 
       <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
 
-        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3 flex-wrap">
-          <div class="relative flex-1 min-w-48 max-w-64">
+        <!-- ── Toolbar ─────────────────────────────────────────────── -->
+        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
+          <div class="relative flex-1 min-w-0">
             <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
             <input v-model="search" @input="onSearch" type="search" placeholder="Search invoice number…"
-              class="input pl-9" />
+              class="input pl-9 w-full" />
           </div>
-          <select v-model="statusFilter" @change="page = 1; fetchInvoices()"
-            class="input">
-            <option value="">All Statuses</option>
-            <option value="draft">Draft</option>
-            <option value="sent">Sent</option>
-            <option value="paid">Paid</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+          <button @click="showFilters = !showFilters"
+            :class="['flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border transition-colors whitespace-nowrap',
+              (activeFilterCount > 0 || showFilters)
+                ? 'bg-primary-50 border-primary-200 text-primary-600'
+                : 'bg-white border-[#E2E8F0] text-[#637381] hover:bg-slate-50']">
+            <AdjustmentsHorizontalIcon class="w-4 h-4" />
+            Filters
+            <span v-if="activeFilterCount" class="min-w-[18px] h-[18px] bg-primary-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold leading-none">
+              {{ activeFilterCount }}
+            </span>
+          </button>
+        </div>
+
+        <!-- ── Advanced filter panel ──────────────────────────────── -->
+        <Transition
+          enter-active-class="transition-all duration-150 ease-out"
+          enter-from-class="opacity-0 -translate-y-1"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition-all duration-100 ease-in"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 -translate-y-1">
+          <div v-if="showFilters" class="border-b border-[#E2E8F0] bg-slate-50">
+            <div class="px-5 py-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-[#637381] mb-1.5">Status</label>
+                  <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
+                    <option value="">All</option>
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                    <option value="paid">Paid</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-[#637381] mb-1.5">Date From</label>
+                  <DateInput v-model="filterDateFrom" @change="onFilterChange" class="input text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-[#637381] mb-1.5">Date To</label>
+                  <DateInput v-model="filterDateTo" @change="onFilterChange" class="input text-sm" />
+                </div>
+              </div>
+              <div class="mt-3 flex justify-end">
+                <button @click="clearFilters" class="text-xs text-[#9BA7B0] hover:text-red-500 transition-colors font-medium">
+                  Reset Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </Transition>
+
+        <!-- ── Active filter chips ────────────────────────────────── -->
+        <div v-if="activeFilterCount > 0" class="px-5 py-2.5 border-b border-[#E2E8F0] flex items-center gap-2 flex-wrap bg-primary-50/40">
+          <span class="text-xs font-medium text-[#637381]">Active Filters:</span>
+          <span v-if="filterStatus" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+            Status: <span class="capitalize font-semibold ml-0.5">{{ filterStatus }}</span>
+            <button @click="filterStatus = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 rounded-full transition-colors">
+              <XMarkIcon class="w-3 h-3" />
+            </button>
+          </span>
+          <span v-if="filterDateFrom" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+            From: <span class="font-semibold ml-0.5">{{ filterDateFrom }}</span>
+            <button @click="filterDateFrom = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 rounded-full transition-colors">
+              <XMarkIcon class="w-3 h-3" />
+            </button>
+          </span>
+          <span v-if="filterDateTo" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+            To: <span class="font-semibold ml-0.5">{{ filterDateTo }}</span>
+            <button @click="filterDateTo = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 rounded-full transition-colors">
+              <XMarkIcon class="w-3 h-3" />
+            </button>
+          </span>
+          <button @click="clearFilters" class="ml-auto text-xs text-red-500 hover:text-red-700 font-medium transition-colors">
+            Clear All
+          </button>
         </div>
 
         <DataTable :columns="columns" :data="invoices" :loading="loading" :total="total"
           v-model:page="page" :page-size="limit">
           <template #empty>
-            <div class="flex flex-col items-center gap-2">
+            <div class="flex flex-col items-center gap-3 py-4">
               <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
                 <DocumentTextIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
-              <p class="text-sm text-[#9BA7B0] font-medium">No invoices found</p>
+              <div class="text-center">
+                <p class="text-sm font-medium text-[#637381]">No invoices found</p>
+                <p v-if="activeFilterCount > 0" class="text-xs text-[#9BA7B0] mt-1">Try adjusting your filters</p>
+              </div>
+              <button v-if="activeFilterCount > 0" @click="clearFilters"
+                class="text-xs text-primary-500 hover:text-primary-700 font-medium underline">
+                Clear all filters
+              </button>
             </div>
           </template>
         </DataTable>
@@ -53,10 +129,11 @@
 </template>
 
 <script setup>
-import { h, ref, watch, onMounted } from 'vue'
+import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   PlusIcon, MagnifyingGlassIcon, EyeIcon, DocumentTextIcon,
+  AdjustmentsHorizontalIcon, XMarkIcon,
 } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -64,20 +141,30 @@ import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
-const invoices     = ref([])
-const total        = ref(0)
-const page         = ref(1)
-const limit        = 20
-const search       = ref('')
-const statusFilter = ref('')
-const loading      = ref(false)
-let searchTimeout  = null
+const invoices       = ref([])
+const total          = ref(0)
+const page           = ref(1)
+const limit          = 20
+const search         = ref('')
+const filterStatus   = ref('')
+const filterDateFrom = ref('')
+const filterDateTo   = ref('')
+const showFilters    = ref(false)
+const loading        = ref(false)
+let searchTimeout    = null
+
+const activeFilterCount = computed(() => [filterStatus.value, filterDateFrom.value, filterDateTo.value].filter(Boolean).length)
 
 async function fetchInvoices() {
   loading.value = true
   try {
     const { data } = await api.get('/erp/invoices', {
-      params: { page: page.value, limit, search: search.value, status: statusFilter.value },
+      params: {
+        page: page.value, limit, search: search.value,
+        status: filterStatus.value || undefined,
+        dateFrom: filterDateFrom.value || undefined,
+        dateTo: filterDateTo.value || undefined,
+      },
     })
     invoices.value = data.data.invoices
     total.value    = data.data.total
@@ -90,6 +177,8 @@ function onSearch() {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => { page.value = 1; fetchInvoices() }, 350)
 }
+function onFilterChange() { page.value = 1; fetchInvoices() }
+function clearFilters() { filterStatus.value = ''; filterDateFrom.value = ''; filterDateTo.value = ''; page.value = 1; fetchInvoices() }
 
 function isOverdue(inv) {
   return inv.status === 'sent' && inv.dueDate && new Date(inv.dueDate) < new Date()

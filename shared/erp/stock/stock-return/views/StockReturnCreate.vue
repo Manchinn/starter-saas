@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
       <div class="flex items-center gap-3">
@@ -34,8 +34,7 @@
           <!-- Date -->
           <div class="w-40">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.date') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.date" type="date"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <DateInput v-model="form.date" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
 
           <!-- Store -->
@@ -124,7 +123,12 @@
                   class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-3 py-2">
-                <input v-model="item.reason" type="text" placeholder="Optional"
+                <select v-if="returnReasons.length" v-model="item.reason"
+                  class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary-500">
+                  <option value="">—</option>
+                  <option v-for="r in returnReasons" :key="r.id" :value="r.name">{{ r.name }}</option>
+                </select>
+                <input v-else v-model="item.reason" type="text" placeholder="Optional"
                   class="w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-3 py-2 text-center">
@@ -161,13 +165,16 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { useMasterDataStore } from '@/stores/masterData'
 
 const { t } = useI18n()
-const router    = useRouter()
-const products  = ref([])
-const stores    = ref([])
-const customers = ref([])
-const vendors   = ref([])
+const router          = useRouter()
+const masterDataStore = useMasterDataStore()
+const products        = ref([])
+const stores          = ref([])
+const customers       = ref([])
+const vendors         = ref([])
+const returnReasons   = ref([])
 const form  = ref({ date: new Date().toISOString().slice(0, 10), type: 'customer_return', storeId: '', customerId: '', vendorId: '', notes: '' })
 const items = ref([])
 const error  = ref('')
@@ -188,6 +195,7 @@ onMounted(async () => {
   } catch (err) {
     console.error('Failed to load lookups:', err.message)
   }
+  returnReasons.value = await masterDataStore.getValues('return-reasons')
 })
 
 const allUsedIds = computed(() => items.value.map(it => it.productId).filter(Boolean))

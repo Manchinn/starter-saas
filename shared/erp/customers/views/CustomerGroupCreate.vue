@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -13,6 +13,17 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2">
+            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customerGroups.code') }}</label>
+            <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" placeholder="e.g. GRP-001"
+              class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <input v-else :value="autoCode.preview.value" type="text" readonly
+              class="w-full px-3 py-2 border rounded-lg text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+            <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
+              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
+              {{ t('erp.common.autoGenerate') }}
+            </label>
+          </div>
+          <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customerGroups.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text" :placeholder="t('erp.customerGroups.name')"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
@@ -21,6 +32,16 @@
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customerGroups.description') }}</label>
             <textarea v-model="form.description" rows="3" :placeholder="t('erp.customerGroups.description')"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customerGroups.status') }}</label>
@@ -53,19 +74,23 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { useAutoCode } from '@/composables/useAutoCode'
 
 const { t } = useI18n()
-const router = useRouter()
-const form   = ref({ name: '', description: '', status: 'active' })
-const error  = ref('')
-const saving = ref(false)
+const router   = useRouter()
+const autoCode = useAutoCode('CGP')
+const form     = ref({ code: '', name: '', description: '', status: 'active', activeFrom: '', activeTo: '' })
+const error    = ref('')
+const saving   = ref(false)
 
 async function save() {
   error.value = ''
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await api.post('/erp/customer-groups', form.value)
+    const payload = { ...form.value }
+    if (autoCode.enabled.value) { payload.autoCode = true; payload.code = null }
+    await api.post('/erp/customer-groups', payload)
     router.push('/erp/customer-groups')
   } catch (err) {
     const d = err.response?.data

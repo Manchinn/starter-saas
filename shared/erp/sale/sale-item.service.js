@@ -6,9 +6,9 @@ const includes = [
   { model: Pricing, as: 'pricings', attributes: ['id', 'name', 'unitPrice', 'currency', 'customerGroupId'] },
 ]
 
-const list = async ({ page = 1, limit = 20, search = '', status = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (search) where[Op.or] = [
     { name: { [Op.like]: `%${search}%` } },
     { code: { [Op.like]: `%${search}%` } },
@@ -32,26 +32,27 @@ const getById = async (id) => {
   return item
 }
 
-const create = async ({ code, name, productId, status = 'active', autoCode, userId }) => {
+const create = async ({ code, name, productId, status = 'active', autoCode, userId, organizationId }) => {
   if (autoCode) {
     const seqSvc = require('../settings/sequence.service')
     code = await seqSvc.getNext('SI', userId)
   } else if (code?.trim()) {
-    const existing = await SaleItem.findOne({ where: { code: code.trim() } })
+    const existing = await SaleItem.findOne({ where: { code: code.trim(), organizationId: organizationId || null } })
     if (existing) throw { status: 400, message: 'Sale item code already exists' }
   }
 
   const item = await SaleItem.create({
-    code:      code?.trim() || null,
+    code:           code?.trim() || null,
     name,
-    productId: productId || null,
+    productId:      productId || null,
     status,
-    createdBy: userId || null,
+    organizationId: organizationId || null,
+    createdBy:      userId || null,
   })
   return getById(item.id)
 }
 
-const update = async (id, { code, name, productId, status }) => {
+const update = async (id, { code, name, productId, status }, userId) => {
   const item = await SaleItem.findByPk(id)
   if (!item) throw { status: 404, message: 'Sale item not found' }
 
@@ -65,6 +66,7 @@ const update = async (id, { code, name, productId, status }) => {
     ...(name      !== undefined && { name }),
     ...(productId !== undefined && { productId: productId || null }),
     ...(status    !== undefined && { status }),
+    modifiedBy: userId || null,
   })
   return getById(id)
 }

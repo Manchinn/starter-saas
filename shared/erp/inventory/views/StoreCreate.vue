@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -42,6 +42,16 @@
             <textarea v-model="form.address" rows="2" placeholder="Street, City, Country"
               class="w-full px-3 py-2 border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+          </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.status') }}</label>
             <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -77,7 +87,7 @@ import { useAutoCode } from '@/composables/useAutoCode'
 
 const { t } = useI18n()
 const router   = useRouter()
-const form     = ref({ name: '', code: '', phone: '', email: '', address: '', status: 'active' })
+const form     = ref({ name: '', code: '', phone: '', email: '', address: '', status: 'active', activeFrom: '', activeTo: '' })
 const error    = ref('')
 const saving   = ref(false)
 const autoCode = useAutoCode('WHS')

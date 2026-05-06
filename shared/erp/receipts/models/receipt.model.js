@@ -46,6 +46,10 @@ const Receipt = sequelize.define('Receipt', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:  { type: DataTypes.UUID, allowNull: true },
+  modifiedBy: { type: DataTypes.UUID, allowNull: true },
 })
 
 module.exports = Receipt

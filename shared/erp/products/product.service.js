@@ -8,9 +8,13 @@ const includes = [
   { model: UOM, as: 'purchasingUom', attributes: ['id', 'name', 'abbreviation'] },
 ]
 
-const list = async ({ page = 1, limit = 20, search = '', createdBy }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '', createdBy, organizationId }) => {
   const offset = (page - 1) * limit
-  const where = { createdBy: createdBy || null }
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
+  if (createdBy) where.createdBy = createdBy
+  if (status) where.status = status
+  if (activeFrom) where.activeFrom = { [Op.gte]: activeFrom }
+  if (activeTo) where.activeTo = { [Op.lte]: activeTo }
   if (search) where[Op.or] = [
     { name:     { [Op.like]: `%${search}%` } },
     { sku:      { [Op.like]: `%${search}%` } },
@@ -35,7 +39,7 @@ const getById = async (id) => {
   return product
 }
 
-const create = async ({ name, sku, description, cost, category, sellingUomId, purchasingUomId, status = 'active', storeIds = [], vendorIds = [], autoCode, userId }) => {
+const create = async ({ name, sku, description, cost, category, sellingUomId, purchasingUomId, status = 'active', activeFrom, activeTo, storeIds = [], vendorIds = [], autoCode, userId, organizationId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   if (autoCode) {
     const seqSvc = require('../settings/sequence.service')
@@ -44,7 +48,7 @@ const create = async ({ name, sku, description, cost, category, sellingUomId, pu
     const existing = await Product.findOne({ where: { sku: sku.trim(), createdBy: userId || null } })
     if (existing) throw { status: 400, message: 'SKU already exists' }
   }
-  const product = await Product.create({ name: name.trim(), sku: sku?.trim() || null, description, price: 0, cost, stock: 0, category, sellingUomId: sellingUomId || null, purchasingUomId: purchasingUomId || null, status, createdBy: userId || null })
+  const product = await Product.create({ name: name.trim(), sku: sku?.trim() || null, description, price: 0, cost, stock: 0, category, sellingUomId: sellingUomId || null, purchasingUomId: purchasingUomId || null, status, activeFrom: activeFrom || null, activeTo: activeTo || null, organizationId: organizationId || null, createdBy: userId || null })
   if (storeIds.length)  await product.setStores(storeIds)
   if (vendorIds.length) await product.setVendors(vendorIds)
   return getById(product.id)
@@ -57,10 +61,13 @@ const update = async (id, data, userId) => {
     const existing = await Product.findOne({ where: { sku: data.sku.trim(), createdBy: product.createdBy } })
     if (existing && existing.id !== id) throw { status: 400, message: 'SKU already exists' }
   }
-  const allowed = ['name', 'sku', 'description', 'cost', 'category', 'sellingUomId', 'purchasingUomId', 'status']
+  const allowed = ['name', 'sku', 'description', 'cost', 'category', 'sellingUomId', 'purchasingUomId', 'status', 'activeFrom', 'activeTo']
   const patch = Object.fromEntries(
     Object.entries(data).filter(([k, v]) => allowed.includes(k) && v !== undefined)
   )
+  if ('activeFrom' in patch) patch.activeFrom = patch.activeFrom || null
+  if ('activeTo'   in patch) patch.activeTo   = patch.activeTo   || null
+  patch.modifiedBy = userId || null
   await product.update(patch)
   if (data.storeIds  !== undefined) await product.setStores(data.storeIds)
   if (data.vendorIds !== undefined) await product.setVendors(data.vendorIds)

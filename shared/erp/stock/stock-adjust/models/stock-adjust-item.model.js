@@ -6,7 +6,9 @@ const StockAdjustItem = sequelize.define('StockAdjustItem', {
   stockAdjustId: { type: DataTypes.UUID, allowNull: false },
   productId:     { type: DataTypes.UUID, allowNull: false },
   qty:           { type: DataTypes.INTEGER, allowNull: false },
-  notes:         { type: DataTypes.STRING, allowNull: true },
+  notes:          { type: DataTypes.STRING, allowNull: true },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
 })
 
 module.exports = StockAdjustItem

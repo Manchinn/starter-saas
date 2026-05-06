@@ -45,11 +45,11 @@ function calcNetAmount(qty, cost, discountPct, discount) {
   return toFixed(afterPct - parseFloat(discount || 0), 2)
 }
 
-const list = async ({ page = 1, limit = 20, search = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', organizationId }) => {
   const offset = (page - 1) * limit
   const where = search
-    ? { [Op.or]: [{ refNo: { [Op.like]: `%${search}%` } }, { supplier: { [Op.like]: `%${search}%` } }] }
-    : {}
+    ? { [Op.or]: [{ refNo: { [Op.like]: `%${search}%` } }, { supplier: { [Op.like]: `%${search}%` } }], organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
+    : { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   const { count, rows } = await GoodReceive.findAndCountAll({
     where, limit, offset,
     order: [['createdAt', 'DESC']],
@@ -65,7 +65,7 @@ const getById = async (id) => {
   return gr
 }
 
-const create = async ({ date, supplier, storeId, notes, docType = 'invoice', invoiceNo, invoiceDate, deliveryNo, invoiceDiscount, invoiceNetAmount, items = [], userId }) => {
+const create = async ({ date, supplier, storeId, notes, docType = 'invoice', invoiceNo, invoiceDate, deliveryNo, invoiceDiscount, invoiceNetAmount, items = [], userId, organizationId }) => {
   if (!date) throw { status: 400, message: 'Date is required' }
   if (!storeId) throw { status: 400, message: 'Store is required' }
   if (!items.length) throw { status: 400, message: 'At least one item is required' }
@@ -88,6 +88,8 @@ const create = async ({ date, supplier, storeId, notes, docType = 'invoice', inv
       deliveryNo:       docType === 'delivery' ? (deliveryNo  || null) : null,
       invoiceDiscount:  docType === 'invoice'  ? (parseFloat(invoiceDiscount)  || 0) : 0,
       invoiceNetAmount: docType === 'invoice'  ? (parseFloat(invoiceNetAmount) || 0) : 0,
+      organizationId: organizationId || null,
+      createdBy: userId || null, modifiedBy: userId || null,
     }, { transaction: t })
     for (const item of items) {
       if (!item.productId) throw { status: 400, message: 'Product is required on all items' }
@@ -102,7 +104,8 @@ const create = async ({ date, supplier, storeId, notes, docType = 'invoice', inv
       const stockQty         = toFixed(parseFloat(convertedQty) + parseFloat(convertedFreeQty), 4)
 
       await GoodReceiveItem.create({
-        goodReceiveId: gr.id,
+        goodReceiveId:  gr.id,
+        organizationId: organizationId || null,
         productId:     item.productId,
         qty:           item.qty,
         qtyUomId:      item.qtyUomId     || null,

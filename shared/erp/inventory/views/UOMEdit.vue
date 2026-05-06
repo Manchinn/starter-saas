@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -30,6 +30,16 @@
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.description') }}</label>
             <textarea v-model="form.description" rows="2"
               class="w-full px-3 py-2 border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.status') }}</label>
@@ -69,7 +79,7 @@ import api from '@/api'
 const { t } = useI18n()
 const route    = useRoute()
 const router   = useRouter()
-const form     = ref({ name: '', abbreviation: '', description: '', status: 'active' })
+const form     = ref({ name: '', abbreviation: '', description: '', status: 'active', activeFrom: '', activeTo: '' })
 const loading  = ref(true)
 const notFound = ref(false)
 const error    = ref('')
@@ -79,7 +89,7 @@ onMounted(async () => {
   try {
     const { data } = await api.get(`/erp/uom/${route.params.id}`)
     const u = data.data.uom
-    form.value = { name: u.name, abbreviation: u.abbreviation, description: u.description || '', status: u.status }
+    form.value = { name: u.name, abbreviation: u.abbreviation, description: u.description || '', status: u.status, activeFrom: u.activeFrom || '', activeTo: u.activeTo || '' }
   } catch {
     notFound.value = true
   } finally {

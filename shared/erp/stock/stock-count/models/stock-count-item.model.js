@@ -6,7 +6,9 @@ const StockCountItem = sequelize.define('StockCountItem', {
   stockCountId: { type: DataTypes.UUID, allowNull: false },
   productId:    { type: DataTypes.UUID, allowNull: false },
   systemQty:    { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
-  countedQty:   { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+  countedQty:     { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
 })
 
 module.exports = StockCountItem

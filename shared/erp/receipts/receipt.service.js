@@ -6,9 +6,9 @@ const generateReceiptNumber = async () => {
   return `REC-${String(count + 1).padStart(5, '0')}`
 }
 
-const list = async ({ page = 1, limit = 20, search = '', status = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (search) where.receiptNumber = { [Op.like]: `%${search}%` }
   if (status) where.status = status
 
@@ -34,7 +34,7 @@ const getById = async (id) => {
   return receipt
 }
 
-const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes }) => {
+const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes, userId, organizationId }) => {
   if (!amount || amount <= 0) throw { status: 400, message: 'Amount must be greater than zero' }
 
   const receiptNumber = await generateReceiptNumber()
@@ -48,12 +48,14 @@ const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amoun
     amount,
     reference:     reference     || null,
     notes:         notes         || null,
+    organizationId: organizationId || null,
+    createdBy: userId || null, modifiedBy: userId || null,
   })
 
   return getById(receipt.id)
 }
 
-const update = async (id, { customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes }) => {
+const update = async (id, { customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes }, userId) => {
   const receipt = await Receipt.findByPk(id)
   if (!receipt) throw { status: 404, message: 'Receipt not found' }
   if (receipt.status !== 'draft') throw { status: 400, message: 'Only draft receipts can be edited' }
@@ -67,6 +69,7 @@ const update = async (id, { customerId, invoiceId, receiptDate, paymentMethod, a
     amount:        amount        !== undefined ? amount        : receipt.amount,
     reference:     reference     !== undefined ? reference     || null : receipt.reference,
     notes:         notes         !== undefined ? notes         || null : receipt.notes,
+    modifiedBy:    userId || null,
   })
 
   return getById(id)

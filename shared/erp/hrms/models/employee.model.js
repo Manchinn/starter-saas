@@ -14,9 +14,13 @@ const Employee = sequelize.define('Employee', {
     type: DataTypes.ENUM('active', 'inactive', 'terminated'),
     defaultValue: 'active',
   },
+  activeFrom: { type: DataTypes.DATEONLY, allowNull: true },
+  activeTo:   { type: DataTypes.DATEONLY, allowNull: true },
   userId:    { type: DataTypes.UUID, allowNull: true },  // linked User (login credential)
   organizationId: { type: DataTypes.UUID, allowNull: false }, // The organization this employee belongs to
-  createdBy: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:  { type: DataTypes.UUID, allowNull: true },
+  modifiedBy: { type: DataTypes.UUID, allowNull: true },
 })
 
 module.exports = Employee

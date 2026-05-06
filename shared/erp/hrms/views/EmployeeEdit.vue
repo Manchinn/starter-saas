@@ -15,7 +15,7 @@
       <div v-if="loading" class="bg-white rounded-2xl border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">Loading…</div>
 
       <template v-else>
-        
+
         <!-- Two-column layout -->
         <div class="grid grid-cols-2 gap-6 items-start">
           
@@ -61,6 +61,16 @@
                   class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
 
+              <div class="col-span-2 grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+                  <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+                  <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+              </div>
               <div class="col-span-2 border-t border-slate-50 pt-3">
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.employmentStatus') }}</label>
                 <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -178,15 +188,17 @@ const departments = ref([])
 const error   = ref('')
 
 const form = ref({
-  employeeCode: '',
-  firstName:    '',
-  lastName:     '',
-  position:     '',
+  employeeCode:  '',
+  firstName:     '',
+  lastName:      '',
+  position:      '',
   departmentIds: [],
-  phone:        '',
-  startDate:    '',
-  status:       'active',
-  userId:       '',
+  phone:         '',
+  startDate:     '',
+  status:        'active',
+  activeFrom:    '',
+  activeTo:      '',
+  userId:        '',
 })
 
 const selectedUser = computed(() => users.value.find(u => u.id === form.value.userId) || null)
@@ -196,21 +208,23 @@ onMounted(async () => {
     const [empRes, staffRes, deptRes] = await Promise.all([
       api.get(`/erp/hrms/employees/${id}`),
       api.get('/organizations/staff', { params: { limit: 500 } }),
-      api.get('/erp/hrms/departments', { params: { limit: 1000 } })
+      api.get('/erp/hrms/departments', { params: { limit: 1000 } }),
     ])
-    users.value = staffRes.data.data.staff
+    users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
-    const emp   = empRes.data.data.employee
+    const emp = empRes.data.data.employee
     form.value = {
-      employeeCode: emp.employeeCode || '',
-      firstName:    emp.firstName,
-      lastName:     emp.lastName,
-      position:     emp.position    || '',
+      employeeCode:  emp.employeeCode || '',
+      firstName:     emp.firstName,
+      lastName:      emp.lastName,
+      position:      emp.position    || '',
       departmentIds: emp.departments?.map(d => d.id) || [],
-      phone:        emp.phone       || '',
-      startDate:    emp.startDate   || '',
-      status:       emp.status,
-      userId:       emp.userId      || '',
+      phone:         emp.phone       || '',
+      startDate:     emp.startDate   || '',
+      status:        emp.status,
+      activeFrom:    emp.activeFrom  || '',
+      activeTo:      emp.activeTo    || '',
+      userId:        emp.userId      || '',
     }
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load employee'

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -55,8 +55,7 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                   {{ t('erp.common.date') }} <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
-                <input v-model="form.date" type="date"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                <DateInput v-model="form.date" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
               </div>
 
@@ -131,8 +130,7 @@
                     <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                       {{ t('erp.goodReceive.invoiceDate') }}
                     </label>
-                    <input v-model="form.invoiceDate" type="date"
-                      class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                    <DateInput v-model="form.invoiceDate" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </div>
                   <div>
@@ -297,8 +295,7 @@
                     </div>
                     <div>
                       <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1">{{ t('erp.goodReceive.expiryDate') }}</label>
-                      <input v-model="item.expiryDate" type="date"
-                        class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
+                      <DateInput v-model="item.expiryDate" class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
                                focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                     </div>
                     <div>

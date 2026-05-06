@@ -3,9 +3,13 @@ const { Op } = require('sequelize')
 
 const parentInclude = { model: ProductCategory, as: 'parent', attributes: ['id', 'name'] }
 
-const list = async ({ page = 1, limit = 20, search = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = search ? { name: { [Op.like]: `%${search}%` } } : {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
+  if (search) where.name = { [Op.like]: `%${search}%` }
+  if (status) where.status = status
+  if (activeFrom) where.activeFrom = { [Op.gte]: activeFrom }
+  if (activeTo) where.activeTo = { [Op.lte]: activeTo }
   const { count, rows } = await ProductCategory.findAndCountAll({
     where,
     limit,
@@ -17,9 +21,9 @@ const list = async ({ page = 1, limit = 20, search = '' }) => {
   return { total: count, page, limit, categories: rows }
 }
 
-const listAll = async () => {
+const listAll = async (organizationId) => {
   return ProductCategory.findAll({
-    where: { status: 'active' },
+    where: { status: 'active', organizationId: organizationId || null },
     attributes: ['id', 'name', 'parentId'],
     order: [['name', 'ASC']],
   })
@@ -36,13 +40,13 @@ const getById = async (id) => {
   return cat
 }
 
-const create = async ({ code, name, description, parentId, status = 'active', autoCode, userId }) => {
+const create = async ({ code, name, description, parentId, status = 'active', activeFrom, activeTo, autoCode, userId, organizationId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   if (autoCode) {
     const seqSvc = require('../settings/sequence.service')
     code = await seqSvc.getNext('CAT', userId)
   } else if (code?.trim()) {
-    const existing = await ProductCategory.findOne({ where: { code: code.trim(), createdBy: userId || null } })
+    const existing = await ProductCategory.findOne({ where: { code: code.trim(), organizationId: organizationId || null } })
     if (existing) throw { status: 400, message: 'Category code already exists' }
   }
   if (parentId) {
@@ -50,10 +54,10 @@ const create = async ({ code, name, description, parentId, status = 'active', au
     if (!parent) throw { status: 400, message: 'Parent category not found' }
     if (parent.parentId) throw { status: 400, message: 'Cannot nest more than one level deep' }
   }
-  return ProductCategory.create({ code: code?.trim() || null, name: name.trim(), description, parentId: parentId || null, status, createdBy: userId || null })
+  return ProductCategory.create({ code: code?.trim() || null, name: name.trim(), description, parentId: parentId || null, status, activeFrom: activeFrom || null, activeTo: activeTo || null, organizationId: organizationId || null, createdBy: userId || null })
 }
 
-const update = async (id, { code, name, description, parentId, status }, userId) => {
+const update = async (id, { code, name, description, parentId, status, activeFrom, activeTo }, userId) => {
   const cat = await ProductCategory.findByPk(id)
   if (!cat) throw { status: 404, message: 'Product category not found' }
   if (code?.trim()) {
@@ -77,6 +81,9 @@ const update = async (id, { code, name, description, parentId, status }, userId)
     ...(description !== undefined && { description }),
     ...(parentId    !== undefined && { parentId: parentId || null }),
     ...(status      !== undefined && { status }),
+    ...(activeFrom  !== undefined && { activeFrom: activeFrom || null }),
+    ...(activeTo    !== undefined && { activeTo: activeTo || null }),
+    modifiedBy: userId || null,
   })
   return getById(id)
 }

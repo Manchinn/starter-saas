@@ -87,7 +87,7 @@
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                 {{ t('erp.orders.orderDate') }} <span class="text-red-400 normal-case font-normal ml-0.5">*</span>
               </label>
-              <input v-model="form.orderDate" type="date"
+              <DateInput v-model="form.orderDate"
                 :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
                          errors.orderDate ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />

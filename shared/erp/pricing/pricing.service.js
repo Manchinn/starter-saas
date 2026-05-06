@@ -1,12 +1,14 @@
 const { Pricing, CustomerGroup, SaleItem } = require('../../../server/models')
 const { Op } = require('sequelize')
 
-const list = async ({ page = 1, limit = 20, search = '', status = '', customerGroupId = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', customerGroupId = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (search) where.name = { [Op.like]: `%${search}%` }
   if (status) where.status = status
   if (customerGroupId) where.customerGroupId = customerGroupId
+  if (activeFrom) where.activeFrom = { [Op.gte]: activeFrom }
+  if (activeTo) where.activeTo = { [Op.lte]: activeTo }
 
   const { count, rows } = await Pricing.findAndCountAll({
     where,
@@ -30,18 +32,18 @@ const getById = async (id) => {
   return pricing
 }
 
-const create = async ({ name, code, description, unitPrice, currency = 'USD', status = 'active', saleItemId, customerGroupId, autoCode, userId }) => {
+const create = async ({ name, code, description, unitPrice, currency = 'USD', status = 'active', activeFrom, activeTo, saleItemId, customerGroupId, autoCode, userId, organizationId }) => {
   if (autoCode) {
     const seqSvc = require('../settings/sequence.service')
     code = await seqSvc.getNext('PRC', userId)
   } else if (code?.trim()) {
-    const existing = await Pricing.findOne({ where: { code: code.trim(), createdBy: userId || null } })
+    const existing = await Pricing.findOne({ where: { code: code.trim(), organizationId: organizationId || null } })
     if (existing) throw { status: 400, message: 'Pricing code already exists' }
   }
-  return Pricing.create({ name, code: code?.trim() || null, description, unitPrice, currency, status, saleItemId: saleItemId || null, customerGroupId: customerGroupId || null, createdBy: userId || null })
+  return Pricing.create({ name, code: code?.trim() || null, description, unitPrice, currency, status, activeFrom: activeFrom || null, activeTo: activeTo || null, saleItemId: saleItemId || null, customerGroupId: customerGroupId || null, organizationId: organizationId || null, createdBy: userId || null })
 }
 
-const update = async (id, { name, code, description, unitPrice, currency, status, saleItemId, customerGroupId }, userId) => {
+const update = async (id, { name, code, description, unitPrice, currency, status, activeFrom, activeTo, saleItemId, customerGroupId }, userId) => {
   const pricing = await Pricing.findByPk(id)
   if (!pricing) throw { status: 404, message: 'Pricing not found' }
   if (code?.trim()) {
@@ -57,6 +59,9 @@ const update = async (id, { name, code, description, unitPrice, currency, status
     ...(status      !== undefined && { status }),
     ...(saleItemId  !== undefined && { saleItemId: saleItemId || null }),
     ...(customerGroupId !== undefined && { customerGroupId: customerGroupId || null }),
+    ...(activeFrom !== undefined && { activeFrom: activeFrom || null }),
+    ...(activeTo   !== undefined && { activeTo: activeTo || null }),
+    modifiedBy: userId || null,
   })
   return pricing
 }

@@ -7,9 +7,9 @@ const generateInvoiceNumber = async () => {
   return `INV-${String(count + 1).padStart(5, '0')}`
 }
 
-const list = async ({ page = 1, limit = 20, search = '', status = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (search) where.invoiceNumber = { [Op.like]: `%${search}%` }
   if (status) where.status = status
 
@@ -36,7 +36,7 @@ const getById = async (id) => {
   return invoice
 }
 
-const create = async ({ customerId, orderId, invoiceDate, dueDate, notes, items = [], taxRate = 0 }) => {
+const create = async ({ customerId, orderId, invoiceDate, dueDate, notes, items = [], taxRate = 0, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Invoice must have at least one item' }
 
   const invoiceNumber = await generateInvoiceNumber()
@@ -57,6 +57,8 @@ const create = async ({ customerId, orderId, invoiceDate, dueDate, notes, items 
         subtotal,
         tax,
         total,
+        organizationId: organizationId || null,
+        createdBy: userId || null, modifiedBy: userId || null,
       },
       { transaction: t }
     )
@@ -65,7 +67,8 @@ const create = async ({ customerId, orderId, invoiceDate, dueDate, notes, items 
     for (const item of items) {
       await InvoiceItem.create(
         {
-          invoiceId:   invoice.id,
+          invoiceId:      invoice.id,
+          organizationId: organizationId || null,
           productName: item.productName || 'Item',
           description: item.description || null,
           quantity:    item.quantity,
@@ -80,7 +83,7 @@ const create = async ({ customerId, orderId, invoiceDate, dueDate, notes, items 
   return getById(createdId)
 }
 
-const update = async (id, { customerId, orderId, invoiceDate, dueDate, notes, taxRate, items }) => {
+const update = async (id, { customerId, orderId, invoiceDate, dueDate, notes, taxRate, items }, userId) => {
   const invoice = await Invoice.findByPk(id)
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
   if (invoice.status !== 'draft') throw { status: 400, message: 'Only draft invoices can be edited' }
@@ -95,7 +98,7 @@ const update = async (id, { customerId, orderId, invoiceDate, dueDate, notes, ta
       const total = toFixed(subtotal + tax, 2)
 
       await invoice.update(
-        { customerId: customerId || null, orderId: orderId || null, invoiceDate, dueDate, notes, subtotal, tax, total },
+        { customerId: customerId || null, orderId: orderId || null, invoiceDate, dueDate, notes, subtotal, tax, total, modifiedBy: userId || null },
         { transaction: t }
       )
 
@@ -113,7 +116,7 @@ const update = async (id, { customerId, orderId, invoiceDate, dueDate, notes, ta
         )
       }
     } else {
-      await invoice.update({ customerId: customerId || null, orderId: orderId || null, invoiceDate, dueDate, notes }, { transaction: t })
+      await invoice.update({ customerId: customerId || null, orderId: orderId || null, invoiceDate, dueDate, notes, modifiedBy: userId || null }, { transaction: t })
     }
   })
 

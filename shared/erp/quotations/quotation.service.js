@@ -8,9 +8,9 @@ const itemIncludes = [
   { model: Product,  as: 'product',  attributes: ['id', 'name', 'sku'] },
 ]
 
-const list = async ({ page = 1, limit = 20, search = '', status = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
-  const where = {}
+  const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (status) where.status = status
   if (search) {
     where[Op.or] = [
@@ -58,7 +58,7 @@ function lineTotal(item) {
   return toFixed(parseFloat(item.qty) * parseFloat(item.unitPrice) * (1 - disc / 100), 2)
 }
 
-const create = async ({ customerId, quotationDate, validUntil, notes, taxRate = 0, items = [] }) => {
+const create = async ({ customerId, quotationDate, validUntil, notes, taxRate = 0, items = [], userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Quotation must have at least one item' }
 
   const refNo = await getNext('QT', null)
@@ -73,12 +73,15 @@ const create = async ({ customerId, quotationDate, validUntil, notes, taxRate = 
       validUntil:    validUntil   || null,
       notes,
       subtotal, taxRate, tax, total,
+      organizationId: organizationId || null,
+      createdBy: userId || null, modifiedBy: userId || null,
     }, { transaction: t })
     createdId = q.id
 
     for (const item of items) {
       await QuotationItem.create({
         quotationId: q.id,
+        organizationId: organizationId || null,
         saleItemId:  item.saleItemId  || null,
         productId:   item.productId   || null,
         productName: item.productName || 'Item',
@@ -94,7 +97,7 @@ const create = async ({ customerId, quotationDate, validUntil, notes, taxRate = 
   return getById(createdId)
 }
 
-const update = async (id, { customerId, quotationDate, validUntil, notes, taxRate, items }) => {
+const update = async (id, { customerId, quotationDate, validUntil, notes, taxRate, items }, userId) => {
   const q = await Quotation.findByPk(id)
   if (!q) throw { status: 404, message: 'Quotation not found' }
   if (q.status !== 'draft') throw { status: 400, message: 'Only draft quotations can be edited' }
@@ -108,6 +111,7 @@ const update = async (id, { customerId, quotationDate, validUntil, notes, taxRat
         customerId: customerId || null,
         quotationDate, validUntil: validUntil || null, notes,
         taxRate: rate, subtotal, tax, total,
+        modifiedBy: userId || null,
       }, { transaction: t })
 
       for (const item of items) {
@@ -124,7 +128,7 @@ const update = async (id, { customerId, quotationDate, validUntil, notes, taxRat
         }, { transaction: t })
       }
     } else {
-      await q.update({ customerId: customerId || null, quotationDate, validUntil: validUntil || null, notes }, { transaction: t })
+      await q.update({ customerId: customerId || null, quotationDate, validUntil: validUntil || null, notes, modifiedBy: userId || null }, { transaction: t })
     }
   })
 

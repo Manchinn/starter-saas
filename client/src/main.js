@@ -6,6 +6,7 @@ import i18n from './i18n/index.js'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import { vCan } from '@/directives/can'
+import DateInput from '@/components/DateInput.vue'
 import './assets/main.css'
 
 const app = createApp(App)
@@ -31,4 +32,5 @@ if (auth.accessToken) await settings.load()
 
 app.use(router)
 app.directive('can', vCan)
+app.component('DateInput', DateInput)
 app.mount('#app')

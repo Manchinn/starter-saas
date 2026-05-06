@@ -76,4 +76,14 @@ module.exports = {
       return fail(res, err.message, err.status || 400)
     }
   },
+
+  async loginAs(req, res) {
+    try {
+      if (req.user.role !== 'admin') return fail(res, 'Admin access required', 403)
+      const { user, permissions, accessToken, refreshToken } = await authService.loginAs(req.params.userId)
+      return ok(res, { user, permissions, accessToken, refreshToken }, 'Session switched')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
 }

@@ -26,8 +26,13 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.saleItems.status') }}</label>
             <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">{{ t('common.active') }}</option>
-              <option value="inactive">{{ t('common.inactive') }}</option>
+              <template v-if="saleItemStatuses.length">
+                <option v-for="s in saleItemStatuses" :key="s.id" :value="s.code || s.name">{{ s.name }}</option>
+              </template>
+              <template v-else>
+                <option value="active">{{ t('common.active') }}</option>
+                <option value="inactive">{{ t('common.inactive') }}</option>
+              </template>
             </select>
           </div>
 
@@ -73,6 +78,7 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { useMasterDataStore } from '@/stores/masterData'
 
 const { t } = useI18n()
 const router  = useRouter()
@@ -80,6 +86,8 @@ const route   = useRoute()
 const id      = route.params.id
 
 const form     = ref({ code: '', name: '', productId: '', status: 'active' })
+const masterDataStore  = useMasterDataStore()
+const saleItemStatuses = ref([])
 const products = ref([])
 const loading  = ref(true)
 const saving   = ref(false)
@@ -104,6 +112,7 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  try { saleItemStatuses.value = await masterDataStore.getValues('sale-item-statuses') } catch {}
 })
 
 async function save() {

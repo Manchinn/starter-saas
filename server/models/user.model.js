@@ -41,7 +41,12 @@ const User = sequelize.define('User', {
   organizationId: {
     type: DataTypes.UUID,
     allowNull: true,
-    comment: 'Link to parent Organization (User ID 1). If null, this user is the Organization itself.'
+    comment: 'Link to parent Organization (User ID). If null, this user is the Organization itself.'
+  },
+  parentId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    comment: 'Parent organization ID — enables org hierarchy (sub-organizations).'
   },
 }, {
   hooks: {

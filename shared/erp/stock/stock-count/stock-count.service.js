@@ -15,11 +15,11 @@ const storeInclude = { model: Store, as: 'store', attributes: ['id', 'name', 'co
 
 const nextRefNo = (userId) => getNext('CNT', userId)
 
-const list = async ({ page = 1, limit = 20, search = '' }) => {
+const list = async ({ page = 1, limit = 20, search = '', organizationId }) => {
   const offset = (page - 1) * limit
   const where = search
-    ? { [Op.or]: [{ refNo: { [Op.like]: `%${search}%` } }] }
-    : {}
+    ? { [Op.or]: [{ refNo: { [Op.like]: `%${search}%` } }], organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
+    : { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   const { count, rows } = await StockCount.findAndCountAll({
     where, limit, offset,
     order: [['createdAt', 'DESC']],
@@ -70,7 +70,7 @@ const checkStoreLock = async (storeId) => {
   }
 }
 
-const create = async ({ date, storeId, notes, items = [], movementLocked = false, userId }) => {
+const create = async ({ date, storeId, notes, items = [], movementLocked = false, userId, organizationId }) => {
   if (!date) throw { status: 400, message: 'Date is required' }
   if (!storeId) throw { status: 400, message: 'Store is required' }
   if (!items.length) throw { status: 400, message: 'At least one item is required' }
@@ -80,7 +80,7 @@ const create = async ({ date, storeId, notes, items = [], movementLocked = false
   const refNo = await nextRefNo(userId)
   const t = await sequelize.transaction()
   try {
-    const sc = await StockCount.create({ refNo, date, storeId, notes, movementLocked }, { transaction: t })
+    const sc = await StockCount.create({ refNo, date, storeId, notes, movementLocked, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null }, { transaction: t })
     for (const item of items) {
       if (!item.productId) throw { status: 400, message: 'Product is required on all items' }
       await StockCountItem.create({
@@ -88,6 +88,7 @@ const create = async ({ date, storeId, notes, items = [], movementLocked = false
         productId: item.productId,
         systemQty: item.systemQty ?? 0,
         countedQty: item.countedQty ?? 0,
+        organizationId: organizationId || null,
       }, { transaction: t })
     }
     await t.commit()

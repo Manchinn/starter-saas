@@ -69,8 +69,10 @@ const Department         = require('./hrms/models/department.model')
 const EmployeeDepartment = require('./hrms/models/employee-department.model')
 
 // ── Settings ─────────────────────────────────────────────────────────────────
-const Sequence = require('./settings/models/sequence.model')
-const Setting  = require('./settings/models/setting.model')
+const Sequence           = require('./settings/models/sequence.model')
+const Setting            = require('./settings/models/setting.model')
+const MasterDataCategory = require('./settings/models/master-data-category.model')
+const MasterDataValue    = require('./settings/models/master-data-value.model')
 
 // ── Collect ───────────────────────────────────────────────────────────────────
 const erpModels = {
@@ -94,6 +96,7 @@ const erpModels = {
   StockReturn, StockReturnItem,
   StockIssue, StockIssueItem,
   Sequence, Setting,
+  MasterDataCategory, MasterDataValue,
   Employee, Department, EmployeeDepartment,
 }
 
@@ -113,5 +116,8 @@ require('./stock/stock-request/models/stockRequestAssociations')(erpModels)
 require('./stock/stock-count/models/stockCountAssociations')(erpModels)
 require('./stock/stock-issue/models/stockIssueAssociations')(erpModels)
 require('./stock/stock-return/models/stockReturnAssociations')(erpModels)
+
+MasterDataCategory.hasMany(MasterDataValue, { foreignKey: 'categoryId', as: 'values', onDelete: 'CASCADE' })
+MasterDataValue.belongsTo(MasterDataCategory, { foreignKey: 'categoryId', as: 'category' })
 
 module.exports = erpModels

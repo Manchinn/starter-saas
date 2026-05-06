@@ -33,6 +33,8 @@ router.put('/change-password', authenticate, [
 
 router.get('/install-status', (req, res) => controller.installStatus(req, res))
 
+router.post('/login-as/:userId', authenticate, (req, res) => controller.loginAs(req, res))
+
 router.post('/install', [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email required'),

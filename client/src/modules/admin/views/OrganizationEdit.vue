@@ -54,11 +54,39 @@
               <p class="text-xs text-[#9BA7B0] mt-1.5">{{ t('org.defaultPageHint') }}</p>
             </div>
 
+            <div>
+              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('org.parentOrg') }}</label>
+              <select v-model="form.parentId"
+                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                <option value="">{{ t('org.noParent') }}</option>
+                <option v-for="o in allOrgs" :key="o.id" :value="o.id" :disabled="o.id === form.id">{{ o.name }}</option>
+              </select>
+            </div>
+
             <div class="flex items-center gap-2.5">
               <input type="checkbox" id="chk-active" v-model="form.isActive" class="rounded border-[#CBD5E1] w-4 h-4" />
               <label for="chk-active" class="text-sm text-[#374151]">{{ t('org.accountActive') }}</label>
             </div>
 
+          </div>
+        </div>
+
+        <!-- Child Organizations -->
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.childOrgs') }}</h2>
+          </div>
+          <div class="px-6 py-5">
+            <div v-if="children.length" class="divide-y divide-[#F1F5F9]">
+              <div v-for="child in children" :key="child.id" class="flex items-center justify-between py-2">
+                <div>
+                  <p class="text-sm font-medium text-[#1C2434]">{{ child.name }}</p>
+                  <p class="text-xs text-[#9BA7B0]">{{ child.email }}</p>
+                </div>
+                <RouterLink :to="`/admin/organizations/${child.id}/edit`" class="text-xs text-primary-500 hover:underline">{{ t('common.edit') }}</RouterLink>
+              </div>
+            </div>
+            <p v-else class="text-sm text-[#9BA7B0] italic">{{ t('org.noChildren') }}</p>
           </div>
         </div>
 
@@ -123,19 +151,24 @@ const loading  = ref(true)
 const saving   = ref(false)
 const error    = ref('')
 const allRoles = ref([])
+const allOrgs  = ref([])
+const children = ref([])
 
 const form = reactive({
-  id: null, name: '', email: '', role: 'user', isActive: true, defaultPage: '', roleIds: [],
+  id: null, name: '', email: '', role: 'user', isActive: true, defaultPage: '', parentId: '', roleIds: [],
 })
 
 onMounted(async () => {
   try {
-    const [orgRes, rolesRes] = await Promise.all([
+    const [orgRes, rolesRes, orgsRes] = await Promise.all([
       api.get(`/organizations/${route.params.id}`),
       api.get('/roles'),
+      api.get('/organizations/all'),
     ])
     const u = orgRes.data.data.organization
     allRoles.value = rolesRes.data.data.roles
+    allOrgs.value  = orgsRes.data.data.organizations
+    children.value = u.children || []
     Object.assign(form, {
       id:          u.id,
       name:        u.name,
@@ -143,6 +176,7 @@ onMounted(async () => {
       role:        u.role,
       isActive:    u.isActive,
       defaultPage: u.defaultPage || '',
+      parentId:    u.parentId    || '',
       roleIds:     (u.roles || []).map(r => r.id),
     })
   } catch {
@@ -161,6 +195,7 @@ async function save() {
       role:        form.role,
       isActive:    form.isActive,
       defaultPage: form.defaultPage || null,
+      parentId:    form.parentId    || null,
     })
     await api.put(`/organizations/${form.id}/roles`, { roleIds: form.roleIds })
     router.push('/admin/organizations')

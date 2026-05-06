@@ -6,14 +6,36 @@
           <th
             v-for="header in table.getHeaderGroups()[0]?.headers"
             :key="header.id"
-            class="px-5 py-3 text-xs font-semibold text-[#637381] uppercase tracking-wide"
-            :class="header.column.columnDef.meta?.thClass"
+            class="px-5 py-3 text-xs font-semibold text-[#637381] uppercase tracking-wide whitespace-nowrap"
+            :class="[
+              header.column.columnDef.meta?.thClass,
+              header.column.getCanSort()
+                ? 'cursor-pointer select-none hover:text-[#374151] transition-colors'
+                : '',
+            ]"
+            @click="header.column.getToggleSortingHandler()?.($event)"
           >
-            <FlexRender
-              v-if="!header.isPlaceholder"
-              :render="header.column.columnDef.header"
-              :props="header.getContext()"
-            />
+            <span class="inline-flex items-center gap-1">
+              <FlexRender
+                v-if="!header.isPlaceholder"
+                :render="header.column.columnDef.header"
+                :props="header.getContext()"
+              />
+              <template v-if="header.column.getCanSort()">
+                <ChevronUpIcon
+                  v-if="header.column.getIsSorted() === 'asc'"
+                  class="w-3 h-3 text-primary-500 flex-shrink-0"
+                />
+                <ChevronDownIcon
+                  v-else-if="header.column.getIsSorted() === 'desc'"
+                  class="w-3 h-3 text-primary-500 flex-shrink-0"
+                />
+                <ChevronUpDownIcon
+                  v-else
+                  class="w-3 h-3 opacity-25 flex-shrink-0"
+                />
+              </template>
+            </span>
           </th>
         </tr>
       </thead>
@@ -85,24 +107,41 @@
 </template>
 
 <script setup>
-import { useVueTable, FlexRender, getCoreRowModel } from '@tanstack/vue-table'
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import { ref } from 'vue'
+import {
+  useVueTable, FlexRender, getCoreRowModel, getSortedRowModel,
+} from '@tanstack/vue-table'
+import {
+  ChevronLeftIcon, ChevronRightIcon,
+  ChevronUpIcon, ChevronDownIcon, ChevronUpDownIcon,
+} from '@heroicons/vue/24/outline'
 
 const props = defineProps({
-  columns:  { type: Array,   required: true },
-  data:     { type: Array,   default: () => [] },
-  loading:  { type: Boolean, default: false },
-  total:    { type: Number,  default: 0 },
-  page:     { type: Number,  default: 1 },
-  pageSize: { type: Number,  default: 20 },
+  columns:        { type: Array,   required: true },
+  data:           { type: Array,   default: () => [] },
+  loading:        { type: Boolean, default: false },
+  total:          { type: Number,  default: 0 },
+  page:           { type: Number,  default: 1 },
+  pageSize:       { type: Number,  default: 20 },
+  initialSorting: { type: Array,   default: () => [] },
 })
 
 defineEmits(['update:page'])
 
+const sorting = ref([...props.initialSorting])
+
 const table = useVueTable({
   get data()    { return props.data },
   get columns() { return props.columns },
-  getCoreRowModel: getCoreRowModel(),
+  getCoreRowModel:    getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  state: {
+    get sorting() { return sorting.value },
+  },
+  onSortingChange: updater => {
+    sorting.value = typeof updater === 'function' ? updater(sorting.value) : updater
+  },
+  sortDescFirst:    true,
   manualPagination: true,
   get pageCount() { return Math.ceil(props.total / props.pageSize) },
 })

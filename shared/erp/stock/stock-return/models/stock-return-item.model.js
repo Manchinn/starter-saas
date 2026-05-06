@@ -7,7 +7,9 @@ const StockReturnItem = sequelize.define('StockReturnItem', {
   productId:     { type: DataTypes.UUID, allowNull: false },
   qty:           { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   cost:          { type: DataTypes.DECIMAL(10, 2), allowNull: true, defaultValue: 0 },
-  reason:        { type: DataTypes.TEXT, allowNull: true },
+  reason:         { type: DataTypes.TEXT, allowNull: true },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
 })
 
 module.exports = StockReturnItem

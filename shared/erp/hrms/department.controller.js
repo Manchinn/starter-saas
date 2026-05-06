@@ -5,13 +5,18 @@ const { getNext } = require('../settings/sequence.service')
 module.exports = {
   async list(req, res) {
     try {
-      const { page, limit, search } = req.query
-      const orgId = req.user.organizationId || req.user.id
+      const { page, limit, search, isActive, activeFrom, activeTo, organizationId: queryOrgId } = req.query
+      const defaultOrgId = req.user.organizationId || req.user.id
+      // Admin can query departments for a specific organization
+      const orgId = (req.user.role === 'admin' && queryOrgId) ? queryOrgId : defaultOrgId
       const result = await departmentService.list({
         organizationId: orgId,
         page: +page || 1,
         limit: +limit || 20,
         search: search || '',
+        isActive: isActive,
+        activeFrom: activeFrom || '',
+        activeTo: activeTo || '',
       })
       return ok(res, result)
     } catch (err) {
@@ -46,7 +51,7 @@ module.exports = {
   async update(req, res) {
     try {
       const orgId = req.user.organizationId || req.user.id
-      const department = await departmentService.update(req.params.id, orgId, req.body)
+      const department = await departmentService.update(req.params.id, orgId, req.body, req.user?.id)
       return ok(res, department)
     } catch (err) {
       if (err.message === 'Department not found') return notFound(res, err.message)

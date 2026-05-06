@@ -5,11 +5,13 @@ const organizationService = require('../../../server/modules/organizations/organ
 
 const USER_ATTRS = ['id', 'name', 'email', 'isActive', 'role', 'lastLoginAt']
 
-const list = async ({ organizationId, page = 1, limit = 20, search = '', status = '' }) => {
+const list = async ({ organizationId, page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '' }) => {
   if (!organizationId) throw { status: 400, message: 'Organization ID is required' }
   const offset = (page - 1) * limit
-  const where  = { organizationId }
+  const where  = { organizationId, dataFlag: { [Op.ne]: 2 } }
   if (status) where.status = status
+  if (activeFrom) where.activeFrom = { [Op.gte]: activeFrom }
+  if (activeTo) where.activeTo = { [Op.lte]: activeTo }
   if (search) {
     where[Op.or] = [
       { firstName:    { [Op.like]: `%${search}%` } },
@@ -48,6 +50,7 @@ const getById = async (id, organizationId) => {
 }
 
 const create = async ({ firstName, lastName, position, phone, startDate, status = 'active',
+  activeFrom, activeTo,
   employeeCode, autoCode, userId, email, password, credentialMode = 'existing', createdByUserId, organizationId, departmentIds }) => {
   if (!organizationId) throw { status: 400, message: 'Organization ID is required' }
   if (!firstName?.trim()) throw { status: 400, message: 'First name is required' }
@@ -91,6 +94,8 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
     phone:      phone?.trim()      || null,
     startDate:  startDate          || null,
     status,
+    activeFrom: activeFrom || null,
+    activeTo:   activeTo   || null,
     userId:         resolvedUserId,
     organizationId: organizationId,
     createdBy:      createdByUserId || null,
@@ -103,9 +108,10 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
   return getById(emp.id)
 }
 
-const update = async (id, payload, organizationId) => {
+const update = async (id, payload, organizationId, modifiedByUserId) => {
   const { firstName, lastName, position, phone, startDate, status,
-    employeeCode, userId, departmentIds } = payload
+    activeFrom, activeTo,
+    employeeCode, userId, organizationId: newOrgId, departmentIds } = payload
   const emp = await Employee.findOne({ where: { id, organizationId } })
   if (!emp) throw { status: 404, message: 'Employee not found' }
 
@@ -123,8 +129,12 @@ const update = async (id, payload, organizationId) => {
     ...(phone        !== undefined && { phone:        phone?.trim()      || null }),
     ...(startDate    !== undefined && { startDate:    startDate || null }),
     ...(status       !== undefined && { status }),
+    ...(activeFrom   !== undefined && { activeFrom: activeFrom || null }),
+    ...(activeTo     !== undefined && { activeTo: activeTo || null }),
     ...(employeeCode !== undefined && { employeeCode: employeeCode?.trim() || null }),
     ...(userId       !== undefined && { userId:       userId || null }),
+    ...(newOrgId     !== undefined && newOrgId && { organizationId: newOrgId }),
+    modifiedBy: modifiedByUserId || null,
   })
 
   if (departmentIds !== undefined) {

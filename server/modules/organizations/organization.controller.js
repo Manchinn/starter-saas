@@ -109,4 +109,13 @@ module.exports = {
       return serverError(res)
     }
   },
+
+  async listAll(req, res) {
+    try {
+      const organizations = await organizationService.listAll()
+      return ok(res, { organizations })
+    } catch (err) {
+      return serverError(res)
+    }
+  },
 }

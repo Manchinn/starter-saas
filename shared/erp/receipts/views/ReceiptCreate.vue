@@ -82,7 +82,7 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                   Receipt Date <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
-                <input v-model="form.receiptDate" type="date"
+                <DateInput v-model="form.receiptDate"
                   :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                            'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
                            errors.receiptDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
@@ -134,11 +134,8 @@
                 <select v-model="form.paymentMethod"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="cash">Cash</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                  <option value="cheque">Cheque</option>
-                  <option value="credit_card">Credit Card</option>
-                  <option value="other">Other</option>
+                  <option value="">— Select —</option>
+                  <option v-for="m in paymentMethods" :key="m.id" :value="m.code || m.name">{{ m.name }}</option>
                 </select>
               </div>
 
@@ -238,13 +235,16 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
+import { useMasterDataStore } from '@/stores/masterData'
 
-const router      = useRouter()
-const customers   = ref([])
-const invoices    = ref([])
-const saving      = ref(false)
-const globalError = ref('')
-const errors      = ref({})
+const router           = useRouter()
+const masterDataStore  = useMasterDataStore()
+const customers        = ref([])
+const invoices         = ref([])
+const paymentMethods   = ref([])
+const saving           = ref(false)
+const globalError      = ref('')
+const errors           = ref({})
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({
@@ -268,13 +268,16 @@ onMounted(async () => {
   ])
   if (customersRes.status === 'fulfilled') customers.value = customersRes.value.data.data.customers
   if (invoicesRes.status === 'fulfilled')  invoices.value  = invoicesRes.value.data.data.invoices
+  paymentMethods.value = await masterDataStore.getValues('payment-methods')
+  if (paymentMethods.value.length && !form.value.paymentMethod) {
+    form.value.paymentMethod = paymentMethods.value[0].code || paymentMethods.value[0].name
+  }
 })
 
-const METHOD_LABELS = {
-  cash: 'Cash', bank_transfer: 'Bank Transfer',
-  cheque: 'Cheque', credit_card: 'Credit Card', other: 'Other',
+function methodLabel(m) {
+  const found = paymentMethods.value.find(p => (p.code || p.name) === m)
+  return found ? found.name : m
 }
-function methodLabel(m) { return METHOD_LABELS[m] || m }
 
 function validate() {
   const e = {}

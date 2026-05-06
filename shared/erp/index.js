@@ -25,6 +25,7 @@ import {
   IdentificationIcon,
   UserGroupIcon,
   SparklesIcon,
+  CircleStackIcon,
 } from '@heroicons/vue/24/outline'
 
 export default {
@@ -510,6 +511,25 @@ export default {
       component: () => import('./settings/views/DemoData.vue'),
       meta: { requiresAuth: true, title: 'Demo Data' },
     },
+    // Settings — Master Data
+    {
+      path: '/erp/settings/master-data',
+      name: 'erp-settings-master-data',
+      component: () => import('./settings/views/MasterDataList.vue'),
+      meta: { requiresAuth: true, title: 'Master Data' },
+    },
+    {
+      path: '/erp/settings/master-data/create',
+      name: 'erp-settings-master-data-create',
+      component: () => import('./settings/views/MasterDataCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Master Data Category' },
+    },
+    {
+      path: '/erp/settings/master-data/:id',
+      name: 'erp-settings-master-data-edit',
+      component: () => import('./settings/views/MasterDataEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Master Data Category' },
+    },
   ],
   navItem: {
     label: 'nav.erp',
@@ -574,9 +594,10 @@ export default {
         label: 'nav.settings',
         icon: Cog6ToothIcon,
         children: [
-          { label: 'nav.general',         to: '/erp/settings/general',    icon: CurrencyDollarIcon, permission: 'erp.stock.edit' },
-          { label: 'nav.sequenceNumbers', to: '/erp/settings/sequence',   icon: HashtagIcon,        permission: 'erp.stock.edit' },
-          { label: 'nav.demoData',        to: '/erp/settings/demo-data',  icon: SparklesIcon,       permission: 'erp.stock.edit' },
+          { label: 'nav.general',         to: '/erp/settings/general',       icon: CurrencyDollarIcon, permission: 'erp.stock.edit' },
+          { label: 'nav.sequenceNumbers', to: '/erp/settings/sequence',    icon: HashtagIcon,        permission: 'erp.stock.edit' },
+          { label: 'nav.masterData',      to: '/erp/settings/master-data', icon: CircleStackIcon,    permission: 'erp.stock.edit' },
+          { label: 'nav.demoData',        to: '/erp/settings/demo-data',   icon: SparklesIcon,       permission: 'erp.stock.edit' },
         ],
       },
     ],

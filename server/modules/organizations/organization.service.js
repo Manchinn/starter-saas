@@ -10,13 +10,15 @@ const organizationIncludes = [
       { model: Module, as: 'modules', attributes: ['id', 'slug', 'name', 'icon', 'isActive'] },
     ],
   },
+  { model: User, as: 'parent',   attributes: ['id', 'name', 'email'] },
+  { model: User, as: 'children', attributes: ['id', 'name', 'email', 'isActive'] },
 ]
 
-const create = async ({ name, email, password, role = 'user', defaultPage = null, roleIds = [], organizationId = null }) => {
+const create = async ({ name, email, password, role = 'user', defaultPage = null, roleIds = [], organizationId = null, parentId = null }) => {
   const exists = await User.findOne({ where: { email } })
   if (exists) throw { status: 409, message: 'Email already registered' }
 
-  const organization = await User.create({ name, email, password, role, defaultPage, organizationId })
+  const organization = await User.create({ name, email, password, role, defaultPage, organizationId, parentId: parentId || null })
 
   if (roleIds.length) {
     const roles = await Role.findAll({ where: { id: roleIds } })
@@ -49,6 +51,7 @@ const list = async ({ page = 1, limit = 20, search = '' }) => {
     order: [['createdAt', 'DESC']],
     include: [
       { model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] },
+      { model: User, as: 'parent', attributes: ['id', 'name'] },
     ],
   })
 
@@ -64,9 +67,11 @@ const getById = async (id) => {
 const update = async (id, data) => {
   const organization = await User.findByPk(id)
   if (!organization) throw { status: 404, message: 'Organization not found' }
-  const allowed = ['name', 'role', 'isActive', 'defaultPage']
-  await organization.update(Object.fromEntries(Object.entries(data).filter(([k]) => allowed.includes(k))))
-  return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }] })
+  const allowed = ['name', 'role', 'isActive', 'defaultPage', 'parentId']
+  const patch = Object.fromEntries(Object.entries(data).filter(([k]) => allowed.includes(k)))
+  if ('parentId' in patch) patch.parentId = patch.parentId || null
+  await organization.update(patch)
+  return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
 }
 
 const remove = async (id) => {
@@ -172,4 +177,12 @@ const listAllStaff = async ({ page = 1, limit = 20, search = '', organizationId 
   return { total: count, page, limit, staff: rows }
 }
 
-module.exports = { create, list, getById, update, remove, assignModules, assignRoles, getUserPermissions, getMyModules, getStaff, listAllStaff }
+const listAll = async () => {
+  return User.findAll({
+    where: { organizationId: null },
+    attributes: ['id', 'name', 'email'],
+    order: [['name', 'ASC']],
+  })
+}
+
+module.exports = { create, list, getById, update, remove, assignModules, assignRoles, getUserPermissions, getMyModules, getStaff, listAllStaff, listAll }

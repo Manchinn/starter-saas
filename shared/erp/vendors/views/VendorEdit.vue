@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -50,6 +50,16 @@
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.notes') }}</label>
             <textarea v-model="form.notes" rows="2"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.status') }}</label>
@@ -107,7 +117,7 @@ import api from '@/api'
 const { t } = useI18n()
 const route    = useRoute()
 const router   = useRouter()
-const form     = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active' })
+const form     = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active', activeFrom: '', activeTo: '' })
 const loading  = ref(true)
 const notFound = ref(false)
 const error    = ref('')
@@ -127,6 +137,8 @@ onMounted(async () => {
       notes:         v.notes         || '',
       vendorTypes:   v.vendorTypes   || [],
       status:        v.status,
+      activeFrom:    v.activeFrom    || '',
+      activeTo:      v.activeTo      || '',
     }
   } catch {
     notFound.value = true

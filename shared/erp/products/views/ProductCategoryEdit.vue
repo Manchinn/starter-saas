@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -57,6 +57,16 @@
                   class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               </div>
 
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeFrom') }}</label>
+                  <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeTo') }}</label>
+                  <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                </div>
+              </div>
               <div>
                 <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                   {{ t('erp.productCategories.status') }}
@@ -111,7 +121,7 @@ const loading = ref(true)
 const saving  = ref(false)
 const error   = ref('')
 
-const form = ref({ code: '', name: '', description: '', parentId: '', status: 'active' })
+const form = ref({ code: '', name: '', description: '', parentId: '', status: 'active', activeFrom: '', activeTo: '' })
 
 const editableParents = computed(() =>
   allCategories.value.filter(c => !c.parentId && String(c.id) !== route.params.id)
@@ -123,7 +133,7 @@ onMounted(async () => {
     allCategories.value = data.data.categories
     const c = allCategories.value.find(c => String(c.id) === route.params.id)
     if (!c) { router.push('/erp/product-categories'); return }
-    form.value = { code: c.code || '', name: c.name, description: c.description || '', parentId: c.parentId || '', status: c.status }
+    form.value = { code: c.code || '', name: c.name, description: c.description || '', parentId: c.parentId || '', status: c.status, activeFrom: c.activeFrom || '', activeTo: c.activeTo || '' }
   } catch {
     router.push('/erp/product-categories')
   } finally {

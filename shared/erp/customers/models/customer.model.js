@@ -39,14 +39,16 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
+  activeFrom: { type: DataTypes.DATEONLY, allowNull: true },
+  activeTo:   { type: DataTypes.DATEONLY, allowNull: true },
   customerGroupId: {
     type: DataTypes.UUID,
     allowNull: true,
   },
-  organizationId: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
+  organizationId: { type: DataTypes.UUID, allowNull: true },
+  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  createdBy:      { type: DataTypes.UUID, allowNull: true },
+  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
 })
 
 module.exports = Customer
