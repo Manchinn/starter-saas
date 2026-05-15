@@ -58,4 +58,14 @@ module.exports = {
       return fail(res, err.message, err.status || 400)
     }
   },
+
+  async createReceipt(req, res) {
+    try {
+      const orgId = req.user?.organizationId || req.user?.id
+      const result = await service.createReceipt(req.params.id, req.user?.id, orgId)
+      return created(res, result, 'Receipt created')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
 }

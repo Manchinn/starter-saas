@@ -95,4 +95,24 @@ module.exports = {
       return fail(res, err.message, err.status || 400)
     }
   },
+
+  async createDeliveryOrder(req, res) {
+    try {
+      const orgId = req.user?.organizationId || req.user?.id
+      const result = await service.createDeliveryOrder(req.params.id, req.user?.id, orgId)
+      return created(res, result, 'Delivery order created')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async createInvoice(req, res) {
+    try {
+      const orgId = req.user?.organizationId || req.user?.id
+      const result = await service.createInvoice(req.params.id, req.user?.id, orgId)
+      return created(res, result, 'Invoice created')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
 }

@@ -149,4 +149,23 @@ const remove = async (id) => {
   await invoice.destroy()
 }
 
-module.exports = { list, getById, create, update, updateStatus, remove }
+const createReceipt = async (id, userId, organizationId) => {
+  const invoice = await getById(id)
+  if (!['sent', 'paid'].includes(invoice.status)) {
+    throw { status: 400, message: 'Only sent or paid invoices can record a payment' }
+  }
+  const receiptSvc = require('../receipts/receipt.service')
+  const receipt = await receiptSvc.create({
+    customerId:    invoice.customerId,
+    invoiceId:     invoice.id,
+    receiptDate:   new Date(),
+    paymentMethod: 'cash',
+    amount:        parseFloat(invoice.total) || 0,
+    notes:         `Auto-created from Invoice ${invoice.invoiceNumber}`,
+    userId,
+    organizationId,
+  })
+  return { id: receipt.id }
+}
+
+module.exports = { list, getById, create, update, updateStatus, remove, createReceipt }

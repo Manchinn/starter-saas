@@ -26,6 +26,7 @@ router.get('/:id',             requirePermission('erp.invoices.list'),   (req, r
 router.post('/',               requirePermission('erp.invoices.edit'),   itemsValidation, (req, res) => controller.create(req, res))
 router.put('/:id',             requirePermission('erp.invoices.edit'),   (req, res) => controller.update(req, res))
 router.patch('/:id/status',    requirePermission('erp.invoices.edit'),   statusValidation, (req, res) => controller.updateStatus(req, res))
+router.post('/:id/create-receipt', requirePermission('erp.receipts.edit'), (req, res) => controller.createReceipt(req, res))
 router.delete('/:id',          requirePermission('erp.invoices.delete'), (req, res) => controller.remove(req, res))
 
 module.exports = router

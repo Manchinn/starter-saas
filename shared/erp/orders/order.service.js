@@ -330,4 +330,70 @@ const deleteItem = async (id) => {
   })
 }
 
-module.exports = { list, getById, create, update, updateStatus, remove, listItems, getItemById, updateItem, deleteItem }
+const createDeliveryOrder = async (id, userId, organizationId) => {
+  const order = await getById(id)
+  if (!['confirmed', 'shipped', 'delivered'].includes(order.status)) {
+    throw { status: 400, message: 'Only confirmed orders can generate a delivery order' }
+  }
+  const { DeliveryOrder, DeliveryOrderItem } = require('../../../server/models')
+  const { getNext } = require('../settings/sequence.service')
+
+  const refNo = await getNext('DO', userId)
+  const today = new Date().toISOString().slice(0, 10)
+
+  let createdId
+  await sequelize.transaction(async (t) => {
+    const doc = await DeliveryOrder.create({
+      refNo,
+      date: today,
+      orderId: order.id,
+      customerId: order.customerId || null,
+      address: order.customer?.address || null,
+      notes: `Auto-created from Sales Order ${order.orderNumber}`,
+      organizationId: organizationId || null,
+      createdBy: userId || null,
+      modifiedBy: userId || null,
+    }, { transaction: t })
+    createdId = doc.id
+
+    for (const item of order.items) {
+      await DeliveryOrderItem.create({
+        deliveryOrderId: doc.id,
+        productId:       item.productId || null,
+        productName:     item.productName,
+        qty:             item.quantity,
+        notes:           null,
+        organizationId:  organizationId || null,
+      }, { transaction: t })
+    }
+  })
+
+  return { id: createdId }
+}
+
+const createInvoice = async (id, userId, organizationId) => {
+  const order = await getById(id)
+  if (!['confirmed', 'shipped', 'delivered'].includes(order.status)) {
+    throw { status: 400, message: 'Only confirmed orders can generate an invoice' }
+  }
+  const invoiceSvc = require('../invoices/invoice.service')
+  const invoice = await invoiceSvc.create({
+    customerId:  order.customerId,
+    orderId:     order.id,
+    invoiceDate: new Date(),
+    notes:       `Auto-created from Sales Order ${order.orderNumber}`,
+    items: order.items.map(i => ({
+      productName: i.productName,
+      quantity:    i.quantity,
+      unitPrice:   parseFloat(i.unitPrice) || 0,
+    })),
+    taxRate: parseFloat(order.subtotal) > 0
+      ? toFixed((parseFloat(order.tax) / parseFloat(order.subtotal)) * 100, 2)
+      : 0,
+    userId,
+    organizationId,
+  })
+  return { id: invoice.id }
+}
+
+module.exports = { list, getById, create, update, updateStatus, remove, listItems, getItemById, updateItem, deleteItem, createDeliveryOrder, createInvoice }

@@ -254,6 +254,23 @@
             </p>
           </div>
 
+          <!-- Conversion actions (confirmed / shipped / delivered) -->
+          <div v-if="['confirmed', 'shipped', 'delivered'].includes(order.status)" class="flex flex-wrap gap-2">
+            <button v-can="'erp.orders.edit'" @click="convertToDeliveryOrder" :disabled="converting"
+              class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary-50 text-primary-600 border border-primary-200
+                     rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50">
+              <TruckIcon class="w-4 h-4" />
+              {{ converting === 'do' ? t('erp.common.saving') : t('erp.orders.createDeliveryOrder') }}
+            </button>
+            <button v-can="'erp.invoices.edit'" @click="convertToInvoice" :disabled="converting"
+              class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary-50 text-primary-600 border border-primary-200
+                     rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50">
+              <DocumentTextIcon class="w-4 h-4" />
+              {{ converting === 'inv' ? t('erp.common.saving') : t('erp.orders.createInvoice') }}
+            </button>
+            <span v-if="convertError" class="self-center text-xs text-red-600">{{ convertError }}</span>
+          </div>
+
           <!-- Delete (draft only) -->
           <div v-if="order.status === 'draft'" v-can="'erp.orders.delete'" class="flex justify-end">
             <button @click="confirmDelete"
@@ -277,7 +294,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeftIcon, ChevronRightIcon, UserIcon, DocumentTextIcon,
   ClipboardDocumentListIcon, CheckIcon, XMarkIcon, TrashIcon,
-  BoltIcon, ArrowPathIcon, ExclamationCircleIcon, CalculatorIcon,
+  BoltIcon, ArrowPathIcon, ExclamationCircleIcon, CalculatorIcon, TruckIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
@@ -291,6 +308,30 @@ const loading        = ref(true)
 const notFound       = ref(false)
 const updatingStatus = ref(false)
 const statusError    = ref('')
+const converting     = ref('')
+const convertError   = ref('')
+
+async function convertToDeliveryOrder() {
+  convertError.value = ''
+  converting.value = 'do'
+  try {
+    const { data } = await api.post(`/erp/orders/${order.value.id}/create-delivery-order`)
+    router.push(`/erp/delivery-orders/${data.data.id}`)
+  } catch (err) {
+    convertError.value = err.response?.data?.message || 'Failed to create delivery order'
+  } finally { converting.value = '' }
+}
+
+async function convertToInvoice() {
+  convertError.value = ''
+  converting.value = 'inv'
+  try {
+    const { data } = await api.post(`/erp/orders/${order.value.id}/create-invoice`)
+    router.push(`/erp/invoices/${data.data.id}`)
+  } catch (err) {
+    convertError.value = err.response?.data?.message || 'Failed to create invoice'
+  } finally { converting.value = '' }
+}
 
 // ── Workflow ──────────────────────────────────────────────
 const FLOW_STEPS = [

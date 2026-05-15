@@ -30,6 +30,8 @@ router.get('/:id',               requirePermission('erp.orders.list'),   (req, r
 router.post('/',           requirePermission('erp.orders.edit'),   itemsValidation, (req, res) => controller.create(req, res))
 router.put('/:id',         requirePermission('erp.orders.edit'),   (req, res) => controller.update(req, res))
 router.patch('/:id/status',requirePermission('erp.orders.edit'),   statusValidation, (req, res) => controller.updateStatus(req, res))
+router.post('/:id/create-delivery-order', requirePermission('erp.orders.edit'), (req, res) => controller.createDeliveryOrder(req, res))
+router.post('/:id/create-invoice',        requirePermission('erp.invoices.edit'), (req, res) => controller.createInvoice(req, res))
 router.delete('/:id',      requirePermission('erp.orders.delete'), (req, res) => controller.remove(req, res))
 
 module.exports = router

@@ -872,6 +872,8 @@ export default {
       colTotal:     'รวม',
       salesOrderInfo: 'ข้อมูลใบสั่งขาย',
       cancelOrder:    'ยกเลิกใบสั่ง',
+      createDeliveryOrder: 'สร้างใบส่งสินค้า',
+      createInvoice:       'สร้างใบแจ้งหนี้',
     },
 
     orderItems: {
@@ -1473,6 +1475,7 @@ export default {
       itemsRequired:    'กรุณาเพิ่มอย่างน้อย 1 รายการ',
       itemQtyInvalid:   'จำนวนต้องมากกว่า 0',
       itemPriceInvalid: 'ราคาต้องมากกว่า 0',
+      recordPayment:    'บันทึกการรับชำระ',
     },
 
     receipts: {
@@ -1541,6 +1544,7 @@ export default {
       statusDelivered:  'ส่งมอบแล้ว',
       customerRequired: 'กรุณาเลือกลูกค้า',
       dateRequired:     'กรุณาระบุวันที่',
+      createInvoice:    'สร้างใบแจ้งหนี้',
     },
 
     fiscalYears: {

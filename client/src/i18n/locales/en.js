@@ -883,6 +883,8 @@ export default {
       colTotal:     'Total',
       salesOrderInfo: 'Sales Order Info',
       cancelOrder:    'Cancel Order',
+      createDeliveryOrder: 'Create Delivery Order',
+      createInvoice:       'Create Invoice',
     },
 
     orderItems: {
@@ -1471,6 +1473,7 @@ export default {
       itemsRequired:    'At least one line item is required',
       itemQtyInvalid:   'Quantity must be greater than 0',
       itemPriceInvalid: 'Unit price must be greater than 0',
+      recordPayment:    'Record Payment',
     },
 
     receipts: {
@@ -1539,6 +1542,7 @@ export default {
       statusDelivered:  'Delivered',
       customerRequired: 'Customer is required',
       dateRequired:     'Date is required',
+      createInvoice:    'Create Invoice',
     },
 
     fiscalYears: {
