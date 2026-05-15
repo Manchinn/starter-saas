@@ -4,6 +4,7 @@ const customerRouter        = require('./customers/customer.routes')
 const customerGroupRouter   = require('./customers/customer-group.routes')
 const productRouter         = require('./products/product.routes')
 const orderRouter           = require('./orders/order.routes')
+const deliveryOrderRouter   = require('./orders/delivery-order.routes')
 const pricingRouter         = require('./pricing/pricing.routes')
 const productCategoryRouter = require('./products/product-category.routes')
 const storeRouter           = require('./inventory/store.routes')
@@ -26,8 +27,19 @@ const stockIssueRouter      = require('./stock/stock-issue/stock-issue.routes')
 const invoiceRouter         = require('./invoices/invoice.routes')
 const receiptRouter         = require('./receipts/receipt.routes')
 const saleItemRouter        = require('./sale/sale-item.routes')
-const employeeRouter        = require('./hrms/employee.routes')
-const departmentRouter      = require('./hrms/department.routes')
+const employeeRouter           = require('./hrms/employee.routes')
+const departmentRouter         = require('./hrms/department.routes')
+const chartOfAccountRouter        = require('./accounting/routes/chart-of-account.routes')
+const billingNoteRouter           = require('./accounting/routes/billing-note.routes')
+const fiscalYearRouter            = require('./accounting/routes/fiscal-year.routes')
+const debitNoteRouter             = require('./accounting/routes/debit-note.routes')
+const creditNoteRouter            = require('./accounting/routes/credit-note.routes')
+const receivePaymentRouter        = require('./accounting/routes/receive-payment.routes')
+const journalRouter               = require('./accounting/routes/journal.routes')
+const purchaseRequisitionRouter   = require('./purchasing/purchase-requisition.routes')
+const purchaseOrderRouter         = require('./purchasing/purchase-order.routes')
+const arAgingRouter               = require('./accounting/routes/ar-aging.routes')
+const salePackageRouter           = require('./sale/sale-package.routes')
 
 module.exports = defineModule({
   slug: 'erp',
@@ -51,6 +63,9 @@ module.exports = defineModule({
     'erp.departments.list', 'erp.departments.edit', 'erp.departments.delete',
     'erp.invoices.list', 'erp.invoices.edit', 'erp.invoices.delete',
     'erp.receipts.list', 'erp.receipts.edit', 'erp.receipts.delete',
+    'erp.accounting.list', 'erp.accounting.edit', 'erp.accounting.delete',
+    'erp.purchasing.list', 'erp.purchasing.edit', 'erp.purchasing.delete',
+    'erp.sale-packages.list', 'erp.sale-packages.manage',
   ],
   meta: { mountPath: '/api/erp' },
   register(app) {
@@ -60,6 +75,7 @@ module.exports = defineModule({
     app.use('/api/erp/customer-groups',  customerGroupRouter)
     app.use('/api/erp/item-master',      productRouter)
     app.use('/api/erp/orders',           orderRouter)
+    app.use('/api/erp/delivery-orders',  deliveryOrderRouter)
     app.use('/api/erp/pricing',          pricingRouter)
     app.use('/api/erp/product-categories', productCategoryRouter)
     app.use('/api/erp/stores',           storeRouter)
@@ -83,5 +99,16 @@ module.exports = defineModule({
     app.use('/api/erp/sale-items',       saleItemRouter)
     app.use('/api/erp/hrms/employees',   employeeRouter)
     app.use('/api/erp/hrms/departments', departmentRouter)
+    app.use('/api/erp/accounting/chart-of-accounts', chartOfAccountRouter)
+    app.use('/api/erp/accounting/fiscal-years',       fiscalYearRouter)
+    app.use('/api/erp/billing/billing-notes',        billingNoteRouter)
+    app.use('/api/erp/billing/debit-notes',          debitNoteRouter)
+    app.use('/api/erp/billing/credit-notes',         creditNoteRouter)
+    app.use('/api/erp/billing/receive-payments',     receivePaymentRouter)
+    app.use('/api/erp/accounting/journals',          journalRouter)
+    app.use('/api/erp/purchasing/requisitions',      purchaseRequisitionRouter)
+    app.use('/api/erp/purchasing/orders',            purchaseOrderRouter)
+    app.use('/api/erp/accounting/ar-aging',          arAgingRouter)
+    app.use('/api/erp/sale-packages',               salePackageRouter)
   },
 })

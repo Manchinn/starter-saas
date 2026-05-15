@@ -26,6 +26,15 @@ import {
   UserGroupIcon,
   SparklesIcon,
   CircleStackIcon,
+  BookOpenIcon,
+  ListBulletIcon,
+  ShoppingBagIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  CalendarDaysIcon,
+  BanknotesIcon,
+  PencilSquareIcon,
+  ArchiveBoxIcon,
 } from '@heroicons/vue/24/outline'
 
 export default {
@@ -229,6 +238,25 @@ export default {
       name: 'erp-orders-detail',
       component: () => import('./orders/views/OrderDetail.vue'),
       meta: { requiresAuth: true, title: 'Order Detail' },
+    },
+    // Delivery Orders
+    {
+      path: '/erp/delivery-orders',
+      name: 'erp-delivery-orders',
+      component: () => import('./orders/views/DeliveryOrderList.vue'),
+      meta: { requiresAuth: true, title: 'Delivery Orders' },
+    },
+    {
+      path: '/erp/delivery-orders/create',
+      name: 'erp-delivery-orders-create',
+      component: () => import('./orders/views/DeliveryOrderCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Delivery Order' },
+    },
+    {
+      path: '/erp/delivery-orders/:id',
+      name: 'erp-delivery-orders-detail',
+      component: () => import('./orders/views/DeliveryOrderDetail.vue'),
+      meta: { requiresAuth: true, title: 'Delivery Order Detail' },
     },
     // Invoices
     {
@@ -466,6 +494,25 @@ export default {
       component: () => import('./settings/views/SequenceEdit.vue'),
       meta: { requiresAuth: true, title: 'Edit Sequence' },
     },
+    // Sale Packages
+    {
+      path: '/erp/sale-packages',
+      name: 'erp-sale-packages',
+      component: () => import('./sale/views/SalePackagesList.vue'),
+      meta: { requiresAuth: true, title: 'Sale Packages' },
+    },
+    {
+      path: '/erp/sale-packages/create',
+      name: 'erp-sale-packages-create',
+      component: () => import('./sale/views/SalePackageCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Sale Package' },
+    },
+    {
+      path: '/erp/sale-packages/:id/edit',
+      name: 'erp-sale-packages-edit',
+      component: () => import('./sale/views/SalePackageEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Sale Package' },
+    },
     // Sale Items
     {
       path: '/erp/sale-items',
@@ -503,6 +550,190 @@ export default {
       name: 'erp-pricing-edit',
       component: () => import('./pricing/views/PricingEdit.vue'),
       meta: { requiresAuth: true, title: 'Edit Price List' },
+    },
+    // Fiscal Years
+    {
+      path: '/erp/accounting/fiscal-years',
+      name: 'erp-accounting-fiscal-years',
+      component: () => import('./accounting/views/FiscalYearList.vue'),
+      meta: { requiresAuth: true, title: 'Fiscal Years' },
+    },
+    {
+      path: '/erp/accounting/fiscal-years/create',
+      name: 'erp-accounting-fiscal-years-create',
+      component: () => import('./accounting/views/FiscalYearCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Fiscal Year' },
+    },
+    {
+      path: '/erp/accounting/fiscal-years/:id',
+      name: 'erp-accounting-fiscal-years-detail',
+      component: () => import('./accounting/views/FiscalYearDetail.vue'),
+      meta: { requiresAuth: true, title: 'Fiscal Year Detail' },
+    },
+    // Chart of Accounts
+    {
+      path: '/erp/accounting/chart-of-accounts',
+      name: 'erp-accounting-chart-of-accounts',
+      component: () => import('./accounting/views/ChartOfAccountsList.vue'),
+      meta: { requiresAuth: true, title: 'Chart of Accounts' },
+    },
+    {
+      path: '/erp/accounting/chart-of-accounts/create',
+      name: 'erp-accounting-chart-of-accounts-create',
+      component: () => import('./accounting/views/ChartOfAccountCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Account' },
+    },
+    {
+      path: '/erp/accounting/chart-of-accounts/:id/edit',
+      name: 'erp-accounting-chart-of-accounts-edit',
+      component: () => import('./accounting/views/ChartOfAccountEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Account' },
+    },
+    // Debit Notes
+    {
+      path: '/erp/billing/debit-notes',
+      name: 'erp-billing-debit-notes',
+      component: () => import('./accounting/views/DebitNoteList.vue'),
+      meta: { requiresAuth: true, title: 'Debit Notes' },
+    },
+    {
+      path: '/erp/billing/debit-notes/create',
+      name: 'erp-billing-debit-notes-create',
+      component: () => import('./accounting/views/DebitNoteCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Debit Note' },
+    },
+    {
+      path: '/erp/billing/debit-notes/:id',
+      name: 'erp-billing-debit-notes-detail',
+      component: () => import('./accounting/views/DebitNoteDetail.vue'),
+      meta: { requiresAuth: true, title: 'Debit Note Detail' },
+    },
+    // Credit Notes
+    {
+      path: '/erp/billing/credit-notes',
+      name: 'erp-billing-credit-notes',
+      component: () => import('./accounting/views/CreditNoteList.vue'),
+      meta: { requiresAuth: true, title: 'Credit Notes' },
+    },
+    {
+      path: '/erp/billing/credit-notes/create',
+      name: 'erp-billing-credit-notes-create',
+      component: () => import('./accounting/views/CreditNoteCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Credit Note' },
+    },
+    {
+      path: '/erp/billing/credit-notes/:id',
+      name: 'erp-billing-credit-notes-detail',
+      component: () => import('./accounting/views/CreditNoteDetail.vue'),
+      meta: { requiresAuth: true, title: 'Credit Note Detail' },
+    },
+    // Billing Notes
+    {
+      path: '/erp/billing/billing-notes',
+      name: 'erp-billing-notes',
+      component: () => import('./accounting/views/BillingNoteList.vue'),
+      meta: { requiresAuth: true, title: 'Billing Notes' },
+    },
+    {
+      path: '/erp/billing/billing-notes/create',
+      name: 'erp-billing-notes-create',
+      component: () => import('./accounting/views/BillingNoteCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Billing Note' },
+    },
+    {
+      path: '/erp/billing/billing-notes/:id',
+      name: 'erp-billing-notes-detail',
+      component: () => import('./accounting/views/BillingNoteDetail.vue'),
+      meta: { requiresAuth: true, title: 'Billing Note Detail' },
+    },
+    // Journals
+    {
+      path: '/erp/accounting/journals',
+      name: 'erp-accounting-journals',
+      component: () => import('./accounting/views/JournalList.vue'),
+      meta: { requiresAuth: true, title: 'Journal Entries' },
+    },
+    {
+      path: '/erp/accounting/journals/create',
+      name: 'erp-accounting-journals-create',
+      component: () => import('./accounting/views/JournalCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Journal Entry' },
+    },
+    {
+      path: '/erp/accounting/journals/:id',
+      name: 'erp-accounting-journals-detail',
+      component: () => import('./accounting/views/JournalDetail.vue'),
+      meta: { requiresAuth: true, title: 'Journal Entry Detail' },
+    },
+    {
+      path: '/erp/accounting/journals/:id/edit',
+      name: 'erp-accounting-journals-edit',
+      component: () => import('./accounting/views/JournalEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Journal Entry' },
+    },
+    // Receive Payments
+    {
+      path: '/erp/billing/receive-payments',
+      name: 'erp-billing-receive-payments',
+      component: () => import('./accounting/views/ReceivePaymentList.vue'),
+      meta: { requiresAuth: true, title: 'Receive Payments' },
+    },
+    {
+      path: '/erp/billing/receive-payments/create',
+      name: 'erp-billing-receive-payments-create',
+      component: () => import('./accounting/views/ReceivePaymentCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Receive Payment' },
+    },
+    {
+      path: '/erp/billing/receive-payments/:id',
+      name: 'erp-billing-receive-payments-detail',
+      component: () => import('./accounting/views/ReceivePaymentDetail.vue'),
+      meta: { requiresAuth: true, title: 'Receive Payment Detail' },
+    },
+    // Purchase Orders
+    {
+      path: '/erp/purchasing/orders',
+      name: 'erp-purchasing-orders',
+      component: () => import('./purchasing/views/PurchaseOrderList.vue'),
+      meta: { requiresAuth: true, title: 'Purchase Orders' },
+    },
+    {
+      path: '/erp/purchasing/orders/create',
+      name: 'erp-purchasing-orders-create',
+      component: () => import('./purchasing/views/PurchaseOrderCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Purchase Order' },
+    },
+    {
+      path: '/erp/purchasing/orders/:id',
+      name: 'erp-purchasing-orders-detail',
+      component: () => import('./purchasing/views/PurchaseOrderDetail.vue'),
+      meta: { requiresAuth: true, title: 'Purchase Order Detail' },
+    },
+    // Purchase Requisitions
+    {
+      path: '/erp/purchasing/requisitions',
+      name: 'erp-purchasing-requisitions',
+      component: () => import('./purchasing/views/PurchaseRequisitionList.vue'),
+      meta: { requiresAuth: true, title: 'Purchase Requisitions' },
+    },
+    {
+      path: '/erp/purchasing/requisitions/create',
+      name: 'erp-purchasing-requisitions-create',
+      component: () => import('./purchasing/views/PurchaseRequisitionCreate.vue'),
+      meta: { requiresAuth: true, title: 'New Purchase Requisition' },
+    },
+    {
+      path: '/erp/purchasing/requisitions/:id',
+      name: 'erp-purchasing-requisitions-detail',
+      component: () => import('./purchasing/views/PurchaseRequisitionDetail.vue'),
+      meta: { requiresAuth: true, title: 'Purchase Requisition Detail' },
+    },
+    // AR Aging Report
+    {
+      path: '/erp/accounting/ar-aging',
+      name: 'erp-accounting-ar-aging',
+      component: () => import('./accounting/views/ARAgingReport.vue'),
+      meta: { requiresAuth: true, title: 'AR Aging Report' },
     },
     // Settings — Demo Data
     {
@@ -554,7 +785,6 @@ export default {
           { label: 'nav.stores',          to: '/erp/stores',             icon: BuildingStorefrontIcon,     permission: 'erp.stores.list' },
           { label: 'nav.uom',             to: '/erp/uom',                icon: ScaleIcon,                 permission: 'erp.uom.list' },
           { label: 'nav.uomConversion',   to: '/erp/uom-conversion',     icon: ArrowUturnRightIcon,       permission: 'erp.uom.list' },
-          { label: 'nav.goodsReceive',    to: '/erp/good-receive',       icon: TruckIcon,                 permission: 'erp.stock.list' },
           { label: 'nav.stockAdjustment', to: '/erp/stock-adjust',       icon: AdjustmentsHorizontalIcon, permission: 'erp.stock.list' },
           { label: 'nav.stockCount',      to: '/erp/stock-count',        icon: ClipboardDocumentCheckIcon, permission: 'erp.stock.list' },
           { label: 'nav.stockTransfer',   to: '/erp/stock-request',      icon: ArrowPathIcon,             permission: 'erp.stock.list' },
@@ -568,18 +798,43 @@ export default {
         label: 'nav.sales',
         icon: ShoppingCartIcon,
         children: [
+          { label: 'nav.salePackages', to: '/erp/sale-packages', icon: ArchiveBoxIcon,            permission: 'erp.sale-packages.list' },
           { label: 'nav.saleItems',    to: '/erp/sale-items',  icon: ClipboardDocumentListIcon, permission: 'erp.sale-items.list' },
           { label: 'nav.priceLists',   to: '/erp/pricing',     icon: TagIcon,                   permission: 'erp.pricing.list' },
           { label: 'nav.quotations',   to: '/erp/quotations',  icon: DocumentTextIcon,          permission: 'erp.quotations.list' },
-          { label: 'nav.salesOrder',   to: '/erp/orders',      icon: ShoppingCartIcon,          permission: 'erp.orders.list' },
+          { label: 'nav.salesOrder',     to: '/erp/orders',          icon: ShoppingCartIcon, permission: 'erp.orders.list' },
+          { label: 'nav.deliveryOrders', to: '/erp/delivery-orders', icon: TruckIcon,        permission: 'erp.orders.list' },
         ],
       },
       {
         label: 'nav.billing',
         icon: CreditCardIcon,
         children: [
-          { label: 'nav.invoices', to: '/erp/invoices', icon: DocumentTextIcon,  permission: 'erp.invoices.list' },
-          { label: 'nav.receipts', to: '/erp/receipts', icon: ReceiptRefundIcon, permission: 'erp.receipts.list' },
+          { label: 'nav.receivePayments', to: '/erp/billing/receive-payments', icon: BanknotesIcon,          permission: 'erp.accounting.list' },
+          { label: 'nav.invoices',     to: '/erp/invoices',              icon: DocumentTextIcon,       permission: 'erp.invoices.list' },
+          { label: 'nav.receipts',     to: '/erp/receipts',              icon: ReceiptRefundIcon,      permission: 'erp.receipts.list' },
+          { label: 'nav.billingNotes', to: '/erp/billing/billing-notes', icon: DocumentTextIcon,       permission: 'erp.accounting.list' },
+          { label: 'nav.debitNotes',   to: '/erp/billing/debit-notes',   icon: ArrowTrendingUpIcon,    permission: 'erp.accounting.list' },
+          { label: 'nav.creditNotes',  to: '/erp/billing/credit-notes',  icon: ArrowTrendingDownIcon,  permission: 'erp.accounting.list' },
+        ],
+      },
+      {
+        label: 'nav.accounting',
+        icon: BookOpenIcon,
+        children: [
+          { label: 'nav.fiscalYears',     to: '/erp/accounting/fiscal-years',      icon: CalendarDaysIcon,  permission: 'erp.accounting.list' },
+          { label: 'nav.chartOfAccounts', to: '/erp/accounting/chart-of-accounts', icon: ListBulletIcon,    permission: 'erp.accounting.list' },
+          { label: 'nav.journals',        to: '/erp/accounting/journals',          icon: PencilSquareIcon,  permission: 'erp.accounting.list' },
+          { label: 'nav.arAging',         to: '/erp/accounting/ar-aging',          icon: ChartBarIcon,      permission: 'erp.accounting.list' },
+        ],
+      },
+      {
+        label: 'nav.purchasing',
+        icon: ShoppingBagIcon,
+        children: [
+          { label: 'nav.goodsReceive',    to: '/erp/good-receive',           icon: TruckIcon,                 permission: 'erp.stock.list' },
+          { label: 'nav.requisitions',    to: '/erp/purchasing/requisitions', icon: ClipboardDocumentListIcon, permission: 'erp.purchasing.list' },
+          { label: 'nav.purchaseOrders', to: '/erp/purchasing/orders',       icon: DocumentTextIcon,          permission: 'erp.purchasing.list' },
         ],
       },
       {
