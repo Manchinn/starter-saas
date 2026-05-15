@@ -8,6 +8,7 @@ const GoodReceive = sequelize.define('GoodReceive', {
   supplier: { type: DataTypes.STRING, allowNull: true },
   notes:    { type: DataTypes.TEXT, allowNull: true },
   storeId:  { type: DataTypes.UUID, allowNull: true },
+  purchaseOrderId: { type: DataTypes.UUID, allowNull: true },
   status:   { type: DataTypes.STRING, defaultValue: 'draft' },
 
   docType:          { type: DataTypes.STRING, allowNull: true, defaultValue: 'invoice' },

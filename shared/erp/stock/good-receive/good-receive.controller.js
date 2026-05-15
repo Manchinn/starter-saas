@@ -49,4 +49,14 @@ module.exports = {
       return fail(res, err.message, err.status || 400)
     }
   },
+
+  async createBill(req, res) {
+    try {
+      const orgId = req.user?.organizationId || req.user?.id
+      const result = await service.createBill(req.params.id, req.user?.id, orgId)
+      return created(res, result, 'Vendor bill created')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
 }

@@ -89,6 +89,8 @@ const ReceivePayment         = require('./accounting/models/receive-payment.mode
 const ReceivePaymentInvoice  = require('./accounting/models/receive-payment-invoice.model')
 const Journal                = require('./accounting/models/journal.model')
 const JournalLine            = require('./accounting/models/journal-line.model')
+const VendorBill             = require('./accounting/models/vendor-bill.model')
+const VendorBillItem         = require('./accounting/models/vendor-bill-item.model')
 
 // ── Purchasing ────────────────────────────────────────────────────────────────
 const PurchaseRequisition     = require('./purchasing/models/purchase-requisition.model')
@@ -126,6 +128,7 @@ const erpModels = {
   DebitNote, CreditNote,
   ReceivePayment, ReceivePaymentInvoice,
   Journal, JournalLine,
+  VendorBill, VendorBillItem,
   PurchaseRequisition, PurchaseRequisitionItem,
   PurchaseOrder, PurchaseOrderItem,
 }
@@ -163,5 +166,6 @@ require('./accounting/models/journalAssociations')({ Journal, JournalLine, Chart
 require('./purchasing/models/purchaseRequisitionAssociations')({ PurchaseRequisition, PurchaseRequisitionItem, Product, Vendor })
 require('./purchasing/models/purchaseOrderAssociations')({ PurchaseOrder, PurchaseOrderItem, Product, Vendor, PurchaseRequisition })
 require('./sale/models/salePackageAssociations')({ SalePackage, SalePackageItem, SaleItem })
+require('./accounting/models/vendorBillAssociations')({ VendorBill, VendorBillItem, Vendor, PurchaseOrder, GoodReceive })
 
 module.exports = erpModels

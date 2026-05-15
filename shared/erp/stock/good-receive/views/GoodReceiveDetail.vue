@@ -281,6 +281,15 @@
                     {{ confirming ? t('erp.common.confirming') : t('erp.goodReceive.confirmStock') }}
                   </button>
                 </template>
+                <template v-else-if="gr.status === 'confirmed'">
+                  <button @click="convertToBill" :disabled="converting"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
+                           bg-primary-50 text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-100
+                           disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <DocumentTextIcon class="w-4 h-4" />
+                    {{ converting ? t('common.loading') : t('erp.goodReceive.createBill') }}
+                  </button>
+                </template>
               </div>
             </div>
           </div>
@@ -297,7 +306,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeftIcon, ChevronRightIcon, TruckIcon, ClipboardDocumentListIcon,
-  CalculatorIcon, CheckIcon, TrashIcon, ExclamationCircleIcon, ArrowPathIcon,
+  CalculatorIcon, CheckIcon, TrashIcon, ExclamationCircleIcon, ArrowPathIcon, DocumentTextIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
@@ -310,7 +319,18 @@ const router = useRouter()
 const gr         = ref(null)
 const loading    = ref(true)
 const confirming = ref(false)
+const converting = ref(false)
 const error      = ref('')
+
+async function convertToBill() {
+  converting.value = true
+  try {
+    const { data } = await api.post(`/erp/good-receive/${route.params.id}/create-bill`)
+    router.push(`/erp/purchasing/bills/${data.data.id}`)
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to create vendor bill'
+  } finally { converting.value = false }
+}
 
 async function load() {
   try {

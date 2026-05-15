@@ -40,6 +40,7 @@ const purchaseRequisitionRouter   = require('./purchasing/purchase-requisition.r
 const purchaseOrderRouter         = require('./purchasing/purchase-order.routes')
 const arAgingRouter               = require('./accounting/routes/ar-aging.routes')
 const salePackageRouter           = require('./sale/sale-package.routes')
+const vendorBillRouter            = require('./accounting/routes/vendor-bill.routes')
 
 module.exports = defineModule({
   slug: 'erp',
@@ -66,6 +67,7 @@ module.exports = defineModule({
     'erp.accounting.list', 'erp.accounting.edit', 'erp.accounting.delete',
     'erp.purchasing.list', 'erp.purchasing.edit', 'erp.purchasing.delete',
     'erp.sale-packages.list', 'erp.sale-packages.manage',
+    'erp.bills.list', 'erp.bills.edit', 'erp.bills.delete',
   ],
   meta: { mountPath: '/api/erp' },
   register(app) {
@@ -110,5 +112,6 @@ module.exports = defineModule({
     app.use('/api/erp/purchasing/orders',            purchaseOrderRouter)
     app.use('/api/erp/accounting/ar-aging',          arAgingRouter)
     app.use('/api/erp/sale-packages',               salePackageRouter)
+    app.use('/api/erp/purchasing/bills',            vendorBillRouter)
   },
 })

@@ -709,6 +709,19 @@ export default {
       component: () => import('./purchasing/views/PurchaseOrderDetail.vue'),
       meta: { requiresAuth: true, title: 'Purchase Order Detail' },
     },
+    // Vendor Bills (AP)
+    {
+      path: '/erp/purchasing/bills',
+      name: 'erp-purchasing-bills',
+      component: () => import('./accounting/views/VendorBillsList.vue'),
+      meta: { requiresAuth: true, title: 'Vendor Bills' },
+    },
+    {
+      path: '/erp/purchasing/bills/:id',
+      name: 'erp-purchasing-bills-detail',
+      component: () => import('./accounting/views/VendorBillDetail.vue'),
+      meta: { requiresAuth: true, title: 'Vendor Bill Detail' },
+    },
     // Purchase Requisitions
     {
       path: '/erp/purchasing/requisitions',
@@ -835,6 +848,7 @@ export default {
           { label: 'nav.goodsReceive',    to: '/erp/good-receive',           icon: TruckIcon,                 permission: 'erp.stock.list' },
           { label: 'nav.requisitions',    to: '/erp/purchasing/requisitions', icon: ClipboardDocumentListIcon, permission: 'erp.purchasing.list' },
           { label: 'nav.purchaseOrders', to: '/erp/purchasing/orders',       icon: DocumentTextIcon,          permission: 'erp.purchasing.list' },
+          { label: 'nav.vendorBills',    to: '/erp/purchasing/bills',        icon: BanknotesIcon,             permission: 'erp.bills.list' },
         ],
       },
       {

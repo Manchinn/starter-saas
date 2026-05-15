@@ -65,7 +65,7 @@ const getById = async (id) => {
   return gr
 }
 
-const create = async ({ date, supplier, storeId, notes, docType = 'invoice', invoiceNo, invoiceDate, deliveryNo, invoiceDiscount, invoiceNetAmount, items = [], userId, organizationId }) => {
+const create = async ({ date, supplier, storeId, purchaseOrderId, notes, docType = 'invoice', invoiceNo, invoiceDate, deliveryNo, invoiceDiscount, invoiceNetAmount, items = [], userId, organizationId }) => {
   if (!date) throw { status: 400, message: 'Date is required' }
   if (!storeId) throw { status: 400, message: 'Store is required' }
   if (!items.length) throw { status: 400, message: 'At least one item is required' }
@@ -82,6 +82,7 @@ const create = async ({ date, supplier, storeId, notes, docType = 'invoice', inv
   try {
     const gr = await GoodReceive.create({
       refNo, date, supplier, storeId, notes,
+      purchaseOrderId: purchaseOrderId || null,
       docType:          docType || 'invoice',
       invoiceNo:        docType === 'invoice'  ? (invoiceNo  || null) : null,
       invoiceDate:      docType === 'invoice'  ? (invoiceDate || null) : null,
@@ -187,4 +188,37 @@ const remove = async (id) => {
   await gr.destroy()
 }
 
-module.exports = { list, getById, create, confirm, remove }
+const createBill = async (id, userId, organizationId) => {
+  const gr = await getById(id)
+  if (gr.status !== 'confirmed') {
+    throw { status: 400, message: 'Only confirmed Good Receives can generate a bill' }
+  }
+  // Pull vendor from linked PO when available
+  let vendorId = null
+  if (gr.purchaseOrderId) {
+    const { PurchaseOrder } = require('../../../../server/models')
+    const po = await PurchaseOrder.findByPk(gr.purchaseOrderId)
+    if (po) vendorId = po.vendorId
+  }
+  const billSvc = require('../../accounting/services/vendor-bill.service')
+  const bill = await billSvc.create({
+    vendorId,
+    purchaseOrderId: gr.purchaseOrderId || null,
+    goodReceiveId:   gr.id,
+    vendorInvoiceNo: gr.invoiceNo || null,
+    billDate:        new Date().toISOString().slice(0, 10),
+    notes:           `Auto-created from Good Receive ${gr.refNo}`,
+    items: gr.items.map(i => ({
+      productId:   i.productId,
+      description: i.product?.name || 'Item',
+      quantity:    parseFloat(i.qty) || 0,
+      unitPrice:   parseFloat(i.cost) || 0,
+    })),
+    taxRate: 0,
+    userId,
+    organizationId,
+  })
+  return { id: bill.id }
+}
+
+module.exports = { list, getById, create, confirm, remove, createBill }
