@@ -61,6 +61,8 @@
                 <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.stockReturn.colSku') }}</th>
                 <th class="px-5 py-3 font-medium text-[#637381] text-right">{{ t('erp.stockReturn.colQty') }}</th>
                 <th class="px-5 py-3 font-medium text-[#637381] text-right">{{ t('erp.stockReturn.colCost') }}</th>
+                <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.common.batchId') }}</th>
+                <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.common.expiryDate') }}</th>
                 <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.stockReturn.colReason') }}</th>
               </tr>
             </thead>
@@ -73,6 +75,8 @@
                   {{ sr.type === 'customer_return' ? '+' : '−' }}{{ Number(item.qty) }}
                 </td>
                 <td class="px-5 py-3 text-right text-[#637381]">{{ fmtMoney(item.cost) }}</td>
+                <td class="px-5 py-3 font-mono text-xs text-[#637381]">{{ item.batchId || '—' }}</td>
+                <td class="px-5 py-3 text-xs text-[#637381]">{{ item.expiryDate || '—' }}</td>
                 <td class="px-5 py-3 text-[#637381] text-xs">{{ item.reason || '—' }}</td>
               </tr>
             </tbody>

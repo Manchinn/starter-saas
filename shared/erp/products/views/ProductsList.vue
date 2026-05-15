@@ -204,9 +204,19 @@ const columns = [
   }),
   columnHelper.accessor('stock', {
     header: () => t('erp.products.colStock'),
-    cell: info => h('span', {
-      class: `tabular-nums ${info.getValue() <= 0 ? 'text-red-600 font-bold' : 'text-[#374151] font-medium'}`
-    }, String(info.getValue())),
+    cell: info => {
+      const row = info.row.original
+      const stock = info.getValue()
+      const rp = row.reorderPoint
+      const isLow = stock <= 0 || (rp != null && stock <= rp)
+      const tone = stock <= 0
+        ? 'text-red-600 font-bold'
+        : (isLow ? 'text-amber-600 font-bold' : 'text-[#374151] font-medium')
+      const badge = isLow && stock > 0
+        ? h('span', { class: 'ml-1.5 inline-flex items-center px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-semibold uppercase tracking-wide' }, t('erp.products.lowStock'))
+        : null
+      return h('span', { class: `tabular-nums ${tone}` }, [String(stock), badge])
+    },
     meta: { thClass: 'text-right', tdClass: 'text-right' },
   }),
   columnHelper.display({

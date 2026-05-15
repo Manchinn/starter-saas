@@ -6,6 +6,8 @@ const StockIssueItem = sequelize.define('StockIssueItem', {
   stockIssueId: { type: DataTypes.UUID, allowNull: false },
   productId:    { type: DataTypes.UUID, allowNull: false },
   qty:          { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+  batchId:      { type: DataTypes.STRING, allowNull: true },
+  expiryDate:   { type: DataTypes.DATEONLY, allowNull: true },
   notes:          { type: DataTypes.STRING, allowNull: true },
   organizationId: { type: DataTypes.UUID, allowNull: true },
   dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },

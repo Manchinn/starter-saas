@@ -39,6 +39,8 @@
                 <th class="px-5 py-2.5 font-medium text-[#637381]">{{ t('erp.stockIssue.colProduct') }}</th>
                 <th class="px-5 py-2.5 font-medium text-[#637381]">{{ t('erp.stockIssue.colSku') }}</th>
                 <th class="px-5 py-2.5 font-medium text-[#637381] text-right">{{ t('erp.stockIssue.colQtyIssued') }}</th>
+                <th class="px-5 py-2.5 font-medium text-[#637381]">{{ t('erp.common.batchId') }}</th>
+                <th class="px-5 py-2.5 font-medium text-[#637381]">{{ t('erp.common.expiryDate') }}</th>
                 <th class="px-5 py-2.5 font-medium text-[#637381]">{{ t('erp.stockIssue.colNotes') }}</th>
               </tr>
             </thead>
@@ -47,6 +49,8 @@
                 <td class="px-5 py-2.5 font-medium text-[#1C2434]">{{ item.product?.name }}</td>
                 <td class="px-5 py-2.5 font-mono text-xs text-[#9BA7B0]">{{ item.product?.sku || '—' }}</td>
                 <td class="px-5 py-2.5 text-right font-semibold text-red-600">−{{ Number(item.qty) }}</td>
+                <td class="px-5 py-2.5 font-mono text-xs text-[#637381]">{{ item.batchId || '—' }}</td>
+                <td class="px-5 py-2.5 text-xs text-[#637381]">{{ item.expiryDate || '—' }}</td>
                 <td class="px-5 py-2.5 text-[#637381] text-xs">{{ item.notes || '—' }}</td>
               </tr>
             </tbody>

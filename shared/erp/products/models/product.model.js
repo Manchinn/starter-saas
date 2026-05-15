@@ -34,6 +34,14 @@ const Product = sequelize.define('Product', {
     allowNull: false,
     defaultValue: 0,
   },
+  reorderPoint: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  reorderQty: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
   unit: {
     type: DataTypes.STRING,
     allowNull: true,

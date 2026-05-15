@@ -51,7 +51,15 @@ const create = async ({ date, storeId, reason, notes, items = [], userId, organi
       if (!item.productId) throw { status: 400, message: 'Product is required on all items' }
       if (!item.qty || item.qty <= 0) throw { status: 400, message: 'Quantity must be greater than 0' }
       await StockIssueItem.create(
-        { stockIssueId: issue.id, productId: item.productId, qty: item.qty, notes: item.notes || null, organizationId: organizationId || null },
+        {
+          stockIssueId: issue.id,
+          productId:    item.productId,
+          qty:          item.qty,
+          batchId:      item.batchId || null,
+          expiryDate:   item.expiryDate || null,
+          notes:        item.notes || null,
+          organizationId: organizationId || null,
+        },
         { transaction: t }
       )
     }

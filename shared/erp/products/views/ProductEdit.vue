@@ -45,6 +45,18 @@
               <input v-model="form.cost" type="number" min="0" step="0.01"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.reorderPoint') }}</label>
+              <input v-model.number="form.reorderPoint" type="number" min="0" step="1" :placeholder="t('erp.products.reorderPointPh')"
+                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderPointHint') }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.reorderQty') }}</label>
+              <input v-model.number="form.reorderQty" type="number" min="0" step="1" :placeholder="t('erp.products.reorderQtyPh')"
+                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderQtyHint') }}</p>
+            </div>
             <div class="col-span-2">
               <div class="flex items-center justify-between mb-2">
                 <label class="block text-sm font-medium text-[#374151]">
@@ -205,7 +217,7 @@ import api from '@/api'
 const { t } = useI18n()
 const route    = useRoute()
 const router   = useRouter()
-const form         = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', activeFrom: '', activeTo: '', sellingUomId: '', purchasingUomId: '' })
+const form         = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', activeFrom: '', activeTo: '', sellingUomId: '', purchasingUomId: '', reorderPoint: '', reorderQty: '' })
 const currentStock = ref(0)
 const storeStocks  = ref([])
 const stores     = ref([])
@@ -243,6 +255,8 @@ onMounted(async () => {
       activeTo:     p.activeTo     || '',
       sellingUomId:    p.sellingUomId    || '',
       purchasingUomId: p.purchasingUomId || '',
+      reorderPoint:    p.reorderPoint != null ? p.reorderPoint : '',
+      reorderQty:      p.reorderQty   != null ? p.reorderQty   : '',
     }
     currentStock.value = p.stock
     storeStocks.value  = stockRes.data.data.storeStocks

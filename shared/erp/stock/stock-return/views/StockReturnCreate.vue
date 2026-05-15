@@ -95,15 +95,17 @@
           <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
             <tr>
               <th class="px-3 py-2 font-medium text-[#637381]">{{ t('erp.stockReturn.colProduct') }} <span class="text-red-500">*</span></th>
-              <th class="px-3 py-2 font-medium text-[#637381] w-28 text-right">{{ t('erp.stockReturn.colQty') }} <span class="text-red-500">*</span></th>
-              <th class="px-3 py-2 font-medium text-[#637381] w-32 text-right">{{ t('erp.stockReturn.costPerUnit') }}</th>
+              <th class="px-3 py-2 font-medium text-[#637381] w-24 text-right">{{ t('erp.stockReturn.colQty') }} <span class="text-red-500">*</span></th>
+              <th class="px-3 py-2 font-medium text-[#637381] w-28 text-right">{{ t('erp.stockReturn.costPerUnit') }}</th>
+              <th class="px-3 py-2 font-medium text-[#637381] w-28">{{ t('erp.common.batchId') }}</th>
+              <th class="px-3 py-2 font-medium text-[#637381] w-36">{{ t('erp.common.expiryDate') }}</th>
               <th class="px-3 py-2 font-medium text-[#637381]">{{ t('erp.common.reason') }}</th>
               <th class="px-3 py-2 w-10"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#E2E8F0]">
             <tr v-if="!items.length">
-              <td colspan="5" class="px-3 py-8 text-center text-[#9BA7B0]">{{ t('erp.common.noItems') }}</td>
+              <td colspan="7" class="px-3 py-8 text-center text-[#9BA7B0]">{{ t('erp.common.noItems') }}</td>
             </tr>
             <tr v-for="(item, i) in items" :key="i" class="hover:bg-[#F7F9FC]">
               <td class="px-3 py-2">
@@ -123,6 +125,14 @@
                   class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-3 py-2">
+                <input v-model="item.batchId" type="text" :placeholder="t('erp.common.batchPh')"
+                  class="w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary-500" />
+              </td>
+              <td class="px-3 py-2">
+                <input v-model="item.expiryDate" type="date"
+                  class="w-full px-2 py-1.5 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-500" />
+              </td>
+              <td class="px-3 py-2">
                 <select v-if="returnReasons.length" v-model="item.reason"
                   class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary-500">
                   <option value="">—</option>
@@ -138,7 +148,7 @@
           </tbody>
           <tfoot v-if="items.length" class="border-t-2 border-[#E2E8F0] bg-[#F7F9FC]">
             <tr>
-              <td colspan="4" class="px-3 py-2 text-xs font-medium text-[#637381]">{{ items.length }} item(s)</td>
+              <td colspan="6" class="px-3 py-2 text-xs font-medium text-[#637381]">{{ items.length }} item(s)</td>
               <td></td>
             </tr>
           </tfoot>
@@ -210,7 +220,7 @@ function availableProducts(rowIndex) {
 
 function addRow() {
   if (items.value.length >= products.value.length && products.value.length > 0) return
-  items.value.push({ productId: '', qty: 1, cost: 0, reason: '' })
+  items.value.push({ productId: '', qty: 1, cost: 0, batchId: '', expiryDate: '', reason: '' })
 }
 
 function removeRow(i) {

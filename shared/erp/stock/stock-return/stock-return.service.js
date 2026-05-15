@@ -77,10 +77,12 @@ const create = async ({ date, type, storeId, customerId, vendorId, notes, items 
       if (!item.qty || parseFloat(item.qty) <= 0) throw { status: 400, message: 'Quantity must be greater than 0' }
       await StockReturnItem.create({
         stockReturnId: sr.id,
-        productId: item.productId,
-        qty:    parseFloat(item.qty),
-        cost:   parseFloat(item.cost || 0),
-        reason: item.reason || null,
+        productId:  item.productId,
+        qty:        parseFloat(item.qty),
+        cost:       parseFloat(item.cost || 0),
+        batchId:    item.batchId || null,
+        expiryDate: item.expiryDate || null,
+        reason:     item.reason || null,
         organizationId: organizationId || null,
       }, { transaction: t })
     }

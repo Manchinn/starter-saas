@@ -130,10 +130,12 @@
         <div v-else>
           <!-- Column headers -->
           <div class="px-6 py-2.5 border-b border-[#E2E8F0] bg-[#F7F9FC]"
-               style="display:grid; grid-template-columns: 2.5fr 7rem 8rem 2fr 2rem; gap: 0.75rem; align-items: center;">
+               style="display:grid; grid-template-columns: 2fr 5rem 6rem 6rem 7rem 1.5fr 2rem; gap: 0.75rem; align-items: center;">
             <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.product') }}</span>
             <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.stockIssue.available') }}</span>
             <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.stockIssue.issueQty') }} <span class="text-red-400">*</span></span>
+            <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.batchId') }}</span>
+            <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.expiryDate') }}</span>
             <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.notes') }}</span>
             <span></span>
           </div>
@@ -154,7 +156,7 @@
           <div v-for="(item, i) in items" :key="i"
                class="group px-6 py-3 border-b border-[#E2E8F0] last:border-0 transition"
                :class="item.qty > availableStock(item.productId) ? 'bg-red-50' : 'hover:bg-[#F7F9FC]'"
-               style="display:grid; grid-template-columns: 2.5fr 7rem 8rem 2fr 2rem; gap: 0.75rem; align-items: center;">
+               style="display:grid; grid-template-columns: 2fr 5rem 6rem 6rem 7rem 1.5fr 2rem; gap: 0.75rem; align-items: center;">
 
             <!-- Product -->
             <select v-model="item.productId"
@@ -178,6 +180,14 @@
             <input v-model.number="item.qty" type="number" min="0.01" step="0.01" placeholder="0"
               class="w-full px-3 py-2 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition"
               :class="item.qty > availableStock(item.productId) ? 'border-red-400 text-red-600' : 'border-[#E2E8F0]'" />
+
+            <!-- Batch ID -->
+            <input v-model="item.batchId" type="text" :placeholder="t('erp.common.batchPh')"
+              class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition" />
+
+            <!-- Expiry -->
+            <input v-model="item.expiryDate" type="date"
+              class="w-full px-2 py-2 border border-[#E2E8F0] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition" />
 
             <!-- Notes -->
             <input v-model="item.notes" type="text" :placeholder="t('erp.common.optional')"
@@ -313,7 +323,7 @@ function availableStock(productId) {
 
 function addRow() {
   if (items.value.length >= storeProducts.value.length && storeProducts.value.length > 0) return
-  items.value.push({ productId: '', qty: 0, notes: '' })
+  items.value.push({ productId: '', qty: 0, batchId: '', expiryDate: '', notes: '' })
 }
 
 function removeRow(i) {

@@ -39,7 +39,7 @@ const getById = async (id) => {
   return product
 }
 
-const create = async ({ name, sku, description, cost, category, sellingUomId, purchasingUomId, status = 'active', activeFrom, activeTo, storeIds = [], vendorIds = [], autoCode, userId, organizationId }) => {
+const create = async ({ name, sku, description, cost, category, sellingUomId, purchasingUomId, status = 'active', activeFrom, activeTo, reorderPoint, reorderQty, storeIds = [], vendorIds = [], autoCode, userId, organizationId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   if (autoCode) {
     const seqSvc = require('../settings/sequence.service')
@@ -48,7 +48,7 @@ const create = async ({ name, sku, description, cost, category, sellingUomId, pu
     const existing = await Product.findOne({ where: { sku: sku.trim(), createdBy: userId || null } })
     if (existing) throw { status: 400, message: 'SKU already exists' }
   }
-  const product = await Product.create({ name: name.trim(), sku: sku?.trim() || null, description, price: 0, cost, stock: 0, category, sellingUomId: sellingUomId || null, purchasingUomId: purchasingUomId || null, status, activeFrom: activeFrom || null, activeTo: activeTo || null, organizationId: organizationId || null, createdBy: userId || null })
+  const product = await Product.create({ name: name.trim(), sku: sku?.trim() || null, description, price: 0, cost, stock: 0, category, sellingUomId: sellingUomId || null, purchasingUomId: purchasingUomId || null, status, activeFrom: activeFrom || null, activeTo: activeTo || null, reorderPoint: reorderPoint != null && reorderPoint !== '' ? reorderPoint : null, reorderQty: reorderQty != null && reorderQty !== '' ? reorderQty : null, organizationId: organizationId || null, createdBy: userId || null })
   if (storeIds.length)  await product.setStores(storeIds)
   if (vendorIds.length) await product.setVendors(vendorIds)
   return getById(product.id)
@@ -61,12 +61,14 @@ const update = async (id, data, userId) => {
     const existing = await Product.findOne({ where: { sku: data.sku.trim(), createdBy: product.createdBy } })
     if (existing && existing.id !== id) throw { status: 400, message: 'SKU already exists' }
   }
-  const allowed = ['name', 'sku', 'description', 'cost', 'category', 'sellingUomId', 'purchasingUomId', 'status', 'activeFrom', 'activeTo']
+  const allowed = ['name', 'sku', 'description', 'cost', 'category', 'sellingUomId', 'purchasingUomId', 'status', 'activeFrom', 'activeTo', 'reorderPoint', 'reorderQty']
   const patch = Object.fromEntries(
     Object.entries(data).filter(([k, v]) => allowed.includes(k) && v !== undefined)
   )
-  if ('activeFrom' in patch) patch.activeFrom = patch.activeFrom || null
-  if ('activeTo'   in patch) patch.activeTo   = patch.activeTo   || null
+  if ('activeFrom'   in patch) patch.activeFrom   = patch.activeFrom   || null
+  if ('activeTo'     in patch) patch.activeTo     = patch.activeTo     || null
+  if ('reorderPoint' in patch) patch.reorderPoint = patch.reorderPoint === '' ? null : patch.reorderPoint
+  if ('reorderQty'   in patch) patch.reorderQty   = patch.reorderQty   === '' ? null : patch.reorderQty
   patch.modifiedBy = userId || null
   await product.update(patch)
   if (data.storeIds  !== undefined) await product.setStores(data.storeIds)

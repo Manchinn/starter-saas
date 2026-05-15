@@ -63,6 +63,20 @@
                 class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
             </div>
 
+            <!-- Reorder point + qty -->
+            <div>
+              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.reorderPoint') }}</label>
+              <input v-model.number="form.reorderPoint" type="number" min="0" step="1" :placeholder="t('erp.products.reorderPointPh')"
+                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+              <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderPointHint') }}</p>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.reorderQty') }}</label>
+              <input v-model.number="form.reorderQty" type="number" min="0" step="1" :placeholder="t('erp.products.reorderQtyPh')"
+                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+              <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderQtyHint') }}</p>
+            </div>
+
             <!-- Description -->
             <div class="col-span-2">
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.description') }}</label>
@@ -223,7 +237,7 @@ import { useAutoCode } from '@/composables/useAutoCode'
 
 const { t } = useI18n()
 const router   = useRouter()
-const form     = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', activeFrom: '', activeTo: '', sellingUomId: '', purchasingUomId: '' })
+const form     = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', activeFrom: '', activeTo: '', sellingUomId: '', purchasingUomId: '', reorderPoint: '', reorderQty: '' })
 const autoCode = useAutoCode('PRD')
 const stores     = ref([])
 const vendors    = ref([])
