@@ -84,7 +84,7 @@ const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceN
   return getById(createdId)
 }
 
-const updateStatus = async (id, status) => {
+const updateStatus = async (id, status, userId) => {
   const bill = await VendorBill.findByPk(id)
   if (!bill) throw { status: 404, message: 'Vendor Bill not found' }
   if (bill.status === status) return getById(id)
@@ -97,7 +97,19 @@ const updateStatus = async (id, status) => {
   if (!TRANSITIONS[bill.status]?.includes(status)) {
     throw { status: 400, message: `Cannot transition from "${bill.status}" to "${status}"` }
   }
+  const previousStatus = bill.status
   await bill.update({ status })
+  if (status === 'approved' || status === 'paid') {
+    try {
+      const autoJournal = require('./auto-journal.service')
+      const fresh = await getById(id)
+      if (status === 'approved') await autoJournal.postVendorBill(fresh, userId)
+      if (status === 'paid')     await autoJournal.postBillPayment(fresh, userId)
+    } catch (err) {
+      await bill.update({ status: previousStatus })
+      throw err
+    }
+  }
   return getById(id)
 }
 

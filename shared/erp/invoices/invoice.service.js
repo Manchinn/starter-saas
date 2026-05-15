@@ -123,7 +123,7 @@ const update = async (id, { customerId, orderId, invoiceDate, dueDate, notes, ta
   return getById(id)
 }
 
-const updateStatus = async (id, status) => {
+const updateStatus = async (id, status, userId) => {
   const invoice = await Invoice.findByPk(id)
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
   if (invoice.status === status) return getById(id)
@@ -138,7 +138,17 @@ const updateStatus = async (id, status) => {
     throw { status: 400, message: `Cannot transition from "${invoice.status}" to "${status}"` }
   }
 
+  const previousStatus = invoice.status
   await invoice.update({ status })
+  if (status === 'sent') {
+    try {
+      const autoJournal = require('../accounting/services/auto-journal.service')
+      await autoJournal.postInvoice(await getById(id), userId)
+    } catch (err) {
+      await invoice.update({ status: previousStatus })
+      throw err
+    }
+  }
   return getById(id)
 }
 

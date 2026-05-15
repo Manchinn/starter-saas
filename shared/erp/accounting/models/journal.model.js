@@ -8,6 +8,8 @@ const Journal = sequelize.define('Journal', {
   description:    { type: DataTypes.TEXT, allowNull: true },
   totalDebit:     { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 },
   status:         { type: DataTypes.ENUM('draft', 'posted', 'voided'), defaultValue: 'draft' },
+  sourceType:     { type: DataTypes.STRING, allowNull: true },
+  sourceId:       { type: DataTypes.UUID, allowNull: true },
   organizationId: { type: DataTypes.UUID, allowNull: true },
   dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
   createdBy:      { type: DataTypes.UUID, allowNull: true },

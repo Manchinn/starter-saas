@@ -43,7 +43,7 @@ module.exports = {
 
   async updateStatus(req, res) {
     try {
-      const receipt = await service.updateStatus(req.params.id, req.body.status)
+      const receipt = await service.updateStatus(req.params.id, req.body.status, req.user?.id)
       return ok(res, { receipt }, 'Receipt status updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

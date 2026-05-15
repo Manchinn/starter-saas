@@ -31,7 +31,7 @@ const create = async (req, res, next) => {
 
 const updateStatus = async (req, res, next) => {
   try {
-    res.json({ data: { bill: await svc.updateStatus(req.params.id, req.body.status) } })
+    res.json({ data: { bill: await svc.updateStatus(req.params.id, req.body.status, req.user?.id) } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
     next(err)
