@@ -1,11 +1,11 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
+    <div class="space-y-5">
 
       <div class="flex items-center justify-between gap-4">
         <div>
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.uomConversion.title') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ conversions.length }} conversion{{ conversions.length !== 1 ? 's' : '' }}</p>
+          <p class="text-sm text-[#637381] mt-0.5">{{ total }} record{{ total !== 1 ? 's' : '' }}</p>
         </div>
         <RouterLink to="/erp/uom-conversion/create" class="btn-primary">
           <PlusIcon class="w-4 h-4" />
@@ -13,26 +13,73 @@
         </RouterLink>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-        <DataTable :columns="columns" :data="conversions" :loading="loading" :total="conversions.length"
-          v-model:page="page" :page-size="conversions.length || 20">
+      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+
+        <!-- ── Toolbar ─────────────────────────────────────────────── -->
+        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
+          <div class="relative flex-1 min-w-0">
+            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
+            <input v-model="search" type="search" :placeholder="t('erp.uomConversion.searchPh')"
+              class="input pl-9 w-full" />
+          </div>
+        </div>
+
+        <DataTable :columns="columns" :data="filtered" :loading="loading" :total="filtered.length"
+          v-model:page="page" :page-size="20">
           <template #empty>
-            <p class="text-sm text-[#9BA7B0]">{{ t('erp.uomConversion.noFound') }}</p>
+            <div class="flex flex-col items-center gap-3 py-4">
+              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+                <ArrowsRightLeftIcon class="w-5 h-5 text-[#9BA7B0]" />
+              </div>
+              <div class="text-center">
+                <p class="text-sm font-medium text-[#637381]">{{ t('erp.uomConversion.noFound') }}</p>
+                <p v-if="search" class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.uomConversion.tryDifferentSearch') }}</p>
+              </div>
+            </div>
           </template>
         </DataTable>
-      </div>
 
+      </div>
     </div>
 
+    <!-- Delete confirm modal -->
+    <Teleport to="body">
+      <div v-if="deleteModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+          <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.uomConversion.deleteTitle') }}</h2>
+          <p class="text-sm text-[#637381]">
+            {{ t('erp.uomConversion.deleteConfirm') }}
+            <span class="font-mono font-semibold text-[#1C2434]">
+              {{ deleteModal.item?.fromUom?.abbreviation }} → {{ deleteModal.item?.toUom?.abbreviation }}
+            </span>
+          </p>
+          <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">
+            {{ deleteModal.error }}
+          </div>
+          <div class="flex justify-end gap-3">
+            <button @click="deleteModal.open = false"
+              class="px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors">
+              {{ t('common.cancel') }}
+            </button>
+            <button @click="doDelete" :disabled="deleteModal.saving"
+              class="px-5 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
+              {{ deleteModal.saving ? t('erp.common.deleting') : t('common.delete') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </AppLayout>
 </template>
 
 <script setup>
-import { h, ref, onMounted } from 'vue'
+import { h, ref, computed, reactive, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
-import { PlusIcon } from '@heroicons/vue/24/outline'
+import {
+  PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, ArrowsRightLeftIcon,
+} from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
@@ -42,6 +89,23 @@ const { t } = useI18n()
 const conversions = ref([])
 const loading     = ref(false)
 const page        = ref(1)
+const search      = ref('')
+
+const deleteModal = reactive({ open: false, item: null, saving: false, error: '' })
+
+const total = computed(() => conversions.value.length)
+
+const filtered = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return conversions.value
+  return conversions.value.filter(c =>
+    (c.fromUom?.name || '').toLowerCase().includes(q) ||
+    (c.fromUom?.abbreviation || '').toLowerCase().includes(q) ||
+    (c.toUom?.name || '').toLowerCase().includes(q) ||
+    (c.toUom?.abbreviation || '').toLowerCase().includes(q) ||
+    (c.notes || '').toLowerCase().includes(q)
+  )
+})
 
 async function load() {
   loading.value = true
@@ -52,16 +116,25 @@ async function load() {
     loading.value = false
   }
 }
-
 onMounted(load)
 
-async function confirmDelete(c) {
-  if (!confirm(`Delete conversion "${c.fromUom?.abbreviation} → ${c.toUom?.abbreviation}"?`)) return
+function confirmDelete(item) {
+  deleteModal.item = item
+  deleteModal.error = ''
+  deleteModal.open = true
+}
+
+async function doDelete() {
+  deleteModal.saving = true
+  deleteModal.error = ''
   try {
-    await api.delete(`/erp/uom-conversion/${c.id}`)
-    load()
+    await api.delete(`/erp/uom-conversion/${deleteModal.item.id}`)
+    deleteModal.open = false
+    await load()
   } catch (err) {
-    alert(err.response?.data?.message || 'Delete failed')
+    deleteModal.error = err.response?.data?.message || t('erp.uomConversion.deleteFailed')
+  } finally {
+    deleteModal.saving = false
   }
 }
 
@@ -72,28 +145,32 @@ const columns = [
     id: 'fromUom',
     header: () => t('erp.uomConversion.colFromUom'),
     cell: info => h('span', {}, [
-      h('span', { class: 'font-medium text-[#1C2434]' }, info.row.original.fromUom?.name),
-      h('span', { class: 'ml-1 text-xs text-[#9BA7B0] font-mono' }, `(${info.row.original.fromUom?.abbreviation})`),
+      h('span', { class: 'font-medium text-[#1C2434]' }, info.row.original.fromUom?.name || '—'),
+      info.row.original.fromUom?.abbreviation
+        ? h('span', { class: 'ml-1 text-xs text-[#9BA7B0] font-mono' }, `(${info.row.original.fromUom.abbreviation})`)
+        : null,
     ]),
   }),
   columnHelper.display({
     id: 'arrow',
-    header: () => '→',
-    meta: { thClass: 'text-center', tdClass: 'text-center text-[#9BA7B0]' },
-    cell: () => '→',
+    header: () => '',
+    meta: { thClass: 'w-10 text-center', tdClass: 'text-center text-[#CBD5E1]' },
+    cell: () => h(ArrowsRightLeftIcon, { class: 'w-4 h-4 inline-block' }),
   }),
   columnHelper.display({
     id: 'toUom',
     header: () => t('erp.uomConversion.colToUom'),
     cell: info => h('span', {}, [
-      h('span', { class: 'font-medium text-[#1C2434]' }, info.row.original.toUom?.name),
-      h('span', { class: 'ml-1 text-xs text-[#9BA7B0] font-mono' }, `(${info.row.original.toUom?.abbreviation})`),
+      h('span', { class: 'font-medium text-[#1C2434]' }, info.row.original.toUom?.name || '—'),
+      info.row.original.toUom?.abbreviation
+        ? h('span', { class: 'ml-1 text-xs text-[#9BA7B0] font-mono' }, `(${info.row.original.toUom.abbreviation})`)
+        : null,
     ]),
   }),
   columnHelper.accessor('factor', {
     header: () => t('erp.uomConversion.colFactor'),
-    cell: info => h('span', { class: 'font-mono font-semibold text-primary-500' }, String(Number(info.getValue()))),
-    meta: { thClass: 'text-right', tdClass: 'text-right' },
+    cell: info => h('span', { class: 'font-mono font-semibold text-primary-600 tabular-nums' }, String(Number(info.getValue()))),
+    meta: { thClass: 'text-right w-32', tdClass: 'text-right' },
   }),
   columnHelper.accessor('notes', {
     header: () => t('erp.uomConversion.colNotes'),
@@ -101,17 +178,19 @@ const columns = [
   }),
   columnHelper.display({
     id: 'actions',
-    header: () => t('erp.uomConversion.colActions'),
-    meta: { thClass: 'text-right', tdClass: 'text-right whitespace-nowrap' },
-    cell: info => h('span', {}, [
+    header: () => '',
+    meta: { thClass: 'w-20', tdClass: '' },
+    cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
       h(RouterLink, {
         to: `/erp/uom-conversion/${info.row.original.id}/edit`,
-        class: 'text-primary-500 hover:underline text-xs mr-3',
-      }, () => t('common.edit')),
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+        title: t('common.edit'),
+      }, () => h(PencilIcon, { class: 'w-4 h-4' })),
       h('button', {
         onClick: () => confirmDelete(info.row.original),
-        class: 'text-red-500 hover:underline text-xs',
-      }, t('common.delete')),
+        class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+        title: t('common.delete'),
+      }, h(TrashIcon, { class: 'w-4 h-4' })),
     ]),
   }),
 ]
