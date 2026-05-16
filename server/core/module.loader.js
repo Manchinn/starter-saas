@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const { Module: ModuleModel } = require('../models')
+const log = require('./logger').forLabel('module-loader')
 
 const MODULES_DIR = path.join(__dirname, '..', 'modules')
 const loaded = new Map()
@@ -35,10 +36,10 @@ const loadAll = async (app) => {
     }, { conflictFields: ['slug'] })
 
     instance.register(app)
-    console.log(`[ModuleLoader] Loaded module: ${instance.slug}`)
+    log.debug(`Loaded module: ${instance.slug}`)
   }
 
-  console.log(`[ModuleLoader] ${loaded.size} modules loaded.`)
+  log.info(`${loaded.size} modules loaded`)
 }
 
 const get = (slug) => loaded.get(slug)

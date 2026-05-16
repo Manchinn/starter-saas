@@ -2,6 +2,7 @@ const { Journal, JournalLine } = require('../../../../server/models')
 const sequelize = require('../../../../server/config/database')
 const { getNext } = require('../../settings/sequence.service')
 const accounts = require('./account-mapping.service')
+const logger = require('../../../../server/core/logger').forLabel('auto-journal')
 
 /**
  * Auto-post journal entries from source documents (Invoice, Receipt, VendorBill).
@@ -265,8 +266,7 @@ const safeRun = async (fn, context) => {
   try {
     return await fn()
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(`[auto-journal] ${context} failed:`, err.message || err)
+    logger.error(`${context} failed`, { error: err.message || String(err), stack: err.stack })
     throw err
   }
 }

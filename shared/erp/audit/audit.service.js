@@ -1,5 +1,6 @@
 const { AuditLog } = require('../../../server/models')
 const { Op } = require('sequelize')
+const logger = require('../../../server/core/logger').forLabel('audit')
 
 /**
  * Record an audit event. Never throws — audit failures must not break
@@ -20,8 +21,7 @@ const log = async ({ user, userId, userEmail, action, entityType, entityId, summ
       organizationId: organizationId || user?.organizationId || (user?.id || null),
     })
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error('[audit] failed to record event', action, err.message || err)
+    logger.error('failed to record event', { action, error: err.message || String(err) })
   }
 }
 

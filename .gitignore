@@ -4,7 +4,9 @@ dist/
 *.local
 server/data/
 server/logs/
+/logs/
 *.log
+*.log.gz
 .DS_Store
 Thumbs.db
 data/

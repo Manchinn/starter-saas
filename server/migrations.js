@@ -3,6 +3,7 @@
  * Each statement is tried individually; errors for existing columns are silently ignored.
  * Add new ALTER TABLE statements here as new fields are introduced.
  */
+const log = require('./core/logger').forLabel('migrations')
 
 const columns = [
   // GoodReceiveItem — extended fields (v2)
@@ -233,12 +234,12 @@ async function runMigrations(sequelize) {
     } catch (err) {
       // Ignore "duplicate column name" — column already exists
       if (!err.message?.includes('duplicate column') && !err.message?.includes('already exists')) {
-        console.error(`[Migration] Failed: ${sql}\n  ${err.message}`)
+        log.error(`Migration failed: ${sql}`, { error: err.message })
       }
     }
   }
   await recreateSequencesTable(sequelize)
-  console.log('[Migrations] Done.')
+  log.info('Migrations done')
 }
 
 // ── Remove UNIQUE constraint on Sequences.code (SQLite table-recreation) ──────
@@ -274,13 +275,13 @@ async function recreateSequencesTable(sequelize) {
       await sequelize.query(`DROP TABLE Sequences`)
       await sequelize.query(`ALTER TABLE Sequences_new RENAME TO Sequences`)
       await sequelize.query('COMMIT')
-      console.log('[Migration] Recreated Sequences table — removed UNIQUE constraint on code.')
+      log.info('Recreated Sequences table — removed UNIQUE constraint on code')
     } catch (err) {
       await sequelize.query('ROLLBACK')
       throw err
     }
   } catch (err) {
-    console.error('[Migration] recreateSequencesTable failed:', err.message)
+    log.error('recreateSequencesTable failed', { error: err.message })
   }
 }
 
@@ -313,8 +314,8 @@ async function seedSequences() {
     }
     total++
   }
-  if (total > 0) console.log(`[Seed] Seeded sequences for ${total} user(s).`)
-  else console.log('[Seed] Per-user sequences already present — skipped.')
+  if (total > 0) log.info(`Seeded sequences for ${total} user(s)`)
+  else log.debug('Per-user sequences already present — skipped')
 }
 
 module.exports = { runMigrations, seedSequences }

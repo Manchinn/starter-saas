@@ -6,6 +6,8 @@ const { sequelize } = require('./models')
 const moduleLoader = require('./core/module.loader')
 const { runMigrations, seedSequences } = require('./migrations')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
+const logger = require('./core/logger')
+const requestLogger = require('./middleware/request-logger')
 
 const app = express()
 
@@ -13,6 +15,7 @@ const app = express()
 app.use(cors({ origin: config.clientUrl, credentials: true }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(requestLogger)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -25,7 +28,7 @@ async function bootstrap() {
   await sequelize.sync()
   await runMigrations(sequelize)
   await seedSequences()
-  console.log('[DB] Connected and synced.')
+  logger.info('Database connected and synced', { label: 'db' })
 
   // Load all HMVC modules (auto-discovers server/modules/*/*.module.js)
   await moduleLoader.loadAll(app)
@@ -37,12 +40,18 @@ async function bootstrap() {
 
   // Global error handler
   app.use((err, req, res, next) => {
-    console.error(err)
-    res.status(500).json({ success: false, message: 'Internal server error' })
+    logger.error(err.message || 'Unhandled error', {
+      label: 'http',
+      stack:  err.stack,
+      method: req.method,
+      path:   req.originalUrl || req.url,
+      status: err.status || 500,
+    })
+    res.status(err.status || 500).json({ success: false, message: 'Internal server error' })
   })
 
   app.listen(config.port, () => {
-    console.log(`[Server] Running on http://localhost:${config.port} (${config.env})`)
+    logger.info(`Server running on http://localhost:${config.port} (${config.env})`, { label: 'server' })
   })
 
   // Prune expired refresh tokens every hour
@@ -50,6 +59,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  console.error('[Bootstrap] Fatal error:', err)
+  logger.error('Fatal bootstrap error', { label: 'bootstrap', stack: err.stack, message: err.message })
   process.exit(1)
 })
