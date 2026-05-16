@@ -118,6 +118,8 @@ export default {
     requisitions:      'ใบขอซื้อ',
     purchaseOrders:    'ใบสั่งซื้อ',
     vendorBills:       'ใบวางบิลผู้ขาย',
+    approvalThresholds:'เกณฑ์การอนุมัติ',
+    auditLog:          'บันทึกการตรวจสอบ',
   },
 
   // ── Auth pages ─────────────────────────────────────────────────────────────
@@ -1783,6 +1785,40 @@ export default {
       dateRequired:       'กรุณาระบุวันที่',
       methodRequired:     'กรุณาเลือกวิธีชำระ',
       invoicesRequired:   'กรุณาเลือกอย่างน้อย 1 ใบแจ้งหนี้',
+    },
+
+    audit: {
+      title:       'บันทึกการตรวจสอบ',
+      entityType:  'ประเภทข้อมูล',
+      action:      'การกระทำ',
+      actionPh:    'กรองตามการกระทำ…',
+      noLogs:      'ไม่มีบันทึกการตรวจสอบ',
+      colWhen:     'เวลา',
+      colUser:     'ผู้ใช้',
+      colAction:   'การกระทำ',
+      colEntity:   'ข้อมูล',
+      colSummary:  'รายละเอียด',
+    },
+
+    attachments: {
+      title:    'ไฟล์แนบ',
+      subtitle: 'ไฟล์ PDF รูปภาพ และเอกสารที่เกี่ยวข้องกับรายการนี้',
+      upload:   'อัปโหลด',
+      empty:    'ยังไม่มีไฟล์แนบ',
+    },
+
+    thresholds: {
+      title:        'เกณฑ์การอนุมัติ',
+      subtitle:     'เอกสารที่มียอดเกินเกณฑ์ต้องมีสิทธิ์ที่กำหนดในการอนุมัติ',
+      addRule:      'เพิ่มกฎ',
+      noRules:      'ยังไม่มีกฎเกณฑ์ กดเพิ่มเพื่อตั้งเงื่อนไขการอนุมัติ',
+      colDocType:   'ประเภทเอกสาร',
+      colAmount:    'เกณฑ์ (≥)',
+      colPermission:'สิทธิ์ที่ต้องการ',
+      colNotes:     'หมายเหตุ',
+      notesPh:      'เช่น ต้องอนุมัติโดยผู้จัดการ',
+      docPO:        'ใบสั่งซื้อ',
+      docBill:      'ใบวางบิลผู้ขาย',
     },
 
     bills: {

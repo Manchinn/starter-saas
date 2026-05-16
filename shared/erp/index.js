@@ -35,6 +35,7 @@ import {
   BanknotesIcon,
   PencilSquareIcon,
   ArchiveBoxIcon,
+  ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
 
 export default {
@@ -475,6 +476,20 @@ export default {
       component: () => import('./settings/views/GeneralSettings.vue'),
       meta: { requiresAuth: true, title: 'General Settings' },
     },
+    // Settings: Approval Thresholds
+    {
+      path: '/erp/settings/approval-thresholds',
+      name: 'erp-settings-approval-thresholds',
+      component: () => import('./settings/views/ApprovalThresholdsManage.vue'),
+      meta: { requiresAuth: true, title: 'Approval Thresholds' },
+    },
+    // Settings: Audit Log
+    {
+      path: '/erp/settings/audit-log',
+      name: 'erp-settings-audit-log',
+      component: () => import('./audit/views/AuditLogList.vue'),
+      meta: { requiresAuth: true, title: 'Audit Log' },
+    },
     // Settings: Sequence Numbers
     {
       path: '/erp/settings/sequence',
@@ -864,6 +879,8 @@ export default {
         icon: Cog6ToothIcon,
         children: [
           { label: 'nav.general',         to: '/erp/settings/general',       icon: CurrencyDollarIcon, permission: 'erp.stock.edit' },
+          { label: 'nav.approvalThresholds', to: '/erp/settings/approval-thresholds', icon: ShieldCheckIcon,    permission: 'erp.thresholds.list' },
+          { label: 'nav.auditLog',           to: '/erp/settings/audit-log',           icon: ClipboardDocumentCheckIcon, permission: 'erp.audit.list' },
           { label: 'nav.sequenceNumbers', to: '/erp/settings/sequence',    icon: HashtagIcon,        permission: 'erp.stock.edit' },
           { label: 'nav.masterData',      to: '/erp/settings/master-data', icon: CircleStackIcon,    permission: 'erp.stock.edit' },
           { label: 'nav.demoData',        to: '/erp/settings/demo-data',   icon: SparklesIcon,       permission: 'erp.stock.edit' },

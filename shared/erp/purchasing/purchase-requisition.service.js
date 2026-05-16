@@ -82,6 +82,7 @@ const approve = async (id, userId) => {
   if (!req)                       throw { status: 404, message: 'Purchase Requisition not found' }
   if (req.status !== 'draft')     throw { status: 400, message: 'Only draft requisitions can be approved' }
   await req.update({ status: 'approved', modifiedBy: userId || null })
+  require('../audit/audit.service').log({ userId, action: 'pr.approve', entityType: 'PurchaseRequisition', entityId: id, summary: { refNo: req.refNo } })
   return getById(id)
 }
 
@@ -90,6 +91,7 @@ const reject = async (id, userId) => {
   if (!req)                       throw { status: 404, message: 'Purchase Requisition not found' }
   if (req.status !== 'draft')     throw { status: 400, message: 'Only draft requisitions can be rejected' }
   await req.update({ status: 'rejected', modifiedBy: userId || null })
+  require('../audit/audit.service').log({ userId, action: 'pr.reject', entityType: 'PurchaseRequisition', entityId: id, summary: { refNo: req.refNo } })
   return getById(id)
 }
 

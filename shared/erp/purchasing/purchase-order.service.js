@@ -83,11 +83,21 @@ const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, item
   }
 }
 
-const confirm = async (id, userId) => {
-  const po = await PurchaseOrder.findByPk(id)
+const confirm = async (id, userId, user) => {
+  const po = await PurchaseOrder.findByPk(id, {
+    include: [{ model: PurchaseOrderItem, as: 'items' }],
+  })
   if (!po)                    throw { status: 404, message: 'Purchase Order not found' }
   if (po.status !== 'draft')  throw { status: 400, message: 'Only draft orders can be confirmed' }
+
+  if (user) {
+    const total = po.items.reduce((s, i) => s + Number(i.qty || 0) * Number(i.unitPrice || 0), 0)
+    const thresholds = require('../settings/approval-threshold.service')
+    await thresholds.enforce({ user, docType: 'purchase_order', amount: total, organizationId: po.organizationId })
+  }
+
   await po.update({ status: 'confirmed', modifiedBy: userId || null })
+  require('../audit/audit.service').log({ userId, action: 'po.confirm', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
   return getById(id)
 }
 
@@ -96,6 +106,7 @@ const receive = async (id, userId) => {
   if (!po)                        throw { status: 404, message: 'Purchase Order not found' }
   if (po.status !== 'confirmed')  throw { status: 400, message: 'Only confirmed orders can be marked as received' }
   await po.update({ status: 'received', modifiedBy: userId || null })
+  require('../audit/audit.service').log({ userId, action: 'po.receive', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
   return getById(id)
 }
 
@@ -105,6 +116,7 @@ const cancel = async (id, userId) => {
   if (po.status === 'received')     throw { status: 400, message: 'Received orders cannot be cancelled' }
   if (po.status === 'cancelled')    throw { status: 400, message: 'Already cancelled' }
   await po.update({ status: 'cancelled', modifiedBy: userId || null })
+  require('../audit/audit.service').log({ userId, action: 'po.cancel', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
   return getById(id)
 }
 

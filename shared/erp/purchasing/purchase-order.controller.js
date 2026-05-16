@@ -27,9 +27,12 @@ const create = async (req, res, next) => {
 
 const confirm = async (req, res, next) => {
   try {
-    const doc = await svc.confirm(req.params.id, req.user?.id)
+    const doc = await svc.confirm(req.params.id, req.user?.id, req.user)
     res.json({ data: { order: doc } })
-  } catch (err) { next(err) }
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message })
+    next(err)
+  }
 }
 
 const receive = async (req, res, next) => {

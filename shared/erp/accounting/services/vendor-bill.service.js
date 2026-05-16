@@ -84,7 +84,7 @@ const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceN
   return getById(createdId)
 }
 
-const updateStatus = async (id, status, userId) => {
+const updateStatus = async (id, status, userId, user) => {
   const bill = await VendorBill.findByPk(id)
   if (!bill) throw { status: 404, message: 'Vendor Bill not found' }
   if (bill.status === status) return getById(id)
@@ -97,6 +97,12 @@ const updateStatus = async (id, status, userId) => {
   if (!TRANSITIONS[bill.status]?.includes(status)) {
     throw { status: 400, message: `Cannot transition from "${bill.status}" to "${status}"` }
   }
+
+  if (status === 'approved' && user) {
+    const thresholds = require('../../settings/approval-threshold.service')
+    await thresholds.enforce({ user, docType: 'vendor_bill', amount: Number(bill.total) || 0, organizationId: bill.organizationId })
+  }
+
   const previousStatus = bill.status
   await bill.update({ status })
   if (status === 'approved' || status === 'paid') {
@@ -110,6 +116,7 @@ const updateStatus = async (id, status, userId) => {
       throw err
     }
   }
+  require('../../audit/audit.service').log({ userId, action: `bill.${status}`, entityType: 'VendorBill', entityId: id, summary: { from: previousStatus, to: status, billNumber: bill.billNumber, total: bill.total } })
   return getById(id)
 }
 

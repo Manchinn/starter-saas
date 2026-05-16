@@ -77,6 +77,9 @@ const Sequence           = require('./settings/models/sequence.model')
 const Setting            = require('./settings/models/setting.model')
 const MasterDataCategory = require('./settings/models/master-data-category.model')
 const MasterDataValue    = require('./settings/models/master-data-value.model')
+const ApprovalThreshold  = require('./settings/models/approval-threshold.model')
+const Attachment         = require('./attachments/models/attachment.model')
+const AuditLog           = require('./audit/models/audit-log.model')
 
 // ── Accounting ────────────────────────────────────────────────────────────────
 const ChartOfAccount     = require('./accounting/models/chart-of-account.model')
@@ -122,6 +125,9 @@ const erpModels = {
   StockIssue, StockIssueItem,
   Sequence, Setting,
   MasterDataCategory, MasterDataValue,
+  ApprovalThreshold,
+  Attachment,
+  AuditLog,
   Employee, Department, EmployeeDepartment,
   ChartOfAccount, FiscalYear,
   BillingNote, BillingNoteInvoice,

@@ -149,6 +149,8 @@ const updateStatus = async (id, status, userId) => {
       throw err
     }
   }
+  const audit = require('../audit/audit.service')
+  audit.log({ userId, action: `invoice.${status}`, entityType: 'Invoice', entityId: id, summary: { from: previousStatus, to: status, invoiceNumber: invoice.invoiceNumber } })
   return getById(id)
 }
 

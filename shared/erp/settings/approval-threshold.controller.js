@@ -1,16 +1,16 @@
-const svc = require('../services/vendor-bill.service')
+const svc = require('./approval-threshold.service')
 
 const list = async (req, res, next) => {
   try {
-    const { page, limit, search, status } = req.query
-    const organizationId = req.user?.organizationId || req.user?.id
-    res.json({ data: await svc.list({ page: +page || 1, limit: +limit || 20, search, status, organizationId }) })
+    const orgId = req.user?.organizationId || req.user?.id
+    const { docType } = req.query
+    res.json({ data: { thresholds: await svc.list({ docType, organizationId: orgId }) } })
   } catch (err) { next(err) }
 }
 
 const getById = async (req, res, next) => {
   try {
-    res.json({ data: { bill: await svc.getById(req.params.id) } })
+    res.json({ data: { threshold: await svc.getById(req.params.id) } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
     next(err)
@@ -19,19 +19,18 @@ const getById = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
+    const orgId  = req.user?.organizationId || req.user?.id
     const userId = req.user?.id
-    const organizationId = req.user?.organizationId || req.user?.id
-    const bill = await svc.create({ ...req.body, userId, organizationId })
-    res.status(201).json({ data: { bill } })
+    res.status(201).json({ data: { threshold: await svc.create({ ...req.body, userId, organizationId: orgId }) } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
     next(err)
   }
 }
 
-const updateStatus = async (req, res, next) => {
+const update = async (req, res, next) => {
   try {
-    res.json({ data: { bill: await svc.updateStatus(req.params.id, req.body.status, req.user?.id, req.user) } })
+    res.json({ data: { threshold: await svc.update(req.params.id, req.body, req.user?.id) } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
     next(err)
@@ -48,4 +47,4 @@ const remove = async (req, res, next) => {
   }
 }
 
-module.exports = { list, getById, create, updateStatus, remove }
+module.exports = { list, getById, create, update, remove }

@@ -118,6 +118,8 @@ export default {
     requisitions:      'Requisitions',
     purchaseOrders:    'Purchase Orders',
     vendorBills:       'Vendor Bills',
+    approvalThresholds:'Approval Thresholds',
+    auditLog:          'Audit Log',
   },
 
   // ── Auth pages ─────────────────────────────────────────────────────────────
@@ -1781,6 +1783,40 @@ export default {
       dateRequired:       'Date is required',
       methodRequired:     'Payment method is required',
       invoicesRequired:   'Select at least one invoice',
+    },
+
+    audit: {
+      title:       'Audit Log',
+      entityType:  'Entity Type',
+      action:      'Action',
+      actionPh:    'Filter by action…',
+      noLogs:      'No audit events recorded',
+      colWhen:     'When',
+      colUser:     'User',
+      colAction:   'Action',
+      colEntity:   'Entity',
+      colSummary:  'Summary',
+    },
+
+    attachments: {
+      title:    'Attachments',
+      subtitle: 'PDFs, images, and documents linked to this record',
+      upload:   'Upload',
+      empty:    'No attachments yet',
+    },
+
+    thresholds: {
+      title:        'Approval Thresholds',
+      subtitle:     'Documents above the threshold require the specified permission to approve.',
+      addRule:      'Add Rule',
+      noRules:      'No threshold rules defined. Add one to require approval above a certain amount.',
+      colDocType:   'Document Type',
+      colAmount:    'Threshold (≥)',
+      colPermission:'Required Permission',
+      colNotes:     'Notes',
+      notesPh:      'e.g. Manager approval',
+      docPO:        'Purchase Order',
+      docBill:      'Vendor Bill',
     },
 
     bills: {

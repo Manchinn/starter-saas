@@ -174,6 +174,7 @@ const confirm = async (id) => {
     }
     await gr.update({ status: 'confirmed' }, { transaction: t })
     await t.commit()
+    require('../../audit/audit.service').log({ action: 'gr.confirm', entityType: 'GoodReceive', entityId: id, summary: { refNo: gr.refNo } })
     return getById(id)
   } catch (err) {
     await t.rollback()

@@ -285,6 +285,7 @@
 
           </div>
         </div>
+        <AttachmentsPanel v-if="invoice" ref-type="Invoice" :ref-id="invoice.id" />
       </template>
     </div>
   </AppLayout>
@@ -301,6 +302,7 @@ import {
   ExclamationTriangleIcon, BanknotesIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 

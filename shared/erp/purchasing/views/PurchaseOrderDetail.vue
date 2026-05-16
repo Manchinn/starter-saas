@@ -158,6 +158,7 @@
           </div>
         </div>
 
+        <AttachmentsPanel v-if="po" ref-type="PurchaseOrder" :ref-id="po.id" />
       </template>
     </div>
   </AppLayout>
@@ -169,6 +170,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import api from '@/api'
 
 const { t }  = useI18n()
