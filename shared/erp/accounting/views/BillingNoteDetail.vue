@@ -18,6 +18,7 @@
               <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(bn.status)"></span>
               {{ bn.status }}
             </span>
+            <DocCurrencyBadge v-if="bn" :currency="bn.currency" :exchange-rate="bn.exchangeRate" :total="bn.total" />
           </div>
           <nav class="flex items-center gap-1.5 mt-1">
             <RouterLink to="/erp/billing/billing-notes" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
@@ -254,6 +255,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import { fmtMoney } from '@/utils/fmt'
 
 const { t } = useI18n()

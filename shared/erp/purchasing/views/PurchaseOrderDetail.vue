@@ -12,6 +12,7 @@
         <span v-if="po" :class="['px-3 py-1.5 rounded-full text-xs font-semibold capitalize', statusClass[po.status]]">
           {{ t(`erp.po.status${capitalize(po.status)}`) }}
         </span>
+        <DocCurrencyBadge v-if="po" :currency="po.currency" :exchange-rate="po.exchangeRate" />
       </div>
 
       <div v-if="loading" class="py-12 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
@@ -185,6 +186,7 @@ import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
+import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import api from '@/api'
 
 const { t }  = useI18n()

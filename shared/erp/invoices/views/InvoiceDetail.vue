@@ -24,6 +24,7 @@
               <ExclamationTriangleIcon class="w-3 h-3" />
               {{ t('erp.invoices.overdue') }}
             </span>
+            <DocCurrencyBadge v-if="invoice" :currency="invoice.currency" :exchange-rate="invoice.exchangeRate" :total="invoice.total" />
           </div>
           <nav class="flex items-center gap-1.5 mt-1">
             <RouterLink to="/erp/invoices" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
@@ -322,6 +323,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
+import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 

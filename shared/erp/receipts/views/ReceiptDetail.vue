@@ -18,6 +18,7 @@
               <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(receipt.status)"></span>
               {{ receipt.status }}
             </span>
+            <DocCurrencyBadge v-if="receipt" :currency="receipt.currency" :exchange-rate="receipt.exchangeRate" :total="receipt.amount" />
           </div>
           <nav class="flex items-center gap-1.5 mt-1">
             <RouterLink to="/erp/receipts" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
@@ -253,6 +254,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
+import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 

@@ -18,6 +18,7 @@
               <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(doc.status)"></span>
               {{ doc.status }}
             </span>
+            <DocCurrencyBadge v-if="doc" :currency="doc.currency" :exchange-rate="doc.exchangeRate" />
           </div>
           <nav class="flex items-center gap-1.5 mt-1">
             <RouterLink to="/erp/delivery-orders" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
@@ -266,6 +267,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
+import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {

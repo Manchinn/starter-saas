@@ -11,6 +11,7 @@
         <span v-if="bill" :class="['px-3 py-1.5 rounded-full text-xs font-semibold capitalize', statusClass[bill.status]]">
           {{ bill.status }}
         </span>
+        <DocCurrencyBadge v-if="bill" :currency="bill.currency" :exchange-rate="bill.exchangeRate" :total="bill.total" />
       </div>
 
       <div v-if="loading" class="py-12 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
@@ -141,6 +142,7 @@ import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
+import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import api from '@/api'
 
 const { t } = useI18n()

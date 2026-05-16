@@ -12,6 +12,7 @@
         <span v-if="req" :class="['px-3 py-1.5 rounded-full text-xs font-semibold capitalize', statusClass[req.status]]">
           {{ t(`erp.purchasing.status${capitalize(req.status)}`) }}
         </span>
+        <DocCurrencyBadge v-if="req" :currency="req.currency" :exchange-rate="req.exchangeRate" />
       </div>
 
       <div v-if="loading" class="py-12 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
@@ -181,6 +182,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, PlusIcon, DocumentTextIcon } from '@heroicons/vue/24/outline'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
+import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
