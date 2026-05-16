@@ -4,16 +4,27 @@ const sequelize = require('../../../server/config/database')
 
 // ── Default sequences seeded on first use ────────────────────────────────────
 const DEFAULTS = {
-  QT:  { name: 'Quotation',              format: 'QT{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  // Transaction documents — monthly-reset, date-stamped ref numbers
+  QT:  { name: 'Quotation',             format: 'QT{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   GR:  { name: 'Good Receive',          format: 'GR{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   ADJ: { name: 'Stock Adjustment',      format: 'ADJ{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   CNT: { name: 'Stock Count',           format: 'SC{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   STR: { name: 'Stock Transfer',        format: 'RQ{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   RTN: { name: 'Stock Return',          format: 'RTN{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   ISS: { name: 'Stock Issue',           format: 'ISS{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
-  CUS: { name: 'Customer Code',          format: 'CUS{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
-  EMP: { name: 'Employee Code',          format: 'EMP{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
-  DEP: { name: 'Department Code',        format: 'DEP{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  DO:  { name: 'Delivery Order',        format: 'DO{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  PR:  { name: 'Purchase Requisition',  format: 'PR{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  PO:  { name: 'Purchase Order',        format: 'PO{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  JE:  { name: 'Journal Entry',         format: 'JE{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  RCP: { name: 'Receive Payment',       format: 'RCP{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  BN:  { name: 'Billing Note',          format: 'BN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  DN:  { name: 'Debit Note',            format: 'DN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  CN:  { name: 'Credit Note',           format: 'CN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  // Entity / master-data codes — fixed (never reset)
+  CUS: { name: 'Customer Code',         format: 'CUS{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  CGP: { name: 'Customer Group Code',   format: 'CGP{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  EMP: { name: 'Employee Code',         format: 'EMP{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  DEP: { name: 'Department Code',       format: 'DEP{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   VND: { name: 'Vendor Code',           format: 'VND{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   PRD: { name: 'Product Code / SKU',    format: 'PRD{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   CAT: { name: 'Category Code',         format: 'CAT{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
@@ -21,6 +32,7 @@ const DEFAULTS = {
   PRC: { name: 'Price List Code',       format: 'PRC{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   OI:  { name: 'Order Item Code',       format: 'OI{####}',          initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   SI:  { name: 'Sale Item Code',        format: 'SI{####}',          initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
+  PKG: { name: 'Sale Package Code',     format: 'PKG{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
 }
 
 // ── Format engine ─────────────────────────────────────────────────────────────
@@ -61,11 +73,16 @@ function needsReset(seq) {
 const getNext = async (code, userId) => {
   const t = await sequelize.transaction()
   try {
-    const def = DEFAULTS[code] || {}
+    const def = DEFAULTS[code]
     const where = userId ? { code, userId } : { code, userId: null }
+    const existing = await Sequence.findOne({ where, transaction: t })
+    if (!existing && !def) {
+      await t.rollback()
+      throw { status: 500, message: `Sequence code '${code}' is not defined. Add it to DEFAULTS in sequence.service.js or create it in Settings → Sequence Numbers first.` }
+    }
     const [seq] = await Sequence.findOrCreate({
       where,
-      defaults: { ...def, code, userId: userId || null, runningValue: def.initialValue || 1 },
+      defaults: { ...(def || {}), code, userId: userId || null, runningValue: (def && def.initialValue) || 1 },
       transaction: t,
     })
 
