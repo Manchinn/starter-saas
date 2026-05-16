@@ -18,6 +18,25 @@ const findExisting = async (sourceType, sourceId) => {
   })
 }
 
+// Translate a doc-currency amount into the org's base currency.
+// rate is the snapshotted FX rate that says "1 unit of doc currency = rate base units".
+// Defaults to 1 (no translation) for base-currency or legacy docs.
+const toBase = (amount, rate) => {
+  const a = Number(amount) || 0
+  const r = Number(rate)   || 1
+  return Math.round((a * r) * 100) / 100 // 2-decimal rounding
+}
+
+// Build a human-friendly FX context string, e.g. "USD 100.00 @ 35.5000".
+// Returns empty string when no translation occurred.
+const fxContext = (amount, currency, rate) => {
+  const r = Number(rate) || 1
+  if (!currency || r === 1) return ''
+  const fmt = (n) => Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const rateFmt = Number(r).toLocaleString(undefined, { maximumFractionDigits: 4 })
+  return ` (${currency} ${fmt(amount)} @ ${rateFmt})`
+}
+
 const postJournal = async ({ sourceType, sourceId, date, description, lines, userId, organizationId }) => {
   await require('./tax-period.service').assertOpen(date || new Date(), organizationId)
   const refNo = await getNext('JE', userId)
@@ -64,13 +83,18 @@ const postInvoice = async (invoice, userId) => {
 
   const ar      = await accounts.getByRole('AR',         orgId)
   const revenue = await accounts.getByRole('REVENUE',    orgId)
-  const total    = Number(invoice.total    || 0)
-  const subtotal = Number(invoice.subtotal || 0)
-  const tax      = Number(invoice.tax      || 0)
-  if (!total) throw { status: 400, message: 'Invoice total is zero — cannot post journal' }
+  const rate     = Number(invoice.exchangeRate) || 1
+  const totalDoc    = Number(invoice.total    || 0)
+  const subtotalDoc = Number(invoice.subtotal || 0)
+  const taxDoc      = Number(invoice.tax      || 0)
+  if (!totalDoc) throw { status: 400, message: 'Invoice total is zero — cannot post journal' }
+  const total    = toBase(totalDoc, rate)
+  const subtotal = toBase(subtotalDoc, rate)
+  const tax      = toBase(taxDoc, rate)
+  const fx       = fxContext(totalDoc, invoice.currency, rate)
 
   const lines = [
-    { accountId: ar.id,      debit: total, credit: 0, description: `Invoice ${invoice.invoiceNumber}` },
+    { accountId: ar.id,      debit: total, credit: 0, description: `Invoice ${invoice.invoiceNumber}${fx}` },
     { accountId: revenue.id, debit: 0, credit: subtotal, description: `Invoice ${invoice.invoiceNumber}` },
   ]
   if (tax > 0) {
@@ -85,7 +109,7 @@ const postInvoice = async (invoice, userId) => {
     sourceType:    'Invoice',
     sourceId:      invoice.id,
     date:          invoice.invoiceDate,
-    description:   `Auto-posted from Invoice ${invoice.invoiceNumber}`,
+    description:   `Auto-posted from Invoice ${invoice.invoiceNumber}${fx}`,
     lines,
     userId,
     organizationId: orgId,
@@ -102,16 +126,19 @@ const postReceipt = async (receipt, userId) => {
 
   const ar      = await accounts.getByRole('AR', orgId)
   const cashBank = await accounts.accountForPaymentMethod(receipt.paymentMethod, orgId)
-  const amount = Number(receipt.amount || 0)
-  if (!amount) throw { status: 400, message: 'Receipt amount is zero — cannot post journal' }
+  const rate      = Number(receipt.exchangeRate) || 1
+  const amountDoc = Number(receipt.amount || 0)
+  if (!amountDoc) throw { status: 400, message: 'Receipt amount is zero — cannot post journal' }
+  const amount = toBase(amountDoc, rate)
+  const fx     = fxContext(amountDoc, receipt.currency, rate)
 
   return postJournal({
     sourceType:    'Receipt',
     sourceId:      receipt.id,
     date:          receipt.receiptDate,
-    description:   `Auto-posted from Receipt ${receipt.receiptNumber}`,
+    description:   `Auto-posted from Receipt ${receipt.receiptNumber}${fx}`,
     lines: [
-      { accountId: cashBank.id, debit: amount, credit: 0, description: `Receipt ${receipt.receiptNumber}` },
+      { accountId: cashBank.id, debit: amount, credit: 0, description: `Receipt ${receipt.receiptNumber}${fx}` },
       { accountId: ar.id,       debit: 0, credit: amount, description: `Receipt ${receipt.receiptNumber}` },
     ],
     userId,
@@ -129,10 +156,15 @@ const postVendorBill = async (bill, userId) => {
 
   const ap        = await accounts.getByRole('AP',        orgId)
   const inventory = await accounts.getByRole('INVENTORY', orgId)
-  const total    = Number(bill.total    || 0)
-  const subtotal = Number(bill.subtotal || 0)
-  const tax      = Number(bill.tax      || 0)
-  if (!total) throw { status: 400, message: 'Bill total is zero — cannot post journal' }
+  const rate        = Number(bill.exchangeRate) || 1
+  const totalDoc    = Number(bill.total    || 0)
+  const subtotalDoc = Number(bill.subtotal || 0)
+  const taxDoc      = Number(bill.tax      || 0)
+  if (!totalDoc) throw { status: 400, message: 'Bill total is zero — cannot post journal' }
+  const total    = toBase(totalDoc, rate)
+  const subtotal = toBase(subtotalDoc, rate)
+  const tax      = toBase(taxDoc, rate)
+  const fx       = fxContext(totalDoc, bill.currency, rate)
 
   const lines = [
     { accountId: inventory.id, debit: subtotal, credit: 0, description: `Bill ${bill.billNumber}` },
@@ -143,13 +175,13 @@ const postVendorBill = async (bill, userId) => {
   } else {
     lines[0].debit = total
   }
-  lines.push({ accountId: ap.id, debit: 0, credit: total, description: `Bill ${bill.billNumber}` })
+  lines.push({ accountId: ap.id, debit: 0, credit: total, description: `Bill ${bill.billNumber}${fx}` })
 
   return postJournal({
     sourceType:    'VendorBill',
     sourceId:      bill.id,
     date:          bill.billDate,
-    description:   `Auto-posted from Vendor Bill ${bill.billNumber}`,
+    description:   `Auto-posted from Vendor Bill ${bill.billNumber}${fx}`,
     lines,
     userId,
     organizationId: orgId,
@@ -166,17 +198,20 @@ const postBillPayment = async (bill, userId) => {
 
   const ap   = await accounts.getByRole('AP',   orgId)
   const cash = await accounts.getByRole('CASH', orgId)
-  const total = Number(bill.total || 0)
-  if (!total) throw { status: 400, message: 'Bill total is zero — cannot post payment journal' }
+  const rate     = Number(bill.exchangeRate) || 1
+  const totalDoc = Number(bill.total || 0)
+  if (!totalDoc) throw { status: 400, message: 'Bill total is zero — cannot post payment journal' }
+  const total = toBase(totalDoc, rate)
+  const fx    = fxContext(totalDoc, bill.currency, rate)
 
   return postJournal({
     sourceType:    'VendorBillPayment',
     sourceId:      bill.id,
     date:          new Date().toISOString().slice(0, 10),
-    description:   `Auto-posted payment for Vendor Bill ${bill.billNumber}`,
+    description:   `Auto-posted payment for Vendor Bill ${bill.billNumber}${fx}`,
     lines: [
       { accountId: ap.id,   debit: total, credit: 0, description: `Payment ${bill.billNumber}` },
-      { accountId: cash.id, debit: 0, credit: total, description: `Payment ${bill.billNumber}` },
+      { accountId: cash.id, debit: 0, credit: total, description: `Payment ${bill.billNumber}${fx}` },
     ],
     userId,
     organizationId: orgId,
