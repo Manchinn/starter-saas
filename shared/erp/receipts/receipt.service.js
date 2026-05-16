@@ -95,10 +95,18 @@ const updateStatus = async (id, status, userId) => {
 
   const previousStatus = receipt.status
   await receipt.update({ status })
+  const autoJournal = require('../accounting/services/auto-journal.service')
   if (status === 'confirmed') {
     try {
-      const autoJournal = require('../accounting/services/auto-journal.service')
       await autoJournal.postReceipt(await getById(id), userId)
+    } catch (err) {
+      await receipt.update({ status: previousStatus })
+      throw err
+    }
+  }
+  if (status === 'cancelled' && previousStatus === 'confirmed') {
+    try {
+      await autoJournal.reverseReceipt(receipt, userId, 'receipt cancelled after confirmation')
     } catch (err) {
       await receipt.update({ status: previousStatus })
       throw err

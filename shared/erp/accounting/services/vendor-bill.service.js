@@ -109,12 +109,24 @@ const updateStatus = async (id, status, userId, user) => {
 
   const previousStatus = bill.status
   await bill.update({ status })
+  const autoJournal = require('./auto-journal.service')
   if (status === 'approved' || status === 'paid') {
     try {
-      const autoJournal = require('./auto-journal.service')
       const fresh = await getById(id)
       if (status === 'approved') await autoJournal.postVendorBill(fresh, userId)
       if (status === 'paid')     await autoJournal.postBillPayment(fresh, userId)
+    } catch (err) {
+      await bill.update({ status: previousStatus })
+      throw err
+    }
+  }
+  if (status === 'cancelled' && ['approved', 'paid'].includes(previousStatus)) {
+    try {
+      // If was paid, reverse the payment journal first (Cr Cash / Dr AP unwinds), then reverse the AP journal
+      if (previousStatus === 'paid') {
+        await autoJournal.reverseBillPayment(bill, userId, `bill cancelled from "${previousStatus}"`)
+      }
+      await autoJournal.reverseVendorBill(bill, userId, `bill cancelled from "${previousStatus}"`)
     } catch (err) {
       await bill.update({ status: previousStatus })
       throw err

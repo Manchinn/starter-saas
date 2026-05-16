@@ -182,6 +182,48 @@ const postBillPayment = async (bill, userId) => {
   })
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Reversal: create a mirror journal with debits/credits swapped.
+// Idempotent: the reversal itself uses sourceType `${origSourceType}.reversal`
+// so re-running won't duplicate.
+// ──────────────────────────────────────────────────────────────────────────────
+const reverseFor = async (sourceType, sourceId, userId, reason) => {
+  const original = await Journal.findOne({
+    where: { sourceType, sourceId, status: 'posted' },
+    include: [{ model: JournalLine, as: 'lines' }],
+  })
+  if (!original) return null // nothing posted to reverse
+
+  const reversalType = `${sourceType}.reversal`
+  const already = await Journal.findOne({
+    where: { sourceType: reversalType, sourceId, status: 'posted' },
+  })
+  if (already) return already
+
+  const lines = (original.lines || []).map(l => ({
+    accountId:   l.accountId,
+    description: `Reversal: ${l.description || ''}`.trim(),
+    debit:       Number(l.credit) || 0,
+    credit:      Number(l.debit)  || 0,
+  }))
+  if (!lines.length) return null
+
+  return postJournal({
+    sourceType:    reversalType,
+    sourceId,
+    date:          new Date().toISOString().slice(0, 10),
+    description:   `Reversal of ${original.refNo}${reason ? ` — ${reason}` : ''}`,
+    lines,
+    userId,
+    organizationId: original.organizationId,
+  })
+}
+
+const reverseInvoice    = (invoice, userId, reason = 'invoice cancelled')      => reverseFor('Invoice',           invoice.id, userId, reason)
+const reverseReceipt    = (receipt, userId, reason = 'receipt cancelled')      => reverseFor('Receipt',           receipt.id, userId, reason)
+const reverseVendorBill = (bill,    userId, reason = 'vendor bill cancelled')  => reverseFor('VendorBill',        bill.id,    userId, reason)
+const reverseBillPayment = (bill,   userId, reason = 'bill payment cancelled') => reverseFor('VendorBillPayment', bill.id,    userId, reason)
+
 // Wrap a hook with safe error handling so callers can decide policy
 const safeRun = async (fn, context) => {
   try {
@@ -194,8 +236,12 @@ const safeRun = async (fn, context) => {
 }
 
 module.exports = {
-  postInvoice:     (inv, uid)  => safeRun(() => postInvoice(inv, uid),      `Invoice ${inv.invoiceNumber}`),
-  postReceipt:     (rec, uid)  => safeRun(() => postReceipt(rec, uid),      `Receipt ${rec.receiptNumber}`),
-  postVendorBill:  (bill, uid) => safeRun(() => postVendorBill(bill, uid),  `VendorBill ${bill.billNumber}`),
-  postBillPayment: (bill, uid) => safeRun(() => postBillPayment(bill, uid), `BillPayment ${bill.billNumber}`),
+  postInvoice:        (inv, uid)         => safeRun(() => postInvoice(inv, uid),               `Invoice ${inv.invoiceNumber}`),
+  postReceipt:        (rec, uid)         => safeRun(() => postReceipt(rec, uid),               `Receipt ${rec.receiptNumber}`),
+  postVendorBill:     (bill, uid)        => safeRun(() => postVendorBill(bill, uid),           `VendorBill ${bill.billNumber}`),
+  postBillPayment:    (bill, uid)        => safeRun(() => postBillPayment(bill, uid),          `BillPayment ${bill.billNumber}`),
+  reverseInvoice:     (inv, uid, r)      => safeRun(() => reverseInvoice(inv, uid, r),         `Reverse Invoice ${inv.invoiceNumber}`),
+  reverseReceipt:     (rec, uid, r)      => safeRun(() => reverseReceipt(rec, uid, r),         `Reverse Receipt ${rec.receiptNumber}`),
+  reverseVendorBill:  (bill, uid, r)     => safeRun(() => reverseVendorBill(bill, uid, r),     `Reverse VendorBill ${bill.billNumber}`),
+  reverseBillPayment: (bill, uid, r)     => safeRun(() => reverseBillPayment(bill, uid, r),    `Reverse BillPayment ${bill.billNumber}`),
 }
