@@ -95,6 +95,7 @@ function reposition() {
   if (!popupEl || !triggerEl) findEls()
   if (!popupEl || !triggerEl) return
   const rect = triggerEl.getBoundingClientRect()
+  // Always anchor below the trigger — no upward flip even if it overflows the viewport
   popupEl.style.position  = 'fixed'
   popupEl.style.top       = `${rect.bottom}px`
   popupEl.style.left      = `${rect.left}px`
@@ -102,11 +103,6 @@ function reposition() {
   popupEl.style.maxHeight = `${props.maxHeight}px`
   popupEl.style.zIndex    = '9999'
   popupEl.style.bottom    = 'auto'
-  // Flip upward if it would overflow the viewport
-  const popupHeight = Math.min(popupEl.scrollHeight || props.maxHeight, props.maxHeight)
-  if (rect.bottom + popupHeight > window.innerHeight - 8 && rect.top > popupHeight) {
-    popupEl.style.top = `${rect.top - popupHeight}px`
-  }
 }
 
 function onOpen() {
