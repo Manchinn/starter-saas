@@ -1,8 +1,6 @@
 <template>
   <AppLayout>
-    <div v-if="loading" class="flex items-center justify-center py-24">
-      <ArrowPathIcon class="w-6 h-6 text-[#9BA7B0] animate-spin" />
-    </div>
+    <LoadingSpinner v-if="loading" />
 
     <div v-else-if="loadError" class="bg-white rounded-2xl border border-red-200 p-8 text-center">
       <ExclamationCircleIcon class="w-10 h-10 text-red-400 mx-auto mb-3" />
@@ -12,133 +10,102 @@
 
     <div v-else class="space-y-6">
 
-      <!-- Page Header -->
-      <div class="flex items-start gap-4">
-        <RouterLink :to="`/erp/invoices/${invoiceId}`"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
-                 hover:border-[#E2E8F0] transition-all flex-shrink-0">
-          <ArrowLeftIcon class="w-[18px] h-[18px]" />
-        </RouterLink>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-xl font-bold text-[#1C2434]">{{ t('common.edit') }} · {{ invoiceNumber }}</h1>
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                         bg-amber-50 text-amber-600 border border-amber-200">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              {{ t('erp.common.draft') }}
-            </span>
-          </div>
-          <nav class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/invoices" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">{{ t('erp.invoices.title') }}</RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <RouterLink :to="`/erp/invoices/${invoiceId}`" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">{{ invoiceNumber }}</RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381]">{{ t('common.edit') }}</span>
-          </nav>
-        </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
+      <PageHeader :title="`${t('common.edit')} · ${invoiceNumber}`" :back-to="`/erp/invoices/${invoiceId}`"
+        :breadcrumb="[
+          { label: t('erp.invoices.title'), to: '/erp/invoices' },
+          { label: invoiceNumber, to: `/erp/invoices/${invoiceId}` },
+          { label: t('common.edit') },
+        ]">
+        <template #badge>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                       bg-amber-50 text-amber-600 border border-amber-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            {{ t('erp.common.draft') }}
+          </span>
+        </template>
+        <template #actions>
           <RouterLink :to="`/erp/invoices/${invoiceId}`" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving" class="btn-primary gap-2">
             <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
             <CheckIcon v-else class="w-4 h-4" />
             {{ saving ? t('erp.common.saving') : t('common.save') }}
           </button>
-        </div>
-      </div>
+        </template>
+      </PageHeader>
 
-      <!-- Sections -->
       <div class="space-y-5">
 
         <!-- Section 1: Invoice Info -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-              <DocumentTextIcon class="w-4 h-4 text-primary-500" />
+        <FormCard :title="t('erp.invoices.info')" :icon="DocumentTextIcon" icon-color="primary">
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+
+            <div class="col-span-2 lg:col-span-1">
+              <FieldLabel :text="t('erp.common.customer')" required />
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+              </SearchSelect>
+              <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
             </div>
-            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.invoices.info') }}</h2>
-          </div>
-          <div class="px-6 py-5">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
-              <div class="col-span-2 lg:col-span-1">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.common.customer') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
-                  <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                </SearchSelect>
-                <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
-              </div>
+            <div>
+              <FieldLabel :text="t('erp.invoices.invoiceDate')" required />
+              <DateInput v-model="form.invoiceDate"
+                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
+                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
+                         errors.invoiceDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.invoiceDate" class="mt-1 text-xs text-red-500">{{ errors.invoiceDate }}</p>
+            </div>
 
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.invoices.invoiceDate') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <DateInput v-model="form.invoiceDate"
-                  :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.invoiceDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-                <p v-if="errors.invoiceDate" class="mt-1 text-xs text-red-500">{{ errors.invoiceDate }}</p>
-              </div>
+            <div>
+              <FieldLabel :text="t('erp.invoices.dueDate')" />
+              <DateInput v-model="form.dueDate" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
+            </div>
 
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.invoices.dueDate') }}</label>
-                <DateInput v-model="form.dueDate" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+            <div>
+              <FieldLabel :text="t('erp.invoices.referenceOrder')" />
+              <SearchSelect v-model="form.orderId" :options="orders" label-key="orderNumber" placeholder="— None —" />
+            </div>
+
+            <div>
+              <FieldLabel :text="t('erp.invoices.taxRate')" />
+              <div class="relative">
+                <input v-model.number="form.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
+                  class="w-full pl-3.5 pr-10 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#9BA7B0] font-medium">%</span>
               </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.invoices.referenceOrder') }}</label>
-                <SearchSelect v-model="form.orderId" :options="orders" label-key="orderNumber" placeholder="— None —" />
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.invoices.taxRate') }}</label>
-                <div class="relative">
-                  <input v-model.number="form.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
-                    class="w-full pl-3.5 pr-10 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#9BA7B0] font-medium">%</span>
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.common.currency') }}</label>
-                <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.invoiceDate" />
-              </div>
-
-              <div class="col-span-2">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.common.notes') }}</label>
-                <textarea v-model="form.notes" rows="2" placeholder="Internal notes or payment terms…"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-colors resize-none placeholder-[#CBD5E1]" />
-              </div>
-
             </div>
+
+            <div>
+              <FieldLabel :text="t('erp.common.currency')" />
+              <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.invoiceDate" />
+            </div>
+
+            <div class="col-span-2">
+              <FieldLabel :text="t('erp.common.notes')" />
+              <textarea v-model="form.notes" rows="2" placeholder="Internal notes or payment terms…"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-colors resize-none placeholder-[#CBD5E1]" />
+            </div>
+
           </div>
-        </div>
+        </FormCard>
 
         <!-- Section 2: Line Items -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
-                <ClipboardDocumentListIcon class="w-4 h-4 text-green-600" />
-              </div>
-              <div>
-                <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.items') }}</h2>
-                <p v-if="form.items.length" class="text-[11px] text-[#9BA7B0]">{{ form.items.length }} item{{ form.items.length !== 1 ? 's' : '' }}</p>
-              </div>
-            </div>
+        <FormCard :title="t('erp.common.items')" :icon="ClipboardDocumentListIcon" icon-color="green"
+          :subtitle="form.items.length ? `${form.items.length} item${form.items.length !== 1 ? 's' : ''}` : ''"
+          :padded="false">
+          <template #actions>
             <button @click="addLine" type="button"
               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary-500
                      bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.common.addItem') }}
             </button>
-          </div>
+          </template>
 
           <div v-if="!form.items.length" class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
@@ -217,23 +184,12 @@
               {{ errors.items }}
             </p>
           </div>
-        </div>
+        </FormCard>
 
-        <!-- Global error -->
-        <div v-if="globalError"
-          class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700
-                 text-sm px-4 py-3.5 rounded-xl">
-          <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>{{ globalError }}</span>
-        </div>
+        <ErrorBanner :message="globalError" />
 
         <!-- Summary + Actions -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
-            <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
-            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.invoices.invoiceSummary') }}</h2>
-          </div>
-
+        <FormCard :title="t('erp.invoices.invoiceSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-4 grid grid-cols-3 gap-6">
             <div class="flex flex-col gap-0.5">
               <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.items') }}</span>
@@ -269,7 +225,7 @@
               </button>
             </div>
           </div>
-        </div>
+        </FormCard>
 
       </div>
     </div>
@@ -281,13 +237,17 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  ArrowLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon,
-  CheckIcon, ExclamationCircleIcon, DocumentTextIcon,
+  PlusIcon, TrashIcon, CheckIcon, ExclamationCircleIcon, DocumentTextIcon,
   ArrowPathIcon, ClipboardDocumentListIcon, CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 
