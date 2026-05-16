@@ -19,6 +19,7 @@ const findExisting = async (sourceType, sourceId) => {
 }
 
 const postJournal = async ({ sourceType, sourceId, date, description, lines, userId, organizationId }) => {
+  await require('./tax-period.service').assertOpen(date || new Date(), organizationId)
   const refNo = await getNext('JE', userId)
   const totalDebit = lines.reduce((s, l) => s + Number(l.debit || 0), 0)
 

@@ -51,6 +51,7 @@ function checkBalance(lines) {
 // โ”€โ”€ Create โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const create = async ({ date, description, lines = [], userId, organizationId }) => {
   if (!date) throw { status: 400, message: 'Date is required' }
+  await require('./tax-period.service').assertOpen(date, organizationId)
   const totalDebit = checkBalance(lines)
   const refNo = await nextRefNo(userId)
 
@@ -85,6 +86,7 @@ const update = async (id, { date, description, lines = [], userId }) => {
   if (!j)                  throw { status: 404, message: 'Journal not found' }
   if (j.status !== 'draft') throw { status: 400, message: 'Only draft journals can be edited' }
 
+  await require('./tax-period.service').assertOpen(date || j.date, j.organizationId)
   const totalDebit = checkBalance(lines)
 
   const t = await sequelize.transaction()
@@ -114,6 +116,7 @@ const post = async (id, userId) => {
   const j = await Journal.findByPk(id, { include: [{ model: JournalLine, as: 'lines' }] })
   if (!j)                  throw { status: 404, message: 'Journal not found' }
   if (j.status !== 'draft') throw { status: 400, message: 'Only draft journals can be posted' }
+  await require('./tax-period.service').assertOpen(j.date, j.organizationId)
   checkBalance(j.lines)
   await j.update({ status: 'posted', modifiedBy: userId || null })
   return getById(id)

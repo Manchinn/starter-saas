@@ -36,6 +36,7 @@ const getById = async (id) => {
 
 const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes, currency, exchangeRate, userId, organizationId }) => {
   if (!amount || amount <= 0) throw { status: 400, message: 'Amount must be greater than zero' }
+  await require('../accounting/services/tax-period.service').assertOpen(receiptDate || new Date(), organizationId)
 
   const receiptNumber = await generateReceiptNumber()
   const fx = await require('../settings/currency.service').getRateOn(currency, receiptDate, organizationId)
@@ -64,6 +65,7 @@ const update = async (id, { customerId, invoiceId, receiptDate, paymentMethod, a
   if (!receipt) throw { status: 404, message: 'Receipt not found' }
   if (receipt.status !== 'draft') throw { status: 400, message: 'Only draft receipts can be edited' }
   if (amount !== undefined && amount <= 0) throw { status: 400, message: 'Amount must be greater than zero' }
+  await require('../accounting/services/tax-period.service').assertOpen(receiptDate || receipt.receiptDate, receipt.organizationId)
 
   await receipt.update({
     customerId:    customerId    !== undefined ? customerId    || null : receipt.customerId,

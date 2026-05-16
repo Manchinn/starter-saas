@@ -121,6 +121,7 @@ export default {
     approvalThresholds:'Approval Thresholds',
     auditLog:          'Audit Log',
     currencies:        'Currencies',
+    taxPeriods:        'Tax Periods',
   },
 
   // ── Auth pages ─────────────────────────────────────────────────────────────
@@ -1788,6 +1789,22 @@ export default {
       dateRequired:       'Date is required',
       methodRequired:     'Payment method is required',
       invoicesRequired:   'Select at least one invoice',
+    },
+
+    taxPeriods: {
+      title:       'Tax Periods',
+      subtitle:    'Define monthly or quarterly tax periods. Closing a period locks all transactions dated within it.',
+      addPeriod:   'Add Period',
+      noPeriods:   'No tax periods defined yet',
+      namePh:      'e.g. May 2026',
+      notesPh:     'Optional notes',
+      colName:     'Name',
+      colStart:    'Start Date',
+      colEnd:      'End Date',
+      colStatus:   'Status',
+      colNotes:    'Notes',
+      closeBtn:    'Close period',
+      reopenBtn:   'Re-open',
     },
 
     currencies: {

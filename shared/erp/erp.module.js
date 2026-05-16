@@ -45,6 +45,7 @@ const approvalThresholdRouter     = require('./settings/approval-threshold.route
 const attachmentRouter            = require('./attachments/attachment.routes')
 const auditLogRouter              = require('./audit/audit.routes')
 const currencyRouter              = require('./settings/currency.routes')
+const taxPeriodRouter             = require('./accounting/routes/tax-period.routes')
 
 module.exports = defineModule({
   slug: 'erp',
@@ -76,6 +77,7 @@ module.exports = defineModule({
     'erp.thresholds.list', 'erp.thresholds.edit',
     'erp.audit.list',
     'erp.currencies.list', 'erp.currencies.edit',
+    'erp.tax-periods.list', 'erp.tax-periods.edit',
   ],
   meta: { mountPath: '/api/erp' },
   register(app) {
@@ -125,5 +127,6 @@ module.exports = defineModule({
     app.use('/api/erp/attachments',                  attachmentRouter)
     app.use('/api/erp/audit-log',                    auditLogRouter)
     app.use('/api/erp/settings/currencies',          currencyRouter)
+    app.use('/api/erp/accounting/tax-periods',       taxPeriodRouter)
   },
 })

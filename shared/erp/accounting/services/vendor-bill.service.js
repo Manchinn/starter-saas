@@ -46,6 +46,7 @@ const getById = async (id) => {
 
 const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceNo, billDate, dueDate, notes, items = [], taxRate = 0, currency, exchangeRate, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Bill must have at least one item' }
+  await require('./tax-period.service').assertOpen(billDate || new Date(), organizationId)
   const billNumber = await generateBillNumber()
   const subtotal = items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.unitPrice || 0), 0)
   const tax   = toFixed(subtotal * (Number(taxRate) / 100), 2)

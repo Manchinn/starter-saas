@@ -36,6 +36,7 @@ import {
   PencilSquareIcon,
   ArchiveBoxIcon,
   ShieldCheckIcon,
+  LockClosedIcon,
 } from '@heroicons/vue/24/outline'
 
 export default {
@@ -497,6 +498,13 @@ export default {
       component: () => import('./settings/views/CurrenciesManage.vue'),
       meta: { requiresAuth: true, title: 'Currencies' },
     },
+    // Accounting: Tax Periods
+    {
+      path: '/erp/accounting/tax-periods',
+      name: 'erp-accounting-tax-periods',
+      component: () => import('./accounting/views/TaxPeriodsManage.vue'),
+      meta: { requiresAuth: true, title: 'Tax Periods' },
+    },
     // Settings: Sequence Numbers
     {
       path: '/erp/settings/sequence',
@@ -861,6 +869,7 @@ export default {
           { label: 'nav.chartOfAccounts', to: '/erp/accounting/chart-of-accounts', icon: ListBulletIcon,    permission: 'erp.accounting.list' },
           { label: 'nav.journals',        to: '/erp/accounting/journals',          icon: PencilSquareIcon,  permission: 'erp.accounting.list' },
           { label: 'nav.arAging',         to: '/erp/accounting/ar-aging',          icon: ChartBarIcon,      permission: 'erp.accounting.list' },
+          { label: 'nav.taxPeriods',      to: '/erp/accounting/tax-periods',       icon: LockClosedIcon,    permission: 'erp.tax-periods.list' },
         ],
       },
       {

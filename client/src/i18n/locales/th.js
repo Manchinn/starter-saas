@@ -121,6 +121,7 @@ export default {
     approvalThresholds:'เกณฑ์การอนุมัติ',
     auditLog:          'บันทึกการตรวจสอบ',
     currencies:        'สกุลเงิน',
+    taxPeriods:        'งวดภาษี',
   },
 
   // ── Auth pages ─────────────────────────────────────────────────────────────
@@ -1790,6 +1791,22 @@ export default {
       dateRequired:       'กรุณาระบุวันที่',
       methodRequired:     'กรุณาเลือกวิธีชำระ',
       invoicesRequired:   'กรุณาเลือกอย่างน้อย 1 ใบแจ้งหนี้',
+    },
+
+    taxPeriods: {
+      title:       'งวดภาษี',
+      subtitle:    'กำหนดงวดภาษีรายเดือนหรือรายไตรมาส การปิดงวดจะล็อกธุรกรรมทุกรายการในงวดนั้น',
+      addPeriod:   'เพิ่มงวด',
+      noPeriods:   'ยังไม่มีงวดภาษี',
+      namePh:      'เช่น พ.ค. 2569',
+      notesPh:     'หมายเหตุ',
+      colName:     'ชื่องวด',
+      colStart:    'วันเริ่มต้น',
+      colEnd:      'วันสิ้นสุด',
+      colStatus:   'สถานะ',
+      colNotes:    'หมายเหตุ',
+      closeBtn:    'ปิดงวด',
+      reopenBtn:   'เปิดงวดอีกครั้ง',
     },
 
     currencies: {

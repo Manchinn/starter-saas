@@ -94,6 +94,7 @@ const ReceivePayment         = require('./accounting/models/receive-payment.mode
 const ReceivePaymentInvoice  = require('./accounting/models/receive-payment-invoice.model')
 const Journal                = require('./accounting/models/journal.model')
 const JournalLine            = require('./accounting/models/journal-line.model')
+const TaxPeriod              = require('./accounting/models/tax-period.model')
 const VendorBill             = require('./accounting/models/vendor-bill.model')
 const VendorBillItem         = require('./accounting/models/vendor-bill-item.model')
 
@@ -137,6 +138,7 @@ const erpModels = {
   DebitNote, CreditNote,
   ReceivePayment, ReceivePaymentInvoice,
   Journal, JournalLine,
+  TaxPeriod,
   VendorBill, VendorBillItem,
   PurchaseRequisition, PurchaseRequisitionItem,
   PurchaseOrder, PurchaseOrderItem,

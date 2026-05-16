@@ -49,6 +49,7 @@ const getById = async (id) => {
 
 const create = async ({ customerId, orderId, deliveryOrderId, invoiceDate, dueDate, notes, items = [], taxRate = 0, currency, exchangeRate, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Invoice must have at least one item' }
+  await require('../accounting/services/tax-period.service').assertOpen(invoiceDate || new Date(), organizationId)
 
   const invoiceNumber = await generateInvoiceNumber()
   const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
@@ -104,6 +105,7 @@ const update = async (id, { customerId, orderId, invoiceDate, dueDate, notes, ta
   const invoice = await Invoice.findByPk(id)
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
   if (invoice.status !== 'draft') throw { status: 400, message: 'Only draft invoices can be edited' }
+  await require('../accounting/services/tax-period.service').assertOpen(invoiceDate || invoice.invoiceDate, invoice.organizationId)
 
   await sequelize.transaction(async (t) => {
     if (items) {

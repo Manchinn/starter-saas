@@ -27,6 +27,7 @@ const {
   PurchaseRequisition, PurchaseRequisitionItem,
   PurchaseOrder, PurchaseOrderItem,
   Currency, ExchangeRate,
+  TaxPeriod,
 } = require('../../../server/models')
 const sequelize = require('../../../server/config/database')
 
@@ -355,6 +356,28 @@ async function seedDemo(userId, orgId) {
         { transaction: t },
       ),
     ])
+
+    // ── Tax Periods (monthly) ────────────────────────────────────────────────
+    // Jan-Apr 2026 are closed (filed); May 2026 is open (current); Jun 2026 not yet started
+    const months = [
+      { name: 'Jan 2026', start: '2026-01-01', end: '2026-01-31', status: 'closed', closedAt: '2026-02-15' },
+      { name: 'Feb 2026', start: '2026-02-01', end: '2026-02-28', status: 'closed', closedAt: '2026-03-15' },
+      { name: 'Mar 2026', start: '2026-03-01', end: '2026-03-31', status: 'closed', closedAt: '2026-04-15' },
+      { name: 'Apr 2026', start: '2026-04-01', end: '2026-04-30', status: 'closed', closedAt: '2026-05-15' },
+      { name: 'May 2026', start: '2026-05-01', end: '2026-05-31', status: 'open',   closedAt: null },
+      { name: 'Jun 2026', start: '2026-06-01', end: '2026-06-30', status: 'open',   closedAt: null },
+    ]
+    for (const m of months) {
+      await TaxPeriod.create({
+        name:     m.name,
+        startDate: m.start, endDate: m.end,
+        status:   m.status,
+        notes:    m.status === 'closed' ? 'VAT return filed' : null,
+        closedBy: m.status === 'closed' ? userId : null,
+        closedAt: m.closedAt ? new Date(m.closedAt) : null,
+        organizationId: orgId, createdBy: userId, modifiedBy: userId,
+      }, { transaction: t })
+    }
 
     // ── Quotations ────────────────────────────────────────────────────────────
     const qt1 = await Quotation.create(
@@ -1020,6 +1043,7 @@ async function resetAll() {
       ChartOfAccount,
       FiscalYear,
       Currency, ExchangeRate,
+      TaxPeriod,
     } = require('../../../server/models')
 
     // Delete in dependency order (leaf → root)
@@ -1054,6 +1078,7 @@ async function resetAll() {
       ChartOfAccount,
       FiscalYear,
       ExchangeRate, Currency,
+      TaxPeriod,
     ]
 
     for (const Model of ordered) {
