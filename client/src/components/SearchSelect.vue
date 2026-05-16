@@ -57,6 +57,9 @@ const props = defineProps({
   groupLabel: { type: String, default: '' },
   maxHeight:  { type: Number, default: 320 }, // ~10 × 32px
   optionHeight: { type: Number, default: 32 },
+  // Minimum popup width — when the trigger is narrow (e.g. inline pickers),
+  // the popup grows to this width so options stay readable.
+  popupMinWidth: { type: Number, default: 220 },
 })
 const emit = defineEmits(['update:modelValue', 'change'])
 
@@ -96,10 +99,14 @@ function reposition() {
   if (!popupEl || !triggerEl) return
   const rect = triggerEl.getBoundingClientRect()
   // Always anchor below the trigger — no upward flip even if it overflows the viewport
+  const width = Math.max(rect.width, props.popupMinWidth)
+  // Keep the popup inside the viewport horizontally
+  const maxLeft = window.innerWidth - width - 8
+  const left = Math.min(rect.left, Math.max(8, maxLeft))
   popupEl.style.position  = 'fixed'
   popupEl.style.top       = `${rect.bottom}px`
-  popupEl.style.left      = `${rect.left}px`
-  popupEl.style.width     = `${rect.width}px`
+  popupEl.style.left      = `${left}px`
+  popupEl.style.width     = `${width}px`
   popupEl.style.maxHeight = `${props.maxHeight}px`
   popupEl.style.zIndex    = '9999'
   popupEl.style.bottom    = 'auto'
