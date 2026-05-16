@@ -14,6 +14,8 @@
     :group-values="groupValues || undefined"
     :group-label="groupLabel || undefined"
     :group-select="false"
+    :max-height="maxHeight"
+    :option-height="optionHeight"
     :class="['ss', { 'ss--invalid': invalid }]"
     :select-label="''"
     :deselect-label="''"
@@ -48,6 +50,9 @@ const props = defineProps({
   noOptions:  { type: String, default: '' },
   groupValues:{ type: String, default: '' },
   groupLabel: { type: String, default: '' },
+  // Limit the popup height so only ~10 items show; the rest scrolls.
+  maxHeight:  { type: Number, default: 320 }, // ~10 × 32px
+  optionHeight: { type: Number, default: 32 },
 })
 const emit = defineEmits(['update:modelValue', 'change'])
 
