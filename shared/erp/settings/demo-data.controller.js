@@ -18,7 +18,10 @@ module.exports = {
   async seedSequences(req, res) {
     try {
       const result = await sequenceService.seedDefaultsForUser(req.user.id)
-      return ok(res, result, result.seeded ? `Seeded ${result.count} sequences` : 'Sequences already exist')
+      const msg = result.seeded
+        ? `Seeded ${result.added} new sequence${result.added === 1 ? '' : 's'}` + (result.skipped ? ` (${result.skipped} already existed)` : '')
+        : 'All default sequences already exist'
+      return ok(res, result, msg)
     } catch (err) {
       logger.error('seed-sequences error', { error: err.message, stack: err.stack })
       return serverError(res, 'Failed to seed sequences')

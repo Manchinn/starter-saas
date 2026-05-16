@@ -189,14 +189,22 @@ const remove = async (id) => {
   await seq.destroy()
 }
 
-// ── Seed defaults for a specific user (if they have no sequences yet) ─────────
+// ── Seed defaults for a specific user (idempotent — tops up missing codes) ───
+// Returns { seeded, added, skipped, total } where `added` are codes inserted
+// this call and `skipped` are codes that already existed. Safe to call any
+// number of times; new codes added to DEFAULTS will be backfilled on next run.
 const seedDefaultsForUser = async (userId) => {
-  const existing = await Sequence.count({ where: { userId } })
-  if (existing > 0) return { seeded: false, count: existing }
+  if (!userId) throw { status: 400, message: 'userId is required to seed sequences' }
 
-  const entries = Object.entries(DEFAULTS)
-  for (const [code, def] of entries) {
-    await Sequence.create({
+  const existingRows = await Sequence.findAll({
+    where: { userId },
+    attributes: ['code'],
+  })
+  const existingCodes = new Set(existingRows.map(r => r.code))
+
+  const toCreate = Object.entries(DEFAULTS)
+    .filter(([code]) => !existingCodes.has(code))
+    .map(([code, def]) => ({
       code,
       userId,
       name:         def.name,
@@ -205,9 +213,22 @@ const seedDefaultsForUser = async (userId) => {
       reseedPeriod: def.reseedPeriod,
       maxValue:     def.maxValue,
       format:       def.format,
-    })
+    }))
+
+  if (toCreate.length === 0) {
+    return { seeded: false, added: 0, skipped: existingCodes.size, total: existingCodes.size }
   }
-  return { seeded: true, count: entries.length }
+
+  await sequelize.transaction(async (t) => {
+    await Sequence.bulkCreate(toCreate, { transaction: t, ignoreDuplicates: true })
+  })
+
+  return {
+    seeded:  true,
+    added:   toCreate.length,
+    skipped: existingCodes.size,
+    total:   existingCodes.size + toCreate.length,
+  }
 }
 
 module.exports = { getNext, getPreview, list, getById, create, update, resetSequence, remove, seedDefaultsForUser }
