@@ -265,6 +265,17 @@ const columns = [
   `ALTER TABLE MasterDataValues      ADD COLUMN organizationId TEXT`,
   `ALTER TABLE StockMovements        ADD COLUMN organizationId TEXT`,
   `ALTER TABLE Items                 ADD COLUMN organizationId TEXT`,
+
+  // ── Backfill audit_logs.organizationId for rows written before the
+  //    audit.service.log fix that now resolves orgId from the user.
+  //    Idempotent — only touches rows where organizationId is NULL.
+  `UPDATE audit_logs
+   SET organizationId = (
+     SELECT COALESCE(u.organizationId, u.id)
+     FROM Users u
+     WHERE u.id = audit_logs.userId
+   )
+   WHERE organizationId IS NULL AND userId IS NOT NULL`,
 ]
 
 

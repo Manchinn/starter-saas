@@ -11,14 +11,30 @@ const logger = require('../../../server/core/logger').forLabel('audit')
  */
 const log = async ({ user, userId, userEmail, action, entityType, entityId, summary, organizationId }) => {
   try {
+    const resolvedUserId = user?.id || userId || null
+    let orgId      = organizationId || user?.organizationId || user?.id || null
+    let resolvedEmail = user?.email || userEmail || null
+
+    // Most callers only pass userId — look up the user to derive the effective
+    // organizationId so audit rows are visible in the org-scoped list query.
+    // Same convention as controllers: organizationId || user.id (self-org).
+    if ((!orgId || !resolvedEmail) && resolvedUserId) {
+      const { User } = require('../../../server/models')
+      const u = await User.findByPk(resolvedUserId, { attributes: ['id', 'organizationId', 'email'] })
+      if (u) {
+        orgId         = orgId         || u.organizationId || u.id
+        resolvedEmail = resolvedEmail || u.email
+      }
+    }
+
     await AuditLog.create({
-      userId:    user?.id    || userId    || null,
-      userEmail: user?.email || userEmail || null,
+      userId:         resolvedUserId,
+      userEmail:      resolvedEmail,
       action,
       entityType,
-      entityId:  entityId || null,
-      summary:   summary || null,
-      organizationId: organizationId || user?.organizationId || (user?.id || null),
+      entityId:       entityId || null,
+      summary:        summary  || null,
+      organizationId: orgId,
     })
   } catch (err) {
     logger.error('failed to record event', { action, error: err.message || String(err) })
