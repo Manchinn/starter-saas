@@ -4,7 +4,8 @@ const service = require('./dashboard.service')
 module.exports = {
   async stats(req, res) {
     try {
-      const data = await service.getStats()
+      const orgId = req.user?.organizationId || req.user?.id
+      const data = await service.getStats(orgId)
       return ok(res, data)
     } catch (err) {
       return serverError(res)

@@ -4,14 +4,24 @@ const {
   Invoice, Customer,
   PurchaseRequisition, PurchaseOrder,
   Journal,
+  VendorBill, TaxPeriod,
 } = require('../../../server/models')
 const { Op, fn, col } = require('sequelize')
 
-const getStats = async () => {
+// Sum doc rows (with total + exchangeRate) into org base currency.
+const sumBase = (rows) => rows.reduce((s, r) => {
+  const total = Number(r.total) || 0
+  const rate  = Number(r.exchangeRate) || 1
+  return s + total * rate
+}, 0)
+
+const getStats = async (organizationId = null) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+  const isoToday   = today.toISOString().slice(0, 10)
 
   const [
     totalProducts,
@@ -34,6 +44,11 @@ const getStats = async () => {
     pendingPOs,
     draftJournals,
     recentInvoices,
+    // Finance widgets (Tier 2 — all in base currency)
+    salesMtdRows,
+    arSentRows,
+    apApprovedRows,
+    currentTaxPeriod,
   ] = await Promise.all([
     Product.count(),
     Product.count({ where: { status: 'active' } }),
@@ -89,7 +104,59 @@ const getStats = async () => {
       order: [['createdAt', 'DESC']],
       limit: 6,
     }),
+    // Sales MTD: all non-cancelled invoices this month
+    Invoice.findAll({
+      where: {
+        status: { [Op.ne]: 'cancelled' },
+        invoiceDate: { [Op.gte]: monthStart },
+      },
+      attributes: ['total', 'exchangeRate'],
+    }),
+    // Outstanding AR: sent invoices
+    Invoice.findAll({
+      where: { status: 'sent' },
+      attributes: ['total', 'exchangeRate', 'dueDate'],
+    }),
+    // Outstanding AP: approved (unpaid) vendor bills
+    VendorBill.findAll({
+      where: { status: 'approved' },
+      attributes: ['total', 'exchangeRate'],
+    }),
+    // Current open tax period containing today
+    TaxPeriod.findOne({
+      where: {
+        status: 'open',
+        dataFlag: { [Op.ne]: 2 },
+        startDate: { [Op.lte]: isoToday },
+        endDate:   { [Op.gte]: isoToday },
+        ...(organizationId ? { organizationId } : {}),
+      },
+    }),
   ])
+
+  // Compute base-currency totals + overdue count
+  const salesMtdBase = sumBase(salesMtdRows)
+  const arBase       = sumBase(arSentRows)
+  const arOverdue    = arSentRows.filter(r => r.dueDate && r.dueDate < isoToday).length
+  const apBase       = sumBase(apApprovedRows)
+
+  // Current period VAT — call the report service if a period covers today
+  let vatPeriodInfo = null
+  if (currentTaxPeriod) {
+    try {
+      const taxPeriodSvc = require('../accounting/services/tax-period.service')
+      const report = await taxPeriodSvc.getVatReport(currentTaxPeriod.id, organizationId)
+      vatPeriodInfo = {
+        id:          currentTaxPeriod.id,
+        name:        currentTaxPeriod.name,
+        startDate:   currentTaxPeriod.startDate,
+        endDate:     currentTaxPeriod.endDate,
+        outputTax:   report.outputTax.total,
+        inputTax:    report.inputTax.total,
+        netPayable:  report.netPayable,
+      }
+    } catch (_) { /* missing CoA — fall back to null */ }
+  }
 
   return {
     products: {
@@ -106,6 +173,13 @@ const getStats = async () => {
     invoices: {
       sentCount: sentInvoiceCount,
       arAmount:  parseFloat(arAmount || 0),
+    },
+    finance: {
+      salesMtd:        salesMtdBase,
+      arOutstanding:   arBase,
+      arOverdueCount:  arOverdue,
+      apOutstanding:   apBase,
+      vatPeriod:       vatPeriodInfo,
     },
     draftJournals,
     pending: {

@@ -37,7 +37,89 @@
         </div>
       </div>
 
-      <!-- ── KPI Row 1: Sales & Finance ─────────────────────────────────────── -->
+      <!-- ── Finance Row: GL-backed metrics in base currency ─────────────────── -->
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+
+        <!-- Sales MTD -->
+        <RouterLink to="/erp/invoices"
+          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
+            <ArrowTrendingUpIcon class="w-5 h-5 text-emerald-600" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.salesMtd') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-24 bg-[#F1F5F9] rounded animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1 tabular-nums">{{ fmtCurrency(stats.finance?.salesMtd) }}</p>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.dashboard.salesMtdDesc') }}</p>
+          </div>
+        </RouterLink>
+
+        <!-- Outstanding AR -->
+        <RouterLink to="/erp/invoices?status=sent"
+          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group"
+          :class="(stats.finance?.arOverdueCount ?? 0) > 0 ? 'border-red-200 bg-red-50/30' : ''">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-90 transition-colors"
+            :class="(stats.finance?.arOverdueCount ?? 0) > 0 ? 'bg-red-100' : 'bg-blue-50'">
+            <CurrencyDollarIcon class="w-5 h-5" :class="(stats.finance?.arOverdueCount ?? 0) > 0 ? 'text-red-600' : 'text-blue-600'" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.outstandingAR') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-24 bg-[#F1F5F9] rounded animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1 tabular-nums">{{ fmtCurrency(stats.finance?.arOutstanding) }}</p>
+            <p class="text-xs text-[#9BA7B0] mt-1 flex items-center gap-1">
+              <span>{{ t('erp.dashboard.arDesc') }}</span>
+              <span v-if="(stats.finance?.arOverdueCount ?? 0) > 0"
+                class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-red-100 text-red-700 text-[10px] font-bold">
+                {{ stats.finance.arOverdueCount }} {{ t('erp.dashboard.overdue') }}
+              </span>
+            </p>
+          </div>
+        </RouterLink>
+
+        <!-- Outstanding AP -->
+        <RouterLink to="/erp/purchasing/bills"
+          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-amber-200 hover:shadow-md transition-all group">
+          <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
+            <BanknotesIcon class="w-5 h-5 text-amber-600" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.outstandingAP') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-24 bg-[#F1F5F9] rounded animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1 tabular-nums">{{ fmtCurrency(stats.finance?.apOutstanding) }}</p>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.dashboard.apDesc') }}</p>
+          </div>
+        </RouterLink>
+
+        <!-- This Period VAT -->
+        <RouterLink :to="stats.finance?.vatPeriod ? `/erp/accounting/tax-periods/${stats.finance.vatPeriod.id}/vat-report` : '/erp/accounting/tax-periods'"
+          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-slate-300 hover:shadow-md transition-all group">
+          <div class="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0 group-hover:bg-slate-100 transition-colors">
+            <DocumentChartBarIcon class="w-5 h-5 text-slate-700" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#637381]">
+              {{ t('erp.dashboard.periodVat') }}
+              <span v-if="stats.finance?.vatPeriod" class="text-[#9BA7B0]">· {{ stats.finance.vatPeriod.name }}</span>
+            </p>
+            <div v-if="loading" class="mt-1 h-7 w-20 bg-[#F1F5F9] rounded animate-pulse" />
+            <template v-else-if="stats.finance?.vatPeriod">
+              <p class="text-2xl font-extrabold leading-none mt-1 tabular-nums"
+                :class="stats.finance.vatPeriod.netPayable >= 0 ? 'text-[#1C2434]' : 'text-emerald-700'">
+                {{ fmtCurrency(Math.abs(stats.finance.vatPeriod.netPayable)) }}
+              </p>
+              <p class="text-xs text-[#9BA7B0] mt-1">
+                {{ stats.finance.vatPeriod.netPayable >= 0 ? t('erp.dashboard.vatPayable') : t('erp.dashboard.vatRefundable') }}
+              </p>
+            </template>
+            <template v-else>
+              <p class="text-sm font-medium text-[#9BA7B0] mt-1">{{ t('erp.dashboard.noOpenPeriod') }}</p>
+            </template>
+          </div>
+        </RouterLink>
+
+      </div>
+
+      <!-- ── KPI Row 1: Sales Pipeline ───────────────────────────────────────── -->
       <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 
         <!-- Open Quotations -->
@@ -88,23 +170,17 @@
           </div>
         </RouterLink>
 
-        <!-- Accounts Receivable -->
-        <RouterLink to="/erp/invoices"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group"
-          :class="(stats.invoices?.sentCount ?? 0) > 0 ? 'border-blue-100 bg-blue-50/20' : ''">
-          <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-90 transition-colors"
-            :class="(stats.invoices?.sentCount ?? 0) > 0 ? 'bg-blue-100' : 'bg-blue-50'">
-            <CurrencyDollarIcon class="w-5 h-5 text-blue-600" />
+        <!-- Sent invoice count (replaces legacy AR tile; the financial AR moved to the Finance row above) -->
+        <RouterLink to="/erp/invoices?status=sent"
+          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group">
+          <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+            <DocumentTextIcon class="w-5 h-5 text-blue-600" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.accountsReceivable') }}</p>
-            <div v-if="loading" class="mt-1 h-7 w-20 bg-[#F1F5F9] rounded animate-pulse" />
-            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1">
-              {{ fmtCurrency(stats.invoices?.arAmount) }}
-            </p>
-            <p class="text-xs text-[#9BA7B0] mt-1">
-              {{ stats.invoices?.sentCount ?? 0 }} {{ t('erp.dashboard.arDesc') }}
-            </p>
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.sentInvoices') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-12 bg-[#F1F5F9] rounded animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1">{{ stats.invoices?.sentCount ?? '—' }}</p>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.dashboard.sentInvoicesDesc') }}</p>
           </div>
         </RouterLink>
 
@@ -603,6 +679,7 @@ import {
   ArrowDownTrayIcon, ArrowUpTrayIcon, ArrowUturnLeftIcon, TagIcon,
   DocumentTextIcon, CurrencyDollarIcon, ClipboardDocumentListIcon,
   ShoppingBagIcon, PencilSquareIcon,
+  ArrowTrendingUpIcon, BanknotesIcon, DocumentChartBarIcon,
 } from '@heroicons/vue/24/outline'
 import api from '@/api'
 
