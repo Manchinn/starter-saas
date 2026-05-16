@@ -346,7 +346,7 @@ async function seedDemo(userId, orgId) {
     const qt1 = await Quotation.create(
       { refNo: 'QT-2026-0001', customerId: cCarol.id,
         quotationDate: '2026-04-10', validUntil: '2026-04-25',
-        subtotal: 269.96, taxRate: 7, tax: 18.90, total: 288.86,
+        subtotal: 279.96, taxRate: 7, tax: 19.60, total: 299.56,
         notes: 'Bulk order for office IT equipment', status: 'accepted',
         organizationId: orgId, createdBy: userId },
       { transaction: t },
@@ -359,7 +359,7 @@ async function seedDemo(userId, orgId) {
     const qt2 = await Quotation.create(
       { refNo: 'QT-2026-0002', customerId: cDavid.id,
         quotationDate: '2026-04-22', validUntil: '2026-05-06',
-        subtotal: 179.85, taxRate: 7, tax: 12.59, total: 192.44,
+        subtotal: 179.82, taxRate: 7, tax: 12.59, total: 192.41,
         notes: 'Monthly office supplies', status: 'sent',
         organizationId: orgId, createdBy: userId },
       { transaction: t },
@@ -372,7 +372,7 @@ async function seedDemo(userId, orgId) {
     const qt3 = await Quotation.create(
       { refNo: 'QT-2026-0003', customerId: cEva.id,
         quotationDate: '2026-05-02', validUntil: '2026-05-16',
-        subtotal: 74.97, taxRate: 7, tax: 5.25, total: 80.22,
+        subtotal: 74.99, taxRate: 7, tax: 5.25, total: 80.24,
         notes: 'Quick supply run', status: 'draft',
         organizationId: orgId, createdBy: userId },
       { transaction: t },
@@ -386,7 +386,7 @@ async function seedDemo(userId, orgId) {
     const so1 = await Order.create(
       { orderNumber: 'SO-2026-0001', customerId: cCarol.id,
         orderDate: '2026-04-12', status: 'delivered',
-        subtotal: 269.96, tax: 18.90, total: 288.86,
+        subtotal: 279.96, tax: 19.60, total: 299.56,
         notes: 'Converted from QT-2026-0001', organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
@@ -398,7 +398,7 @@ async function seedDemo(userId, orgId) {
     const so2 = await Order.create(
       { orderNumber: 'SO-2026-0002', customerId: cBob.id,
         orderDate: '2026-04-28', status: 'confirmed',
-        subtotal: 149.95, tax: 10.50, total: 160.45,
+        subtotal: 179.96, tax: 12.60, total: 192.56,
         notes: '', organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
@@ -429,8 +429,8 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await Promise.all([
-      DeliveryOrderItem.create({ deliveryOrderId: do1.id, productName: 'Mechanical Keyboard', qty: 2, organizationId: orgId }, { transaction: t }),
-      DeliveryOrderItem.create({ deliveryOrderId: do1.id, productName: 'USB-C Hub',           qty: 2, organizationId: orgId }, { transaction: t }),
+      DeliveryOrderItem.create({ deliveryOrderId: do1.id, productId: pKeyboard.id, productName: 'Mechanical Keyboard', qty: 2, organizationId: orgId }, { transaction: t }),
+      DeliveryOrderItem.create({ deliveryOrderId: do1.id, productId: pHub.id,      productName: 'USB-C Hub',           qty: 2, organizationId: orgId }, { transaction: t }),
     ])
 
     const do2 = await DeliveryOrder.create(
@@ -442,8 +442,8 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await Promise.all([
-      DeliveryOrderItem.create({ deliveryOrderId: do2.id, productName: 'Wireless Mouse',      qty: 3, organizationId: orgId }, { transaction: t }),
-      DeliveryOrderItem.create({ deliveryOrderId: do2.id, productName: 'Mechanical Keyboard', qty: 1, organizationId: orgId }, { transaction: t }),
+      DeliveryOrderItem.create({ deliveryOrderId: do2.id, productId: pMouse.id,    productName: 'Wireless Mouse',      qty: 3, organizationId: orgId }, { transaction: t }),
+      DeliveryOrderItem.create({ deliveryOrderId: do2.id, productId: pKeyboard.id, productName: 'Mechanical Keyboard', qty: 1, organizationId: orgId }, { transaction: t }),
     ])
 
     const do3 = await DeliveryOrder.create(
@@ -454,7 +454,7 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await DeliveryOrderItem.create(
-      { deliveryOrderId: do3.id, productName: 'USB-C Hub', qty: 2, organizationId: orgId },
+      { deliveryOrderId: do3.id, productId: pHub.id, productName: 'USB-C Hub', qty: 2, organizationId: orgId },
       { transaction: t },
     )
 
@@ -462,7 +462,7 @@ async function seedDemo(userId, orgId) {
     const inv1 = await Invoice.create(
       { invoiceNumber: 'INV-2026-0001', customerId: cAlice.id,
         invoiceDate: '2026-04-15', dueDate: '2026-05-15',
-        subtotal: 299.97, tax: 20.99, total: 320.96,
+        subtotal: 299.90, tax: 20.99, total: 320.89,
         status: 'sent', organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
@@ -487,7 +487,7 @@ async function seedDemo(userId, orgId) {
     const inv3 = await Invoice.create(
       { invoiceNumber: 'INV-2026-0003', customerId: cCarol.id,
         invoiceDate: '2026-04-14', dueDate: '2026-04-29',
-        subtotal: 269.96, tax: 18.90, total: 288.86,
+        subtotal: 279.96, tax: 19.60, total: 299.56,
         status: 'paid', organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
@@ -499,7 +499,7 @@ async function seedDemo(userId, orgId) {
     const inv4 = await Invoice.create(
       { invoiceNumber: 'INV-2026-0004', customerId: cBob.id,
         invoiceDate: '2026-05-06', dueDate: '2026-05-21',
-        subtotal: 149.95, tax: 10.50, total: 160.45,
+        subtotal: 179.96, tax: 12.60, total: 192.56,
         status: 'draft', organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
@@ -511,7 +511,7 @@ async function seedDemo(userId, orgId) {
     const inv5 = await Invoice.create(
       { invoiceNumber: 'INV-2026-0005', customerId: cDavid.id,
         invoiceDate: '2026-05-02', dueDate: '2026-06-01',
-        subtotal: 192.44, tax: 13.47, total: 205.91,
+        subtotal: 179.82, tax: 12.59, total: 192.41,
         status: 'sent', organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
@@ -579,7 +579,7 @@ async function seedDemo(userId, orgId) {
         customerId: cAlice.id,
         paymentMethod: 'Cash', reference: null,
         amount: Number(inv2.total),
-        notes: 'Partial payment on account',
+        notes: 'Cash payment received for INV-2026-0002 — pending confirmation',
         status: 'draft', organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
@@ -636,8 +636,8 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await Promise.all([
-      PurchaseOrderItem.create({ purchaseOrderId: po1.id, productId: pKeyboard.id, description: 'Mechanical Keyboard', qty: 10, unitPrice: 40.00, organizationId: orgId }, { transaction: t }),
-      PurchaseOrderItem.create({ purchaseOrderId: po1.id, productId: pHub.id,      description: 'USB-C Hub',          qty: 10, unitPrice: 20.00, organizationId: orgId }, { transaction: t }),
+      PurchaseOrderItem.create({ purchaseOrderId: po1.id, productId: pMouse.id, description: 'Wireless Mouse',   qty: 20, unitPrice: 12.00, organizationId: orgId }, { transaction: t }),
+      PurchaseOrderItem.create({ purchaseOrderId: po1.id, productId: pHub.id,   description: 'USB-C Hub (bulk)', qty: 10, unitPrice: 20.00, organizationId: orgId }, { transaction: t }),
     ])
     const po2 = await PurchaseOrder.create(
       { refNo: 'PO-2026-0002', date: '2026-05-05', deliveryDate: null,
@@ -873,39 +873,39 @@ async function seedDemo(userId, orgId) {
     const je4 = await Journal.create(
       { refNo: 'JE-2026-0004', date: '2026-04-14',
         description: 'Revenue recognition — INV-2026-0003 (Carol Davis)',
-        totalDebit: 288.86, status: 'posted',
+        totalDebit: 299.56, status: 'posted',
         organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
     await Promise.all([
-      JournalLine.create({ journalId: je4.id, lineNo: 1, accountId: accAR.id,    description: 'AR — Carol Davis',    debit: 288.86, credit: 0,      organizationId: orgId }, { transaction: t }),
-      JournalLine.create({ journalId: je4.id, lineNo: 2, accountId: accSales.id, description: 'Product sales',       debit: 0,      credit: 288.86, organizationId: orgId }, { transaction: t }),
+      JournalLine.create({ journalId: je4.id, lineNo: 1, accountId: accAR.id,    description: 'AR — Carol Davis',    debit: 299.56, credit: 0,      organizationId: orgId }, { transaction: t }),
+      JournalLine.create({ journalId: je4.id, lineNo: 2, accountId: accSales.id, description: 'Product sales',       debit: 0,      credit: 299.56, organizationId: orgId }, { transaction: t }),
     ])
 
     // JE-2026-0005: Apr 15 — Revenue recognition INV-2026-0001 (Alice, sent)
     const je5 = await Journal.create(
       { refNo: 'JE-2026-0005', date: '2026-04-15',
         description: 'Revenue recognition — INV-2026-0001 (Alice Johnson)',
-        totalDebit: 320.96, status: 'posted',
+        totalDebit: 320.89, status: 'posted',
         organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
     await Promise.all([
-      JournalLine.create({ journalId: je5.id, lineNo: 1, accountId: accAR.id,    description: 'AR — Alice Johnson', debit: 320.96, credit: 0,      organizationId: orgId }, { transaction: t }),
-      JournalLine.create({ journalId: je5.id, lineNo: 2, accountId: accSales.id, description: 'Product sales',      debit: 0,      credit: 320.96, organizationId: orgId }, { transaction: t }),
+      JournalLine.create({ journalId: je5.id, lineNo: 1, accountId: accAR.id,    description: 'AR — Alice Johnson', debit: 320.89, credit: 0,      organizationId: orgId }, { transaction: t }),
+      JournalLine.create({ journalId: je5.id, lineNo: 2, accountId: accSales.id, description: 'Product sales',      debit: 0,      credit: 320.89, organizationId: orgId }, { transaction: t }),
     ])
 
     // JE-2026-0006: Apr 25 — Payment received from Carol
     const je6 = await Journal.create(
       { refNo: 'JE-2026-0006', date: '2026-04-25',
         description: 'Payment received — RCP-2026-0001 (Carol Davis)',
-        totalDebit: 288.86, status: 'posted',
+        totalDebit: 299.56, status: 'posted',
         organizationId: orgId, createdBy: userId },
       { transaction: t },
     )
     await Promise.all([
-      JournalLine.create({ journalId: je6.id, lineNo: 1, accountId: accBank.id, description: 'Bank receipt',     debit: 288.86, credit: 0,      organizationId: orgId }, { transaction: t }),
-      JournalLine.create({ journalId: je6.id, lineNo: 2, accountId: accAR.id,   description: 'AR — Carol Davis', debit: 0,      credit: 288.86, organizationId: orgId }, { transaction: t }),
+      JournalLine.create({ journalId: je6.id, lineNo: 1, accountId: accBank.id, description: 'Bank receipt',     debit: 299.56, credit: 0,      organizationId: orgId }, { transaction: t }),
+      JournalLine.create({ journalId: je6.id, lineNo: 2, accountId: accAR.id,   description: 'AR — Carol Davis', debit: 0,      credit: 299.56, organizationId: orgId }, { transaction: t }),
     ])
 
     // JE-2026-0007: Apr 30 — COGS recognition April sales
