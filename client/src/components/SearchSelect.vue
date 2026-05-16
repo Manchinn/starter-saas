@@ -1,40 +1,44 @@
 <template>
-  <Multiselect
-    :model-value="selectedObject"
-    @update:model-value="onSelect"
-    :options="options"
-    :track-by="trackBy"
-    :label="labelKey"
-    :placeholder="placeholder || '— Select —'"
-    :searchable="true"
-    :allow-empty="allowEmpty"
-    :show-labels="false"
-    :disabled="disabled"
-    :loading="loading"
-    :group-values="groupValues || undefined"
-    :group-label="groupLabel || undefined"
-    :group-select="false"
-    :max-height="maxHeight"
-    :option-height="optionHeight"
-    open-direction="below"
-    :class="['ss', { 'ss--invalid': invalid }]"
-    :select-label="''"
-    :deselect-label="''"
-    :selected-label="''"
-  >
-    <template #noResult>{{ noResult || 'No results' }}</template>
-    <template #noOptions>{{ noOptions || 'No options' }}</template>
-    <template v-if="$slots.option" #option="props">
-      <slot name="option" v-bind="props" />
-    </template>
-    <template v-if="$slots.singleLabel" #singleLabel="props">
-      <slot name="singleLabel" v-bind="props" />
-    </template>
-  </Multiselect>
+  <div ref="hostEl" class="ss-host">
+    <Multiselect
+      :model-value="selectedObject"
+      @update:model-value="onSelect"
+      @open="onOpen"
+      @close="onClose"
+      :options="options"
+      :track-by="trackBy"
+      :label="labelKey"
+      :placeholder="placeholder || '— Select —'"
+      :searchable="true"
+      :allow-empty="allowEmpty"
+      :show-labels="false"
+      :disabled="disabled"
+      :loading="loading"
+      :group-values="groupValues || undefined"
+      :group-label="groupLabel || undefined"
+      :group-select="false"
+      :max-height="maxHeight"
+      :option-height="optionHeight"
+      open-direction="below"
+      :class="['ss', { 'ss--invalid': invalid }]"
+      :select-label="''"
+      :deselect-label="''"
+      :selected-label="''"
+    >
+      <template #noResult>{{ noResult || 'No results' }}</template>
+      <template #noOptions>{{ noOptions || 'No options' }}</template>
+      <template v-if="$slots.option" #option="props">
+        <slot name="option" v-bind="props" />
+      </template>
+      <template v-if="$slots.singleLabel" #singleLabel="props">
+        <slot name="singleLabel" v-bind="props" />
+      </template>
+    </Multiselect>
+  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, nextTick, onBeforeUnmount } from 'vue'
 import Multiselect from 'vue-multiselect'
 
 const props = defineProps({
@@ -51,11 +55,12 @@ const props = defineProps({
   noOptions:  { type: String, default: '' },
   groupValues:{ type: String, default: '' },
   groupLabel: { type: String, default: '' },
-  // Limit the popup height so only ~10 items show; the rest scrolls.
   maxHeight:  { type: Number, default: 320 }, // ~10 × 32px
   optionHeight: { type: Number, default: 32 },
 })
 const emit = defineEmits(['update:modelValue', 'change'])
+
+const hostEl = ref(null)
 
 const selectedObject = computed(() => {
   if (props.modelValue === '' || props.modelValue == null) return null
@@ -75,10 +80,63 @@ function onSelect(obj) {
   emit('update:modelValue', v)
   emit('change', v, obj)
 }
+
+// ─── Float the popup with position: fixed so it escapes any parent overflow ───
+let popupEl = null
+let triggerEl = null
+
+function findEls() {
+  if (!hostEl.value) return
+  popupEl   = hostEl.value.querySelector('.multiselect__content-wrapper')
+  triggerEl = hostEl.value.querySelector('.multiselect__tags')
+}
+
+function reposition() {
+  if (!popupEl || !triggerEl) findEls()
+  if (!popupEl || !triggerEl) return
+  const rect = triggerEl.getBoundingClientRect()
+  popupEl.style.position  = 'fixed'
+  popupEl.style.top       = `${rect.bottom}px`
+  popupEl.style.left      = `${rect.left}px`
+  popupEl.style.width     = `${rect.width}px`
+  popupEl.style.maxHeight = `${props.maxHeight}px`
+  popupEl.style.zIndex    = '9999'
+  popupEl.style.bottom    = 'auto'
+  // Flip upward if it would overflow the viewport
+  const popupHeight = Math.min(popupEl.scrollHeight || props.maxHeight, props.maxHeight)
+  if (rect.bottom + popupHeight > window.innerHeight - 8 && rect.top > popupHeight) {
+    popupEl.style.top = `${rect.top - popupHeight}px`
+  }
+}
+
+function onOpen() {
+  nextTick(() => {
+    reposition()
+    window.addEventListener('scroll', reposition, true)
+    window.addEventListener('resize', reposition)
+  })
+}
+
+function onClose() {
+  window.removeEventListener('scroll', reposition, true)
+  window.removeEventListener('resize', reposition)
+  if (popupEl) {
+    popupEl.style.position = ''
+    popupEl.style.top      = ''
+    popupEl.style.left     = ''
+    popupEl.style.width    = ''
+    popupEl.style.zIndex   = ''
+  }
+  popupEl = null
+  triggerEl = null
+}
+
+onBeforeUnmount(onClose)
 </script>
 
 <style src="vue-multiselect/dist/vue-multiselect.css"></style>
 <style scoped>
+.ss-host { position: relative; }
 /* Style overrides to match the existing form inputs */
 .ss :deep(.multiselect__tags) {
   border-color: #E2E8F0;
@@ -105,23 +163,11 @@ function onSelect(obj) {
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
   border-color: rgb(129 140 248);
 }
-/* Open downward, on top of everything else */
 .ss :deep(.multiselect__content-wrapper) {
-  z-index: 9999 !important;
-  position: absolute;
-  top: 100%;
-  bottom: auto;
-  border-top: 1px solid #E2E8F0;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-}
-/* When the multiselect is active, lift the whole control so its popup
-   sits above any sibling rows / sticky table headers */
-.ss.multiselect--active,
-.ss :deep(.multiselect.multiselect--active) {
-  z-index: 9999;
-  position: relative;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  background: white;
 }
 .ss--invalid :deep(.multiselect__tags) { border-color: #FCA5A5; background: #FEF2F2; }
 .ss :deep(.multiselect__select::before) { border-color: #9BA7B0 transparent transparent; }
