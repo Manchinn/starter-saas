@@ -885,6 +885,8 @@ export default {
       addItem:      'เพิ่มรายการ',
       addFirstItem: 'เพิ่มรายการแรก',
       saleItem:     'รายการขาย',
+      saleItems:    'รายการขาย',
+      salePackages: 'ชุดขาย',
       store:        'คลัง',
       description:  'คำอธิบาย',
       unitPrice:    'ราคาต่อหน่วย',

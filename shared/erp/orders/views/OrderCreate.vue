@@ -188,11 +188,16 @@
 
                 <div class="text-[12px] font-semibold text-[#CBD5E1] text-center select-none">{{ idx + 1 }}</div>
 
-                <select v-model="line.saleItemId" @change="onSaleItemChange(line)"
+                <select v-model="line.saleItemId" @change="onPickerChange(line, idx)"
                   class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] bg-white text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
                   <option value="">— Item —</option>
-                  <option v-for="si in saleItems" :key="si.id" :value="si.id">{{ si.name }}</option>
+                  <optgroup :label="t('erp.orders.saleItems')">
+                    <option v-for="si in saleItems" :key="si.id" :value="si.id">{{ si.name }}</option>
+                  </optgroup>
+                  <optgroup v-if="salePackages.length" :label="t('erp.orders.salePackages')">
+                    <option v-for="pkg in salePackages" :key="pkg.id" :value="pkg.id">📦 {{ pkg.name }}</option>
+                  </optgroup>
                 </select>
 
                 <div>
@@ -328,9 +333,10 @@ import { fmtMoney, toFixed } from '@/utils/fmt'
 
 const { t } = useI18n()
 const router    = useRouter()
-const customers = ref([])
-const saleItems = ref([])
-const stores    = ref([])
+const customers    = ref([])
+const saleItems    = ref([])
+const salePackages = ref([])
+const stores       = ref([])
 const globalError = ref('')
 const saving    = ref(false)
 const errors    = ref({})
@@ -343,14 +349,16 @@ const selectedCustomer = computed(() =>
 )
 
 onMounted(async () => {
-  const [customersRes, saleItemsRes, storesRes] = await Promise.allSettled([
-    api.get('/erp/customers', { params: { limit: 200 } }),
-    api.get('/erp/sale-items', { params: { limit: 500, status: 'active' } }),
-    api.get('/erp/stores', { params: { limit: 200 } }),
+  const [customersRes, saleItemsRes, salePackagesRes, storesRes] = await Promise.allSettled([
+    api.get('/erp/customers',     { params: { limit: 200 } }),
+    api.get('/erp/sale-items',    { params: { limit: 500, status: 'active' } }),
+    api.get('/erp/sale-packages', { params: { limit: 200, status: 'active' } }),
+    api.get('/erp/stores',        { params: { limit: 200 } }),
   ])
-  if (customersRes.status === 'fulfilled') customers.value = customersRes.value.data.data.customers
-  if (saleItemsRes.status === 'fulfilled') saleItems.value = saleItemsRes.value.data.data.items
-  if (storesRes.status === 'fulfilled')    stores.value    = storesRes.value.data.data.stores
+  if (customersRes.status    === 'fulfilled') customers.value    = customersRes.value.data.data.customers
+  if (saleItemsRes.status    === 'fulfilled') saleItems.value    = saleItemsRes.value.data.data.items
+  if (salePackagesRes.status === 'fulfilled') salePackages.value = salePackagesRes.value.data.data.items
+  if (storesRes.status       === 'fulfilled') stores.value       = storesRes.value.data.data.stores
 })
 
 function addLine() {
@@ -387,6 +395,52 @@ function onSaleItemChange(line) {
   line.hasProduct  = !!si.productId
   if (!line.hasProduct) line.storeId = ''
   applyPricing(line)
+}
+
+// Picker router: the dropdown lists both Sale Items and Sale Packages.
+// If the selected id matches a Sale Item, fill the line normally.
+// If it matches a Sale Package, fetch the package + replace the line with
+// N expanded lines (one per package item) using the package's override prices.
+async function onPickerChange(line, idx) {
+  const id = line.saleItemId
+  if (!id) { onSaleItemChange(line); return }
+  if (saleItems.value.some(s => s.id === id)) { onSaleItemChange(line); return }
+  if (salePackages.value.some(p => p.id === id)) {
+    await expandPackageInto(idx, id)
+  }
+}
+
+async function expandPackageInto(idx, packageId) {
+  try {
+    const { data } = await api.get(`/erp/sale-packages/${packageId}`)
+    const pkg = data.data.package
+    const customer = customers.value.find(c => c.id === form.value.customerId)
+    const expanded = (pkg.packageItems || []).map(pi => {
+      const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
+      const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
+      // Resolve price: package override > best sale-item pricing > 0
+      let unitPrice = pi.unitPrice != null ? Number(pi.unitPrice) : 0
+      if (!unitPrice) {
+        const siFull = saleItems.value.find(s => s.id === pi.saleItemId)
+        const pricing = siFull ? getBestPricing(siFull, customer?.customerGroupId) : null
+        if (pricing) unitPrice = Number(pricing.unitPrice)
+      }
+      return {
+        saleItemId:  pi.saleItemId,
+        storeId:     '',
+        hasProduct,
+        productName: `${si.name || 'Item'} (${pkg.code || pkg.name})`,
+        quantity:    Number(pi.quantity) || 1,
+        unitPrice,
+      }
+    })
+    if (expanded.length) form.value.items.splice(idx, 1, ...expanded)
+    else                 form.value.items.splice(idx, 1) // empty package → just drop the placeholder line
+  } catch (err) {
+    // On failure, reset the picker so the user can try again
+    form.value.items[idx].saleItemId = ''
+    onSaleItemChange(form.value.items[idx])
+  }
 }
 
 watch(() => form.value.customerId, () => {

@@ -896,6 +896,8 @@ export default {
       addItem:      'Add Item',
       addFirstItem: 'Add First Item',
       saleItem:     'Sale Item',
+      saleItems:    'Sale Items',
+      salePackages: 'Sale Packages',
       store:        'Store',
       description:  'Description',
       unitPrice:    'Unit Price',
