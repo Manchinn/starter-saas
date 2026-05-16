@@ -1,10 +1,25 @@
 <template>
-  <div class="inline-flex items-center gap-1.5">
-    <select :value="modelValue || baseCode" @change="onChange($event.target.value)"
-      class="px-2 py-1.5 border border-[#E2E8F0] rounded-lg text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-      <option v-for="c in options" :key="c.code" :value="c.code">{{ c.code }}</option>
-    </select>
-    <span v-if="showRate && rateNum !== 1" class="text-[11px] text-[#9BA7B0] tabular-nums">
+  <div class="inline-flex items-center gap-2">
+    <div class="w-28">
+      <SearchSelect
+        :model-value="modelValue || baseCode"
+        :options="options"
+        track-by="code"
+        label-key="code"
+        :allow-empty="false"
+        :placeholder="baseCode || '—'"
+        @update:model-value="onChange"
+      >
+        <template #option="{ option }">
+          <span class="font-mono font-semibold">{{ option.code }}</span>
+          <span v-if="option.name" class="text-[#9BA7B0]"> · {{ option.name }}</span>
+        </template>
+        <template #singleLabel="{ option }">
+          <span class="font-mono font-semibold">{{ option.code }}</span>
+        </template>
+      </SearchSelect>
+    </div>
+    <span v-if="showRate && rateNum !== 1 && baseCode" class="text-[11px] text-[#9BA7B0] tabular-nums whitespace-nowrap">
       @ {{ Number(rateNum).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }} {{ baseCode }}
     </span>
   </div>
@@ -13,6 +28,7 @@
 <script setup>
 import { computed, onMounted, watch } from 'vue'
 import { useCurrencies } from '@/composables/useCurrencies'
+import SearchSelect from '@/components/SearchSelect.vue'
 
 const props = defineProps({
   modelValue:   { type: String, default: '' },
@@ -36,11 +52,10 @@ async function refreshRate(code) {
 }
 
 async function onChange(code) {
-  emit('update:modelValue', code)
+  emit('update:modelValue', code || '')
   await refreshRate(code)
 }
 
-// When asOfDate changes and we have a non-base currency, refresh the rate
 watch(() => props.asOfDate, async (d) => {
   if (!d) return
   if (!props.modelValue || props.modelValue === baseCode.value) return
