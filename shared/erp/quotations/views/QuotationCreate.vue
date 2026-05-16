@@ -55,14 +55,10 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                   {{ t('erp.quotations.customer') }}
                 </label>
-                <select v-model="form.customerId"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="">— {{ t('erp.quotations.noCustomer') }} —</option>
-                  <option v-for="c in customers" :key="c.id" :value="c.id">
-                    {{ c.name }}{{ c.company ? ` · ${c.company}` : '' }}
-                  </option>
-                </select>
+                <SearchSelect v-model="form.customerId" :options="customers" :placeholder="`— ${t('erp.quotations.noCustomer')} —`">
+                  <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                </SearchSelect>
 
                 <!-- Customer chip -->
                 <div v-if="selectedCustomer"
@@ -196,12 +192,7 @@
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                          transition-colors placeholder-[#CBD5E1]" />
 
-                <select v-model="line.saleItemId" @change="onSaleItemChange(line)"
-                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="">—</option>
-                  <option v-for="si in saleItems" :key="si.id" :value="si.id">{{ si.name }}</option>
-                </select>
+                <SearchSelect v-model="line.saleItemId" :options="saleItems" placeholder="— Item —" @change="onSaleItemChange(line)" />
 
                 <input v-model.number="line.qty" type="number" min="0.001" step="any" @input="calcLine(line)"
                   class="w-full px-2 py-2 border border-[#E2E8F0] text-sm text-right text-[#1C2434] tabular-nums
@@ -316,6 +307,7 @@ import {
   CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 

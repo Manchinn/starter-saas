@@ -11,25 +11,25 @@
         </RouterLink>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2.5">
-            <h1 class="text-xl font-bold text-[#1C2434]">New Receipt</h1>
+            <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.receipts.new') }}</h1>
             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
                          bg-amber-50 text-amber-600 border border-amber-200">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              Draft
+              {{ t('erp.common.draft') }}
             </span>
           </div>
           <nav class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/receipts" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">Receipts</RouterLink>
+            <RouterLink to="/erp/receipts" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">{{ t('erp.receipts.title') }}</RouterLink>
             <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381]">Create</span>
+            <span class="text-[12px] text-[#637381]">{{ t('common.create') }}</span>
           </nav>
         </div>
         <div class="flex items-center gap-2.5 flex-shrink-0">
-          <RouterLink to="/erp/receipts" class="btn-secondary">Cancel</RouterLink>
+          <RouterLink to="/erp/receipts" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving" class="btn-primary gap-2">
             <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
             <CheckIcon v-else class="w-4 h-4" />
-            {{ saving ? 'Creating…' : 'Create Receipt' }}
+            {{ saving ? t('erp.common.creating') : t('erp.receipts.create') }}
           </button>
         </div>
       </div>
@@ -43,7 +43,7 @@
             <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
               <UserIcon class="w-4 h-4 text-primary-500" />
             </div>
-            <h2 class="text-sm font-semibold text-[#1C2434]">Customer & Receipt Info</h2>
+            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.receipts.info') }}</h2>
           </div>
           <div class="px-6 py-5">
             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
@@ -51,17 +51,12 @@
               <!-- Customer -->
               <div class="col-span-2">
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  Customer <span class="text-red-500 normal-case font-normal">*</span>
+                  {{ t('erp.common.customer') }} <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
-                <select v-model="form.customerId"
-                  :class="['w-full px-3.5 py-2.5 border text-sm bg-white transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.customerId ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']">
-                  <option value="">— Select customer —</option>
-                  <option v-for="c in customers" :key="c.id" :value="c.id">
-                    {{ c.name }}{{ c.company ? ` · ${c.company}` : '' }}
-                  </option>
-                </select>
+                <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
+                  <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                </SearchSelect>
                 <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
 
                 <!-- Customer chip -->
@@ -80,7 +75,7 @@
               <!-- Receipt Date -->
               <div>
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  Receipt Date <span class="text-red-500 normal-case font-normal">*</span>
+                  {{ t('erp.receipts.receiptDate') }} <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
                 <DateInput v-model="form.receiptDate"
                   :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
@@ -91,20 +86,16 @@
 
               <!-- Reference Invoice -->
               <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">Reference Invoice</label>
-                <select v-model="form.invoiceId"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="">— None —</option>
-                  <option v-for="inv in invoices" :key="inv.id" :value="inv.id">
-                    {{ inv.invoiceNumber }} · {{ fmtMoney(inv.total) }}
-                  </option>
-                </select>
+                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.receipts.referenceInvoice') }}</label>
+                <SearchSelect v-model="form.invoiceId" :options="invoices" label-key="invoiceNumber" placeholder="— None —">
+                  <template #option="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
+                  <template #singleLabel="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
+                </SearchSelect>
               </div>
 
               <!-- Notes -->
               <div class="col-span-2">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">Notes</label>
+                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.common.notes') }}</label>
                 <textarea v-model="form.notes" rows="2" placeholder="Additional notes…"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
@@ -121,7 +112,7 @@
             <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
               <BanknotesIcon class="w-4 h-4 text-green-600" />
             </div>
-            <h2 class="text-sm font-semibold text-[#1C2434]">Payment</h2>
+            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.receipts.paymentMethod') }}</h2>
           </div>
           <div class="px-6 py-5">
             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
@@ -129,7 +120,7 @@
               <!-- Payment Method -->
               <div>
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  Payment Method <span class="text-red-500 normal-case font-normal">*</span>
+                  {{ t('erp.receipts.paymentMethod') }} <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
                 <select v-model="form.paymentMethod"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
@@ -142,7 +133,7 @@
               <!-- Amount -->
               <div>
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  Amount Received <span class="text-red-500 normal-case font-normal">*</span>
+                  {{ t('erp.receipts.amountReceived') }} <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
                 <input v-model.number="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
                   :class="['w-full px-3.5 py-2.5 border text-sm text-right tabular-nums transition-colors',
@@ -154,7 +145,7 @@
               <!-- Reference No. -->
               <div class="col-span-2">
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  Reference No.
+                  {{ t('erp.receipts.referenceNo') }}
                 </label>
                 <input v-model="form.reference" type="text" placeholder="Cheque no., transfer ref…"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
@@ -178,20 +169,20 @@
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
             <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
-            <h2 class="text-sm font-semibold text-[#1C2434]">Receipt Summary</h2>
+            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.receipts.receiptSummary') }}</h2>
           </div>
 
           <div class="px-6 py-4 grid grid-cols-3 gap-4">
             <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Customer</span>
+              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.customer') }}</span>
               <span class="text-sm font-semibold text-[#1C2434] truncate">{{ selectedCustomer?.name || '—' }}</span>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Method</span>
+              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.receipts.colMethod') }}</span>
               <span class="text-sm font-semibold text-[#1C2434]">{{ methodLabel(form.paymentMethod) }}</span>
             </div>
             <div v-if="form.invoiceId" class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Invoice</span>
+              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.receipts.referenceInvoice') }}</span>
               <span class="text-sm font-semibold text-[#1C2434] font-mono">
                 {{ invoices.find(i => i.id === form.invoiceId)?.invoiceNumber || '—' }}
               </span>
@@ -200,13 +191,13 @@
 
           <div class="px-6 py-5 bg-[#F7F9FC] border-t border-[#E2E8F0] flex items-center justify-between">
             <div>
-              <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">Amount Received</p>
+              <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.receipts.amountReceived') }}</p>
               <p class="text-3xl font-extrabold text-primary-500 tabular-nums">{{ fmtMoney(form.amount || 0) }}</p>
             </div>
             <div class="flex items-center gap-3">
               <RouterLink to="/erp/receipts"
                 class="px-5 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
-                Discard
+                {{ t('common.discard') }}
               </RouterLink>
               <button @click="save" :disabled="saving"
                 class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold
@@ -214,7 +205,7 @@
                        disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
                 <CheckIcon v-else class="w-4 h-4" />
-                {{ saving ? 'Creating…' : 'Create Receipt' }}
+                {{ saving ? t('erp.common.creating') : t('erp.receipts.create') }}
               </button>
             </div>
           </div>
@@ -228,15 +219,18 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   ArrowLeftIcon, ChevronRightIcon, CheckIcon, ExclamationCircleIcon,
   ArrowPathIcon, UserIcon, BanknotesIcon, CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { useMasterDataStore } from '@/stores/masterData'
 
+const { t } = useI18n()
 const router           = useRouter()
 const masterDataStore  = useMasterDataStore()
 const customers        = ref([])
@@ -281,9 +275,9 @@ function methodLabel(m) {
 
 function validate() {
   const e = {}
-  if (!form.value.customerId)                       e.customerId  = 'Customer is required'
-  if (!form.value.receiptDate)                      e.receiptDate = 'Receipt date is required'
-  if (!form.value.amount || form.value.amount <= 0) e.amount      = 'Amount must be greater than zero'
+  if (!form.value.customerId)                       e.customerId  = t('erp.receipts.customerRequired')
+  if (!form.value.receiptDate)                      e.receiptDate = t('erp.receipts.dateRequired')
+  if (!form.value.amount || form.value.amount <= 0) e.amount      = t('erp.receipts.amountRequired')
   errors.value = e
   return Object.keys(e).length === 0
 }

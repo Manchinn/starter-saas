@@ -53,15 +53,10 @@
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                 {{ t('erp.orders.customer') }} <span class="text-red-400 normal-case font-normal ml-0.5">*</span>
               </label>
-              <select v-model="form.customerId"
-                :class="['w-full px-3.5 py-2.5 border text-[13px] bg-white transition-all',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.customerId ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']">
-                <option value="">— Select customer —</option>
-                <option v-for="c in customers" :key="c.id" :value="c.id">
-                  {{ c.name }}{{ c.company ? ` · ${c.company}` : '' }}
-                </option>
-              </select>
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+              </SearchSelect>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
 
               <!-- Customer chip -->
@@ -201,13 +196,7 @@
                 </select>
 
                 <div>
-                  <select v-if="line.hasProduct" v-model="line.storeId"
-                    :class="['w-full px-2.5 py-2 border text-[13px] bg-white transition-all',
-                             'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                             line.hasProduct && !line.storeId ? 'border-amber-300 bg-amber-50/40' : 'border-[#E2E8F0] text-[#1C2434]']">
-                    <option value="">— Store —</option>
-                    <option v-for="st in stores" :key="st.id" :value="st.id">{{ st.name }}</option>
-                  </select>
+                  <SearchSelect v-if="line.hasProduct" v-model="line.storeId" :options="stores" :invalid="line.hasProduct && !line.storeId" placeholder="— Store —" />
                   <div v-else class="flex items-center justify-center h-9">
                     <span class="text-[12px] text-[#CBD5E1]">—</span>
                   </div>
@@ -328,6 +317,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 

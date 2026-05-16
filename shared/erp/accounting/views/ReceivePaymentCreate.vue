@@ -52,15 +52,10 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                   Customer <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
-                <select v-model="form.customerId" @change="onCustomerChange"
-                  :class="['w-full px-3.5 py-2.5 border text-sm bg-white transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.customerId ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']">
-                  <option value="">— Select customer —</option>
-                  <option v-for="c in customers" :key="c.id" :value="c.id">
-                    {{ c.name }}{{ c.company ? ` · ${c.company}` : '' }}
-                  </option>
-                </select>
+                <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+                  <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                </SearchSelect>
                 <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
               </div>
 
@@ -258,6 +253,7 @@ import {
   BanknotesIcon, ArrowPathIcon, ClipboardDocumentListIcon, CalculatorIcon, UserIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
