@@ -26,6 +26,7 @@ const {
   Pricing,
   PurchaseRequisition, PurchaseRequisitionItem,
   PurchaseOrder, PurchaseOrderItem,
+  Currency, ExchangeRate,
 } = require('../../../server/models')
 const sequelize = require('../../../server/config/database')
 
@@ -41,6 +42,19 @@ async function seedDemo(userId, orgId) {
       UOM.create({ name: 'Kilogram', abbreviation: 'kg',   createdBy: userId, organizationId: orgId }, { transaction: t }),
       UOM.create({ name: 'Liter',    abbreviation: 'L',    createdBy: userId, organizationId: orgId }, { transaction: t }),
       UOM.create({ name: 'Box',      abbreviation: 'box',  createdBy: userId, organizationId: orgId }, { transaction: t }),
+    ])
+
+    // ── Currencies & Exchange Rates ────────────────────────────────────────
+    await Promise.all([
+      Currency.create({ code: 'THB', name: 'Thai Baht', symbol: '฿', decimals: 2, isBase: true,  isActive: true, organizationId: orgId, createdBy: userId }, { transaction: t }),
+      Currency.create({ code: 'USD', name: 'US Dollar', symbol: '$', decimals: 2, isBase: false, isActive: true, organizationId: orgId, createdBy: userId }, { transaction: t }),
+      Currency.create({ code: 'EUR', name: 'Euro',      symbol: '€', decimals: 2, isBase: false, isActive: true, organizationId: orgId, createdBy: userId }, { transaction: t }),
+    ])
+    await Promise.all([
+      ExchangeRate.create({ currencyCode: 'USD', rate: 35.50, asOfDate: '2026-01-01', source: 'manual', notes: 'Opening rate FY2026', organizationId: orgId, createdBy: userId }, { transaction: t }),
+      ExchangeRate.create({ currencyCode: 'USD', rate: 36.20, asOfDate: '2026-05-01', source: 'manual', notes: 'May 2026 mid-market', organizationId: orgId, createdBy: userId }, { transaction: t }),
+      ExchangeRate.create({ currencyCode: 'EUR', rate: 38.40, asOfDate: '2026-01-01', source: 'manual', notes: 'Opening rate FY2026', organizationId: orgId, createdBy: userId }, { transaction: t }),
+      ExchangeRate.create({ currencyCode: 'EUR', rate: 39.10, asOfDate: '2026-05-01', source: 'manual', notes: 'May 2026 mid-market', organizationId: orgId, createdBy: userId }, { transaction: t }),
     ])
 
     // ── Product Categories ───────────────────────────────────────────────────
@@ -1005,6 +1019,7 @@ async function resetAll() {
       MasterDataValue: MDValue, MasterDataCategory: MDCategory,
       ChartOfAccount,
       FiscalYear,
+      Currency, ExchangeRate,
     } = require('../../../server/models')
 
     // Delete in dependency order (leaf → root)
@@ -1038,6 +1053,7 @@ async function resetAll() {
       MDValue, MDCategory,
       ChartOfAccount,
       FiscalYear,
+      ExchangeRate, Currency,
     ]
 
     for (const Model of ordered) {

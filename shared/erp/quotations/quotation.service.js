@@ -58,11 +58,13 @@ function lineTotal(item) {
   return toFixed(parseFloat(item.qty) * parseFloat(item.unitPrice) * (1 - disc / 100), 2)
 }
 
-const create = async ({ customerId, quotationDate, validUntil, notes, taxRate = 0, items = [], userId, organizationId }) => {
+const create = async ({ customerId, quotationDate, validUntil, notes, taxRate = 0, items = [], currency, exchangeRate, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Quotation must have at least one item' }
 
   const refNo = await getNext('QT', null)
   const { subtotal, tax, total } = calcTotals(items, taxRate)
+  const fx = await require('../settings/currency.service').getRateOn(currency, quotationDate, organizationId)
+  const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
   await sequelize.transaction(async (t) => {
@@ -73,6 +75,8 @@ const create = async ({ customerId, quotationDate, validUntil, notes, taxRate = 
       validUntil:    validUntil   || null,
       notes,
       subtotal, taxRate, tax, total,
+      currency:      currency || null,
+      exchangeRate:  resolvedRate,
       organizationId: organizationId || null,
       createdBy: userId || null, modifiedBy: userId || null,
     }, { transaction: t })

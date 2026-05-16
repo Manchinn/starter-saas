@@ -68,7 +68,7 @@ const availableInvoices = async ({ customerId, organizationId }) => {
 }
 
 // โ”€โ”€ Create โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
-const create = async ({ date, dueDate, customerId, notes, invoiceIds = [], userId, organizationId }) => {
+const create = async ({ date, dueDate, customerId, notes, invoiceIds = [], currency, exchangeRate, userId, organizationId }) => {
   if (!customerId)       throw { status: 400, message: 'Customer is required' }
   if (!date)             throw { status: 400, message: 'Date is required' }
   if (!invoiceIds.length) throw { status: 400, message: 'Select at least one invoice' }
@@ -81,12 +81,15 @@ const create = async ({ date, dueDate, customerId, notes, invoiceIds = [], userI
 
   const total  = invoices.reduce((s, inv) => s + Number(inv.total), 0)
   const refNo  = await nextRefNo(userId)
+  const fx = await require('../../settings/currency.service').getRateOn(currency, date, organizationId)
+  const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   const t = await sequelize.transaction()
   try {
     const bn = await BillingNote.create(
       { refNo, date, dueDate: dueDate || null, customerId, notes: notes || null,
-        total, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null },
+        total, currency: currency || null, exchangeRate: resolvedRate,
+        organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null },
       { transaction: t },
     )
     for (const inv of invoices) {

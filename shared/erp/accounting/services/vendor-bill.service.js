@@ -44,12 +44,14 @@ const getById = async (id) => {
   return bill
 }
 
-const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceNo, billDate, dueDate, notes, items = [], taxRate = 0, userId, organizationId }) => {
+const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceNo, billDate, dueDate, notes, items = [], taxRate = 0, currency, exchangeRate, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Bill must have at least one item' }
   const billNumber = await generateBillNumber()
   const subtotal = items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.unitPrice || 0), 0)
   const tax   = toFixed(subtotal * (Number(taxRate) / 100), 2)
   const total = toFixed(subtotal + tax, 2)
+  const fx = await require('../../settings/currency.service').getRateOn(currency, billDate, organizationId)
+  const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
   await sequelize.transaction(async (t) => {
@@ -63,6 +65,8 @@ const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceN
       dueDate:         dueDate || null,
       notes:           notes || null,
       subtotal, tax, total,
+      currency:        currency || null,
+      exchangeRate:    resolvedRate,
       organizationId:  organizationId || null,
       createdBy:       userId || null,
       modifiedBy:      userId || null,

@@ -44,6 +44,7 @@ const vendorBillRouter            = require('./accounting/routes/vendor-bill.rou
 const approvalThresholdRouter     = require('./settings/approval-threshold.routes')
 const attachmentRouter            = require('./attachments/attachment.routes')
 const auditLogRouter              = require('./audit/audit.routes')
+const currencyRouter              = require('./settings/currency.routes')
 
 module.exports = defineModule({
   slug: 'erp',
@@ -74,6 +75,7 @@ module.exports = defineModule({
     'erp.purchasing.approve',
     'erp.thresholds.list', 'erp.thresholds.edit',
     'erp.audit.list',
+    'erp.currencies.list', 'erp.currencies.edit',
   ],
   meta: { mountPath: '/api/erp' },
   register(app) {
@@ -122,5 +124,6 @@ module.exports = defineModule({
     app.use('/api/erp/settings/approval-thresholds', approvalThresholdRouter)
     app.use('/api/erp/attachments',                  attachmentRouter)
     app.use('/api/erp/audit-log',                    auditLogRouter)
+    app.use('/api/erp/settings/currencies',          currencyRouter)
   },
 })

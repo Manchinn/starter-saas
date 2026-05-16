@@ -78,6 +78,8 @@ const Setting            = require('./settings/models/setting.model')
 const MasterDataCategory = require('./settings/models/master-data-category.model')
 const MasterDataValue    = require('./settings/models/master-data-value.model')
 const ApprovalThreshold  = require('./settings/models/approval-threshold.model')
+const Currency           = require('./settings/models/currency.model')
+const ExchangeRate       = require('./settings/models/exchange-rate.model')
 const Attachment         = require('./attachments/models/attachment.model')
 const AuditLog           = require('./audit/models/audit-log.model')
 
@@ -126,6 +128,7 @@ const erpModels = {
   Sequence, Setting,
   MasterDataCategory, MasterDataValue,
   ApprovalThreshold,
+  Currency, ExchangeRate,
   Attachment,
   AuditLog,
   Employee, Department, EmployeeDepartment,

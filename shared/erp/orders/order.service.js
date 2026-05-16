@@ -46,18 +46,20 @@ const getById = async (id) => {
   return json
 }
 
-const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0, userId, organizationId }) => {
+const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0, currency, exchangeRate, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Order must have at least one item' }
 
   const orderNumber = await generateOrderNumber()
   const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
   const tax   = toFixed(subtotal * (taxRate / 100), 2)
   const total = toFixed(subtotal + tax, 2)
+  const fx = await require('../settings/currency.service').getRateOn(currency, orderDate, organizationId)
+  const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
   await sequelize.transaction(async (t) => {
     const order = await Order.create(
-      { orderNumber, customerId: customerId || null, orderDate: orderDate || new Date(), notes, subtotal, tax, total, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null },
+      { orderNumber, customerId: customerId || null, orderDate: orderDate || new Date(), notes, subtotal, tax, total, currency: currency || null, exchangeRate: resolvedRate, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null },
       { transaction: t }
     )
     createdId = order.id

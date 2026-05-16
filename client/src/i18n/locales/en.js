@@ -120,6 +120,7 @@ export default {
     vendorBills:       'Vendor Bills',
     approvalThresholds:'Approval Thresholds',
     auditLog:          'Audit Log',
+    currencies:        'Currencies',
   },
 
   // ── Auth pages ─────────────────────────────────────────────────────────────
@@ -427,6 +428,7 @@ export default {
       activeFrom:   'Active From',
       activeTo:     'Active To',
       source:       'Source',
+      currency:     'Currency',
       batchId:      'Batch / Lot',
       batchPh:      'Batch #',
       expiryDate:   'Expiry',
@@ -1784,6 +1786,29 @@ export default {
       dateRequired:       'Date is required',
       methodRequired:     'Payment method is required',
       invoicesRequired:   'Select at least one invoice',
+    },
+
+    currencies: {
+      title:         'Currencies & Exchange Rates',
+      subtitle:      'Define the base currency and exchange rates used to value foreign-currency documents.',
+      currencies:    'Currencies',
+      exchangeRates: 'Exchange Rates',
+      ratesHint:     '1 unit of currency × rate = value in {base}',
+      addCurrency:   'Add Currency',
+      addRate:       'Add Rate',
+      noCurrencies:  'No currencies defined yet',
+      noRates:       'No rates defined yet',
+      colCode:       'Code',
+      colName:       'Name',
+      colSymbol:     'Symbol',
+      colDecimals:   'Decimals',
+      colBase:       'Base',
+      colActive:     'Active',
+      colCurrency:   'Currency',
+      colAsOf:       'As of date',
+      colRate:       'Rate',
+      colNotes:      'Notes',
+      notesPh:       'e.g. mid-market rate from XYZ source',
     },
 
     audit: {

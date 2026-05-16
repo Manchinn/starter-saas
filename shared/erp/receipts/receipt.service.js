@@ -34,10 +34,12 @@ const getById = async (id) => {
   return receipt
 }
 
-const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes, userId, organizationId }) => {
+const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes, currency, exchangeRate, userId, organizationId }) => {
   if (!amount || amount <= 0) throw { status: 400, message: 'Amount must be greater than zero' }
 
   const receiptNumber = await generateReceiptNumber()
+  const fx = await require('../settings/currency.service').getRateOn(currency, receiptDate, organizationId)
+  const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   const receipt = await Receipt.create({
     receiptNumber,
@@ -48,6 +50,8 @@ const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amoun
     amount,
     reference:     reference     || null,
     notes:         notes         || null,
+    currency:      currency || null,
+    exchangeRate:  resolvedRate,
     organizationId: organizationId || null,
     createdBy: userId || null, modifiedBy: userId || null,
   })

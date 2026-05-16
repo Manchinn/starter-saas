@@ -54,7 +54,7 @@ const getById = async (id) => {
   return json
 }
 
-const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, items = [], userId, organizationId }) => {
+const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, items = [], currency, exchangeRate, userId, organizationId }) => {
   if (!date)     throw { status: 400, message: 'Date is required' }
   if (!vendorId) throw { status: 400, message: 'Vendor is required' }
   if (!items.length) throw { status: 400, message: 'At least one item is required' }
@@ -63,11 +63,14 @@ const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, item
   if (!vendor) throw { status: 400, message: 'Vendor not found' }
 
   const refNo = await nextRefNo(userId)
+  const fx = await require('../settings/currency.service').getRateOn(currency, date, organizationId)
+  const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   const t = await sequelize.transaction()
   try {
     const po = await PurchaseOrder.create(
       { refNo, date, deliveryDate: deliveryDate || null, vendorId,
         requisitionId: requisitionId || null, notes: notes || null,
+        currency: currency || null, exchangeRate: resolvedRate,
         organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null },
       { transaction: t },
     )

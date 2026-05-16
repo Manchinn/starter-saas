@@ -120,6 +120,7 @@ export default {
     vendorBills:       'ใบวางบิลผู้ขาย',
     approvalThresholds:'เกณฑ์การอนุมัติ',
     auditLog:          'บันทึกการตรวจสอบ',
+    currencies:        'สกุลเงิน',
   },
 
   // ── Auth pages ─────────────────────────────────────────────────────────────
@@ -427,6 +428,7 @@ export default {
       activeFrom:    'วันที่เริ่มใช้งาน',
       activeTo:      'วันที่สิ้นสุด',
       source:        'ที่มา',
+      currency:      'สกุลเงิน',
       batchId:       'ล็อต / แบตช์',
       batchPh:       'เลขล็อต',
       expiryDate:    'วันหมดอายุ',
@@ -1786,6 +1788,29 @@ export default {
       dateRequired:       'กรุณาระบุวันที่',
       methodRequired:     'กรุณาเลือกวิธีชำระ',
       invoicesRequired:   'กรุณาเลือกอย่างน้อย 1 ใบแจ้งหนี้',
+    },
+
+    currencies: {
+      title:         'สกุลเงินและอัตราแลกเปลี่ยน',
+      subtitle:      'กำหนดสกุลเงินหลักและอัตราแลกเปลี่ยนสำหรับเอกสารสกุลต่างประเทศ',
+      currencies:    'สกุลเงิน',
+      exchangeRates: 'อัตราแลกเปลี่ยน',
+      ratesHint:     '1 หน่วยสกุล × อัตรา = มูลค่าใน {base}',
+      addCurrency:   'เพิ่มสกุลเงิน',
+      addRate:       'เพิ่มอัตรา',
+      noCurrencies:  'ยังไม่มีสกุลเงิน',
+      noRates:       'ยังไม่มีอัตราแลกเปลี่ยน',
+      colCode:       'รหัส',
+      colName:       'ชื่อ',
+      colSymbol:     'สัญลักษณ์',
+      colDecimals:   'ทศนิยม',
+      colBase:       'หลัก',
+      colActive:     'ใช้งาน',
+      colCurrency:   'สกุลเงิน',
+      colAsOf:       'วันที่อ้างอิง',
+      colRate:       'อัตรา',
+      colNotes:      'หมายเหตุ',
+      notesPh:       'เช่น อัตรากลาง จาก XYZ',
     },
 
     audit: {

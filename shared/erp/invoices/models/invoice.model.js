@@ -53,6 +53,8 @@ const Invoice = sequelize.define('Invoice', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  currency:       { type: DataTypes.STRING(3), allowNull: true },
+  exchangeRate:   { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 },
   organizationId: { type: DataTypes.UUID, allowNull: true },
   dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
   createdBy:  { type: DataTypes.UUID, allowNull: true },

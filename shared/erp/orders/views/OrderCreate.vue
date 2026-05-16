@@ -108,6 +108,12 @@
               </div>
             </div>
 
+            <!-- Currency -->
+            <div>
+              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.common.currency') }}</label>
+              <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.orderDate" />
+            </div>
+
             <!-- Notes -->
             <div class="col-span-2">
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
@@ -316,6 +322,7 @@ import {
   CalculatorIcon, LightBulbIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import CurrencySelector from '@/components/CurrencySelector.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 
@@ -329,7 +336,7 @@ const saving    = ref(false)
 const errors    = ref({})
 
 const today = new Date().toISOString().slice(0, 10)
-const form  = ref({ customerId: '', orderDate: today, taxRate: 0, notes: '', items: [] })
+const form  = ref({ customerId: '', orderDate: today, taxRate: 0, currency: '', exchangeRate: 1, notes: '', items: [] })
 
 const selectedCustomer = computed(() =>
   form.value.customerId ? customers.value.find(c => c.id === form.value.customerId) : null
