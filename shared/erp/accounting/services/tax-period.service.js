@@ -107,4 +107,85 @@ const assertOpen = async (date, organizationId) => {
   }
 }
 
-module.exports = { list, getById, create, update, close, reopen, remove, assertOpen }
+// ── VAT Report ────────────────────────────────────────────────────────────────
+/**
+ * For a given tax period, sum posted journal lines on Output Tax (2140) and
+ * Input Tax (1160). Returns totals + per-line breakdown + net VAT payable.
+ *
+ * Output VAT (liability, credit balance): amount = credit − debit (reversals subtract)
+ * Input  VAT (asset, debit balance):       amount = debit − credit
+ */
+const getVatReport = async (periodId, organizationId) => {
+  const period = await getById(periodId)
+  const { Journal, JournalLine, ChartOfAccount } = require('../../../../server/models')
+  const accountsSvc = require('./account-mapping.service')
+
+  const outputAcc = await accountsSvc.getByCode('2140', organizationId)
+  const inputAcc  = await accountsSvc.getByCode('1160', organizationId)
+  const accountIds = [outputAcc?.id, inputAcc?.id].filter(Boolean)
+  if (!accountIds.length) {
+    return {
+      period,
+      outputTax: { total: 0, lines: [] },
+      inputTax:  { total: 0, lines: [] },
+      netPayable: 0,
+      message: 'Output/Input Tax accounts (2140/1160) are not configured. Add them to Chart of Accounts to enable VAT reports.',
+    }
+  }
+
+  const lines = await JournalLine.findAll({
+    where: { accountId: accountIds, organizationId: organizationId || null },
+    include: [
+      {
+        model: Journal,
+        as: 'journal',
+        where: {
+          status: 'posted',
+          organizationId: organizationId || null,
+          dataFlag: { [Op.ne]: 2 },
+          date: { [Op.between]: [period.startDate, period.endDate] },
+        },
+        required: true,
+      },
+      { model: ChartOfAccount, as: 'account', attributes: ['id', 'code', 'name'] },
+    ],
+    order: [[{ model: Journal, as: 'journal' }, 'date', 'ASC']],
+  })
+
+  const out = { total: 0, lines: [] }
+  const inp = { total: 0, lines: [] }
+  for (const l of lines) {
+    const debit  = Number(l.debit)  || 0
+    const credit = Number(l.credit) || 0
+    const row = {
+      id:           l.id,
+      journalId:    l.journalId,
+      journalRefNo: l.journal?.refNo,
+      journalDate:  l.journal?.date,
+      description:  l.description,
+      sourceType:   l.journal?.sourceType,
+      sourceId:     l.journal?.sourceId,
+      debit, credit,
+    }
+    if (l.accountId === outputAcc?.id) {
+      const amount = credit - debit
+      row.amount = amount
+      out.total += amount
+      out.lines.push(row)
+    } else if (l.accountId === inputAcc?.id) {
+      const amount = debit - credit
+      row.amount = amount
+      inp.total += amount
+      inp.lines.push(row)
+    }
+  }
+
+  return {
+    period,
+    outputTax: out,
+    inputTax:  inp,
+    netPayable: out.total - inp.total,
+  }
+}
+
+module.exports = { list, getById, create, update, close, reopen, remove, assertOpen, getVatReport }

@@ -505,6 +505,12 @@ export default {
       component: () => import('./accounting/views/TaxPeriodsManage.vue'),
       meta: { requiresAuth: true, title: 'Tax Periods' },
     },
+    {
+      path: '/erp/accounting/tax-periods/:id/vat-report',
+      name: 'erp-accounting-vat-report',
+      component: () => import('./accounting/views/VatReport.vue'),
+      meta: { requiresAuth: true, title: 'VAT Report' },
+    },
     // Settings: Sequence Numbers
     {
       path: '/erp/settings/sequence',

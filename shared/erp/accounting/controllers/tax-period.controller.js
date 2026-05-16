@@ -41,4 +41,9 @@ const remove = async (req, res, next) => {
   catch (err) { handleErr(err, res, next) }
 }
 
-module.exports = { list, getById, create, update, close, reopen, remove }
+const vatReport = async (req, res, next) => {
+  try { res.json({ data: await svc.getVatReport(req.params.id, orgFrom(req)) }) }
+  catch (err) { handleErr(err, res, next) }
+}
+
+module.exports = { list, getById, create, update, close, reopen, remove, vatReport }

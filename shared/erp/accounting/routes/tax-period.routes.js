@@ -8,6 +8,7 @@ router.use(authenticate)
 
 router.get('/',             requirePermission('erp.tax-periods.list'), c.list)
 router.get('/:id',          requirePermission('erp.tax-periods.list'), c.getById)
+router.get('/:id/vat-report', requirePermission('erp.tax-periods.list'), c.vatReport)
 router.post('/',            requirePermission('erp.tax-periods.edit'), c.create)
 router.put('/:id',          requirePermission('erp.tax-periods.edit'), c.update)
 router.post('/:id/close',   requirePermission('erp.tax-periods.edit'), c.close)
