@@ -43,7 +43,15 @@ const getById = async (id) => {
     ],
   })
   if (!po) throw { status: 404, message: 'Purchase Order not found' }
-  return po
+
+  const { GoodReceive } = require('../../../server/models')
+  const linkedGR = await GoodReceive.findOne({
+    where: { purchaseOrderId: id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'refNo', 'status'],
+  })
+  const json = po.toJSON()
+  json.linkedGoodReceive = linkedGR
+  return json
 }
 
 const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, items = [], userId, organizationId }) => {
@@ -134,6 +142,13 @@ const createGoodReceive = async (id, userId, organizationId, { storeId } = {}) =
   }
   const productItems = po.items.filter(i => i.productId)
   if (!productItems.length) throw { status: 400, message: 'Purchase order has no product items to receive' }
+
+  const { GoodReceive } = require('../../../server/models')
+  const existing = await GoodReceive.findOne({
+    where: { purchaseOrderId: po.id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'refNo'],
+  })
+  if (existing) throw { status: 400, message: `Good Receive ${existing.refNo} already exists for this purchase order. Delete it first to create a new one.` }
 
   // Pick a store: caller-supplied wins, else fall back to first active Store
   let resolvedStoreId = storeId

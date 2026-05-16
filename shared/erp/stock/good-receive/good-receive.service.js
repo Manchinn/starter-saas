@@ -62,7 +62,18 @@ const list = async ({ page = 1, limit = 20, search = '', organizationId }) => {
 const getById = async (id) => {
   const gr = await GoodReceive.findByPk(id, { include: [itemInclude, storeInclude] })
   if (!gr) throw { status: 404, message: 'Good Receive not found' }
-  return gr
+
+  const { VendorBill, PurchaseOrder } = require('../../../../server/models')
+  const [linkedBill, sourcePO] = await Promise.all([
+    VendorBill.findOne({ where: { goodReceiveId: id, dataFlag: { [Op.ne]: 2 } }, attributes: ['id', 'billNumber', 'status'] }),
+    gr.purchaseOrderId
+      ? PurchaseOrder.findByPk(gr.purchaseOrderId, { attributes: ['id', 'refNo'] })
+      : null,
+  ])
+  const json = gr.toJSON()
+  json.linkedBill     = linkedBill
+  json.purchaseOrder  = sourcePO
+  return json
 }
 
 const create = async ({ date, supplier, storeId, purchaseOrderId, notes, docType = 'invoice', invoiceNo, invoiceDate, deliveryNo, invoiceDiscount, invoiceNetAmount, items = [], userId, organizationId }) => {
@@ -194,10 +205,16 @@ const createBill = async (id, userId, organizationId) => {
   if (gr.status !== 'confirmed') {
     throw { status: 400, message: 'Only confirmed Good Receives can generate a bill' }
   }
+  const { VendorBill, PurchaseOrder } = require('../../../../server/models')
+  const existing = await VendorBill.findOne({
+    where: { goodReceiveId: gr.id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'billNumber'],
+  })
+  if (existing) throw { status: 400, message: `Vendor bill ${existing.billNumber} already exists for this Good Receive. Cancel it first to create a new one.` }
+
   // Pull vendor from linked PO when available
   let vendorId = null
   if (gr.purchaseOrderId) {
-    const { PurchaseOrder } = require('../../../../server/models')
     const po = await PurchaseOrder.findByPk(gr.purchaseOrderId)
     if (po) vendorId = po.vendorId
   }

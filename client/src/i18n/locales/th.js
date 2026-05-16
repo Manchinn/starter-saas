@@ -426,6 +426,7 @@ export default {
       allStatuses:   'ทุกสถานะ',
       activeFrom:    'วันที่เริ่มใช้งาน',
       activeTo:      'วันที่สิ้นสุด',
+      source:        'ที่มา',
       batchId:       'ล็อต / แบตช์',
       batchPh:       'เลขล็อต',
       expiryDate:    'วันหมดอายุ',

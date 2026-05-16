@@ -33,10 +33,21 @@ const getById = async (id) => {
     ],
   })
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
-  return invoice
+
+  const { Receipt, DeliveryOrder } = require('../../../server/models')
+  const [linkedReceipt, sourceDO] = await Promise.all([
+    Receipt.findOne({ where: { invoiceId: id, dataFlag: { [Op.ne]: 2 } }, attributes: ['id', 'receiptNumber', 'status', 'amount'] }),
+    invoice.deliveryOrderId
+      ? DeliveryOrder.findByPk(invoice.deliveryOrderId, { attributes: ['id', 'refNo'] })
+      : null,
+  ])
+  const json = invoice.toJSON()
+  json.linkedReceipt = linkedReceipt
+  json.deliveryOrder = sourceDO
+  return json
 }
 
-const create = async ({ customerId, orderId, invoiceDate, dueDate, notes, items = [], taxRate = 0, userId, organizationId }) => {
+const create = async ({ customerId, orderId, deliveryOrderId, invoiceDate, dueDate, notes, items = [], taxRate = 0, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Invoice must have at least one item' }
 
   const invoiceNumber = await generateInvoiceNumber()
@@ -49,9 +60,10 @@ const create = async ({ customerId, orderId, invoiceDate, dueDate, notes, items 
     const invoice = await Invoice.create(
       {
         invoiceNumber,
-        customerId:  customerId  || null,
-        orderId:     orderId     || null,
-        invoiceDate: invoiceDate || new Date(),
+        customerId:      customerId      || null,
+        orderId:         orderId         || null,
+        deliveryOrderId: deliveryOrderId || null,
+        invoiceDate:     invoiceDate || new Date(),
         dueDate:     dueDate     || null,
         notes,
         subtotal,
@@ -166,6 +178,13 @@ const createReceipt = async (id, userId, organizationId) => {
   if (!['sent', 'paid'].includes(invoice.status)) {
     throw { status: 400, message: 'Only sent or paid invoices can record a payment' }
   }
+  const { Receipt } = require('../../../server/models')
+  const existing = await Receipt.findOne({
+    where: { invoiceId: invoice.id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'receiptNumber'],
+  })
+  if (existing) throw { status: 400, message: `Receipt ${existing.receiptNumber} already exists for this invoice. Cancel it first to record another payment.` }
+
   const receiptSvc = require('../receipts/receipt.service')
   const receipt = await receiptSvc.create({
     customerId:    invoice.customerId,

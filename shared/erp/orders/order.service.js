@@ -33,7 +33,17 @@ const getById = async (id) => {
     ],
   })
   if (!order) throw { status: 404, message: 'Order not found' }
-  return order
+
+  // Surface linked targets so the UI can disable conversion buttons
+  const { DeliveryOrder, Invoice } = require('../../../server/models')
+  const [linkedDO, linkedInv] = await Promise.all([
+    DeliveryOrder.findOne({ where: { orderId: id, dataFlag: { [Op.ne]: 2 } }, attributes: ['id', 'refNo', 'status'] }),
+    Invoice.findOne({       where: { orderId: id, dataFlag: { [Op.ne]: 2 } }, attributes: ['id', 'invoiceNumber', 'status'] }),
+  ])
+  const json = order.toJSON()
+  json.linkedDeliveryOrder = linkedDO
+  json.linkedInvoice       = linkedInv
+  return json
 }
 
 const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0, userId, organizationId }) => {
@@ -336,6 +346,12 @@ const createDeliveryOrder = async (id, userId, organizationId) => {
     throw { status: 400, message: 'Only confirmed orders can generate a delivery order' }
   }
   const { DeliveryOrder, DeliveryOrderItem } = require('../../../server/models')
+
+  const existing = await DeliveryOrder.findOne({
+    where: { orderId: order.id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'refNo'],
+  })
+  if (existing) throw { status: 400, message: `Delivery order ${existing.refNo} already exists for this sales order. Cancel it first to create a new one.` }
   const { getNext } = require('../settings/sequence.service')
 
   const refNo = await getNext('DO', userId)
@@ -376,6 +392,13 @@ const createInvoice = async (id, userId, organizationId) => {
   if (!['confirmed', 'shipped', 'delivered'].includes(order.status)) {
     throw { status: 400, message: 'Only confirmed orders can generate an invoice' }
   }
+  const { Invoice } = require('../../../server/models')
+  const existing = await Invoice.findOne({
+    where: { orderId: order.id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'invoiceNumber'],
+  })
+  if (existing) throw { status: 400, message: `Invoice ${existing.invoiceNumber} already exists for this sales order. Cancel it first to create a new one.` }
+
   const invoiceSvc = require('../invoices/invoice.service')
   const invoice = await invoiceSvc.create({
     customerId:  order.customerId,

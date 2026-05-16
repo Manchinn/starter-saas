@@ -32,6 +32,18 @@
             <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
             <span class="text-[12px] text-[#637381]">{{ invoice?.invoiceNumber || '…' }}</span>
           </nav>
+          <!-- Source-doc badges -->
+          <div v-if="invoice && !loading && (invoice.order || invoice.deliveryOrder)" class="flex items-center gap-1.5 mt-2 flex-wrap">
+            <span class="text-[11px] text-[#9BA7B0] font-medium">{{ t('erp.common.source') }}:</span>
+            <RouterLink v-if="invoice.order" :to="`/erp/orders/${invoice.order.id}`"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+              <ShoppingCartIcon class="w-3 h-3" /> {{ invoice.order.orderNumber }}
+            </RouterLink>
+            <RouterLink v-if="invoice.deliveryOrder" :to="`/erp/delivery-orders/${invoice.deliveryOrder.id}`"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-purple-50 text-purple-700 hover:bg-purple-100">
+              <TruckIcon class="w-3 h-3" /> {{ invoice.deliveryOrder.refNo }}
+            </RouterLink>
+          </div>
         </div>
         <RouterLink
           v-if="invoice?.status === 'draft'"
@@ -263,12 +275,17 @@
             <div v-if="['sent', 'paid'].includes(invoice.status)" v-can="'erp.receipts.edit'"
               class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-4 space-y-2">
               <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">{{ t('erp.common.actions') }}</p>
-              <button @click="convertToReceipt" :disabled="converting"
+              <button @click="convertToReceipt" :disabled="converting || !!invoice.linkedReceipt"
+                :title="invoice.linkedReceipt ? `Already linked to ${invoice.linkedReceipt.receiptNumber}` : ''"
                 class="w-full py-2.5 text-sm font-medium bg-primary-50 text-primary-600 border border-primary-200
-                       rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                       rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 <BanknotesIcon class="w-4 h-4" />
                 {{ converting ? t('erp.common.saving') : t('erp.invoices.recordPayment') }}
               </button>
+              <RouterLink v-if="invoice.linkedReceipt" :to="`/erp/receipts/${invoice.linkedReceipt.id}`"
+                class="block text-center text-xs text-blue-700 hover:text-blue-900 hover:underline font-medium">
+                → {{ invoice.linkedReceipt.receiptNumber }}
+              </RouterLink>
               <p v-if="convertError" class="text-xs text-red-600">{{ convertError }}</p>
             </div>
 
@@ -299,7 +316,7 @@ import {
   ArrowLeftIcon, ChevronRightIcon, UserIcon, DocumentTextIcon,
   ClipboardDocumentListIcon, CheckIcon, XMarkIcon, TrashIcon,
   BoltIcon, ArrowPathIcon, ExclamationCircleIcon, PencilIcon,
-  ExclamationTriangleIcon, BanknotesIcon,
+  ExclamationTriangleIcon, BanknotesIcon, ShoppingCartIcon, TruckIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'

@@ -20,6 +20,10 @@ const Invoice = sequelize.define('Invoice', {
     type: DataTypes.UUID,
     allowNull: true,
   },
+  deliveryOrderId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
   status: {
     type: DataTypes.ENUM('draft', 'sent', 'paid', 'cancelled'),
     defaultValue: 'draft',

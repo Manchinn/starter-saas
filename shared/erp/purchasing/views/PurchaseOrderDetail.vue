@@ -134,10 +134,16 @@
 
             <!-- confirmed → cancel or receive -->
             <template v-else-if="po.status === 'confirmed'">
-              <button v-can="'erp.stock.edit'" @click="convertToGoodReceive" :disabled="acting || converting"
-                class="px-4 py-2 text-sm bg-primary-50 text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-100 transition disabled:opacity-50">
+              <button v-can="'erp.stock.edit'" @click="convertToGoodReceive"
+                :disabled="acting || converting || !!po.linkedGoodReceive"
+                :title="po.linkedGoodReceive ? `Already linked to ${po.linkedGoodReceive.refNo}` : ''"
+                class="px-4 py-2 text-sm bg-primary-50 text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-100 transition disabled:opacity-50 disabled:cursor-not-allowed">
                 {{ converting ? t('common.loading') : t('erp.po.createGoodReceive') }}
               </button>
+              <RouterLink v-if="po.linkedGoodReceive" :to="`/erp/good-receive/${po.linkedGoodReceive.id}`"
+                class="self-center inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+                → {{ po.linkedGoodReceive.refNo }}
+              </RouterLink>
               <button v-can="'erp.purchasing.edit'" @click="doCancel" :disabled="acting"
                 class="px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg hover:bg-slate-50 transition disabled:opacity-50">
                 {{ t('erp.po.cancel') }}
@@ -150,10 +156,16 @@
 
             <!-- received → create good receive -->
             <template v-else-if="po.status === 'received'">
-              <button v-can="'erp.stock.edit'" @click="convertToGoodReceive" :disabled="acting || converting"
-                class="px-5 py-2 text-sm bg-primary-50 text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-100 transition disabled:opacity-50">
+              <button v-can="'erp.stock.edit'" @click="convertToGoodReceive"
+                :disabled="acting || converting || !!po.linkedGoodReceive"
+                :title="po.linkedGoodReceive ? `Already linked to ${po.linkedGoodReceive.refNo}` : ''"
+                class="px-5 py-2 text-sm bg-primary-50 text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-100 transition disabled:opacity-50 disabled:cursor-not-allowed">
                 {{ converting ? t('common.loading') : t('erp.po.createGoodReceive') }}
               </button>
+              <RouterLink v-if="po.linkedGoodReceive" :to="`/erp/good-receive/${po.linkedGoodReceive.id}`"
+                class="self-center inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+                → {{ po.linkedGoodReceive.refNo }}
+              </RouterLink>
             </template>
           </div>
         </div>

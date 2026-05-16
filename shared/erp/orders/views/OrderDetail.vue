@@ -255,19 +255,33 @@
           </div>
 
           <!-- Conversion actions (confirmed / shipped / delivered) -->
-          <div v-if="['confirmed', 'shipped', 'delivered'].includes(order.status)" class="flex flex-wrap gap-2">
-            <button v-can="'erp.orders.edit'" @click="convertToDeliveryOrder" :disabled="converting"
+          <div v-if="['confirmed', 'shipped', 'delivered'].includes(order.status)" class="flex flex-wrap gap-2 items-center">
+            <button v-can="'erp.orders.edit'" @click="convertToDeliveryOrder"
+              :disabled="converting || !!order.linkedDeliveryOrder"
+              :title="order.linkedDeliveryOrder ? `Already linked to ${order.linkedDeliveryOrder.refNo}` : ''"
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary-50 text-primary-600 border border-primary-200
-                     rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50">
+                     rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               <TruckIcon class="w-4 h-4" />
               {{ converting === 'do' ? t('erp.common.saving') : t('erp.orders.createDeliveryOrder') }}
             </button>
-            <button v-can="'erp.invoices.edit'" @click="convertToInvoice" :disabled="converting"
+            <RouterLink v-if="order.linkedDeliveryOrder" :to="`/erp/delivery-orders/${order.linkedDeliveryOrder.id}`"
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+              → {{ order.linkedDeliveryOrder.refNo }}
+            </RouterLink>
+
+            <button v-can="'erp.invoices.edit'" @click="convertToInvoice"
+              :disabled="converting || !!order.linkedInvoice"
+              :title="order.linkedInvoice ? `Already linked to ${order.linkedInvoice.invoiceNumber}` : ''"
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary-50 text-primary-600 border border-primary-200
-                     rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50">
+                     rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               <DocumentTextIcon class="w-4 h-4" />
               {{ converting === 'inv' ? t('erp.common.saving') : t('erp.orders.createInvoice') }}
             </button>
+            <RouterLink v-if="order.linkedInvoice" :to="`/erp/invoices/${order.linkedInvoice.id}`"
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+              → {{ order.linkedInvoice.invoiceNumber }}
+            </RouterLink>
+
             <span v-if="convertError" class="self-center text-xs text-red-600">{{ convertError }}</span>
           </div>
 

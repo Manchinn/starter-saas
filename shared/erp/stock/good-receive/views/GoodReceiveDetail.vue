@@ -282,13 +282,18 @@
                   </button>
                 </template>
                 <template v-else-if="gr.status === 'confirmed'">
-                  <button @click="convertToBill" :disabled="converting"
+                  <button @click="convertToBill" :disabled="converting || !!gr.linkedBill"
+                    :title="gr.linkedBill ? `Already linked to ${gr.linkedBill.billNumber}` : ''"
                     class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                            bg-primary-50 text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-100
                            disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     <DocumentTextIcon class="w-4 h-4" />
                     {{ converting ? t('common.loading') : t('erp.goodReceive.createBill') }}
                   </button>
+                  <RouterLink v-if="gr.linkedBill" :to="`/erp/purchasing/bills/${gr.linkedBill.id}`"
+                    class="self-center inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+                    → {{ gr.linkedBill.billNumber }}
+                  </RouterLink>
                 </template>
               </div>
             </div>

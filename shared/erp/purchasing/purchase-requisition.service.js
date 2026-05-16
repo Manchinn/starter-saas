@@ -116,6 +116,12 @@ const createOrder = async (id, userId, organizationId) => {
   if (!req.vendorId)             throw { status: 400, message: 'Requisition has no vendor — set a vendor before converting' }
   if (!req.items?.length)        throw { status: 400, message: 'Requisition has no items' }
 
+  const existing = await PurchaseOrder.findOne({
+    where: { requisitionId: req.id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'refNo'],
+  })
+  if (existing) throw { status: 400, message: `Purchase order ${existing.refNo} already exists for this requisition. Cancel it first to create a new one.` }
+
   const poSvc = require('./purchase-order.service')
   const po = await poSvc.create({
     date:          new Date().toISOString().slice(0, 10),

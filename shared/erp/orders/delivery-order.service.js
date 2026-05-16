@@ -41,7 +41,15 @@ const getById = async (id) => {
     ],
   })
   if (!doc) throw { status: 404, message: 'Delivery Order not found' }
-  return doc
+
+  const { Invoice } = require('../../../server/models')
+  const linkedInv = await Invoice.findOne({
+    where: { deliveryOrderId: id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'invoiceNumber', 'status'],
+  })
+  const json = doc.toJSON()
+  json.linkedInvoice = linkedInv
+  return json
 }
 
 // ── Create ────────────────────────────────────────────────────────────────────
@@ -121,10 +129,16 @@ const createInvoice = async (id, userId, organizationId) => {
     throw { status: 400, message: 'Only shipped or delivered orders can be invoiced' }
   }
 
+  const { Invoice, SalesOrderItem } = require('../../../server/models')
+  const existing = await Invoice.findOne({
+    where: { deliveryOrderId: doc.id, dataFlag: { [Op.ne]: 2 } },
+    attributes: ['id', 'invoiceNumber'],
+  })
+  if (existing) throw { status: 400, message: `Invoice ${existing.invoiceNumber} already exists for this delivery order. Cancel it first to create a new one.` }
+
   // Try to fetch unit prices from the source Sales Order (DO items don't store price)
   const priceMap = {}
   if (doc.orderId) {
-    const { SalesOrderItem } = require('../../../server/models')
     const orderItems = await SalesOrderItem.findAll({ where: { orderId: doc.orderId } })
     for (const oi of orderItems) {
       if (oi.productId) priceMap[oi.productId] = parseFloat(oi.unitPrice) || 0
@@ -134,10 +148,11 @@ const createInvoice = async (id, userId, organizationId) => {
 
   const invoiceSvc = require('../invoices/invoice.service')
   const invoice = await invoiceSvc.create({
-    customerId:  doc.customerId,
-    orderId:     doc.orderId || null,
-    invoiceDate: new Date(),
-    notes:       `Auto-created from Delivery Order ${doc.refNo}`,
+    customerId:      doc.customerId,
+    orderId:         doc.orderId || null,
+    deliveryOrderId: doc.id,
+    invoiceDate:     new Date(),
+    notes:           `Auto-created from Delivery Order ${doc.refNo}`,
     items: doc.items.map(i => ({
       productName: i.productName,
       quantity:    parseFloat(i.qty) || 0,

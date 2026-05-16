@@ -426,6 +426,7 @@ export default {
       allStatuses:  'All Statuses',
       activeFrom:   'Active From',
       activeTo:     'Active To',
+      source:       'Source',
       batchId:      'Batch / Lot',
       batchPh:      'Batch #',
       expiryDate:   'Expiry',

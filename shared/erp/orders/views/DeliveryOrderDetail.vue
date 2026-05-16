@@ -230,12 +230,17 @@
             <div v-if="['shipped', 'delivered'].includes(doc.status)" v-can="'erp.invoices.edit'"
               class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-4 space-y-2">
               <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">{{ t('erp.common.actions') }}</p>
-              <button @click="convertToInvoice" :disabled="converting"
+              <button @click="convertToInvoice" :disabled="converting || !!doc.linkedInvoice"
+                :title="doc.linkedInvoice ? `Already linked to ${doc.linkedInvoice.invoiceNumber}` : ''"
                 class="w-full py-2.5 text-sm font-medium bg-primary-50 text-primary-600 border border-primary-200
-                       rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                       rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 <DocumentTextIcon class="w-4 h-4" />
                 {{ converting ? t('erp.common.saving') : t('erp.deliveryOrders.createInvoice') }}
               </button>
+              <RouterLink v-if="doc.linkedInvoice" :to="`/erp/invoices/${doc.linkedInvoice.id}`"
+                class="block text-center text-xs text-blue-700 hover:text-blue-900 hover:underline font-medium">
+                → {{ doc.linkedInvoice.invoiceNumber }}
+              </RouterLink>
               <p v-if="convertError" class="text-xs text-red-600">{{ convertError }}</p>
             </div>
 

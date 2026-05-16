@@ -11,7 +11,7 @@
         </RouterLink>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2.5 flex-wrap">
-            <h1 class="text-xl font-bold text-[#1C2434]">{{ loading ? '…' : (receipt?.receiptNumber || 'Receipt') }}</h1>
+            <h1 class="text-xl font-bold text-[#1C2434]">{{ loading ? '…' : (receipt?.receiptNumber || t('erp.receipts.title')) }}</h1>
             <span v-if="receipt && !loading"
               class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize"
               :class="statusBadge(receipt.status)">
@@ -21,11 +21,18 @@
           </div>
           <nav class="flex items-center gap-1.5 mt-1">
             <RouterLink to="/erp/receipts" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
-              Receipts
+              {{ t('erp.receipts.title') }}
             </RouterLink>
             <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
             <span class="text-[12px] text-[#637381]">{{ receipt?.receiptNumber || '…' }}</span>
           </nav>
+          <div v-if="receipt && !loading && receipt.invoice" class="flex items-center gap-1.5 mt-2 flex-wrap">
+            <span class="text-[11px] text-[#9BA7B0] font-medium">{{ t('erp.common.source') }}:</span>
+            <RouterLink :to="`/erp/invoices/${receipt.invoice.id}`"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+              <DocumentTextIcon class="w-3 h-3" /> {{ receipt.invoice.invoiceNumber }}
+            </RouterLink>
+          </div>
         </div>
         <RouterLink
           v-if="receipt?.status === 'draft'"
@@ -34,7 +41,7 @@
           class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[#637381]
                  bg-white border border-[#E2E8F0] rounded-xl hover:bg-[#F7F9FC] transition-colors flex-shrink-0">
           <PencilIcon class="w-4 h-4" />
-          Edit
+          {{ t('common.edit') }}
         </RouterLink>
       </div>
 
@@ -47,8 +54,8 @@
       <div v-else-if="notFound"
         class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl">
         <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
-        <span>Receipt not found.
-          <RouterLink to="/erp/receipts" class="underline ml-1">Back to list</RouterLink>
+        <span>{{ t('erp.receipts.notFound') }}
+          <RouterLink to="/erp/receipts" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
         </span>
       </div>
 
@@ -65,7 +72,7 @@
                   <div class="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
                     <UserIcon class="w-3.5 h-3.5 text-primary-500" />
                   </div>
-                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">Customer</p>
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">{{ t('erp.common.customer') }}</p>
                 </div>
                 <template v-if="receipt.customer">
                   <p class="text-sm font-semibold text-[#1C2434]">{{ receipt.customer.name }}</p>
@@ -81,14 +88,14 @@
                   <div class="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
                     <BanknotesIcon class="w-3.5 h-3.5 text-green-600" />
                   </div>
-                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">Receipt Details</p>
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">{{ t('erp.receipts.paymentDetails') }}</p>
                 </div>
                 <div class="space-y-1.5">
                   <p class="text-xs text-[#637381]">
-                    Date: <span class="font-semibold text-[#1C2434] ml-1">{{ receipt.receiptDate }}</span>
+                    {{ t('erp.common.date') }}: <span class="font-semibold text-[#1C2434] ml-1">{{ receipt.receiptDate }}</span>
                   </p>
                   <p class="text-xs text-[#637381]">
-                    Method:
+                    {{ t('erp.receipts.colMethod') }}:
                     <span class="inline-flex items-center ml-1 px-2 py-0.5 rounded-md bg-[#F1F5F9] text-xs font-semibold text-[#374151]">
                       {{ methodLabel(receipt.paymentMethod) }}
                     </span>
@@ -97,7 +104,7 @@
                     Ref: <span class="font-semibold font-mono text-[#1C2434] ml-1">{{ receipt.reference }}</span>
                   </p>
                   <p v-if="receipt.invoice" class="text-xs text-[#637381]">
-                    Invoice:
+                    {{ t('erp.receipts.referenceInvoice') }}:
                     <RouterLink :to="`/erp/invoices/${receipt.invoice.id}`"
                       class="font-semibold text-primary-500 hover:underline ml-1">
                       {{ receipt.invoice.invoiceNumber }}
@@ -116,7 +123,7 @@
                   </div>
                   <div>
                     <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-0.5">
-                      Amount Received
+                      {{ t('erp.receipts.amountReceived') }}
                     </p>
                     <p class="text-3xl font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(receipt.amount) }}</p>
                   </div>
@@ -131,7 +138,7 @@
 
             <!-- Notes -->
             <div v-if="receipt.notes" class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-5">
-              <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-2">Notes</p>
+              <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-2">{{ t('erp.common.notes') }}</p>
               <p class="text-sm text-[#374151] whitespace-pre-line">{{ receipt.notes }}</p>
             </div>
 
@@ -144,7 +151,7 @@
             <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
               <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
                 <BoltIcon class="w-4 h-4 text-[#9BA7B0]" />
-                <h3 class="text-sm font-semibold text-[#1C2434]">Workflow</h3>
+                <h3 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.workflow') }}</h3>
                 <span class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize"
                   :class="statusBadge(receipt.status)">
                   <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(receipt.status)"></span>
@@ -165,7 +172,7 @@
                     <div class="flex-1 py-1">
                       <p class="text-xs font-semibold" :class="stepLabelClass(step.key)">{{ step.label }}</p>
                       <p v-if="stepState(step.key) === 'current' && !isCancelled"
-                        class="text-[10px] text-primary-400 mt-0.5">Current status</p>
+                        class="text-[10px] text-primary-400 mt-0.5">{{ t('erp.common.currentStatus') }}</p>
                     </div>
                   </div>
                   <div v-if="i < FLOW_STEPS.length - 1" class="flex gap-3">
@@ -187,8 +194,8 @@
                       <XMarkIcon class="w-3.5 h-3.5 text-red-500" />
                     </div>
                     <div class="py-1">
-                      <p class="text-xs font-semibold text-red-600">Cancelled</p>
-                      <p class="text-[10px] text-red-400 mt-0.5">Terminal state</p>
+                      <p class="text-xs font-semibold text-red-600">{{ t('erp.common.cancelled') }}</p>
+                      <p class="text-[10px] text-red-400 mt-0.5">{{ t('erp.common.terminalState') }}</p>
                     </div>
                   </div>
                 </template>
@@ -197,7 +204,7 @@
               <!-- Actions -->
               <div v-can="'erp.receipts.edit'" v-if="availableTransitions.length"
                 class="border-t border-[#E2E8F0] px-5 pb-5 pt-4 space-y-2.5">
-                <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-3">Actions</p>
+                <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-3">{{ t('erp.common.actions') }}</p>
                 <button v-for="s in forwardTransitions" :key="s"
                   @click="changeStatus(s)" :disabled="updatingStatus"
                   class="w-full py-2.5 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50
@@ -210,7 +217,7 @@
                   @click="changeStatus(s)" :disabled="updatingStatus"
                   class="w-full py-2 text-sm font-medium border border-red-200 text-red-600
                          hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50">
-                  Cancel Receipt
+                  {{ t('erp.receipts.cancelReceipt') }}
                 </button>
                 <p v-if="statusError" class="text-xs text-red-600">{{ statusError }}</p>
               </div>
@@ -223,7 +230,7 @@
                 class="w-full py-2 text-sm font-medium text-red-500 border border-red-200
                        rounded-xl hover:bg-red-50 transition-colors flex items-center justify-center gap-2">
                 <TrashIcon class="w-4 h-4" />
-                Delete Receipt
+                {{ t('erp.receipts.deleteReceipt') }}
               </button>
             </div>
 
@@ -237,15 +244,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   ArrowLeftIcon, ChevronRightIcon, UserIcon, BanknotesIcon,
   CheckIcon, XMarkIcon, TrashIcon, BoltIcon, ArrowPathIcon,
-  ExclamationCircleIcon, PencilIcon,
+  ExclamationCircleIcon, PencilIcon, DocumentTextIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
+const { t } = useI18n()
 const route          = useRoute()
 const router         = useRouter()
 const receipt        = ref(null)
@@ -255,10 +264,10 @@ const updatingStatus = ref(false)
 const statusError    = ref('')
 
 // ── Workflow ──────────────────────────────────────────────
-const FLOW_STEPS = [
-  { key: 'draft',     label: 'Draft' },
-  { key: 'confirmed', label: 'Confirmed' },
-]
+const FLOW_STEPS = computed(() => [
+  { key: 'draft',     label: t('erp.common.draft') },
+  { key: 'confirmed', label: t('erp.common.confirmed') },
+])
 
 const COMPLETED_BEFORE = {
   draft:     [],
@@ -307,10 +316,10 @@ const FORWARD_BTN = {
 }
 function forwardBtnClass(s) { return FORWARD_BTN[s] || 'bg-primary-500 text-white hover:bg-primary-600' }
 
-const TRANSITION_LABELS = {
-  confirmed: 'Confirm Receipt',
+function transitionLabel(s) {
+  const labels = { confirmed: t('erp.receipts.confirmReceipt') }
+  return labels[s] || s
 }
-function transitionLabel(s) { return TRANSITION_LABELS[s] || s }
 
 // ── Status badge ──────────────────────────────────────────
 const STATUS_BADGE = {

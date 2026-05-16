@@ -105,7 +105,8 @@
             <button
               v-if="req.status === 'approved'"
               v-can="'erp.purchasing.edit'"
-              @click="convertToOrder" :disabled="converting"
+              @click="convertToOrder" :disabled="converting || linkedOrders.length > 0"
+              :title="linkedOrders.length ? `Already linked to ${linkedOrders[0].refNo}` : ''"
               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary-500
                      bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors disabled:opacity-50">
               <PlusIcon class="w-3.5 h-3.5" />
@@ -137,7 +138,8 @@
             <button
               v-if="req.status === 'approved'"
               v-can="'erp.purchasing.edit'"
-              @click="convertToOrder" :disabled="converting"
+              @click="convertToOrder" :disabled="converting || linkedOrders.length > 0"
+              :title="linkedOrders.length ? `Already linked to ${linkedOrders[0].refNo}` : ''"
               class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 text-sm font-semibold text-primary-500
                      bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors disabled:opacity-50">
               <PlusIcon class="w-4 h-4" />
