@@ -303,6 +303,7 @@
           </div>
         </div>
         <AttachmentsPanel v-if="invoice" ref-type="Invoice" :ref-id="invoice.id" />
+        <ActivityTimeline v-if="invoice" ref-type="Invoice" :ref-id="invoice.id" />
       </template>
     </div>
   </AppLayout>
@@ -320,6 +321,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
+import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 

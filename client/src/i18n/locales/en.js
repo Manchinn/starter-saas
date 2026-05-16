@@ -1830,6 +1830,12 @@ export default {
       notesPh:       'e.g. mid-market rate from XYZ source',
     },
 
+    activity: {
+      title:    'Activity',
+      subtitle: 'Chronological history of changes to this document',
+      empty:    'No activity recorded yet',
+    },
+
     audit: {
       title:       'Audit Log',
       entityType:  'Entity Type',

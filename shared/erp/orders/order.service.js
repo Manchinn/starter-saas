@@ -90,7 +90,7 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0, c
   return getById(createdId)
 }
 
-const updateStatus = async (id, status) => {
+const updateStatus = async (id, status, userId) => {
   const order = await Order.findByPk(id, {
     include: [{
       model: SalesOrderItem, as: 'items',
@@ -193,6 +193,14 @@ const updateStatus = async (id, status) => {
     }
 
     await order.update({ status }, { transaction: t })
+  })
+
+  require('../audit/audit.service').log({
+    userId,
+    action: `order.${status}`,
+    entityType: 'Order',
+    entityId: id,
+    summary: { from: oldStatus, to: status, orderNumber: order.orderNumber, total: order.total },
   })
 
   return getById(id)

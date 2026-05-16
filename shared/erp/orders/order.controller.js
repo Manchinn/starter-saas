@@ -43,7 +43,7 @@ module.exports = {
 
   async updateStatus(req, res) {
     try {
-      const order = await service.updateStatus(req.params.id, req.body.status)
+      const order = await service.updateStatus(req.params.id, req.body.status, req.user?.id)
       return ok(res, { order }, 'Order status updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

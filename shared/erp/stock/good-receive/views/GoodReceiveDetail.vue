@@ -300,6 +300,7 @@
           </div>
 
           <AttachmentsPanel v-if="gr" ref-type="GoodReceive" :ref-id="gr.id" />
+          <ActivityTimeline v-if="gr" ref-type="GoodReceive" :ref-id="gr.id" />
         </div>
       </template>
     </div>
@@ -316,6 +317,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
+import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
 import { fmtMoney, fmtRate } from '@/utils/fmt'
 

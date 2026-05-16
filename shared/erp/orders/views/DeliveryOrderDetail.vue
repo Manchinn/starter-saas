@@ -257,6 +257,7 @@
 
           </div>
         </div>
+        <ActivityTimeline v-if="doc" ref-type="DeliveryOrder" :ref-id="doc.id" />
       </template>
     </div>
   </AppLayout>
@@ -264,6 +265,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {

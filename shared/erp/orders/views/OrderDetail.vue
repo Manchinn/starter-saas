@@ -296,6 +296,7 @@
           </div>
 
         </div>
+        <ActivityTimeline v-if="order" ref-type="Order" :ref-id="order.id" />
       </template>
     </div>
   </AppLayout>
@@ -305,6 +306,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import {
   ArrowLeftIcon, ChevronRightIcon, UserIcon, DocumentTextIcon,
   ClipboardDocumentListIcon, CheckIcon, XMarkIcon, TrashIcon,

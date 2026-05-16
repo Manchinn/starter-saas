@@ -236,6 +236,7 @@
 
           </div>
         </div>
+        <ActivityTimeline v-if="receipt" ref-type="Receipt" :ref-id="receipt.id" />
       </template>
     </div>
   </AppLayout>
@@ -251,6 +252,7 @@ import {
   ExclamationCircleIcon, PencilIcon, DocumentTextIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 

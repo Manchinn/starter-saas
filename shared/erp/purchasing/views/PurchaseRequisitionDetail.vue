@@ -168,6 +168,8 @@
           </div>
         </div>
 
+        <ActivityTimeline v-if="req" ref-type="PurchaseRequisition" :ref-id="req.id" />
+
       </template>
     </div>
   </AppLayout>
@@ -178,6 +180,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, PlusIcon, DocumentTextIcon } from '@heroicons/vue/24/outline'
+import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
