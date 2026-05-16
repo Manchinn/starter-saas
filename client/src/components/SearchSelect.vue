@@ -16,6 +16,7 @@
     :group-select="false"
     :max-height="maxHeight"
     :option-height="optionHeight"
+    open-direction="below"
     :class="['ss', { 'ss--invalid': invalid }]"
     :select-label="''"
     :deselect-label="''"
@@ -103,6 +104,24 @@ function onSelect(obj) {
 .ss :deep(.multiselect--active .multiselect__tags) {
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
   border-color: rgb(129 140 248);
+}
+/* Open downward, on top of everything else */
+.ss :deep(.multiselect__content-wrapper) {
+  z-index: 9999 !important;
+  position: absolute;
+  top: 100%;
+  bottom: auto;
+  border-top: 1px solid #E2E8F0;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+/* When the multiselect is active, lift the whole control so its popup
+   sits above any sibling rows / sticky table headers */
+.ss.multiselect--active,
+.ss :deep(.multiselect.multiselect--active) {
+  z-index: 9999;
+  position: relative;
 }
 .ss--invalid :deep(.multiselect__tags) { border-color: #FCA5A5; background: #FEF2F2; }
 .ss :deep(.multiselect__select::before) { border-color: #9BA7B0 transparent transparent; }
