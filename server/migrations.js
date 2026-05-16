@@ -196,6 +196,47 @@ const columns = [
   `ALTER TABLE Employees          ADD COLUMN activeFrom TEXT`,
   `ALTER TABLE Employees          ADD COLUMN activeTo   TEXT`,
 
+  // ── Currency tracking (multi-currency) ───────────────────────────────────────
+  `ALTER TABLE quotations           ADD COLUMN currency     TEXT`,
+  `ALTER TABLE quotations           ADD COLUMN exchangeRate REAL DEFAULT 1`,
+  `ALTER TABLE Orders               ADD COLUMN currency     TEXT`,
+  `ALTER TABLE Orders               ADD COLUMN exchangeRate REAL DEFAULT 1`,
+  `ALTER TABLE Invoices             ADD COLUMN currency     TEXT`,
+  `ALTER TABLE Invoices             ADD COLUMN exchangeRate REAL DEFAULT 1`,
+  `ALTER TABLE Receipts             ADD COLUMN currency     TEXT`,
+  `ALTER TABLE Receipts             ADD COLUMN exchangeRate REAL DEFAULT 1`,
+  `ALTER TABLE PurchaseRequisitions ADD COLUMN currency     TEXT`,
+  `ALTER TABLE PurchaseRequisitions ADD COLUMN exchangeRate REAL DEFAULT 1`,
+  `ALTER TABLE PurchaseOrders       ADD COLUMN currency     TEXT`,
+  `ALTER TABLE PurchaseOrders       ADD COLUMN exchangeRate REAL DEFAULT 1`,
+  `ALTER TABLE vendor_bills         ADD COLUMN currency     TEXT`,
+  `ALTER TABLE vendor_bills         ADD COLUMN exchangeRate REAL DEFAULT 1`,
+  `ALTER TABLE BillingNotes         ADD COLUMN currency     TEXT`,
+  `ALTER TABLE BillingNotes         ADD COLUMN exchangeRate REAL DEFAULT 1`,
+
+  // ── Source-doc enforcement: link Invoice back to its source DeliveryOrder ────
+  `ALTER TABLE Invoices ADD COLUMN deliveryOrderId TEXT`,
+
+  // ── Purchase chain: link Good Receive back to its source PurchaseOrder ───────
+  `ALTER TABLE GoodReceives ADD COLUMN purchaseOrderId TEXT`,
+
+  // ── Auto-journal: link Journal back to source doc (idempotency + back-ref) ───
+  `ALTER TABLE Journals ADD COLUMN sourceType TEXT`,
+  `ALTER TABLE Journals ADD COLUMN sourceId   TEXT`,
+
+  // ── Inventory deepening ──────────────────────────────────────────────────────
+  // Product reorder points
+  `ALTER TABLE Products ADD COLUMN reorderPoint INTEGER`,
+  `ALTER TABLE Products ADD COLUMN reorderQty   INTEGER`,
+  // Batch tracking on outbound stock docs
+  `ALTER TABLE StockIssueItems  ADD COLUMN batchId    TEXT`,
+  `ALTER TABLE StockIssueItems  ADD COLUMN expiryDate TEXT`,
+  `ALTER TABLE StockReturnItems ADD COLUMN batchId    TEXT`,
+  `ALTER TABLE StockReturnItems ADD COLUMN expiryDate TEXT`,
+
+  // ── Sale Packages: per-line override price (table itself created fresh) ──────
+  `ALTER TABLE sale_package_items ADD COLUMN unitPrice REAL`,
+
   // ── organizationId — added to all remaining ERP entity tables ────────────────
   `ALTER TABLE CustomerGroups        ADD COLUMN organizationId TEXT`,
   `ALTER TABLE UOMs                  ADD COLUMN organizationId TEXT`,
@@ -233,9 +274,12 @@ async function runMigrations(sequelize) {
       await sequelize.query(sql)
     } catch (err) {
       // Ignore "duplicate column name" — column already exists
-      if (!err.message?.includes('duplicate column') && !err.message?.includes('already exists')) {
-        log.error(`Migration failed: ${sql}`, { error: err.message })
-      }
+      const m = err.message || ''
+      const benign =
+        m.includes('duplicate column') ||
+        m.includes('already exists') ||
+        m.includes('no such table')   // table doesn't exist yet (will be created by sync)
+      if (!benign) log.error(`Migration failed: ${sql}`, { error: m })
     }
   }
   await recreateSequencesTable(sequelize)
