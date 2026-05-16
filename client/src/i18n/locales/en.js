@@ -1895,16 +1895,22 @@ export default {
 
     thresholds: {
       title:        'Approval Thresholds',
-      subtitle:     'Documents above the threshold require the specified permission to approve.',
+      subtitle:     'When a document\'s total reaches the trigger amount, the approver needs the permission shown to mark it approved. Leave empty if no approval is required.',
       addRule:      'Add Rule',
-      noRules:      'No threshold rules defined. Add one to require approval above a certain amount.',
+      noRules:      'No rules yet. Add one to require approval above a certain amount.',
       colDocType:   'Document Type',
-      colAmount:    'Threshold (≥)',
-      colPermission:'Required Permission',
+      colAmount:    'Trigger Amount',
+      colAmountHint:'(or above)',
+      colPermission:'Approver Permission',
       colNotes:     'Notes',
-      notesPh:      'e.g. Manager approval',
+      notesPh:      'e.g. requires Finance Manager',
       docPO:        'Purchase Order',
       docBill:      'Vendor Bill',
+      permPurchasingApprove: 'Purchasing approval (erp.purchasing.approve)',
+      permBillsApprove:      'Bills approval (erp.bills.approve)',
+      deleteConfirm:'Delete this approval rule? Documents already approved are unaffected.',
+      saveFailed:   'Could not save the rule. Please try again.',
+      deleteFailed: 'Could not delete the rule. Please try again.',
     },
 
     bills: {

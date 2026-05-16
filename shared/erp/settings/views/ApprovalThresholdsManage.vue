@@ -18,7 +18,9 @@
           <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
             <tr>
               <th class="px-4 py-2.5 font-medium text-[#637381] w-44">{{ t('erp.thresholds.colDocType') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-32 text-right">{{ t('erp.thresholds.colAmount') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-40 text-right">
+                {{ t('erp.thresholds.colAmount') }} <span class="text-[10px] font-normal text-[#9BA7B0]">{{ t('erp.thresholds.colAmountHint') }}</span>
+              </th>
               <th class="px-4 py-2.5 font-medium text-[#637381]">{{ t('erp.thresholds.colPermission') }}</th>
               <th class="px-4 py-2.5 font-medium text-[#637381]">{{ t('erp.thresholds.colNotes') }}</th>
               <th class="px-4 py-2.5 w-32"></th>
@@ -46,8 +48,8 @@
               <td class="px-4 py-2">
                 <select v-model="r.requiredPermission"
                   class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary-500">
-                  <option value="erp.purchasing.approve">erp.purchasing.approve</option>
-                  <option value="erp.bills.approve">erp.bills.approve</option>
+                  <option value="erp.purchasing.approve">{{ t('erp.thresholds.permPurchasingApprove') }}</option>
+                  <option value="erp.bills.approve">{{ t('erp.thresholds.permBillsApprove') }}</option>
                 </select>
               </td>
               <td class="px-4 py-2">
@@ -120,7 +122,7 @@ async function save(r) {
     drafts.value = []
     await load()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Save failed'
+    error.value = err.response?.data?.message || t('erp.thresholds.saveFailed')
   } finally { r._saving = false }
 }
 
@@ -129,12 +131,12 @@ async function remove(r) {
     drafts.value = drafts.value.filter(d => d !== r)
     return
   }
-  if (!confirm('Delete this threshold rule?')) return
+  if (!confirm(t('erp.thresholds.deleteConfirm'))) return
   try {
     await api.delete(`/erp/settings/approval-thresholds/${r.id}`)
     await load()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Delete failed'
+    error.value = err.response?.data?.message || t('erp.thresholds.deleteFailed')
   }
 }
 </script>
