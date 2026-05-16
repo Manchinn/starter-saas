@@ -181,12 +181,10 @@
 
                 <div class="text-xs font-semibold text-[#CBD5E1] text-center">{{ idx + 1 }}</div>
 
-                <select v-model="item.productId" @change="onProductChange(item)"
-                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="">— {{ t('erp.po.freeText') }} —</option>
-                  <option v-for="p in products" :key="p.id" :value="p.id">{{ p.sku }} — {{ p.name }}</option>
-                </select>
+                <SearchSelect v-model="item.productId" :options="products" :placeholder="`— ${t('erp.po.freeText')} —`" @change="onProductChange(item)">
+                  <template #option="{ option }">{{ option.sku }} — {{ option.name }}</template>
+                  <template #singleLabel="{ option }">{{ option.sku }} — {{ option.name }}</template>
+                </SearchSelect>
 
                 <input v-model="item.description" type="text"
                   :placeholder="t('erp.po.descriptionPh')"

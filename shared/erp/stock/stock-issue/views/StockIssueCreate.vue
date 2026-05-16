@@ -54,11 +54,10 @@
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                 {{ t('erp.common.store') }} <span class="text-red-500">*</span>
               </label>
-              <select v-model="form.storeId"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition">
-                <option value="">{{ t('erp.common.selectStore') }}</option>
-                <option v-for="s in stores" :key="s.id" :value="s.id">{{ s.name }}{{ s.code ? ` (${s.code})` : '' }}</option>
-              </select>
+              <SearchSelect v-model="form.storeId" :options="stores" :placeholder="t('erp.common.selectStore')">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+              </SearchSelect>
             </div>
             <div>
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
@@ -159,13 +158,10 @@
                style="display:grid; grid-template-columns: 2fr 5rem 6rem 6rem 7rem 1.5fr 2rem; gap: 0.75rem; align-items: center;">
 
             <!-- Product -->
-            <select v-model="item.productId"
-              class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition">
-              <option value="">{{ t('erp.common.selectProduct') }}</option>
-              <option v-for="p in availableProducts(i)" :key="p.id" :value="p.id">
-                {{ p.name }}{{ p.sku ? ` [${p.sku}]` : '' }}
-              </option>
-            </select>
+            <SearchSelect v-model="item.productId" :options="availableProducts(i)" :placeholder="t('erp.common.selectProduct')">
+              <template #option="{ option }">{{ option.name }}<span v-if="option.sku" class="text-[#9BA7B0]"> [{{ option.sku }}]</span></template>
+              <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.sku" class="text-[#9BA7B0]"> [{{ option.sku }}]</span></template>
+            </SearchSelect>
 
             <!-- Available -->
             <div class="text-right">
@@ -262,6 +258,7 @@ import {
   ExclamationCircleIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useMasterDataStore } from '@/stores/masterData'
 

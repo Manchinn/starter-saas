@@ -11,6 +11,9 @@
     :show-labels="false"
     :disabled="disabled"
     :loading="loading"
+    :group-values="groupValues || undefined"
+    :group-label="groupLabel || undefined"
+    :group-select="false"
     :class="['ss', { 'ss--invalid': invalid }]"
     :select-label="''"
     :deselect-label="''"
@@ -43,12 +46,22 @@ const props = defineProps({
   invalid:    { type: Boolean, default: false },
   noResult:   { type: String, default: '' },
   noOptions:  { type: String, default: '' },
+  groupValues:{ type: String, default: '' },
+  groupLabel: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue', 'change'])
 
 const selectedObject = computed(() => {
   if (props.modelValue === '' || props.modelValue == null) return null
-  return props.options.find(o => String(o?.[props.trackBy]) === String(props.modelValue)) || null
+  const match = (arr) => arr.find(o => String(o?.[props.trackBy]) === String(props.modelValue))
+  if (props.groupValues) {
+    for (const group of props.options) {
+      const hit = match(group?.[props.groupValues] || [])
+      if (hit) return hit
+    }
+    return null
+  }
+  return match(props.options) || null
 })
 
 function onSelect(obj) {

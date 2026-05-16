@@ -183,17 +183,7 @@
 
                 <div class="text-[12px] font-semibold text-[#CBD5E1] text-center select-none">{{ idx + 1 }}</div>
 
-                <select v-model="line.saleItemId" @change="onPickerChange(line, idx)"
-                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
-                  <option value="">— Item —</option>
-                  <optgroup :label="t('erp.orders.saleItems')">
-                    <option v-for="si in saleItems" :key="si.id" :value="si.id">{{ si.name }}</option>
-                  </optgroup>
-                  <optgroup v-if="salePackages.length" :label="t('erp.orders.salePackages')">
-                    <option v-for="pkg in salePackages" :key="pkg.id" :value="pkg.id">📦 {{ pkg.name }}</option>
-                  </optgroup>
-                </select>
+                <SearchSelect v-model="line.saleItemId" :options="groupedItemOptions" group-values="items" group-label="label" placeholder="— Item —" @change="onPickerChange(line, idx)" />
 
                 <div>
                   <SearchSelect v-if="line.hasProduct" v-model="line.storeId" :options="stores" :invalid="line.hasProduct && !line.storeId" placeholder="— Store —" />
@@ -337,6 +327,18 @@ const form  = ref({ customerId: '', orderDate: today, taxRate: 0, currency: '', 
 const selectedCustomer = computed(() =>
   form.value.customerId ? customers.value.find(c => c.id === form.value.customerId) : null
 )
+
+// Grouped options for the line-item picker: Sale Items + Sale Packages
+const groupedItemOptions = computed(() => {
+  const groups = [{ label: t('erp.orders.saleItems'), items: saleItems.value }]
+  if (salePackages.value.length) {
+    groups.push({
+      label: t('erp.orders.salePackages'),
+      items: salePackages.value.map(p => ({ ...p, name: `📦 ${p.name}` })),
+    })
+  }
+  return groups
+})
 
 onMounted(async () => {
   const [customersRes, saleItemsRes, salePackagesRes, storesRes] = await Promise.allSettled([

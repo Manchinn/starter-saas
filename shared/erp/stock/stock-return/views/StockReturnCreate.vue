@@ -40,28 +40,28 @@
           <!-- Store -->
           <div class="w-52">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.store') }} <span class="text-red-500">*</span></label>
-            <select v-model="form.storeId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">{{ t('erp.common.selectStore') }}</option>
-              <option v-for="s in stores" :key="s.id" :value="s.id">{{ s.name }}{{ s.code ? ` (${s.code})` : '' }}</option>
-            </select>
+            <SearchSelect v-model="form.storeId" :options="stores" :placeholder="t('erp.common.selectStore')">
+              <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+              <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+            </SearchSelect>
           </div>
 
           <!-- Customer (customer_return) -->
           <div v-if="form.type === 'customer_return'" class="w-52">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stockReturn.customer') }}</label>
-            <select v-model="form.customerId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">— Select customer —</option>
-              <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}{{ c.company ? ` (${c.company})` : '' }}</option>
-            </select>
+            <SearchSelect v-model="form.customerId" :options="customers" placeholder="— Select customer —">
+              <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> ({{ option.company }})</span></template>
+              <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> ({{ option.company }})</span></template>
+            </SearchSelect>
           </div>
 
           <!-- Vendor (vendor_return) -->
           <div v-if="form.type === 'vendor_return'" class="w-52">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stockReturn.vendor') }}</label>
-            <select v-model="form.vendorId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">— Select vendor —</option>
-              <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.name }}{{ v.code ? ` (${v.code})` : '' }}</option>
-            </select>
+            <SearchSelect v-model="form.vendorId" :options="vendors" placeholder="— Select vendor —">
+              <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+              <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+            </SearchSelect>
           </div>
 
           <!-- Notes -->
@@ -109,12 +109,10 @@
             </tr>
             <tr v-for="(item, i) in items" :key="i" class="hover:bg-[#F7F9FC]">
               <td class="px-3 py-2">
-                <select v-model="item.productId" class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary-500">
-                  <option value="">{{ t('erp.common.selectProduct') }}</option>
-                  <option v-for="p in availableProducts(i)" :key="p.id" :value="p.id">
-                    {{ p.name }}{{ p.sku ? ` [${p.sku}]` : '' }} (stock: {{ p.stock }})
-                  </option>
-                </select>
+                <SearchSelect v-model="item.productId" :options="availableProducts(i)" :placeholder="t('erp.common.selectProduct')">
+                  <template #option="{ option }">{{ option.name }}<span v-if="option.sku" class="text-[#9BA7B0]"> [{{ option.sku }}]</span> <span class="text-[#9BA7B0]">(stock: {{ option.stock }})</span></template>
+                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.sku" class="text-[#9BA7B0]"> [{{ option.sku }}]</span></template>
+                </SearchSelect>
               </td>
               <td class="px-3 py-2">
                 <input v-model.number="item.qty" type="number" min="0.01" step="0.01" placeholder="0"
@@ -174,6 +172,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useMasterDataStore } from '@/stores/masterData'
 

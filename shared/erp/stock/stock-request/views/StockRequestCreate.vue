@@ -74,14 +74,10 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                   {{ t('erp.stockTransfer.fromStore') }} <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
-                <select v-model="form.fromStoreId"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="">{{ t('erp.common.selectStore') }}</option>
-                  <option v-for="s in stores" :key="s.id" :value="s.id" :disabled="s.id === form.toStoreId">
-                    {{ s.name }}{{ s.code ? ` (${s.code})` : '' }}
-                  </option>
-                </select>
+                <SearchSelect v-model="form.fromStoreId" :options="fromStoreOptions" :placeholder="t('erp.common.selectStore')">
+                  <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+                </SearchSelect>
               </div>
 
               <!-- To Store -->
@@ -89,14 +85,10 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                   {{ t('erp.stockTransfer.toStore') }} <span class="text-red-500 normal-case font-normal">*</span>
                 </label>
-                <select v-model="form.toStoreId"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="">{{ t('erp.common.selectStore') }}</option>
-                  <option v-for="s in stores" :key="s.id" :value="s.id" :disabled="s.id === form.fromStoreId">
-                    {{ s.name }}{{ s.code ? ` (${s.code})` : '' }}
-                  </option>
-                </select>
+                <SearchSelect v-model="form.toStoreId" :options="toStoreOptions" :placeholder="t('erp.common.selectStore')">
+                  <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
+                </SearchSelect>
               </div>
 
               <!-- Route arrow indicator -->
@@ -200,14 +192,10 @@
                   :class="item.qty > availableStock(item.productId) ? 'bg-red-50 hover:bg-red-50/80' : 'hover:bg-[#F7F9FC]'"
                   style="grid-template-columns: 2.5fr 7rem 8rem 2fr 2rem">
 
-                  <select v-model="item.productId"
-                    class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                    <option value="">{{ t('erp.common.selectProduct') }}</option>
-                    <option v-for="p in availableProducts(i)" :key="p.id" :value="p.id">
-                      {{ p.name }}{{ p.sku ? ` [${p.sku}]` : '' }}
-                    </option>
-                  </select>
+                  <SearchSelect v-model="item.productId" :options="availableProducts(i)" :placeholder="t('erp.common.selectProduct')">
+                    <template #option="{ option }">{{ option.name }}<span v-if="option.sku" class="text-[#9BA7B0]"> [{{ option.sku }}]</span></template>
+                    <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.sku" class="text-[#9BA7B0]"> [{{ option.sku }}]</span></template>
+                  </SearchSelect>
 
                   <div class="text-right">
                     <span v-if="item.productId"
@@ -323,6 +311,7 @@ import {
   ClipboardDocumentListIcon, BuildingStorefrontIcon, CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
@@ -331,6 +320,9 @@ const stores               = ref([])
 const storeProducts        = ref([])
 const loadingStoreProducts = ref(false)
 const form  = ref({ date: new Date().toISOString().slice(0, 10), fromStoreId: '', toStoreId: '', notes: '' })
+
+const fromStoreOptions = computed(() => stores.value.filter(s => s.id !== form.value.toStoreId))
+const toStoreOptions   = computed(() => stores.value.filter(s => s.id !== form.value.fromStoreId))
 const items = ref([])
 const error = ref('')
 const saving = ref(false)

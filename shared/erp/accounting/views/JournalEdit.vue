@@ -62,15 +62,7 @@
                 <tr v-for="(line, idx) in form.lines" :key="idx">
                   <td class="px-4 py-2 text-xs text-[#9BA7B0] text-center">{{ idx + 1 }}</td>
                   <td class="px-4 py-2">
-                    <select v-model="line.accountId"
-                      class="w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                      <option value="">{{ t('erp.journals.selectAccount') }}</option>
-                      <optgroup v-for="grp in accountGroups" :key="grp.type" :label="grp.type">
-                        <option v-for="acc in grp.accounts" :key="acc.id" :value="acc.id">
-                          {{ acc.code }} — {{ acc.name }}
-                        </option>
-                      </optgroup>
-                    </select>
+                    <SearchSelect v-model="line.accountId" :options="accountGroupedOptions" group-values="items" group-label="label" :placeholder="t('erp.journals.selectAccount')" />
                   </td>
                   <td class="px-4 py-2">
                     <input v-model="line.description" type="text" placeholder="optional"
@@ -140,6 +132,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, PlusIcon, XMarkIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
@@ -163,6 +156,10 @@ const accountGroups = computed(() => {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([type, accs]) => ({ type, accounts: accs.sort((a, b) => a.code.localeCompare(b.code)) }))
 })
+const accountGroupedOptions = computed(() => accountGroups.value.map(g => ({
+  label: g.type,
+  items: g.accounts.map(a => ({ ...a, name: `${a.code} — ${a.name}` })),
+})))
 
 const totalDebit  = computed(() => form.value.lines.reduce((s, l) => s + Number(l.debit  || 0), 0))
 const totalCredit = computed(() => form.value.lines.reduce((s, l) => s + Number(l.credit || 0), 0))
