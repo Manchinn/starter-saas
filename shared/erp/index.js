@@ -274,6 +274,12 @@ export default {
       meta: { requiresAuth: true, title: 'New Invoice' },
     },
     {
+      path: '/erp/invoices/:id/edit',
+      name: 'erp-invoices-edit',
+      component: () => import('./invoices/views/InvoiceEdit.vue'),
+      meta: { requiresAuth: true, title: 'Edit Invoice' },
+    },
+    {
       path: '/erp/invoices/:id',
       name: 'erp-invoices-detail',
       component: () => import('./invoices/views/InvoiceDetail.vue'),
