@@ -64,4 +64,14 @@ const createOrder = async (req, res, next) => {
   }
 }
 
-module.exports = { list, getById, create, approve, reject, remove, listOrders, createOrder }
+const generateReorder = async (req, res, next) => {
+  try {
+    const orgId = req.user?.organizationId || req.user?.id
+    res.status(201).json({ data: await svc.generateReorder({ userId: req.user?.id, organizationId: orgId }) })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message })
+    next(err)
+  }
+}
+
+module.exports = { list, getById, create, approve, reject, remove, listOrders, createOrder, generateReorder }

@@ -13,6 +13,7 @@ const itemRules = [
   body('items.*.qty').isNumeric().withMessage('Item quantity must be a number'),
 ]
 
+router.post('/generate-reorder', requirePermission('erp.purchasing.edit'), controller.generateReorder)
 router.get('/',                requirePermission('erp.purchasing.list'),   controller.list)
 router.get('/:id/orders',     requirePermission('erp.purchasing.list'),   controller.listOrders)
 router.get('/:id',             requirePermission('erp.purchasing.list'),   controller.getById)

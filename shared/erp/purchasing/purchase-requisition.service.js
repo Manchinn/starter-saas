@@ -144,4 +144,83 @@ const createOrder = async (id, userId, organizationId) => {
   return { id: po.id }
 }
 
-module.exports = { list, getById, create, approve, reject, remove, listOrders, createOrder }
+/**
+ * Scan products at or below their reorder point, group by primary vendor,
+ * and create one draft PR per vendor (plus a "no vendor" PR for unassigned items).
+ * Returns the list of created PRs (id, refNo, itemCount, vendorName).
+ */
+const generateReorder = async ({ userId, organizationId }) => {
+  const where = {
+    organizationId: organizationId || null,
+    status: 'active',
+    dataFlag: { [Op.ne]: 2 },
+    reorderPoint: { [Op.not]: null },
+  }
+  const products = await Product.findAll({
+    where,
+    include: [{ model: Vendor, as: 'vendors', attributes: ['id', 'name'], through: { attributes: [] } }],
+  })
+
+  // Filter in JS because stock<=reorderPoint cross-column comparison is awkward across dialects
+  const candidates = products.filter(p => Number(p.stock) <= Number(p.reorderPoint))
+  if (!candidates.length) return { created: [], message: 'No products are below their reorder point.' }
+
+  // Group by primary vendor id (or 'unassigned')
+  const groups = new Map()
+  for (const p of candidates) {
+    const primary = p.vendors?.[0]
+    const key = primary?.id || 'unassigned'
+    if (!groups.has(key)) groups.set(key, { vendor: primary || null, products: [] })
+    groups.get(key).products.push(p)
+  }
+
+  const today = new Date().toISOString().slice(0, 10)
+  const created = []
+  for (const [, group] of groups) {
+    const refNo = await getNext('PR', userId)
+    const t = await sequelize.transaction()
+    try {
+      const pr = await PurchaseRequisition.create({
+        refNo,
+        date: today,
+        requestedBy: 'Auto-generated',
+        department: 'Procurement',
+        vendorId: group.vendor?.id || null,
+        notes: `Auto-generated from reorder points (${group.products.length} item${group.products.length !== 1 ? 's' : ''} below threshold)`,
+        organizationId: organizationId || null,
+        createdBy: userId || null,
+        modifiedBy: userId || null,
+      }, { transaction: t })
+
+      for (const p of group.products) {
+        const suggestedQty = Number(p.reorderQty) > 0
+          ? Number(p.reorderQty)
+          : Math.max(1, Number(p.reorderPoint) * 2 - Number(p.stock))
+        await PurchaseRequisitionItem.create({
+          requisitionId: pr.id,
+          productId:     p.id,
+          description:   p.name,
+          qty:           suggestedQty,
+          unitPrice:     Number(p.cost) || null,
+          notes:         `Stock ${p.stock} ≤ reorder point ${p.reorderPoint}`,
+          organizationId: organizationId || null,
+        }, { transaction: t })
+      }
+      await t.commit()
+      created.push({ id: pr.id, refNo: pr.refNo, itemCount: group.products.length, vendor: group.vendor?.name || null })
+    } catch (err) {
+      await t.rollback()
+      throw err
+    }
+  }
+
+  // Audit
+  try {
+    const audit = require('../audit/audit.service')
+    audit.log({ userId, action: 'pr.reorder.generate', entityType: 'PurchaseRequisition', summary: { count: created.length, totalItems: candidates.length } })
+  } catch { /* ignore */ }
+
+  return { created, message: `Created ${created.length} requisition${created.length !== 1 ? 's' : ''} covering ${candidates.length} low-stock product${candidates.length !== 1 ? 's' : ''}.` }
+}
+
+module.exports = { list, getById, create, approve, reject, remove, listOrders, createOrder, generateReorder }
