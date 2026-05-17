@@ -103,13 +103,17 @@ function reposition() {
   // Keep the popup inside the viewport horizontally
   const maxLeft = window.innerWidth - width - 8
   const left = Math.min(rect.left, Math.max(8, maxLeft))
-  popupEl.style.position  = 'fixed'
+  // Order matters: pin an explicit width BEFORE switching to position: fixed.
+  // vue-multiselect's CSS sets width: 100% on the popup; once position becomes
+  // fixed, that 100% resolves against the viewport for one frame and the popup
+  // flashes full-screen-wide until our inline width overrides it.
+  popupEl.style.width     = `${width}px`
   popupEl.style.top       = `${rect.bottom}px`
   popupEl.style.left      = `${left}px`
-  popupEl.style.width     = `${width}px`
   popupEl.style.maxHeight = `${props.maxHeight}px`
   popupEl.style.zIndex    = '9999'
   popupEl.style.bottom    = 'auto'
+  popupEl.style.position  = 'fixed'
 }
 
 function onOpen() {
@@ -124,11 +128,15 @@ function onClose() {
   window.removeEventListener('scroll', reposition, true)
   window.removeEventListener('resize', reposition)
   if (popupEl) {
+    // Reverse order from reposition(): drop fixed positioning first so the
+    // explicit width does not get reinterpreted against the viewport.
     popupEl.style.position = ''
     popupEl.style.top      = ''
     popupEl.style.left     = ''
     popupEl.style.width    = ''
+    popupEl.style.maxHeight = ''
     popupEl.style.zIndex   = ''
+    popupEl.style.bottom   = ''
   }
   popupEl = null
   triggerEl = null
