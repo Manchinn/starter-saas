@@ -9,11 +9,7 @@
           { label: 'Create' },
         ]">
         <template #badge>
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                       bg-amber-50 text-amber-600 border border-amber-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            Draft
-          </span>
+          <StatusPill label="Draft" />
         </template>
         <template #actions>
           <RouterLink to="/erp/billing/receive-payments" class="btn-secondary">Cancel</RouterLink>
@@ -230,6 +226,7 @@ import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import StatusPill from '@/components/form/StatusPill.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'

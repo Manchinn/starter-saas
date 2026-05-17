@@ -17,11 +17,7 @@
           { label: t('common.edit') },
         ]">
         <template #badge>
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                       bg-amber-50 text-amber-600 border border-amber-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            {{ t('erp.common.draft') }}
-          </span>
+          <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
           <RouterLink :to="`/erp/invoices/${invoiceId}`" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
@@ -248,6 +244,7 @@ import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
+import StatusPill from '@/components/form/StatusPill.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'

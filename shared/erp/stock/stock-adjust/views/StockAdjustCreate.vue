@@ -2,67 +2,40 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <!-- Page Header -->
-      <div class="flex items-start gap-4">
-        <RouterLink to="/erp/stock-adjust"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
-                 hover:border-[#E2E8F0] transition-all flex-shrink-0">
-          <ArrowLeftIcon class="w-[18px] h-[18px]" />
-        </RouterLink>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.stockAdjust.new') }}</h1>
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                         bg-amber-50 text-amber-600 border border-amber-200">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              Draft
-            </span>
-          </div>
-          <nav class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/stock-adjust" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
-              {{ t('erp.stockAdjust.title') }}
-            </RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381]">{{ t('erp.stockAdjust.new') }}</span>
-          </nav>
-        </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
+      <PageHeader :title="t('erp.stockAdjust.new')" back-to="/erp/stock-adjust"
+        :breadcrumb="[
+          { label: t('erp.stockAdjust.title'), to: '/erp/stock-adjust' },
+          { label: t('erp.stockAdjust.new') },
+        ]">
+        <template #badge>
+          <StatusPill label="Draft" />
+        </template>
+        <template #actions>
           <RouterLink to="/erp/stock-adjust" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving" class="btn-primary gap-2">
             <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
             <CheckIcon v-else class="w-4 h-4" />
             {{ saving ? t('erp.common.saving') : t('erp.common.saveDraft') }}
           </button>
-        </div>
-      </div>
+        </template>
+      </PageHeader>
 
       <div class="space-y-5">
 
         <!-- Section 1: Adjustment Info -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
-              <AdjustmentsHorizontalIcon class="w-4 h-4 text-amber-500" />
-            </div>
-            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.header') }}</h2>
-          </div>
-          <div class="px-6 py-5">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+        <FormCard :title="t('erp.common.header')" :icon="AdjustmentsHorizontalIcon" icon-color="amber">
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
               <!-- Date -->
               <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.common.date') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
+                <FieldLabel :text="t('erp.common.date')" required />
                 <DateInput v-model="form.date" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
               </div>
 
               <!-- Store -->
               <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.common.store') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
+                <FieldLabel :text="t('erp.common.store')" required />
                 <SearchSelect v-model="form.storeId" :options="stores" :placeholder="t('erp.common.selectStore')">
                   <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
                   <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
@@ -285,6 +258,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import StatusPill from '@/components/form/StatusPill.vue'
 import api from '@/api'
 import { useMasterDataStore } from '@/stores/masterData'
 
