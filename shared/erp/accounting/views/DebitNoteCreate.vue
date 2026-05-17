@@ -128,26 +128,16 @@
               <span class="text-sm font-semibold text-[#1C2434]">{{ form.date || '—' }}</span>
             </div>
           </div>
-          <div class="px-6 py-5 bg-[#F7F9FC] border-t border-[#E2E8F0] flex items-center justify-between">
-            <div>
-              <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.debitNotes.debitAmount') }}</p>
-              <p class="text-3xl font-extrabold text-orange-500 tabular-nums leading-none">{{ fmtMoney(form.amount || 0) }}</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <RouterLink to="/erp/billing/debit-notes"
-                class="px-5 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
-                {{ t('common.discard') }}
-              </RouterLink>
-              <button @click="save" :disabled="saving"
-                class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold
-                       bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
-                       disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
-                <CheckIcon v-else class="w-4 h-4" />
-                {{ saving ? t('erp.common.creating') : t('erp.debitNotes.create') }}
-              </button>
-            </div>
-          </div>
+          <DocFooterBar
+            :total-label="t('erp.debitNotes.debitAmount')"
+            :total="fmtMoney(form.amount || 0)" total-color="orange"
+            discard-to="/erp/billing/debit-notes"
+            :discard-label="t('common.discard')"
+            :saving="saving"
+            :saving-label="t('erp.common.creating')"
+            :save-label="t('erp.debitNotes.create')"
+            @save="save"
+          />
         </div>
 
       </div>
@@ -169,6 +159,7 @@ import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import DocFooterBar from '@/components/form/DocFooterBar.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'

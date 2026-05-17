@@ -192,26 +192,16 @@
             </div>
           </div>
 
-          <div class="px-6 py-5 bg-[#F7F9FC] border-t border-[#E2E8F0] flex items-center justify-between">
-            <div>
-              <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.orders.total') }}</p>
-              <p class="text-3xl font-extrabold text-primary-500 tabular-nums leading-none">{{ fmtMoney(grandTotal) }}</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <RouterLink to="/erp/orders"
-                class="px-5 py-2.5 text-[13px] font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
-                {{ t('erp.orders.discard') }}
-              </RouterLink>
-              <button @click="save" :disabled="saving"
-                class="inline-flex items-center gap-2 px-6 py-2.5 text-[13px] font-bold
-                       bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
-                       disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
-                <CheckIcon v-else class="w-4 h-4" />
-                {{ saving ? t('erp.common.creating') : t('erp.orders.createOrder') }}
-              </button>
-            </div>
-          </div>
+          <DocFooterBar
+            :total-label="t('erp.orders.total')"
+            :total="fmtMoney(grandTotal)"
+            discard-to="/erp/orders"
+            :discard-label="t('erp.orders.discard')"
+            :saving="saving"
+            :saving-label="t('erp.common.creating')"
+            :save-label="t('erp.orders.createOrder')"
+            @save="save"
+          />
         </FormCard>
 
       </div>
@@ -240,6 +230,7 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import DocFooterBar from '@/components/form/DocFooterBar.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
