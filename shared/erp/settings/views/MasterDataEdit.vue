@@ -2,66 +2,42 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <!-- Page Header -->
-      <div class="flex items-start gap-4">
-        <RouterLink to="/erp/settings/master-data"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
-                 hover:border-[#E2E8F0] transition-all flex-shrink-0">
-          <ArrowLeftIcon class="w-[18px] h-[18px]" />
-        </RouterLink>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.masterData.editTitle') }}</h1>
-            <span v-if="category?.isSystem"
-              class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold
-                     bg-amber-50 text-amber-600 border border-amber-200">
-              {{ t('erp.masterData.systemBadge') }}
-            </span>
-          </div>
-          <nav v-if="category" class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/settings/master-data" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
-              {{ t('erp.masterData.title') }}
-            </RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381] font-mono">{{ category.slug }}</span>
-          </nav>
-        </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
-          <RouterLink to="/erp/settings/master-data" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
-          <button @click="saveCategory" :disabled="savingCat" class="btn-primary gap-2">
-            <ArrowPathIcon v-if="savingCat" class="w-4 h-4 animate-spin" />
-            <CheckIcon v-else class="w-4 h-4" />
-            {{ savingCat ? t('common.saving') : t('common.saveChanges') }}
-          </button>
-        </div>
-      </div>
+      <PageHeader :title="t('erp.masterData.editTitle')" back-to="/erp/settings/master-data"
+        :breadcrumb="category ? [
+          { label: t('erp.masterData.title'), to: '/erp/settings/master-data' },
+          { label: category.slug },
+        ] : []">
+        <template #badge>
+          <span v-if="category?.isSystem"
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold
+                   bg-amber-50 text-amber-600 border border-amber-200">
+            {{ t('erp.masterData.systemBadge') }}
+          </span>
+        </template>
+        <template #actions>
+          <HeaderSaveActions
+            cancel-to="/erp/settings/master-data"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('common.saving')"
+            :save-label="t('common.saveChanges')"
+            @save="saveCategory"
+          />
+        </template>
+      </PageHeader>
 
       <!-- Loading -->
-      <div v-if="loading" class="bg-white rounded-2xl border border-[#E2E8F0] p-12 text-center text-[#9BA7B0] text-sm animate-pulse">
-        {{ t('common.loading') }}
-      </div>
+      <LoadingSpinner v-if="loading" />
 
       <template v-else-if="category">
 
-        <!-- Category Details card -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-              <CircleStackIcon class="w-4 h-4 text-primary-500" />
-            </div>
-            <div>
-              <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.masterData.categoryDetails') }}</h2>
-              <p class="text-xs font-mono text-[#9BA7B0] mt-0.5">{{ category.slug }}</p>
-            </div>
-          </div>
-          <div class="px-6 py-5 space-y-5">
+        <FormCard :title="t('erp.masterData.categoryDetails')" :subtitle="category.slug" :icon="CircleStackIcon" icon-color="primary">
+          <div class="space-y-5">
 
             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
               <!-- Name -->
               <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('common.name') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
+                <FieldLabel :text="t('common.name')" required />
                 <input v-model="catForm.name" type="text"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
@@ -69,43 +45,28 @@
 
               <!-- Description -->
               <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('common.description') }}
-                </label>
+                <FieldLabel :text="t('common.description')" />
                 <input v-model="catForm.description" type="text" :placeholder="t('erp.masterData.descPh')"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
               </div>
             </div>
 
-            <div v-if="catError"
-              class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
-              <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0 mt-0.5" />
-              {{ catError }}
-            </div>
+            <ErrorBanner :message="catError" />
 
           </div>
-        </div>
+        </FormCard>
 
         <!-- Values card -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                <ListBulletIcon class="w-4 h-4 text-blue-500" />
-              </div>
-              <div>
-                <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.masterData.valuesTitle') }}</h2>
-                <p class="text-[11px] text-[#9BA7B0]">{{ t('erp.masterData.valuesDesc') }}</p>
-              </div>
-            </div>
+        <FormCard :title="t('erp.masterData.valuesTitle')" :subtitle="t('erp.masterData.valuesDesc')" :icon="ListBulletIcon" icon-color="blue" :padded="false">
+          <template #actions>
             <button v-if="!editRow" @click="startAdd"
               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary-500
                      bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.masterData.addValue') }}
             </button>
-          </div>
+          </template>
 
           <!-- Values table -->
           <div class="overflow-x-auto">
@@ -273,7 +234,7 @@
               {{ t('erp.masterData.addValue') }}
             </button>
           </div>
-        </div>
+        </FormCard>
 
       </template>
     </div>
@@ -285,10 +246,16 @@ import { ref, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  ArrowLeftIcon, ChevronRightIcon, CircleStackIcon, ListBulletIcon,
+  CircleStackIcon, ListBulletIcon,
   PlusIcon, PencilIcon, TrashIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import api from '@/api'
 import { useMasterDataStore } from '@/stores/masterData'
 

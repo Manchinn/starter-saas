@@ -12,12 +12,14 @@
           <StatusPill label="Draft" />
         </template>
         <template #actions>
-          <RouterLink to="/erp/billing/receive-payments" class="btn-secondary">Cancel</RouterLink>
-          <button @click="save" :disabled="saving" class="btn-primary gap-2">
-            <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
-            <CheckIcon v-else class="w-4 h-4" />
-            {{ saving ? 'Creating…' : 'Create Payment' }}
-          </button>
+          <HeaderSaveActions
+            cancel-to="/erp/billing/receive-payments"
+            cancel-label="Cancel"
+            :saving="saving"
+            saving-label="Creating…"
+            save-label="Create Payment"
+            @save="save"
+          />
         </template>
       </PageHeader>
 
@@ -227,6 +229,7 @@ import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'

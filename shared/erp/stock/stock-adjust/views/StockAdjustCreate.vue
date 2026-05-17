@@ -11,12 +11,14 @@
           <StatusPill label="Draft" />
         </template>
         <template #actions>
-          <RouterLink to="/erp/stock-adjust" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
-          <button @click="save" :disabled="saving" class="btn-primary gap-2">
-            <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
-            <CheckIcon v-else class="w-4 h-4" />
-            {{ saving ? t('erp.common.saving') : t('erp.common.saveDraft') }}
-          </button>
+          <HeaderSaveActions
+            cancel-to="/erp/stock-adjust"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('erp.common.saveDraft')"
+            @save="save"
+          />
         </template>
       </PageHeader>
 
@@ -259,6 +261,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import api from '@/api'
 import { useMasterDataStore } from '@/stores/masterData'
 

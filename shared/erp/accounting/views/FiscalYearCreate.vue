@@ -8,12 +8,14 @@
           { label: t('common.create') },
         ]">
         <template #actions>
-          <RouterLink to="/erp/accounting/fiscal-years" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
-          <button @click="save" :disabled="saving" class="btn-primary gap-2">
-            <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
-            <CheckIcon v-else class="w-4 h-4" />
-            {{ saving ? t('erp.common.creating') : t('erp.fiscalYears.createFiscalYear') }}
-          </button>
+          <HeaderSaveActions
+            cancel-to="/erp/accounting/fiscal-years"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.creating')"
+            :save-label="t('erp.fiscalYears.createFiscalYear')"
+            @save="save"
+          />
         </template>
       </PageHeader>
 
@@ -79,6 +81,7 @@ import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 

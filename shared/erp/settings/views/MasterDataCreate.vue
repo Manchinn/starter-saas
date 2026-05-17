@@ -2,42 +2,25 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <!-- Page Header -->
-      <div class="flex items-start gap-4">
-        <RouterLink to="/erp/settings/master-data"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
-                 hover:border-[#E2E8F0] transition-all flex-shrink-0">
-          <ArrowLeftIcon class="w-[18px] h-[18px]" />
-        </RouterLink>
-        <div class="flex-1 min-w-0">
-          <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.masterData.newTitle') }}</h1>
-          <nav class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/settings/master-data" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
-              {{ t('erp.masterData.title') }}
-            </RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381]">{{ t('erp.masterData.new') }}</span>
-          </nav>
-        </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
-          <RouterLink to="/erp/settings/master-data" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
-          <button @click="save" :disabled="saving" class="btn-primary gap-2">
-            <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
-            <CheckIcon v-else class="w-4 h-4" />
-            {{ saving ? t('common.saving') : t('common.create') }}
-          </button>
-        </div>
-      </div>
+      <PageHeader :title="t('erp.masterData.newTitle')" back-to="/erp/settings/master-data"
+        :breadcrumb="[
+          { label: t('erp.masterData.title'), to: '/erp/settings/master-data' },
+          { label: t('erp.masterData.new') },
+        ]">
+        <template #actions>
+          <HeaderSaveActions
+            cancel-to="/erp/settings/master-data"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('common.saving')"
+            :save-label="t('common.create')"
+            @save="save"
+          />
+        </template>
+      </PageHeader>
 
-      <!-- Category Details card -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-            <CircleStackIcon class="w-4 h-4 text-primary-500" />
-          </div>
-          <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.masterData.categoryDetails') }}</h2>
-        </div>
-        <div class="px-6 py-5 space-y-5">
+      <FormCard :title="t('erp.masterData.categoryDetails')" :icon="CircleStackIcon" icon-color="primary">
+        <div class="space-y-5">
 
           <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
@@ -54,9 +37,7 @@
 
             <!-- Name -->
             <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('common.name') }} <span class="text-red-500 normal-case font-normal">*</span>
-              </label>
+              <FieldLabel :text="t('common.name')" required />
               <input v-model="form.name" type="text" :placeholder="t('erp.masterData.namePh')"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
@@ -64,9 +45,7 @@
 
             <!-- Description -->
             <div class="col-span-2">
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('common.description') }}
-              </label>
+              <FieldLabel :text="t('common.description')" />
               <input v-model="form.description" type="text" :placeholder="t('erp.masterData.descPh')"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
@@ -90,15 +69,10 @@
 
           </div>
 
-          <!-- Error -->
-          <div v-if="error"
-            class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
-            <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0 mt-0.5" />
-            {{ error }}
-          </div>
+          <ErrorBanner :message="error" />
 
         </div>
-      </div>
+      </FormCard>
 
     </div>
   </AppLayout>
@@ -109,10 +83,15 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  ArrowLeftIcon, ChevronRightIcon, CircleStackIcon,
-  CheckIcon, ArrowPathIcon, ExclamationCircleIcon,
+  CircleStackIcon,
+  CheckIcon, ArrowPathIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useMasterDataStore } from '@/stores/masterData'
 
 const router = useRouter()

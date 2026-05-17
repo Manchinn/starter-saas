@@ -11,12 +11,14 @@
           <StatusPill :label="t('erp.orders.draft')" />
         </template>
         <template #actions>
-          <RouterLink to="/erp/orders" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
-          <button @click="save" :disabled="saving" class="btn-primary gap-2">
-            <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
-            <CheckIcon v-else class="w-4 h-4" />
-            {{ saving ? t('erp.common.creating') : t('erp.orders.createOrder') }}
-          </button>
+          <HeaderSaveActions
+            cancel-to="/erp/orders"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.creating')"
+            :save-label="t('erp.orders.createOrder')"
+            @save="save"
+          />
         </template>
       </PageHeader>
 
@@ -264,6 +266,7 @@ import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
