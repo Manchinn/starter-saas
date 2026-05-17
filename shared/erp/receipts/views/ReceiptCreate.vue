@@ -38,17 +38,7 @@
               </SearchSelect>
               <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
 
-              <!-- Customer chip -->
-              <div v-if="selectedCustomer"
-                class="mt-2.5 flex items-center gap-2.5 px-3 py-2 bg-primary-50 rounded-xl border border-primary-100">
-                <div class="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
-                  <span class="text-xs font-bold text-white uppercase">{{ selectedCustomer.name?.charAt(0) }}</span>
-                </div>
-                <div class="min-w-0">
-                  <p class="text-sm font-semibold text-primary-800 truncate">{{ selectedCustomer.name }}</p>
-                  <p v-if="selectedCustomer.company" class="text-xs text-primary-500 truncate">{{ selectedCustomer.company }}</p>
-                </div>
-              </div>
+              <CustomerChip :customer="selectedCustomer" />
             </div>
 
             <!-- Receipt Date -->
@@ -188,6 +178,7 @@ import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import CustomerChip from '@/components/form/CustomerChip.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { useMasterDataStore } from '@/stores/masterData'

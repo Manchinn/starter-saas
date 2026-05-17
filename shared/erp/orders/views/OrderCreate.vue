@@ -38,22 +38,7 @@
               </SearchSelect>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
 
-              <!-- Customer chip -->
-              <div v-if="selectedCustomer"
-                class="mt-2.5 flex items-center gap-2.5 px-3 py-2.5 bg-primary-50 rounded-xl border border-primary-100">
-                <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
-                  <span class="text-[12px] font-bold text-white uppercase">{{ selectedCustomer.name?.charAt(0) }}</span>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ selectedCustomer.name }}</p>
-                  <p v-if="selectedCustomer.company" class="text-[11px] text-[#637381] truncate">{{ selectedCustomer.company }}</p>
-                </div>
-                <span v-if="selectedCustomer.group"
-                  class="flex-shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full
-                         bg-white border border-primary-200 text-primary-600">
-                  {{ selectedCustomer.group.name }}
-                </span>
-              </div>
+              <CustomerChip :customer="selectedCustomer" />
             </div>
 
             <!-- Order Date -->
@@ -267,6 +252,7 @@ import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import CustomerChip from '@/components/form/CustomerChip.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
