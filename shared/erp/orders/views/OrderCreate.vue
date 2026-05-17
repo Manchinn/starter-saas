@@ -95,21 +95,7 @@
           </template>
 
           <!-- Empty state -->
-          <div v-if="!form.items.length" class="flex flex-col items-center justify-center py-14 text-center px-6">
-            <div class="w-14 h-14 bg-[#F7F9FC] rounded-2xl flex items-center justify-center mb-4 border border-[#E2E8F0]">
-              <ShoppingCartIcon class="w-6 h-6 text-[#CBD5E1]" />
-            </div>
-            <p class="text-[13px] font-semibold text-[#637381]">{{ t('erp.common.noItems') }}</p>
-            <p class="text-[12px] text-[#9BA7B0] mt-1">Add products or services to this order</p>
-            <button @click="addLine" type="button"
-              class="mt-5 inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold
-                     text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
-                     rounded-xl transition-colors">
-              <PlusIcon class="w-4 h-4" />
-              {{ t('erp.orders.addFirstItem') }}
-            </button>
-            <p v-if="errors.items" class="mt-3 text-[11px] text-red-500">{{ errors.items }}</p>
-          </div>
+          <EmptyState v-if="!form.items.length" :icon="ShoppingCartIcon" :title="t('erp.common.noItems')" subtitle="Add products or services to this order" :action-label="t('erp.orders.addFirstItem')" :error-message="errors.items" @action="addLine" />
 
           <!-- Items table -->
           <div v-else>
@@ -253,6 +239,7 @@ import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
+import EmptyState from '@/components/form/EmptyState.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
