@@ -3,130 +3,100 @@
     <div class="space-y-6">
 
       <!-- Page Header -->
-      <div class="flex items-start gap-4">
-        <RouterLink to="/erp/billing/credit-notes"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
-                 hover:border-[#E2E8F0] transition-all flex-shrink-0">
-          <ArrowLeftIcon class="w-[18px] h-[18px]" />
-        </RouterLink>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.creditNotes.new') }}</h1>
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                         bg-amber-50 text-amber-600 border border-amber-200">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              {{ t('erp.common.draft') }}
-            </span>
-          </div>
-          <nav class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/billing/credit-notes" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">{{ t('erp.creditNotes.title') }}</RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381]">{{ t('common.create') }}</span>
-          </nav>
-        </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
+      <PageHeader :title="t('erp.creditNotes.new')" back-to="/erp/billing/credit-notes"
+        :breadcrumb="[
+          { label: t('erp.creditNotes.title'), to: '/erp/billing/credit-notes' },
+          { label: t('common.create') },
+        ]">
+        <template #badge>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                       bg-amber-50 text-amber-600 border border-amber-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            {{ t('erp.common.draft') }}
+          </span>
+        </template>
+        <template #actions>
           <RouterLink to="/erp/billing/credit-notes" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving" class="btn-primary gap-2">
             <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
             <CheckIcon v-else class="w-4 h-4" />
             {{ saving ? t('erp.common.creating') : t('erp.creditNotes.create') }}
           </button>
-        </div>
-      </div>
+        </template>
+      </PageHeader>
 
       <!-- Form -->
       <div class="space-y-5">
 
         <!-- Section: Credit Note Information -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
-              <ArrowTrendingDownIcon class="w-4 h-4 text-green-600" />
+        <FormCard :title="t('erp.creditNotes.info')" :icon="ArrowTrendingDownIcon" icon-color="green">
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+
+            <!-- Customer -->
+            <div class="col-span-2 lg:col-span-1">
+              <FieldLabel :text="t('erp.common.customer')" required />
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+              </SearchSelect>
+              <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
             </div>
-            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.creditNotes.info') }}</h2>
-          </div>
-          <div class="px-6 py-5">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
-              <!-- Customer -->
-              <div class="col-span-2 lg:col-span-1">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.common.customer') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
-                  <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                </SearchSelect>
-                <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
-              </div>
-
-              <!-- Date -->
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.common.date') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <input v-model="form.date" type="date"
-                  :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.date ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-                <p v-if="errors.date" class="mt-1 text-xs text-red-500">{{ errors.date }}</p>
-              </div>
-
-              <!-- Invoice (optional) -->
-              <div class="col-span-2 lg:col-span-1">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.creditNotes.linkedInvoice') }} <span class="text-[#9BA7B0] normal-case font-normal text-[10px]">(optional)</span>
-                </label>
-                <SearchSelect v-model="form.invoiceId" :options="invoices" label-key="invoiceNumber" :disabled="!form.customerId || loadingInvoices" :loading="loadingInvoices" placeholder="— No invoice —">
-                  <template #option="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
-                  <template #singleLabel="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
-                </SearchSelect>
-              </div>
-
-              <!-- Amount -->
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.creditNotes.colAmount') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <input v-model="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
-                  :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-                <p v-if="errors.amount" class="mt-1 text-xs text-red-500">{{ errors.amount }}</p>
-              </div>
-
-              <!-- Reason -->
-              <div class="col-span-2">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.creditNotes.colReason') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <input v-model="form.reason" type="text" :placeholder="t('erp.creditNotes.reasonPh')"
-                  :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.reason ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-                <p v-if="errors.reason" class="mt-1 text-xs text-red-500">{{ errors.reason }}</p>
-              </div>
-
-              <!-- Notes -->
-              <div class="col-span-2">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.common.notes') }}</label>
-                <textarea v-model="form.notes" rows="2" :placeholder="t('erp.creditNotes.notesPh')"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-colors resize-none placeholder-[#CBD5E1]" />
-              </div>
-
+            <!-- Date -->
+            <div>
+              <FieldLabel :text="t('erp.common.date')" required />
+              <input v-model="form.date" type="date"
+                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
+                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
+                         errors.date ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.date" class="mt-1 text-xs text-red-500">{{ errors.date }}</p>
             </div>
+
+            <!-- Invoice (optional) - kept inline because the label has a secondary "(optional)" hint -->
+            <div class="col-span-2 lg:col-span-1">
+              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
+                {{ t('erp.creditNotes.linkedInvoice') }} <span class="text-[#9BA7B0] normal-case font-normal text-[10px]">(optional)</span>
+              </label>
+              <SearchSelect v-model="form.invoiceId" :options="invoices" label-key="invoiceNumber" :disabled="!form.customerId || loadingInvoices" :loading="loadingInvoices" placeholder="— No invoice —">
+                <template #option="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
+                <template #singleLabel="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
+              </SearchSelect>
+            </div>
+
+            <!-- Amount -->
+            <div>
+              <FieldLabel :text="t('erp.creditNotes.colAmount')" required />
+              <input v-model="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
+                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
+                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
+                         errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.amount" class="mt-1 text-xs text-red-500">{{ errors.amount }}</p>
+            </div>
+
+            <!-- Reason -->
+            <div class="col-span-2">
+              <FieldLabel :text="t('erp.creditNotes.colReason')" required />
+              <input v-model="form.reason" type="text" :placeholder="t('erp.creditNotes.reasonPh')"
+                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
+                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
+                         errors.reason ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.reason" class="mt-1 text-xs text-red-500">{{ errors.reason }}</p>
+            </div>
+
+            <!-- Notes -->
+            <div class="col-span-2">
+              <FieldLabel :text="t('erp.common.notes')" />
+              <textarea v-model="form.notes" rows="2" :placeholder="t('erp.creditNotes.notesPh')"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-colors resize-none placeholder-[#CBD5E1]" />
+            </div>
+
           </div>
-        </div>
+        </FormCard>
 
         <!-- Global error -->
-        <div v-if="globalError"
-          class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700
-                 text-sm px-4 py-3.5 rounded-xl">
-          <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>{{ globalError }}</span>
-        </div>
+        <ErrorBanner :message="globalError" />
 
         <!-- Summary -->
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
@@ -184,13 +154,17 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  ArrowLeftIcon, ChevronRightIcon, CheckIcon, ExclamationCircleIcon,
-  ArrowPathIcon, ArrowTrendingDownIcon, CalculatorIcon,
+  CheckIcon, ArrowPathIcon, ArrowTrendingDownIcon, CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router          = useRouter()
@@ -256,8 +230,7 @@ async function save() {
     })
     router.push(`/erp/billing/credit-notes/${data.data.creditNote.id}`)
   } catch (err) {
-    const d = err.response?.data
-    globalError.value = d?.errors?.map(e => e.message).join(', ') || d?.message || t('erp.creditNotes.errCreate')
+    globalError.value = parseApiError(err, t('erp.creditNotes.errCreate'))
   } finally {
     saving.value = false
   }

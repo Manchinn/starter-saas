@@ -67,6 +67,7 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -83,8 +84,7 @@ async function save() {
     await api.post('/erp/uom', form.value)
     router.push('/erp/uom')
   } catch (err) {
-    const d = err.response?.data
-    error.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to create UOM'
+    error.value = parseApiError(err, 'Failed to create UOM')
   } finally {
     saving.value = false
   }

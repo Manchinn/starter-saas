@@ -213,6 +213,7 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const route    = useRoute()
@@ -309,8 +310,7 @@ async function save() {
     })
     router.push('/erp/item-master')
   } catch (err) {
-    const d = err.response?.data
-    error.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to save'
+    error.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
   }

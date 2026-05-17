@@ -240,6 +240,7 @@ import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router      = useRouter()
@@ -305,8 +306,7 @@ async function save() {
     const { data } = await api.post('/erp/invoices', payload)
     router.push(`/erp/invoices/${data.data.invoice.id}`)
   } catch (err) {
-    const d = err.response?.data
-    globalError.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to create invoice'
+    globalError.value = parseApiError(err, 'Failed to create invoice')
   } finally {
     saving.value = false
   }

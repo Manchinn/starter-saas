@@ -2,168 +2,126 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <!-- Page Header -->
-      <div class="flex items-start gap-4">
-        <RouterLink to="/erp/receipts"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
-                 hover:border-[#E2E8F0] transition-all flex-shrink-0">
-          <ArrowLeftIcon class="w-[18px] h-[18px]" />
-        </RouterLink>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.receipts.new') }}</h1>
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                         bg-amber-50 text-amber-600 border border-amber-200">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              {{ t('erp.common.draft') }}
-            </span>
-          </div>
-          <nav class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/receipts" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">{{ t('erp.receipts.title') }}</RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381]">{{ t('common.create') }}</span>
-          </nav>
-        </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
+      <PageHeader :title="t('erp.receipts.new')" back-to="/erp/receipts"
+        :breadcrumb="[
+          { label: t('erp.receipts.title'), to: '/erp/receipts' },
+          { label: t('common.create') },
+        ]">
+        <template #badge>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                       bg-amber-50 text-amber-600 border border-amber-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            {{ t('erp.common.draft') }}
+          </span>
+        </template>
+        <template #actions>
           <RouterLink to="/erp/receipts" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving" class="btn-primary gap-2">
             <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
             <CheckIcon v-else class="w-4 h-4" />
             {{ saving ? t('erp.common.creating') : t('erp.receipts.create') }}
           </button>
-        </div>
-      </div>
+        </template>
+      </PageHeader>
 
       <!-- Vertical single-column layout -->
       <div class="space-y-5">
 
         <!-- Section 1: Customer & Receipt Info -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-              <UserIcon class="w-4 h-4 text-primary-500" />
-            </div>
-            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.receipts.info') }}</h2>
-          </div>
-          <div class="px-6 py-5">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+        <FormCard :title="t('erp.receipts.info')" :icon="UserIcon" icon-color="primary">
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
-              <!-- Customer -->
-              <div class="col-span-2">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.common.customer') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
-                  <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                </SearchSelect>
-                <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
+            <!-- Customer -->
+            <div class="col-span-2">
+              <FieldLabel :text="t('erp.common.customer')" required />
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+              </SearchSelect>
+              <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
 
-                <!-- Customer chip -->
-                <div v-if="selectedCustomer"
-                  class="mt-2.5 flex items-center gap-2.5 px-3 py-2 bg-primary-50 rounded-xl border border-primary-100">
-                  <div class="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
-                    <span class="text-xs font-bold text-white uppercase">{{ selectedCustomer.name?.charAt(0) }}</span>
-                  </div>
-                  <div class="min-w-0">
-                    <p class="text-sm font-semibold text-primary-800 truncate">{{ selectedCustomer.name }}</p>
-                    <p v-if="selectedCustomer.company" class="text-xs text-primary-500 truncate">{{ selectedCustomer.company }}</p>
-                  </div>
+              <!-- Customer chip -->
+              <div v-if="selectedCustomer"
+                class="mt-2.5 flex items-center gap-2.5 px-3 py-2 bg-primary-50 rounded-xl border border-primary-100">
+                <div class="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
+                  <span class="text-xs font-bold text-white uppercase">{{ selectedCustomer.name?.charAt(0) }}</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-primary-800 truncate">{{ selectedCustomer.name }}</p>
+                  <p v-if="selectedCustomer.company" class="text-xs text-primary-500 truncate">{{ selectedCustomer.company }}</p>
                 </div>
               </div>
-
-              <!-- Receipt Date -->
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.receipts.receiptDate') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <DateInput v-model="form.receiptDate"
-                  :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.receiptDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-                <p v-if="errors.receiptDate" class="mt-1 text-xs text-red-500">{{ errors.receiptDate }}</p>
-              </div>
-
-              <!-- Reference Invoice -->
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.receipts.referenceInvoice') }}</label>
-                <SearchSelect v-model="form.invoiceId" :options="invoices" label-key="invoiceNumber" placeholder="— None —">
-                  <template #option="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
-                  <template #singleLabel="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
-                </SearchSelect>
-              </div>
-
-              <!-- Notes -->
-              <div class="col-span-2">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.common.notes') }}</label>
-                <textarea v-model="form.notes" rows="2" placeholder="Additional notes…"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-colors resize-none placeholder-[#CBD5E1]" />
-              </div>
-
             </div>
+
+            <!-- Receipt Date -->
+            <div>
+              <FieldLabel :text="t('erp.receipts.receiptDate')" required />
+              <DateInput v-model="form.receiptDate"
+                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
+                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
+                         errors.receiptDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.receiptDate" class="mt-1 text-xs text-red-500">{{ errors.receiptDate }}</p>
+            </div>
+
+            <!-- Reference Invoice -->
+            <div>
+              <FieldLabel :text="t('erp.receipts.referenceInvoice')" />
+              <SearchSelect v-model="form.invoiceId" :options="invoices" label-key="invoiceNumber" placeholder="— None —">
+                <template #option="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
+                <template #singleLabel="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
+              </SearchSelect>
+            </div>
+
+            <!-- Notes -->
+            <div class="col-span-2">
+              <FieldLabel :text="t('erp.common.notes')" />
+              <textarea v-model="form.notes" rows="2" placeholder="Additional notes…"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-colors resize-none placeholder-[#CBD5E1]" />
+            </div>
+
           </div>
-        </div>
+        </FormCard>
 
         <!-- Section 2: Payment -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
-              <BanknotesIcon class="w-4 h-4 text-green-600" />
+        <FormCard :title="t('erp.receipts.paymentMethod')" :icon="BanknotesIcon" icon-color="green">
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+
+            <!-- Payment Method -->
+            <div>
+              <FieldLabel :text="t('erp.receipts.paymentMethod')" required />
+              <select v-model="form.paymentMethod"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
+                <option value="">— Select —</option>
+                <option v-for="m in paymentMethods" :key="m.id" :value="m.code || m.name">{{ m.name }}</option>
+              </select>
             </div>
-            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.receipts.paymentMethod') }}</h2>
-          </div>
-          <div class="px-6 py-5">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
-              <!-- Payment Method -->
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.receipts.paymentMethod') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <select v-model="form.paymentMethod"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="">— Select —</option>
-                  <option v-for="m in paymentMethods" :key="m.id" :value="m.code || m.name">{{ m.name }}</option>
-                </select>
-              </div>
-
-              <!-- Amount -->
-              <div>
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.receipts.amountReceived') }} <span class="text-red-500 normal-case font-normal">*</span>
-                </label>
-                <input v-model.number="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
-                  :class="['w-full px-3.5 py-2.5 border text-sm text-right tabular-nums transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-                <p v-if="errors.amount" class="mt-1 text-xs text-red-500">{{ errors.amount }}</p>
-              </div>
-
-              <!-- Reference No. -->
-              <div class="col-span-2">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.receipts.referenceNo') }}
-                </label>
-                <input v-model="form.reference" type="text" placeholder="Cheque no., transfer ref…"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-colors placeholder-[#CBD5E1]" />
-              </div>
-
+            <!-- Amount -->
+            <div>
+              <FieldLabel :text="t('erp.receipts.amountReceived')" required />
+              <input v-model.number="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
+                :class="['w-full px-3.5 py-2.5 border text-sm text-right tabular-nums transition-colors',
+                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
+                         errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.amount" class="mt-1 text-xs text-red-500">{{ errors.amount }}</p>
             </div>
-          </div>
-        </div>
 
-        <!-- Global error -->
-        <div v-if="globalError"
-          class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700
-                 text-sm px-4 py-3.5 rounded-xl">
-          <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>{{ globalError }}</span>
-        </div>
+            <!-- Reference No. -->
+            <div class="col-span-2">
+              <FieldLabel :text="t('erp.receipts.referenceNo')" />
+              <input v-model="form.reference" type="text" placeholder="Cheque no., transfer ref…"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-colors placeholder-[#CBD5E1]" />
+            </div>
+
+          </div>
+        </FormCard>
+
+        <ErrorBanner :message="globalError" />
 
         <!-- Summary + Actions -->
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
@@ -221,14 +179,19 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  ArrowLeftIcon, ChevronRightIcon, CheckIcon, ExclamationCircleIcon,
+  CheckIcon,
   ArrowPathIcon, UserIcon, BanknotesIcon, CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { useMasterDataStore } from '@/stores/masterData'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router           = useRouter()
@@ -295,8 +258,7 @@ async function save() {
     const { data } = await api.post('/erp/receipts', payload)
     router.push(`/erp/receipts/${data.data.receipt.id}`)
   } catch (err) {
-    const d = err.response?.data
-    globalError.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to create receipt'
+    globalError.value = parseApiError(err, 'Failed to create receipt')
   } finally {
     saving.value = false
   }

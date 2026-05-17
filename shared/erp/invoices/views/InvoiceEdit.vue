@@ -250,6 +250,7 @@ import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const route       = useRoute()
@@ -351,8 +352,7 @@ async function save() {
     await api.put(`/erp/invoices/${invoiceId}`, payload)
     router.push(`/erp/invoices/${invoiceId}`)
   } catch (err) {
-    const d = err.response?.data
-    globalError.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to update invoice'
+    globalError.value = parseApiError(err, 'Failed to update invoice')
   } finally {
     saving.value = false
   }

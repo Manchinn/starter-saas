@@ -2,57 +2,38 @@
   <AppLayout>
     <div class="space-y-5">
 
-      <!-- Page Header -->
-      <div class="flex items-start gap-4">
-        <RouterLink to="/erp/orders"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
-                 border border-transparent hover:border-[#E2E8F0] transition-all flex-shrink-0">
-          <ArrowLeftIcon class="w-[18px] h-[18px]" />
-        </RouterLink>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2.5 flex-wrap">
-            <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.orders.new') }}</h1>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                         bg-amber-50 text-amber-600 border border-amber-200">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              {{ t('erp.orders.draft') }}
-            </span>
-          </div>
-          <nav class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/orders" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">Orders</RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381]">Create</span>
-          </nav>
-        </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
+      <PageHeader :title="t('erp.orders.new')" back-to="/erp/orders"
+        :breadcrumb="[
+          { label: 'Orders', to: '/erp/orders' },
+          { label: 'Create' },
+        ]">
+        <template #badge>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                       bg-amber-50 text-amber-600 border border-amber-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            {{ t('erp.orders.draft') }}
+          </span>
+        </template>
+        <template #actions>
           <RouterLink to="/erp/orders" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving" class="btn-primary gap-2">
             <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
             <CheckIcon v-else class="w-4 h-4" />
             {{ saving ? t('erp.common.creating') : t('erp.orders.createOrder') }}
           </button>
-        </div>
-      </div>
+        </template>
+      </PageHeader>
 
       <!-- Sections -->
       <div class="space-y-5">
 
         <!-- Customer & Order Info -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-              <UserIcon class="w-[18px] h-[18px] text-primary-500" />
-            </div>
-            <h2 class="text-[13px] font-semibold text-[#1C2434]">{{ t('erp.orders.customerInfo') }}</h2>
-          </div>
-
+        <FormCard :title="t('erp.orders.customerInfo')" :icon="UserIcon" icon-color="primary" :padded="false">
           <div class="px-6 py-5 grid grid-cols-2 gap-x-6 gap-y-5">
 
             <!-- Customer -->
             <div class="col-span-2 lg:col-span-1">
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('erp.orders.customer') }} <span class="text-red-400 normal-case font-normal ml-0.5">*</span>
-              </label>
+              <FieldLabel :text="t('erp.orders.customer')" required />
               <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
@@ -79,9 +60,7 @@
 
             <!-- Order Date -->
             <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('erp.orders.orderDate') }} <span class="text-red-400 normal-case font-normal ml-0.5">*</span>
-              </label>
+              <FieldLabel :text="t('erp.orders.orderDate')" required />
               <DateInput v-model="form.orderDate"
                 :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
@@ -91,9 +70,7 @@
 
             <!-- Tax Rate -->
             <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('erp.orders.taxRate') }}
-              </label>
+              <FieldLabel :text="t('erp.orders.taxRate')" />
               <div class="relative">
                 <input v-model.number="form.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
                   class="w-full pl-3.5 pr-9 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
@@ -105,37 +82,26 @@
 
             <!-- Currency -->
             <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.common.currency') }}</label>
+              <FieldLabel :text="t('erp.common.currency')" />
               <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.orderDate" />
             </div>
 
             <!-- Notes -->
             <div class="col-span-2">
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('erp.orders.notes') }}
-              </label>
+              <FieldLabel :text="t('erp.orders.notes')" />
               <textarea v-model="form.notes" rows="2" placeholder="Order notes or special instructions…"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                        transition-all resize-none placeholder:text-[#9BA7B0]" />
             </div>
           </div>
-        </div>
+        </FormCard>
 
         <!-- Line Items -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                <ClipboardDocumentListIcon class="w-[18px] h-[18px] text-emerald-600" />
-              </div>
-              <div>
-                <h2 class="text-[13px] font-semibold text-[#1C2434]">{{ t('erp.orders.lineItems') }}</h2>
-                <p class="text-[11px] text-[#9BA7B0]">
-                  {{ form.items.length ? `${form.items.length} item${form.items.length !== 1 ? 's' : ''}` : 'No items yet' }}
-                </p>
-              </div>
-            </div>
+        <FormCard :title="t('erp.orders.lineItems')" :icon="ClipboardDocumentListIcon" icon-color="green"
+          :subtitle="form.items.length ? `${form.items.length} item${form.items.length !== 1 ? 's' : ''}` : 'No items yet'"
+          :padded="false">
+          <template #actions>
             <button @click="addLine" type="button"
               class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
                      text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
@@ -143,7 +109,7 @@
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.orders.addItem') }}
             </button>
-          </div>
+          </template>
 
           <!-- Empty state -->
           <div v-if="!form.items.length" class="flex flex-col items-center justify-center py-14 text-center px-6">
@@ -234,23 +200,12 @@
               {{ errors.items }}
             </p>
           </div>
-        </div>
+        </FormCard>
 
-        <!-- Global error -->
-        <div v-if="globalError"
-          class="flex items-start gap-3 bg-[#FEE2E2] border border-[#FECACA] text-[#B91C1C]
-                 text-[13px] px-4 py-3.5 rounded-xl">
-          <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>{{ globalError }}</span>
-        </div>
+        <ErrorBanner :message="globalError" />
 
         <!-- Summary + Actions -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
-            <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
-            <h2 class="text-[13px] font-semibold text-[#1C2434]">{{ t('erp.orders.orderSummary') }}</h2>
-          </div>
-
+        <FormCard :title="t('erp.orders.orderSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-4 grid grid-cols-3 gap-6">
             <div class="flex flex-col gap-0.5">
               <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.items') }}</span>
@@ -288,7 +243,7 @@
               </button>
             </div>
           </div>
-        </div>
+        </FormCard>
 
       </div>
     </div>
@@ -300,16 +255,21 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
-  ArrowLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon,
-  CheckIcon, ExclamationCircleIcon, ShoppingCartIcon,
+  PlusIcon, TrashIcon,
+  CheckIcon, ShoppingCartIcon,
   ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
   CalculatorIcon, LightBulbIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router    = useRouter()
@@ -474,8 +434,7 @@ async function save() {
     const { data } = await api.post('/erp/orders', payload)
     router.push(`/erp/orders/${data.data.order.id}`)
   } catch (err) {
-    const d = err.response?.data
-    globalError.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to create order'
+    globalError.value = parseApiError(err, 'Failed to create order')
   } finally {
     saving.value = false
   }

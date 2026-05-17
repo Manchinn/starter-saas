@@ -234,6 +234,7 @@ import { ArrowLeftIcon, XMarkIcon, ExclamationCircleIcon } from '@heroicons/vue/
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router   = useRouter()
@@ -308,8 +309,7 @@ async function save() {
     await api.post('/erp/item-master', payload)
     router.push('/erp/item-master')
   } catch (err) {
-    const d = err.response?.data
-    error.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to create Product Master'
+    error.value = parseApiError(err, 'Failed to create Product Master')
   } finally {
     saving.value = false
   }

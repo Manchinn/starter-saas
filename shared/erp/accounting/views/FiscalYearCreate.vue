@@ -2,46 +2,26 @@
   <AppLayout>
     <div class="space-y-6 max-w-2xl">
 
-      <!-- Header -->
-      <div class="flex items-start gap-4">
-        <RouterLink to="/erp/accounting/fiscal-years"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
-                 hover:border-[#E2E8F0] transition-all flex-shrink-0">
-          <ArrowLeftIcon class="w-[18px] h-[18px]" />
-        </RouterLink>
-        <div class="flex-1 min-w-0">
-          <h1 class="text-xl font-bold text-[#1C2434]">{{ t('erp.fiscalYears.new') }}</h1>
-          <nav class="flex items-center gap-1.5 mt-1">
-            <RouterLink to="/erp/accounting/fiscal-years" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">{{ t('erp.fiscalYears.title') }}</RouterLink>
-            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
-            <span class="text-[12px] text-[#637381]">{{ t('common.create') }}</span>
-          </nav>
-        </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
+      <PageHeader :title="t('erp.fiscalYears.new')" back-to="/erp/accounting/fiscal-years"
+        :breadcrumb="[
+          { label: t('erp.fiscalYears.title'), to: '/erp/accounting/fiscal-years' },
+          { label: t('common.create') },
+        ]">
+        <template #actions>
           <RouterLink to="/erp/accounting/fiscal-years" class="btn-secondary">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving" class="btn-primary gap-2">
             <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
             <CheckIcon v-else class="w-4 h-4" />
             {{ saving ? t('erp.common.creating') : t('erp.fiscalYears.createFiscalYear') }}
           </button>
-        </div>
-      </div>
+        </template>
+      </PageHeader>
 
-      <!-- Form -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
-            <CalendarDaysIcon class="w-4 h-4 text-indigo-600" />
-          </div>
-          <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.fiscalYears.details') }}</h2>
-        </div>
-        <div class="px-6 py-5 space-y-5">
+      <FormCard :title="t('erp.fiscalYears.details')" :icon="CalendarDaysIcon" icon-color="purple">
+        <div class="space-y-5">
 
-          <!-- Name -->
           <div>
-            <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-              {{ t('erp.fiscalYears.colName') }} <span class="text-red-500 normal-case font-normal">*</span>
-            </label>
+            <FieldLabel :text="t('erp.fiscalYears.colName')" required />
             <input v-model="form.name" type="text" placeholder="e.g. FY2026, 2026"
               :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                        'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
@@ -49,12 +29,9 @@
             <p v-if="errors.name" class="mt-1 text-xs text-red-500">{{ errors.name }}</p>
           </div>
 
-          <!-- Dates -->
           <div class="grid grid-cols-2 gap-5">
             <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('erp.fiscalYears.colStartDate') }} <span class="text-red-500 normal-case font-normal">*</span>
-              </label>
+              <FieldLabel :text="t('erp.fiscalYears.colStartDate')" required />
               <input v-model="form.startDate" type="date"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
@@ -62,9 +39,7 @@
               <p v-if="errors.startDate" class="mt-1 text-xs text-red-500">{{ errors.startDate }}</p>
             </div>
             <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('erp.fiscalYears.colEndDate') }} <span class="text-red-500 normal-case font-normal">*</span>
-              </label>
+              <FieldLabel :text="t('erp.fiscalYears.colEndDate')" required />
               <input v-model="form.endDate" type="date"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
@@ -73,14 +48,12 @@
             </div>
           </div>
 
-          <!-- Duration hint -->
           <p v-if="duration" class="text-xs text-[#637381]">
             {{ t('erp.fiscalYears.period') }}: <span class="font-semibold text-[#1C2434]">{{ duration }}</span>
           </p>
 
-          <!-- Notes -->
           <div>
-            <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.common.notes') }}</label>
+            <FieldLabel :text="t('erp.common.notes')" />
             <textarea v-model="form.notes" rows="2" placeholder="Optional remarks…"
               class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                      focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
@@ -88,15 +61,9 @@
           </div>
 
         </div>
-      </div>
+      </FormCard>
 
-      <!-- Global error -->
-      <div v-if="globalError"
-        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700
-               text-sm px-4 py-3.5 rounded-xl">
-        <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
-        <span>{{ globalError }}</span>
-      </div>
+      <ErrorBanner :message="globalError" />
 
     </div>
   </AppLayout>
@@ -106,12 +73,14 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import {
-  ArrowLeftIcon, ChevronRightIcon, CheckIcon, ArrowPathIcon,
-  CalendarDaysIcon, ExclamationCircleIcon,
-} from '@heroicons/vue/24/outline'
+import { CheckIcon, ArrowPathIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import api from '@/api'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router      = useRouter()
@@ -158,8 +127,7 @@ async function save() {
     })
     router.push(`/erp/accounting/fiscal-years/${data.data.fiscalYear.id}`)
   } catch (err) {
-    const d = err.response?.data
-    globalError.value = d?.errors?.map(e => e.message).join(', ') || d?.message || t('erp.fiscalYears.errCreate')
+    globalError.value = parseApiError(err, t('erp.fiscalYears.errCreate'))
   } finally {
     saving.value = false
   }

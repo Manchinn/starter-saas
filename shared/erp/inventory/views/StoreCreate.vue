@@ -84,6 +84,7 @@ import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router   = useRouter()
@@ -102,8 +103,7 @@ async function save() {
     await api.post('/erp/stores', payload)
     router.push('/erp/stores')
   } catch (err) {
-    const d = err.response?.data
-    error.value = d?.errors?.map(e => e.message).join(', ') || d?.message || 'Failed to create store'
+    error.value = parseApiError(err, 'Failed to create store')
   } finally {
     saving.value = false
   }
