@@ -108,10 +108,8 @@ const updateStatus = async (id, status, userId) => {
     // Cut stock when moving to confirmed
     if (status === 'confirmed' && ['draft', 'cancelled'].includes(oldStatus)) {
       const storeIds = [...new Set(order.items.map(i => i.storeId).filter(Boolean))]
-      if (storeIds.length) {
-        const { checkStoreLock } = require('../stock/stock-count/stock-count.service')
-        for (const sid of storeIds) await checkStoreLock(sid)
-      }
+      const { checkStoreLock } = require('../stock/stock-count/stock-count.service')
+      await checkStoreLock(storeIds)
       for (const item of order.items) {
         const productId = resolveProductId(item)
         if (productId) {
@@ -153,6 +151,9 @@ const updateStatus = async (id, status, userId) => {
 
     // Return stock when cancelled (if was previously confirmed/shipped/delivered)
     if (status === 'cancelled' && ['confirmed', 'shipped', 'delivered'].includes(oldStatus)) {
+      const storeIds = [...new Set(order.items.map(i => i.storeId).filter(Boolean))]
+      const { checkStoreLock } = require('../stock/stock-count/stock-count.service')
+      await checkStoreLock(storeIds)
       for (const item of order.items) {
         const productId = resolveProductId(item)
         if (productId) {

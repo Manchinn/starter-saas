@@ -45,8 +45,26 @@ module.exports = {
 
   async confirm(req, res) {
     try {
-      const sc = await service.confirm(req.params.id)
+      const sc = await service.confirm(req.params.id, req.user?.id)
       return ok(res, { stockCount: sc }, 'Stock Count confirmed')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async lock(req, res) {
+    try {
+      const sc = await service.setLock(req.params.id, true, req.user?.id)
+      return ok(res, { stockCount: sc }, 'Stock Count locked')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async unlock(req, res) {
+    try {
+      const sc = await service.setLock(req.params.id, false, req.user?.id)
+      return ok(res, { stockCount: sc }, 'Stock Count unlocked')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
     }

@@ -14,6 +14,8 @@ router.get('/:id',             requirePermission('erp.stock.list'), (req, res) =
 router.get('/check-lock/:storeId', requirePermission('erp.stock.list'), (req, res) => controller.checkLock(req, res))
 router.post('/',               requirePermission('erp.stock.edit'), (req, res) => controller.create(req, res))
 router.post('/:id/confirm',    requirePermission('erp.stock.edit'), (req, res) => controller.confirm(req, res))
+router.post('/:id/lock',       requirePermission('erp.stock.edit'), (req, res) => controller.lock(req, res))
+router.post('/:id/unlock',     requirePermission('erp.stock.edit'), (req, res) => controller.unlock(req, res))
 router.delete('/:id',          requirePermission('erp.stock.delete'), (req, res) => controller.remove(req, res))
 
 module.exports = router

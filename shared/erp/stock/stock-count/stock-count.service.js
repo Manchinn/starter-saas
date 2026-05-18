@@ -54,19 +54,39 @@ const getStoreProducts = async (storeId) => {
   }))
 }
 
-const checkStoreLock = async (storeId) => {
+/**
+ * Throws a 409 (Conflict) when *any* of the supplied stores currently has an
+ * in-progress stock count holding the movement lock. The error includes the
+ * lock owner's refNo / date / store-name so the caller can render an
+ * actionable message instead of a generic "store is locked".
+ *
+ * Accepts either a single storeId or an array — callers like stock-request
+ * (with from + to stores) and sales-order confirm (with N item stores) pass
+ * arrays so we only run one query.
+ */
+const checkStoreLock = async (storeIdOrIds) => {
+  const storeIds = Array.isArray(storeIdOrIds) ? storeIdOrIds.filter(Boolean) : (storeIdOrIds ? [storeIdOrIds] : [])
+  if (!storeIds.length) return
+
   const lockedCount = await StockCount.findOne({
-    where: {
-      storeId,
-      status: 'draft',
-      movementLocked: true,
-    }
+    where: { storeId: { [Op.in]: storeIds }, status: 'draft', movementLocked: true },
+    include: [storeInclude],
+    attributes: ['id', 'refNo', 'date', 'storeId', 'updatedAt'],
   })
-  if (lockedCount) {
-    throw {
-      status: 400,
-      message: `Store is currently locked for stock counting (Ref: ${lockedCount.refNo}). Please finish or unlock the stock count first.`
-    }
+  if (!lockedCount) return
+
+  const storeName = lockedCount.store?.name || 'this store'
+  throw {
+    status: 409,
+    code:   'STORE_STOCK_LOCKED',
+    message: `${storeName} is locked for stock count ${lockedCount.refNo} (started ${lockedCount.date}). Confirm or unlock the count first.`,
+    lock: {
+      stockCountId: lockedCount.id,
+      refNo:        lockedCount.refNo,
+      date:         lockedCount.date,
+      storeId:      lockedCount.storeId,
+      storeName,
+    },
   }
 }
 
@@ -126,7 +146,7 @@ const update = async (id, { date, storeId, notes, items = [], movementLocked }) 
   }
 }
 
-const confirm = async (id) => {
+const confirm = async (id, userId) => {
   const sc = await StockCount.findByPk(id, { include: [itemInclude] })
   if (!sc) throw { status: 404, message: 'Stock Count not found' }
   if (sc.status === 'confirmed') throw { status: 400, message: 'Already confirmed' }
@@ -170,13 +190,44 @@ const confirm = async (id) => {
     }
 
     // Unlocking on confirm
-    await sc.update({ status: 'confirmed', movementLocked: false }, { transaction: t })
+    await sc.update({ status: 'confirmed', movementLocked: false, modifiedBy: userId || null }, { transaction: t })
     await t.commit()
+
+    require('../../audit/audit.service').log({
+      userId, action: 'stock-count.confirmed',
+      entityType: 'StockCount', entityId: sc.id,
+      summary: { refNo: sc.refNo, storeId: sc.storeId, itemCount: sc.items.length },
+    })
+
     return getById(id)
   } catch (err) {
     await t.rollback()
     throw err
   }
+}
+
+/**
+ * Toggle the movement lock on a draft stock count. Used by the explicit
+ * /lock and /unlock endpoints so callers don't have to round-trip the
+ * whole form payload through PUT just to flip one boolean.
+ */
+const setLock = async (id, locked, userId) => {
+  const sc = await StockCount.findByPk(id)
+  if (!sc) throw { status: 404, message: 'Stock Count not found' }
+  if (sc.status !== 'draft') throw { status: 400, message: 'Only draft stock counts can change their lock state' }
+  if (sc.movementLocked === locked) return getById(id)
+
+  await sc.update({ movementLocked: locked, modifiedBy: userId || null })
+
+  require('../../audit/audit.service').log({
+    userId,
+    action: locked ? 'stock-count.locked' : 'stock-count.unlocked',
+    entityType: 'StockCount',
+    entityId: sc.id,
+    summary: { refNo: sc.refNo, storeId: sc.storeId },
+  })
+
+  return getById(id)
 }
 
 const remove = async (id) => {
@@ -186,5 +237,5 @@ const remove = async (id) => {
   await sc.destroy()
 }
 
-module.exports = { list, getById, getStoreProducts, create, update, confirm, remove, checkStoreLock }
+module.exports = { list, getById, getStoreProducts, create, update, confirm, remove, checkStoreLock, setLock }
 

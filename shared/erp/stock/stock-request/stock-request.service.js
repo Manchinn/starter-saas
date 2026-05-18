@@ -75,8 +75,7 @@ const confirm = async (id) => {
   if (req.status === 'confirmed') throw { status: 400, message: 'Already confirmed' }
 
   const { checkStoreLock } = require('../stock-count/stock-count.service')
-  if (req.fromStoreId) await checkStoreLock(req.fromStoreId)
-  if (req.toStoreId)   await checkStoreLock(req.toStoreId)
+  await checkStoreLock([req.fromStoreId, req.toStoreId])
 
   const t = await sequelize.transaction()
   try {
