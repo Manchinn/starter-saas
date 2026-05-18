@@ -1,15 +1,24 @@
 <template>
   <AppLayout>
-    <div class="max-w-xl mx-auto space-y-5">
+    <div class="w-full space-y-5">
 
       <!-- Header -->
-      <div class="flex items-center gap-3">
-        <button @click="router.back()" class="btn-secondary px-2.5 py-2">
-          <ArrowLeftIcon class="w-4 h-4" />
-        </button>
-        <div>
-          <h1 class="page-title">{{ t('staff.createTitle') }}</h1>
-          <p class="page-subtitle">{{ t('staff.createDesc') }}</p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <button @click="router.back()" class="btn-secondary px-2.5 py-2" :title="t('common.back')">
+            <ArrowLeftIcon class="w-4 h-4" />
+          </button>
+          <div>
+            <h1 class="page-title">{{ t('staff.createTitle') }}</h1>
+            <p class="page-subtitle">{{ t('staff.createDesc') }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button @click="router.back()" class="btn-secondary">{{ t('common.cancel') }}</button>
+          <button @click="save" :disabled="saving" class="btn-primary">
+            {{ saving ? t('staff.creating') : t('staff.create') }}
+          </button>
         </div>
       </div>
 
@@ -22,48 +31,58 @@
           <h3 class="text-[13px] font-semibold text-[#374151]">{{ t('staff.accountInfo') }}</h3>
         </div>
 
-        <div class="p-6 space-y-4">
-          <div v-if="!organizationId">
-            <label class="label">{{ t('staff.orgLabel') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-            <SearchSelect v-model="form.organizationId" :options="organizations" :allow-empty="false" :placeholder="t('staff.orgPh')" />
-          </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          <div>
-            <label class="label">{{ t('staff.fullName') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-            <input v-model="form.name" type="text" class="input" :placeholder="t('staff.fullNamePh')" />
-          </div>
+            <!-- Left column — identity -->
+            <section class="space-y-4">
+              <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">{{ t('staff.sectionIdentity') }}</p>
 
-          <div>
-            <label class="label">{{ t('staff.emailUser') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-            <input v-model="form.email" type="email" class="input" :placeholder="t('staff.emailPh')" />
-          </div>
+              <div>
+                <label class="label">{{ t('staff.fullName') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
+                <input v-model="form.name" type="text" class="input" :placeholder="t('staff.fullNamePh')" />
+              </div>
 
-          <div>
-            <label class="label">{{ t('auth.password') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-            <input v-model="form.password" type="password" class="input" :placeholder="t('staff.passwordPh')" />
-          </div>
+              <div>
+                <label class="label">{{ t('staff.emailUser') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
+                <input v-model="form.email" type="email" class="input" :placeholder="t('staff.emailPh')" />
+              </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="label">{{ t('staff.roleLabel') }}</label>
-              <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" />
-            </div>
-            <div>
-              <label class="label">{{ t('staff.statusLabel') }}</label>
-              <SearchSelect v-model="form.isActive" :options="STATUS_OPTIONS" :allow-empty="false" />
-            </div>
+              <div>
+                <label class="label">{{ t('auth.password') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
+                <input v-model="form.password" type="password" class="input" :placeholder="t('staff.passwordPh')" />
+                <p class="mt-1 text-[11.5px] text-[#9BA7B0]">{{ t('staff.passwordHint') }}</p>
+              </div>
+            </section>
+
+            <!-- Right column — access -->
+            <section class="space-y-4">
+              <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">{{ t('staff.sectionAccess') }}</p>
+
+              <div v-if="!organizationId">
+                <label class="label">{{ t('staff.orgLabel') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
+                <SearchSelect v-model="form.organizationId" :options="organizations" :allow-empty="false" :placeholder="t('staff.orgPh')" />
+              </div>
+              <div v-else>
+                <label class="label">{{ t('staff.orgLabel') }}</label>
+                <input :value="organizationLabel" type="text" disabled class="input bg-[#F7F9FC] text-[#637381]" />
+              </div>
+
+              <div>
+                <label class="label">{{ t('staff.roleLabel') }}</label>
+                <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" />
+              </div>
+
+              <div>
+                <label class="label">{{ t('staff.statusLabel') }}</label>
+                <SearchSelect v-model="form.isActive" :options="STATUS_OPTIONS" :allow-empty="false" />
+              </div>
+            </section>
           </div>
 
           <div v-if="error"
-               class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg">
+               class="mt-6 px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg">
             {{ error }}
-          </div>
-
-          <div class="flex justify-end gap-3 pt-2 border-t border-[#E2E8F0]">
-            <button @click="router.back()" class="btn-secondary">{{ t('common.cancel') }}</button>
-            <button @click="save" :disabled="saving" class="btn-primary">
-              {{ saving ? t('staff.creating') : t('staff.create') }}
-            </button>
           </div>
         </div>
       </div>
@@ -87,8 +106,8 @@ const { t }          = useI18n()
 const organizationId = computed(() => route.query.organizationId)
 
 const ROLE_OPTIONS = computed(() => [
-  { id: 'user',  name: t('org.roleUser') },
-  { id: 'admin', name: 'Admin' },
+  { id: 'user',  name: t('staff.roleUser') },
+  { id: 'admin', name: t('staff.roleAdmin') },
 ])
 const STATUS_OPTIONS = computed(() => [
   { id: true,  name: t('common.active') },
@@ -108,11 +127,15 @@ const form = ref({
   organizationId: organizationId.value || '',
 })
 
+const organizationLabel = computed(() => {
+  if (!organizationId.value) return ''
+  const org = organizations.value.find((o) => o.id === organizationId.value)
+  return org ? `${org.name} — ${org.email}` : organizationId.value
+})
+
 onMounted(async () => {
-  if (!organizationId.value) {
-    const { data } = await api.get('/organizations', { params: { limit: 1000 } })
-    organizations.value = data.data.organizations
-  }
+  const { data } = await api.get('/organizations', { params: { limit: 1000 } })
+  organizations.value = data.data.organizations
 })
 
 async function save() {

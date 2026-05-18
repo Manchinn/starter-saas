@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="space-y-6 max-w-2xl">
+    <div class="w-full space-y-6">
 
       <PageHeader :title="t('erp.fiscalYears.new')" back-to="/erp/accounting/fiscal-years"
         :breadcrumb="[
@@ -22,16 +22,15 @@
       <FormCard :title="t('erp.fiscalYears.details')" :icon="CalendarDaysIcon" icon-color="purple">
         <div class="space-y-5">
 
-          <div>
-            <FieldLabel :text="t('erp.fiscalYears.colName')" required />
-            <input v-model="form.name" type="text" placeholder="e.g. FY2026, 2026"
-              :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                       'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                       errors.name ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-            <p v-if="errors.name" class="mt-1 text-xs text-red-500">{{ errors.name }}</p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div>
+              <FieldLabel :text="t('erp.fiscalYears.colName')" required />
+              <input v-model="form.name" type="text" :placeholder="t('erp.fiscalYears.namePh')"
+                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
+                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
+                         errors.name ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.name" class="mt-1 text-xs text-red-500">{{ errors.name }}</p>
+            </div>
             <div>
               <FieldLabel :text="t('erp.fiscalYears.colStartDate')" required />
               <DateInput v-model="form.startDate"
@@ -56,7 +55,7 @@
 
           <div>
             <FieldLabel :text="t('erp.common.notes')" />
-            <textarea v-model="form.notes" rows="2" placeholder="Optional remarks…"
+            <textarea v-model="form.notes" rows="3" :placeholder="t('erp.fiscalYears.notesPh')"
               class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                      focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                      transition-colors resize-none placeholder-[#CBD5E1]" />
@@ -75,7 +74,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { CheckIcon, ArrowPathIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
+import { CalendarDaysIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
@@ -104,7 +103,7 @@ const duration = computed(() => {
   const ms = new Date(form.value.endDate) - new Date(form.value.startDate)
   if (ms <= 0) return ''
   const days = Math.round(ms / 86_400_000) + 1
-  return `${form.value.startDate} → ${form.value.endDate} (${days} days)`
+  return `${form.value.startDate} → ${form.value.endDate} (${t('erp.fiscalYears.daysCount', { n: days })})`
 })
 
 function validate() {

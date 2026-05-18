@@ -90,7 +90,12 @@ export default {
     emailPh:    "email{'@'}example.com",
     passwordPh: 'Min. 8 characters',
     roleLabel:  'Role',
+    roleUser:   'User',
+    roleAdmin:  'Admin',
     statusLabel: 'Status',
+    passwordHint: 'At least 8 characters. Staff can change it after sign-in.',
+    sectionIdentity: 'Identity',
+    sectionAccess:   'Access',
 
     nameRequired:      'Name is required',
     emailRequired:     'Email is required',

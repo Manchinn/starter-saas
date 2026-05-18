@@ -90,7 +90,12 @@ export default {
     emailPh:     "email{'@'}example.com",
     passwordPh:  'อย่างน้อย 8 ตัวอักษร',
     roleLabel:   'บทบาท',
+    roleUser:    'ผู้ใช้',
+    roleAdmin:   'ผู้ดูแลระบบ',
     statusLabel: 'สถานะ',
+    passwordHint: 'อย่างน้อย 8 ตัวอักษร พนักงานสามารถเปลี่ยนได้หลังเข้าสู่ระบบ',
+    sectionIdentity: 'ข้อมูลส่วนตัว',
+    sectionAccess:   'สิทธิ์การเข้าใช้งาน',
 
     nameRequired:      'กรุณาระบุชื่อ',
     emailRequired:     'กรุณาระบุอีเมล',
