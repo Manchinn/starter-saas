@@ -64,6 +64,7 @@ export default {
       core: 'Core',
     },
     dashboard:      'Dashboard',
+    quickLinks:     'Quick links',
     sharedModules:  'Shared Modules',
     admin:          'Admin',
     organizations:  'Organizations',

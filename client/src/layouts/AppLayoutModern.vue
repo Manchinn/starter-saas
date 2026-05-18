@@ -90,8 +90,48 @@
 
     <!-- ── Dropdown portal — rendered at body level to escape overflow clipping ── -->
     <Teleport to="body">
+
+      <!-- Mega-menu: at least one child has its own sub-group -->
       <div
-        v-if="openDropdown && activeItem"
+        v-if="openDropdown && activeItem && isMegaMenu"
+        :style="megaMenuStyle"
+        class="bg-white rounded-xl shadow-xl border border-gray-200 p-4"
+        @mouseenter="cancelClose"
+        @mouseleave="scheduleClose"
+      >
+        <div class="grid gap-x-5 gap-y-4" :style="{ gridTemplateColumns: `repeat(${megaColumns.length}, minmax(180px, 1fr))` }">
+          <div v-for="(col, ci) in megaColumns" :key="col.label || ci" class="min-w-0">
+
+            <!-- Column header — uses the sub-group label, or "Quick links" for the flat column -->
+            <div class="flex items-center gap-1.5 pb-2 mb-2 border-b border-gray-100">
+              <component v-if="col.icon" :is="col.icon" class="w-3.5 h-3.5 text-gray-400" />
+              <p class="text-[10px] font-semibold tracking-widest text-gray-500 uppercase truncate">
+                {{ t(col.label) }}
+              </p>
+            </div>
+
+            <ul class="space-y-0.5">
+              <li v-for="link in col.items" :key="link.to">
+                <RouterLink
+                  :to="link.to"
+                  class="flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] text-gray-600
+                         hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                  active-class="text-primary-700 font-medium bg-primary-50"
+                  @click="openDropdown = null"
+                >
+                  <component v-if="link.icon" :is="link.icon" class="w-4 h-4 flex-shrink-0" />
+                  <span class="truncate">{{ t(link.label) }}</span>
+                </RouterLink>
+              </li>
+            </ul>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Simple dropdown: flat children only -->
+      <div
+        v-else-if="openDropdown && activeItem"
         :style="{
           position: 'fixed',
           top: dropdownPos.top + 'px',
@@ -103,31 +143,7 @@
         @mouseleave="scheduleClose"
       >
         <template v-for="child in activeItem.children" :key="child.label || child.to">
-
-          <!-- Sub-group header -->
-          <div v-if="child.children" class="px-3 pt-3 pb-1">
-            <p class="text-[10px] font-semibold tracking-widest text-gray-400 uppercase">
-              {{ t(child.label) }}
-            </p>
-            <ul class="mt-1 space-y-0.5">
-              <li v-for="gc in child.children" :key="gc.to">
-                <RouterLink
-                  :to="gc.to"
-                  class="flex items-center gap-2 px-2 py-1.5 rounded text-sm text-gray-600
-                         hover:bg-primary-50 hover:text-primary-700 transition-colors"
-                  active-class="text-primary-700 font-medium bg-primary-50"
-                  @click="openDropdown = null"
-                >
-                  <component v-if="gc.icon" :is="gc.icon" class="w-4 h-4 flex-shrink-0" />
-                  <span>{{ t(gc.label) }}</span>
-                </RouterLink>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Flat child -->
           <RouterLink
-            v-else
             :to="child.to"
             class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600
                    hover:bg-primary-50 hover:text-primary-700 transition-colors"
@@ -137,7 +153,6 @@
             <component :is="child.icon" class="w-4 h-4 flex-shrink-0" />
             <span>{{ t(child.label) }}</span>
           </RouterLink>
-
         </template>
       </div>
     </Teleport>
@@ -179,6 +194,44 @@ const activeItem = computed(() => {
     if (found) return found
   }
   return null
+})
+
+// Mega-menu detection — any direct child that itself has children opens horizontal layout
+const isMegaMenu = computed(() => {
+  return !!activeItem.value?.children?.some((c) => Array.isArray(c.children) && c.children.length)
+})
+
+// Columns for the mega-menu: one for each sub-group, plus a "quick links" column for flat children
+const megaColumns = computed(() => {
+  if (!activeItem.value) return []
+  const flatChildren = activeItem.value.children.filter((c) => !c.children && c.to)
+  const groupedChildren = activeItem.value.children.filter((c) => c.children?.length)
+
+  const cols = []
+  if (flatChildren.length) {
+    cols.push({ label: 'nav.quickLinks', icon: null, items: flatChildren })
+  }
+  for (const g of groupedChildren) {
+    cols.push({ label: g.label, icon: g.icon, items: g.children })
+  }
+  return cols
+})
+
+// Positioning — keep mega menu within the viewport (don't overflow right edge)
+const MEGA_COL_WIDTH = 220
+const MEGA_PADDING   = 16
+const megaMenuStyle = computed(() => {
+  const cols  = megaColumns.value.length || 1
+  const width = cols * MEGA_COL_WIDTH + MEGA_PADDING * 2
+  const vw    = typeof window !== 'undefined' ? window.innerWidth : 1280
+  const maxLeft = Math.max(8, vw - width - 8)
+  return {
+    position: 'fixed',
+    top:  dropdownPos.value.top + 'px',
+    left: Math.min(dropdownPos.value.left, maxLeft) + 'px',
+    width: width + 'px',
+    zIndex: 9999,
+  }
 })
 
 function openDropdownAt(item, event) {

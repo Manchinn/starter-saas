@@ -64,6 +64,7 @@ export default {
       core: 'แกนหลัก',
     },
     dashboard:      'แดชบอร์ด',
+    quickLinks:     'ลิงก์ด่วน',
     sharedModules:  'โมดูลร่วม',
     admin:          'ผู้ดูแลระบบ',
     organizations:  'องค์กร',
