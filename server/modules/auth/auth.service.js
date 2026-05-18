@@ -21,9 +21,42 @@ const signRefresh = (user) =>
     expiresIn: config.jwt.refreshExpiresIn,
   })
 
-const saveRefreshToken = async (userId, token) => {
+const truncate = (s, n) => (typeof s === 'string' && s.length > n ? s.slice(0, n) : s)
+
+const deviceLabelFromUA = (ua = '') => {
+  if (!ua) return 'Unknown device'
+  const lower = ua.toLowerCase()
+  const browser =
+    lower.includes('edg/')      ? 'Edge'    :
+    lower.includes('chrome/')   ? 'Chrome'  :
+    lower.includes('firefox/')  ? 'Firefox' :
+    lower.includes('safari/')   ? 'Safari'  :
+    lower.includes('opera/') || lower.includes('opr/') ? 'Opera' :
+    'Browser'
+  const os =
+    lower.includes('windows')   ? 'Windows' :
+    lower.includes('mac os')    ? 'macOS'   :
+    lower.includes('android')   ? 'Android' :
+    lower.includes('iphone') || lower.includes('ipad') ? 'iOS' :
+    lower.includes('linux')     ? 'Linux'   :
+    'Unknown OS'
+  return `${browser} on ${os}`
+}
+
+const saveRefreshToken = async (userId, token, meta = {}) => {
   const decoded = jwt.decode(token)
-  await RefreshToken.create({ userId, token, expiresAt: new Date(decoded.exp * 1000) })
+  const userAgent   = truncate(meta.userAgent || null, 500)
+  const ip          = truncate(meta.ip        || null, 60)
+  const deviceLabel = truncate(meta.deviceLabel || deviceLabelFromUA(meta.userAgent || ''), 120)
+  await RefreshToken.create({
+    userId,
+    token,
+    expiresAt: new Date(decoded.exp * 1000),
+    userAgent,
+    ip,
+    deviceLabel,
+    lastUsedAt: new Date(),
+  })
 }
 
 // ── Session resolution ───────────────────────────────────────────────────────
@@ -65,7 +98,7 @@ const assignDefaultRole = async (user) => {
 
 // ── Auth operations ──────────────────────────────────────────────────────────
 
-const register = async ({ name, email, password }) => {
+const register = async ({ name, email, password }, meta = {}) => {
   const exists = await User.findOne({ where: { email } })
   if (exists) throw { status: 409, message: 'Email already registered' }
 
@@ -78,12 +111,12 @@ const register = async ({ name, email, password }) => {
 
   const accessToken = signAccess(user)
   const refreshToken = signRefresh(user)
-  await saveRefreshToken(user.id, refreshToken)
+  await saveRefreshToken(user.id, refreshToken, meta)
   const session = await resolveSession(user.id)
   return { ...session, accessToken, refreshToken }
 }
 
-const login = async ({ email, password }) => {
+const login = async ({ email, password }, meta = {}) => {
   const user = await User.scope('withPassword').findOne({ where: { email } })
   if (!user || !user.isActive) throw { status: 401, message: 'Invalid credentials' }
 
@@ -98,12 +131,12 @@ const login = async ({ email, password }) => {
 
   const accessToken = signAccess(user)
   const refreshToken = signRefresh(user)
-  await saveRefreshToken(user.id, refreshToken)
+  await saveRefreshToken(user.id, refreshToken, meta)
   const session = await resolveSession(user.id)
   return { ...session, accessToken, refreshToken }
 }
 
-const refresh = async (token) => {
+const refresh = async (token, meta = {}) => {
   const record = await RefreshToken.findOne({ where: { token, isRevoked: false } })
   if (!record || record.expiresAt < new Date()) {
     throw { status: 401, message: 'Invalid or expired refresh token' }
@@ -114,11 +147,16 @@ const refresh = async (token) => {
     const user = await User.findByPk(decoded.id)
     if (!user || !user.isActive) throw { status: 401, message: 'User not found' }
 
-    // Rotate
-    await record.update({ isRevoked: true })
+    // Rotate — carry forward device info if the new request didn't bring fresh meta
+    await record.update({ isRevoked: true, lastUsedAt: new Date() })
+    const carryMeta = {
+      userAgent:   meta.userAgent   || record.userAgent,
+      ip:          meta.ip          || record.ip,
+      deviceLabel: meta.deviceLabel || record.deviceLabel,
+    }
     const accessToken = signAccess(user)
     const newRefreshToken = signRefresh(user)
-    await saveRefreshToken(user.id, newRefreshToken)
+    await saveRefreshToken(user.id, newRefreshToken, carryMeta)
     return { accessToken, refreshToken: newRefreshToken }
   } catch (err) {
     if (err.status) throw err
@@ -318,7 +356,7 @@ const seedMasterData = async () => {
   }
 }
 
-const install = async ({ name, email, password }) => {
+const install = async ({ name, email, password }, meta = {}) => {
   const adminCount = await User.count({ where: { role: 'admin' } })
   if (adminCount > 0) throw { status: 403, message: 'Application is already installed' }
 
@@ -337,19 +375,19 @@ const install = async ({ name, email, password }) => {
 
   const accessToken = signAccess(user)
   const refreshToken = signRefresh(user)
-  await saveRefreshToken(user.id, refreshToken)
+  await saveRefreshToken(user.id, refreshToken, meta)
   const session = await resolveSession(user.id)
   return { ...session, accessToken, refreshToken }
 }
 
-const loginAs = async (targetUserId) => {
+const loginAs = async (targetUserId, meta = {}) => {
   const target = await User.findByPk(targetUserId)
   if (!target) throw { status: 404, message: 'User not found' }
   if (!target.isActive) throw { status: 400, message: 'Cannot impersonate an inactive user' }
 
   const accessToken  = signAccess(target)
   const refreshToken = signRefresh(target)
-  await saveRefreshToken(target.id, refreshToken)
+  await saveRefreshToken(target.id, refreshToken, meta)
   const session = await resolveSession(target.id)
   return { ...session, accessToken, refreshToken }
 }

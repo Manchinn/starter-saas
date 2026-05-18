@@ -94,6 +94,8 @@ User.prototype.comparePassword = async function (plain) {
 User.prototype.toJSON = function () {
   const values = { ...this.get() }
   delete values.password
+  delete values.emailVerificationToken
+  delete values.passwordResetToken
   return values
 }
 

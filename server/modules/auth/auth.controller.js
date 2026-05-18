@@ -1,10 +1,16 @@
 const { ok, created, fail, serverError } = require('../../core/response')
 const authService = require('./auth.service')
 
+// Pull device fingerprint off the request so refresh-token rows can be labelled.
+function reqMeta(req) {
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || req.connection?.remoteAddress || null
+  return { userAgent: req.get('user-agent') || null, ip }
+}
+
 module.exports = {
   async register(req, res) {
     try {
-      const { user, permissions, accessToken, refreshToken } = await authService.register(req.body)
+      const { user, permissions, accessToken, refreshToken } = await authService.register(req.body, reqMeta(req))
       return created(res, { user, permissions, accessToken, refreshToken }, 'Registration successful')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -13,7 +19,7 @@ module.exports = {
 
   async login(req, res) {
     try {
-      const { user, permissions, accessToken, refreshToken } = await authService.login(req.body)
+      const { user, permissions, accessToken, refreshToken } = await authService.login(req.body, reqMeta(req))
       return ok(res, { user, permissions, accessToken, refreshToken }, 'Login successful')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -24,7 +30,7 @@ module.exports = {
     try {
       const { refreshToken } = req.body
       if (!refreshToken) return fail(res, 'Refresh token required', 400)
-      const tokens = await authService.refresh(refreshToken)
+      const tokens = await authService.refresh(refreshToken, reqMeta(req))
       return ok(res, tokens, 'Token refreshed')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -70,7 +76,7 @@ module.exports = {
 
   async install(req, res) {
     try {
-      const { user, permissions, accessToken, refreshToken } = await authService.install(req.body)
+      const { user, permissions, accessToken, refreshToken } = await authService.install(req.body, reqMeta(req))
       return created(res, { user, permissions, accessToken, refreshToken }, 'Installation complete')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -80,7 +86,7 @@ module.exports = {
   async loginAs(req, res) {
     try {
       if (req.user.role !== 'admin') return fail(res, 'Admin access required', 403)
-      const { user, permissions, accessToken, refreshToken } = await authService.loginAs(req.params.userId)
+      const { user, permissions, accessToken, refreshToken } = await authService.loginAs(req.params.userId, reqMeta(req))
       return ok(res, { user, permissions, accessToken, refreshToken }, 'Session switched')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

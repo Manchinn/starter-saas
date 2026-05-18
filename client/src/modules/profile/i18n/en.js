@@ -1,0 +1,56 @@
+export default {
+  profile: {
+    title:           'Profile',
+    subtitle:        'Manage your account details and active sessions.',
+    tabGeneral:      'General',
+    tabPassword:     'Password',
+    tabSessions:     'Active sessions',
+
+    // ── General ──────────────────────────────────────────────────────────────
+    generalTitle:    'Account information',
+    generalDesc:     'Update your display name and email address.',
+    fullName:        'Full name',
+    email:           'Email address',
+    emailUnverified: 'Unverified',
+    emailVerified:   'Verified',
+    emailChangeNote: 'Changing your email will require re-verification before login is restored.',
+    saveChanges:     'Save changes',
+    saving:          'Saving…',
+    saved:           'Saved ✓',
+    updateFailed:    'Could not save changes.',
+
+    // ── Password ─────────────────────────────────────────────────────────────
+    passwordTitle:   'Change password',
+    passwordDesc:    'Use a strong password you haven\'t used elsewhere.',
+    currentPassword: 'Current password',
+    newPassword:     'New password',
+    confirmPassword: 'Confirm new password',
+    passwordPh:      '••••••••',
+    minChars:        'At least 8 characters',
+    passwordMismatch: 'Passwords do not match',
+    changePassword:  'Change password',
+    changing:        'Changing…',
+    passwordChanged: 'Password changed successfully',
+    passwordFailed:  'Could not change password.',
+
+    // ── Sessions ─────────────────────────────────────────────────────────────
+    sessionsTitle:   'Active sessions',
+    sessionsDesc:    'Devices currently signed into your account. Revoke any session you don\'t recognise.',
+    sessionsEmpty:   'No active sessions found.',
+    currentSession:  'This device',
+    lastUsed:        'Last used',
+    signedInOn:      'Signed in',
+    ipAddress:       'IP',
+    revoke:          'Revoke',
+    revoking:        'Revoking…',
+    revokeOthers:    'Revoke all other sessions',
+    revokeConfirm:   'Revoke this session?',
+    revokedToast:    'Session revoked',
+    revokeFailed:    'Could not revoke session.',
+    never:           'Never',
+  },
+  nav: {
+    profile:         'My profile',
+    signOut:         'Sign out',
+  },
+}

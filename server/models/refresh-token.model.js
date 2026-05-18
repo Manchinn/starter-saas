@@ -24,6 +24,22 @@ const RefreshToken = sequelize.define('RefreshToken', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  userAgent: {
+    type: DataTypes.STRING(512),
+    allowNull: true,
+  },
+  ip: {
+    type: DataTypes.STRING(64),
+    allowNull: true,
+  },
+  deviceLabel: {
+    type: DataTypes.STRING(128),
+    allowNull: true,
+  },
+  lastUsedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 })
 
 module.exports = RefreshToken

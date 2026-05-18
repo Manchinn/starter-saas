@@ -193,16 +193,61 @@
             <BellIcon class="w-5 h-5" />
           </button>
 
-          <!-- User avatar -->
-          <div class="flex items-center gap-2.5 pl-2.5 pr-3.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-white">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
-                        text-white text-[12px] font-bold flex-shrink-0">
-              {{ userInitial }}
-            </div>
-            <div class="hidden sm:block min-w-0">
-              <p class="text-[13px] font-semibold text-[#1C2434] truncate max-w-32 leading-tight">{{ auth.user?.name }}</p>
-              <p class="text-[11px] text-[#637381] capitalize leading-tight">{{ auth.user?.role }}</p>
-            </div>
+          <!-- User avatar / dropdown -->
+          <div class="relative" ref="userMenuRef">
+            <button
+              type="button"
+              @click="userOpen = !userOpen"
+              class="flex items-center gap-2.5 pl-2.5 pr-3.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-white
+                     hover:bg-[#F7F9FC] transition-colors"
+            >
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+                          text-white text-[12px] font-bold flex-shrink-0">
+                {{ userInitial }}
+              </div>
+              <div class="hidden sm:block min-w-0 text-left">
+                <p class="text-[13px] font-semibold text-[#1C2434] truncate max-w-32 leading-tight">{{ auth.user?.name }}</p>
+                <p class="text-[11px] text-[#637381] capitalize leading-tight">{{ auth.user?.role }}</p>
+              </div>
+              <ChevronDownIcon class="w-3.5 h-3.5 text-[#9BA7B0] transition-transform"
+                               :class="{ 'rotate-180': userOpen }" />
+            </button>
+
+            <Transition
+              enter-active-class="transition ease-out duration-100"
+              enter-from-class="opacity-0 scale-95 -translate-y-1"
+              enter-to-class="opacity-100 scale-100 translate-y-0"
+              leave-active-class="transition ease-in duration-75"
+              leave-from-class="opacity-100 scale-100 translate-y-0"
+              leave-to-class="opacity-0 scale-95 -translate-y-1"
+            >
+              <div v-if="userOpen"
+                   class="absolute right-0 top-full mt-1.5 w-56 bg-white border border-[#E2E8F0] rounded-2xl shadow-card-lg z-50 overflow-hidden">
+                <div class="px-4 py-3 border-b border-[#E2E8F0]">
+                  <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ auth.user?.name }}</p>
+                  <p class="text-[11.5px] text-[#637381] truncate">{{ auth.user?.email }}</p>
+                </div>
+                <div class="p-1.5">
+                  <RouterLink to="/profile/general" @click="userOpen = false"
+                    class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] rounded-xl hover:bg-[#F7F9FC] transition-colors">
+                    <UserCircleIcon class="w-4 h-4 text-[#637381]" />
+                    <span>{{ t('nav.profile') }}</span>
+                  </RouterLink>
+                  <RouterLink to="/profile/sessions" @click="userOpen = false"
+                    class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] rounded-xl hover:bg-[#F7F9FC] transition-colors">
+                    <ComputerDesktopIcon class="w-4 h-4 text-[#637381]" />
+                    <span>{{ t('profile.tabSessions') }}</span>
+                  </RouterLink>
+                </div>
+                <div class="p-1.5 border-t border-[#E2E8F0]">
+                  <button type="button" @click="handleLogout"
+                    class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#B91C1C] rounded-xl hover:bg-red-50 transition-colors">
+                    <ArrowRightOnRectangleIcon class="w-4 h-4" />
+                    <span>{{ t('nav.signOut') }}</span>
+                  </button>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
       </header>
@@ -230,7 +275,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { ChevronDownIcon, ArrowRightOnRectangleIcon, BellIcon, UserCircleIcon } from '@heroicons/vue/24/outline'
+import { ChevronDownIcon, ArrowRightOnRectangleIcon, BellIcon, UserCircleIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAppLayout } from '@/composables/useAppLayout'
@@ -257,6 +302,9 @@ const { locale, t } = useI18n()
 const langOpen    = ref(false)
 const langMenuRef = ref(null)
 
+const userOpen    = ref(false)
+const userMenuRef = ref(null)
+
 const langOptions = [
   { code: 'en', flag: '🇺🇸', label: 'English' },
   { code: 'th', flag: '🇹🇭', label: 'ภาษาไทย' },
@@ -276,6 +324,9 @@ function setLang(code) {
 function onClickOutside(e) {
   if (langMenuRef.value && !langMenuRef.value.contains(e.target)) {
     langOpen.value = false
+  }
+  if (userMenuRef.value && !userMenuRef.value.contains(e.target)) {
+    userOpen.value = false
   }
 }
 

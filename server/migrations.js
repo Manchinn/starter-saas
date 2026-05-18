@@ -275,6 +275,12 @@ const columns = [
   `ALTER TABLE StockMovements        ADD COLUMN organizationId TEXT`,
   `ALTER TABLE Items                 ADD COLUMN organizationId TEXT`,
 
+  // ── Session tracking — RefreshToken device/IP metadata ──────────────────────
+  `ALTER TABLE RefreshTokens ADD COLUMN userAgent   TEXT`,
+  `ALTER TABLE RefreshTokens ADD COLUMN ip          TEXT`,
+  `ALTER TABLE RefreshTokens ADD COLUMN deviceLabel TEXT`,
+  `ALTER TABLE RefreshTokens ADD COLUMN lastUsedAt  DATETIME`,
+
   // ── Backfill audit_logs.organizationId for rows written before the
   //    audit.service.log fix that now resolves orgId from the user.
   //    Idempotent — only touches rows where organizationId is NULL.
