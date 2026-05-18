@@ -1,0 +1,27 @@
+export default {
+  erp: {
+    pricing: {
+      title:         'Price Lists',
+      new:           'New Price List',
+      edit:          'Edit Price List',
+      create:        'Create Price List',
+      searchPh:      'Search price list name…',
+      noFound:       'No price lists found',
+      code:          'Code',
+      name:          'Name',
+      description:   'Description',
+      unitPrice:     'Unit Price',
+      status:        'Status',
+      customerGroup: 'Customer Group',
+      saleItem:      'Sale Item',
+      allGroups:     'All Groups',
+      colCode:       'Code',
+      colName:       'Name',
+      colGroup:      'Customer Group',
+      colDesc:       'Description',
+      colUnitPrice:  'Unit Price',
+      colStatus:     'Status',
+      deletePricing: 'Delete Price List',
+    },
+  },
+}

@@ -1,0 +1,27 @@
+export default {
+  erp: {
+    pricing: {
+      title:         'รายการราคา',
+      new:           'รายการราคาใหม่',
+      edit:          'แก้ไขรายการราคา',
+      create:        'สร้างรายการราคา',
+      searchPh:      'ค้นหารายการราคา…',
+      noFound:       'ไม่พบรายการราคา',
+      code:          'รหัส',
+      name:          'ชื่อ',
+      description:   'คำอธิบาย',
+      unitPrice:     'ราคาต่อหน่วย',
+      status:        'สถานะ',
+      customerGroup: 'กลุ่มลูกค้า',
+      saleItem:      'รายการขาย',
+      allGroups:     'ทุกกลุ่ม',
+      colCode:       'รหัส',
+      colName:       'ชื่อ',
+      colGroup:      'กลุ่มลูกค้า',
+      colDesc:       'คำอธิบาย',
+      colUnitPrice:  'ราคาต่อหน่วย',
+      colStatus:     'สถานะ',
+      deletePricing: 'ลบรายการราคา',
+    },
+  },
+}
