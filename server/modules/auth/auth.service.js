@@ -1,7 +1,13 @@
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 const config = require('../../config/config')
 const { User, Role, Permission, RefreshToken, MasterDataCategory, MasterDataValue } = require('../../models')
 const { Op } = require('sequelize')
+const mailer = require('../../core/mailer')
+
+// ── Token generation (random, opaque, URL-safe) ──────────────────────────────
+const generateRawToken = () => crypto.randomBytes(32).toString('hex')
+const hashToken = (raw) => crypto.createHash('sha256').update(raw).digest('hex')
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 
@@ -65,6 +71,10 @@ const register = async ({ name, email, password }) => {
 
   const user = await User.create({ name, email, password })
   await assignDefaultRole(user)
+  await issueEmailVerification(user).catch((err) => {
+    // Don't block registration on email failure; the user can resend later.
+    require('../../core/logger').forLabel('auth').warn('Verification email failed at register', { error: err.message })
+  })
 
   const accessToken = signAccess(user)
   const refreshToken = signRefresh(user)
@@ -79,6 +89,10 @@ const login = async ({ email, password }) => {
 
   const valid = await user.comparePassword(password)
   if (!valid) throw { status: 401, message: 'Invalid credentials' }
+
+  if (config.auth.requireEmailVerification && !user.emailVerifiedAt) {
+    throw { status: 403, message: 'Please verify your email address before signing in.' }
+  }
 
   await user.update({ lastLoginAt: new Date() })
 
@@ -317,6 +331,9 @@ const install = async ({ name, email, password }) => {
   const user = await User.create({ name, email, password, role: 'admin' })
   const superAdmin = await Role.findOne({ where: { slug: 'super-admin' } })
   if (superAdmin) await user.setRoles([superAdmin])
+  await issueEmailVerification(user).catch((err) => {
+    require('../../core/logger').forLabel('auth').warn('Verification email failed at install', { error: err.message })
+  })
 
   const accessToken = signAccess(user)
   const refreshToken = signRefresh(user)
@@ -340,4 +357,82 @@ const loginAs = async (targetUserId) => {
 const pruneExpiredTokens = () =>
   RefreshToken.destroy({ where: { expiresAt: { [Op.lt]: new Date() } } })
 
-module.exports = { register, login, loginAs, refresh, logout, getMe, changePassword, pruneExpiredTokens, getInstallStatus, install }
+// ── Email verification ───────────────────────────────────────────────────────
+
+async function issueEmailVerification(user) {
+  const raw = generateRawToken()
+  const hash = hashToken(raw)
+  const expiresAt = new Date(Date.now() + config.auth.emailVerificationExpiresHours * 60 * 60 * 1000)
+  await user.update({ emailVerificationToken: hash, emailVerificationExpiresAt: expiresAt })
+  const verifyUrl = `${config.clientUrl}/verify-email/${raw}`
+  await mailer.sendEmailVerification({
+    to: user.email,
+    name: user.name,
+    verifyUrl,
+    expiresHours: config.auth.emailVerificationExpiresHours,
+  })
+}
+
+const resendVerification = async (email) => {
+  // Always return success-shaped result to avoid leaking which emails exist.
+  const user = await User.findOne({ where: { email } })
+  if (!user || user.emailVerifiedAt) return
+  await issueEmailVerification(user)
+}
+
+const verifyEmail = async (rawToken) => {
+  if (!rawToken) throw { status: 400, message: 'Verification token is required' }
+  const hash = hashToken(rawToken)
+  const user = await User.findOne({ where: { emailVerificationToken: hash } })
+  if (!user || !user.emailVerificationExpiresAt || user.emailVerificationExpiresAt < new Date()) {
+    throw { status: 400, message: 'Invalid or expired verification link' }
+  }
+  await user.update({
+    emailVerifiedAt: new Date(),
+    emailVerificationToken: null,
+    emailVerificationExpiresAt: null,
+  })
+  return { email: user.email }
+}
+
+// ── Password reset ───────────────────────────────────────────────────────────
+
+const forgotPassword = async (email) => {
+  // Always return success-shaped result regardless of whether the email exists.
+  const user = await User.findOne({ where: { email } })
+  if (!user || !user.isActive) return
+
+  const raw = generateRawToken()
+  const hash = hashToken(raw)
+  const expiresAt = new Date(Date.now() + config.auth.passwordResetExpiresMinutes * 60 * 1000)
+  await user.update({ passwordResetToken: hash, passwordResetExpiresAt: expiresAt })
+  const resetUrl = `${config.clientUrl}/reset-password/${raw}`
+  await mailer.sendPasswordReset({
+    to: user.email,
+    name: user.name,
+    resetUrl,
+    expiresMinutes: config.auth.passwordResetExpiresMinutes,
+  })
+}
+
+const resetPassword = async ({ token, newPassword }) => {
+  if (!token) throw { status: 400, message: 'Reset token is required' }
+  const hash = hashToken(token)
+  const user = await User.scope('withPassword').findOne({ where: { passwordResetToken: hash } })
+  if (!user || !user.passwordResetExpiresAt || user.passwordResetExpiresAt < new Date()) {
+    throw { status: 400, message: 'Invalid or expired reset link' }
+  }
+  await user.update({
+    password: newPassword,
+    passwordResetToken: null,
+    passwordResetExpiresAt: null,
+  })
+  // Revoke all refresh tokens so existing sessions can't keep going.
+  await RefreshToken.update({ isRevoked: true }, { where: { userId: user.id, isRevoked: false } })
+}
+
+module.exports = {
+  register, login, loginAs, refresh, logout, getMe, changePassword,
+  pruneExpiredTokens, getInstallStatus, install,
+  forgotPassword, resetPassword, verifyEmail, resendVerification,
+}

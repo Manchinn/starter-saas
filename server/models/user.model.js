@@ -48,6 +48,26 @@ const User = sequelize.define('User', {
     allowNull: true,
     comment: 'Parent organization ID — enables org hierarchy (sub-organizations).'
   },
+  emailVerifiedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  emailVerificationToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  emailVerificationExpiresAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  passwordResetToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  passwordResetExpiresAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   hooks: {
     beforeCreate: async (user) => {

@@ -62,5 +62,34 @@ export default {
     loginFailed:          'Login failed. Please try again.',
     registrationFailed:   'Registration failed',
     installationFailed:   'Installation failed',
+
+    // ── Forgot password ──────────────────────────────────────────────────────
+    forgotTitle:       'Forgot your password?',
+    forgotDesc:        "Enter your email and we'll send you a link to reset it.",
+    sendResetLink:     'Send reset link',
+    sending:           'Sending…',
+    sendAgain:         '← Send another link',
+    forgotSent:        "If that email is registered, we've sent a reset link. Check your inbox.",
+    forgotFailed:      'Could not send the reset link. Please try again.',
+    backToSignIn:      'Back to sign in',
+
+    // ── Reset password ───────────────────────────────────────────────────────
+    resetTitle:        'Choose a new password',
+    resetDesc:         'Enter a new password for your account.',
+    newPassword:       'New password',
+    resetPasswordBtn:  'Reset password',
+    resetting:         'Resetting…',
+    resetDone:         'Your password has been reset. You can now sign in.',
+    resetFailed:       'Could not reset your password. The link may have expired.',
+
+    // ── Email verification ───────────────────────────────────────────────────
+    verifying:         'Verifying your email…',
+    verifiedTitle:     'Email verified',
+    verifiedDesc:      'Thanks — your email address is now confirmed.',
+    verifyFailedTitle: 'Verification failed',
+    verifyFailedDesc:  'The verification link is invalid or has expired.',
+    unverifiedBanner:  "Your email isn't verified yet. Check your inbox for the verification link.",
+    resendVerification: 'Resend',
+    resentOk:          'Sent ✓',
   },
 }

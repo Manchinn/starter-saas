@@ -194,10 +194,10 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider">
                   {{ t('auth.password') }}
                 </label>
-                <button type="button" tabindex="-1"
+                <RouterLink to="/forgot-password" tabindex="-1"
                   class="text-[12px] font-medium text-primary-600 hover:text-primary-700 transition-colors">
                   {{ t('auth.forgotPassword') }}
-                </button>
+                </RouterLink>
               </div>
               <div class="relative">
                 <div class="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"

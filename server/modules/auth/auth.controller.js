@@ -86,4 +86,40 @@ module.exports = {
       return fail(res, err.message, err.status || 400)
     }
   },
+
+  async forgotPassword(req, res) {
+    try {
+      await authService.forgotPassword(req.body.email)
+      return ok(res, null, 'If that email is registered, a reset link has been sent.')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async resetPassword(req, res) {
+    try {
+      await authService.resetPassword({ token: req.body.token, newPassword: req.body.newPassword })
+      return ok(res, null, 'Password has been reset. You can now sign in.')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async verifyEmail(req, res) {
+    try {
+      const result = await authService.verifyEmail(req.params.token)
+      return ok(res, result, 'Email verified successfully')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async resendVerification(req, res) {
+    try {
+      await authService.resendVerification(req.body.email)
+      return ok(res, null, 'If that account is unverified, a new verification email has been sent.')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
 }

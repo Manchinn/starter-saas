@@ -174,6 +174,15 @@ const columns = [
   // ── Organization parent-child hierarchy ──────────────────────────────────────
   `ALTER TABLE Users ADD COLUMN parentId TEXT`,
 
+  // ── Auth essentials: email verification + password reset ────────────────────
+  `ALTER TABLE Users ADD COLUMN emailVerifiedAt DATETIME`,
+  `ALTER TABLE Users ADD COLUMN emailVerificationToken TEXT`,
+  `ALTER TABLE Users ADD COLUMN emailVerificationExpiresAt DATETIME`,
+  `ALTER TABLE Users ADD COLUMN passwordResetToken TEXT`,
+  `ALTER TABLE Users ADD COLUMN passwordResetExpiresAt DATETIME`,
+  `CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON Users (passwordResetToken)`,
+  `CREATE INDEX IF NOT EXISTS idx_users_email_verification_token ON Users (emailVerificationToken)`,
+
   // ── activeFrom / activeTo — validity period on all master-data tables ─────────
   `ALTER TABLE Customers          ADD COLUMN activeFrom TEXT`,
   `ALTER TABLE Customers          ADD COLUMN activeTo   TEXT`,
