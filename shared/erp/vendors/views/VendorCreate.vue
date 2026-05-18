@@ -72,15 +72,11 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-2">{{ t('erp.vendors.vendorType') }}</label>
             <div class="flex flex-col gap-2">
-              <label class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
-                <input type="checkbox" value="supplier" v-model="form.vendorTypes"
+              <label v-for="vt in vendorTypeOptions" :key="vt.id"
+                class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
+                <input type="checkbox" :value="vt.name" v-model="form.vendorTypes"
                   class="rounded text-primary-500 focus:ring-primary-500" />
-                {{ t('erp.vendors.supplier') }}
-              </label>
-              <label class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
-                <input type="checkbox" value="service_provider" v-model="form.vendorTypes"
-                  class="rounded text-primary-500 focus:ring-primary-500" />
-                {{ t('erp.vendors.serviceProvider') }}
+                {{ vt.name }}
               </label>
             </div>
           </div>
@@ -102,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
@@ -111,11 +107,17 @@ import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 
 const { t } = useI18n()
-const router  = useRouter()
+const router          = useRouter()
+const vendorTypeOptions = ref([])
 const form    = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active', activeFrom: '', activeTo: '' })
 const error   = ref('')
 const saving  = ref(false)
 const autoCode = useAutoCode('VND')
+
+onMounted(async () => {
+  const { data } = await api.get('/erp/master-data/by-name/Vendor Types')
+  vendorTypeOptions.value = data.data.values
+})
 
 async function save() {
   error.value = ''

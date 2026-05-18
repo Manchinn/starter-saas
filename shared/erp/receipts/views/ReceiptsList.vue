@@ -1,10 +1,10 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-5">
 
       <div class="flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">Receipts</h1>
+          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.receipts.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} receipt{{ total !== 1 ? 's' : '' }}</p>
         </div>
         <RouterLink
@@ -12,7 +12,7 @@
           to="/erp/receipts/create"
           class="btn-primary">
           <PlusIcon class="w-4 h-4" />
-          New Receipt
+          {{ t('erp.receipts.new') }}
         </RouterLink>
       </div>
 
@@ -22,7 +22,7 @@
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
           <div class="relative flex-1 min-w-0">
             <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
-            <input v-model="search" @input="onSearch" type="search" placeholder="Search receipt number…"
+            <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.receipts.searchPh')"
               class="input pl-9 w-full" />
           </div>
           <button @click="showFilters = !showFilters"
@@ -31,7 +31,7 @@
                 ? 'bg-primary-50 border-primary-200 text-primary-600'
                 : 'bg-white border-[#E2E8F0] text-[#637381] hover:bg-slate-50']">
             <AdjustmentsHorizontalIcon class="w-4 h-4" />
-            Filters
+            {{ t('common.filters') }}
             <span v-if="activeFilterCount" class="min-w-[18px] h-[18px] bg-primary-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold leading-none">
               {{ activeFilterCount }}
             </span>
@@ -50,37 +50,37 @@
             <div class="px-5 py-4">
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div>
-                  <label class="block text-xs font-medium text-[#637381] mb-1.5">Status</label>
+                  <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.status') }}</label>
                   <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
-                    <option value="">All</option>
-                    <option value="draft">Draft</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="">{{ t('common.all') }}</option>
+                    <option value="draft">{{ t('erp.common.draft') }}</option>
+                    <option value="confirmed">{{ t('erp.common.confirmed') }}</option>
+                    <option value="cancelled">{{ t('erp.common.cancelled') }}</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-[#637381] mb-1.5">Payment Method</label>
+                  <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.receipts.paymentMethod') }}</label>
                   <select v-model="filterPaymentMethod" @change="onFilterChange" class="input text-sm">
-                    <option value="">All Methods</option>
-                    <option value="cash">Cash</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="cheque">Cheque</option>
-                    <option value="credit_card">Credit Card</option>
-                    <option value="other">Other</option>
+                    <option value="">{{ t('erp.receipts.allMethods') }}</option>
+                    <option value="cash">{{ t('erp.receipts.cash') }}</option>
+                    <option value="bank_transfer">{{ t('erp.receipts.bankTransfer') }}</option>
+                    <option value="cheque">{{ t('erp.receipts.cheque') }}</option>
+                    <option value="credit_card">{{ t('erp.receipts.creditCard') }}</option>
+                    <option value="other">{{ t('erp.receipts.other') }}</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-[#637381] mb-1.5">Date From</label>
+                  <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateFrom') }}</label>
                   <DateInput v-model="filterDateFrom" @change="onFilterChange" class="input text-sm" />
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-[#637381] mb-1.5">Date To</label>
+                  <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateTo') }}</label>
                   <DateInput v-model="filterDateTo" @change="onFilterChange" class="input text-sm" />
                 </div>
               </div>
               <div class="mt-3 flex justify-end">
                 <button @click="clearFilters" class="text-xs text-[#9BA7B0] hover:text-red-500 transition-colors font-medium">
-                  Reset Filters
+                  {{ t('common.resetFilters') }}
                 </button>
               </div>
             </div>
@@ -89,33 +89,33 @@
 
         <!-- ── Active filter chips ────────────────────────────────── -->
         <div v-if="activeFilterCount > 0" class="px-5 py-2.5 border-b border-[#E2E8F0] flex items-center gap-2 flex-wrap bg-primary-50/40">
-          <span class="text-xs font-medium text-[#637381]">Active Filters:</span>
+          <span class="text-xs font-medium text-[#637381]">{{ t('common.activeFilters') }}</span>
           <span v-if="filterStatus" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
-            Status: <span class="capitalize font-semibold ml-0.5">{{ filterStatus }}</span>
+            {{ t('common.status') }}: <span class="capitalize font-semibold ml-0.5">{{ filterStatus }}</span>
             <button @click="filterStatus = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 rounded-full transition-colors">
               <XMarkIcon class="w-3 h-3" />
             </button>
           </span>
           <span v-if="filterPaymentMethod" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
-            Method: <span class="font-semibold ml-0.5">{{ methodLabel(filterPaymentMethod) }}</span>
+            {{ t('erp.receipts.methodFilter') }} <span class="font-semibold ml-0.5">{{ methodLabel(filterPaymentMethod) }}</span>
             <button @click="filterPaymentMethod = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 rounded-full transition-colors">
               <XMarkIcon class="w-3 h-3" />
             </button>
           </span>
           <span v-if="filterDateFrom" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
-            From: <span class="font-semibold ml-0.5">{{ filterDateFrom }}</span>
+            {{ t('common.from') }}: <span class="font-semibold ml-0.5">{{ filterDateFrom }}</span>
             <button @click="filterDateFrom = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 rounded-full transition-colors">
               <XMarkIcon class="w-3 h-3" />
             </button>
           </span>
           <span v-if="filterDateTo" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
-            To: <span class="font-semibold ml-0.5">{{ filterDateTo }}</span>
+            {{ t('common.to') }}: <span class="font-semibold ml-0.5">{{ filterDateTo }}</span>
             <button @click="filterDateTo = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 rounded-full transition-colors">
               <XMarkIcon class="w-3 h-3" />
             </button>
           </span>
           <button @click="clearFilters" class="ml-auto text-xs text-red-500 hover:text-red-700 font-medium transition-colors">
-            Clear All
+            {{ t('common.clearAll') }}
           </button>
         </div>
 
@@ -127,12 +127,12 @@
                 <BanknotesIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
               <div class="text-center">
-                <p class="text-sm font-medium text-[#637381]">No receipts found</p>
-                <p v-if="activeFilterCount > 0" class="text-xs text-[#9BA7B0] mt-1">Try adjusting your filters</p>
+                <p class="text-sm font-medium text-[#637381]">{{ t('erp.receipts.noFound') }}</p>
+                <p v-if="activeFilterCount > 0" class="text-xs text-[#9BA7B0] mt-1">{{ t('common.tryAdjustingFilters') }}</p>
               </div>
               <button v-if="activeFilterCount > 0" @click="clearFilters"
                 class="text-xs text-primary-500 hover:text-primary-700 font-medium underline">
-                Clear all filters
+                {{ t('common.clearAll') }}
               </button>
             </div>
           </template>
@@ -147,6 +147,7 @@
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, MagnifyingGlassIcon, EyeIcon, BanknotesIcon,
   AdjustmentsHorizontalIcon, XMarkIcon,
@@ -157,18 +158,20 @@ import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
-const receipts           = ref([])
-const total              = ref(0)
-const page               = ref(1)
-const limit              = 20
-const search             = ref('')
-const filterStatus       = ref('')
+const { t } = useI18n()
+
+const receipts            = ref([])
+const total               = ref(0)
+const page                = ref(1)
+const limit               = 20
+const search              = ref('')
+const filterStatus        = ref('')
 const filterPaymentMethod = ref('')
-const filterDateFrom     = ref('')
-const filterDateTo       = ref('')
-const showFilters        = ref(false)
-const loading            = ref(false)
-let searchTimeout        = null
+const filterDateFrom      = ref('')
+const filterDateTo        = ref('')
+const showFilters         = ref(false)
+const loading             = ref(false)
+let searchTimeout         = null
 
 const activeFilterCount = computed(() => [filterStatus.value, filterPaymentMethod.value, filterDateFrom.value, filterDateTo.value].filter(Boolean).length)
 
@@ -225,31 +228,31 @@ const columnHelper = createColumnHelper()
 
 const columns = [
   columnHelper.accessor('receiptNumber', {
-    header: () => 'Receipt #',
+    header: () => t('erp.receipts.colReceiptNo'),
     cell: info => h('span', { class: 'font-mono text-sm font-medium text-[#1C2434]' }, info.getValue()),
   }),
   columnHelper.display({
     id: 'customer',
-    header: () => 'Customer',
+    header: () => t('erp.receipts.colCustomer'),
     cell: info => info.row.original.customer?.name || '—',
   }),
   columnHelper.accessor('receiptDate', {
-    header: () => 'Date',
+    header: () => t('erp.receipts.colDate'),
     cell: info => h('span', { class: 'text-xs' }, info.getValue()),
   }),
   columnHelper.accessor('paymentMethod', {
-    header: () => 'Method',
+    header: () => t('erp.receipts.colMethod'),
     cell: info => h('span', {
       class: 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F1F5F9] text-xs font-medium text-[#637381]'
     }, methodLabel(info.getValue())),
   }),
   columnHelper.accessor('amount', {
-    header: () => 'Amount',
+    header: () => t('erp.receipts.colAmount'),
     cell: info => fmtMoney(info.getValue()),
     meta: { thClass: 'text-right', tdClass: 'text-right font-semibold text-[#1C2434] tabular-nums' },
   }),
   columnHelper.accessor('status', {
-    header: () => 'Status',
+    header: () => t('common.status'),
     cell: info => {
       const s = info.getValue()
       return h('span', {

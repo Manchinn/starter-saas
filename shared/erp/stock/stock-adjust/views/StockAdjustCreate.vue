@@ -72,9 +72,8 @@
                          transition-colors placeholder-[#CBD5E1]" />
               </div>
 
-            </div>
           </div>
-        </div>
+        </FormCard>
 
         <!-- Section 2: Items -->
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
@@ -260,6 +259,9 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import api from '@/api'

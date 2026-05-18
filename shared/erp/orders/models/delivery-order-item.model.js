@@ -1,0 +1,14 @@
+const { DataTypes } = require('sequelize')
+const sequelize = require('../../../../server/config/database')
+
+const DeliveryOrderItem = sequelize.define('DeliveryOrderItem', {
+  id:               { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  deliveryOrderId:  { type: DataTypes.UUID, allowNull: false },
+  productId:        { type: DataTypes.UUID, allowNull: true },
+  productName:      { type: DataTypes.STRING, allowNull: false },
+  qty:              { type: DataTypes.DECIMAL(10, 3), allowNull: false, defaultValue: 1 },
+  notes:            { type: DataTypes.TEXT, allowNull: true },
+  organizationId:   { type: DataTypes.UUID, allowNull: true },
+}, { tableName: 'DeliveryOrderItems', timestamps: true })
+
+module.exports = DeliveryOrderItem

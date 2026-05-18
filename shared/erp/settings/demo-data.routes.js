@@ -7,7 +7,8 @@ const router = Router()
 router.use(authenticate)
 router.use(requireRole('admin'))
 
-router.post('/seed',  (req, res) => controller.seed(req, res))
-router.post('/reset', (req, res) => controller.reset(req, res))
+router.post('/seed',            (req, res) => controller.seed(req, res))
+router.post('/seed-sequences', (req, res) => controller.seedSequences(req, res))
+router.post('/reset',          (req, res) => controller.reset(req, res))
 
 module.exports = router

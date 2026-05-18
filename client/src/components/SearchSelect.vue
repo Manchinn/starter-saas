@@ -103,20 +103,18 @@ function reposition() {
   // Keep the popup inside the viewport horizontally
   const maxLeft = window.innerWidth - width - 8
   const left = Math.min(rect.left, Math.max(8, maxLeft))
-  // Order matters: pin an explicit width BEFORE switching to position: fixed.
-  // vue-multiselect's CSS sets width: 100% on the popup; once position becomes
-  // fixed, that 100% resolves against the viewport for one frame and the popup
-  // flashes full-screen-wide until our inline width overrides it.
-  popupEl.style.width     = `${width}px`
-  popupEl.style.top       = `${rect.bottom}px`
-  popupEl.style.left      = `${left}px`
-  popupEl.style.maxHeight = `${props.maxHeight}px`
-  popupEl.style.zIndex    = '9999'
-  popupEl.style.bottom    = 'auto'
-  popupEl.style.position  = 'fixed'
+  popupEl.style.width      = `${width}px`
+  popupEl.style.top        = `${rect.bottom}px`
+  popupEl.style.left       = `${left}px`
+  popupEl.style.maxHeight  = `${props.maxHeight}px`
+  popupEl.style.zIndex     = '9999'
+  popupEl.style.bottom     = 'auto'
+  popupEl.style.position   = 'fixed'
+  popupEl.style.visibility = 'visible'
 }
 
 function onOpen() {
+  findEls()
   nextTick(() => {
     reposition()
     window.addEventListener('scroll', reposition, true)
@@ -128,15 +126,14 @@ function onClose() {
   window.removeEventListener('scroll', reposition, true)
   window.removeEventListener('resize', reposition)
   if (popupEl) {
-    // Reverse order from reposition(): drop fixed positioning first so the
-    // explicit width does not get reinterpreted against the viewport.
-    popupEl.style.position = ''
-    popupEl.style.top      = ''
-    popupEl.style.left     = ''
-    popupEl.style.width    = ''
-    popupEl.style.maxHeight = ''
-    popupEl.style.zIndex   = ''
-    popupEl.style.bottom   = ''
+    popupEl.style.position   = ''
+    popupEl.style.top        = ''
+    popupEl.style.left       = ''
+    popupEl.style.width      = ''
+    popupEl.style.maxHeight  = ''
+    popupEl.style.zIndex     = ''
+    popupEl.style.bottom     = ''
+    popupEl.style.visibility = ''
   }
   popupEl = null
   triggerEl = null
@@ -179,6 +176,19 @@ onBeforeUnmount(onClose)
   border-radius: 6px;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
   background: white;
+  /* Hidden by default so vue-multiselect's width:100% never paints before
+     reposition() sets explicit width and position:fixed. JS clears the
+     inline visibility:visible on close, letting this default re-apply. */
+  visibility: hidden;
+}
+/* vue-multiselect wraps the popup in <Transition name="multiselect"> whose
+   default CSS is `transition: all 0.15s ease`. The `all` keyword animates
+   width too — so when reposition() sets the explicit pixel width, the user
+   sees the popup tween from 100% down to the trigger width. Limit the
+   transition to opacity so width changes snap instantly. */
+.ss :deep(.multiselect-enter-active),
+.ss :deep(.multiselect-leave-active) {
+  transition: opacity 0.15s ease;
 }
 .ss--invalid :deep(.multiselect__tags) { border-color: #FCA5A5; background: #FEF2F2; }
 .ss :deep(.multiselect__select::before) { border-color: #9BA7B0 transparent transparent; }

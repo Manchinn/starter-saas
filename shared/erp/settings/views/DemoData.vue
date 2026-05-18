@@ -18,7 +18,7 @@
             <div>
               <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.seedDemo') }}</h2>
               <p class="text-xs text-[#9BA7B0] mt-0.5">
-                Creates a complete starter dataset across all ERP modules — ready to explore immediately.
+                Creates a complete dataset across all ERP modules — ready to explore immediately.
               </p>
             </div>
           </div>
@@ -32,180 +32,197 @@
           </button>
         </div>
 
-        <!-- Data preview grid -->
-        <div class="grid grid-cols-2 lg:grid-cols-3 divide-y lg:divide-y-0 divide-x-0 lg:divide-x divide-[#E2E8F0] border-b border-[#E2E8F0]">
+        <!-- Domain sections -->
+        <div class="divide-y divide-[#E2E8F0]">
 
-          <!-- UOM -->
-          <div class="px-6 py-5 border-b lg:border-b-0 border-[#E2E8F0]">
-            <div class="flex items-center gap-2 mb-3">
-              <ScaleIcon class="w-4 h-4 text-[#9BA7B0]" />
-              <span class="text-xs font-semibold text-[#637381] uppercase tracking-wide">Units of Measure</span>
-              <span class="ml-auto text-xs font-semibold text-primary-500 bg-primary-50 px-2 py-0.5 rounded-full">4</span>
+          <!-- Foundation -->
+          <div class="px-6 py-5">
+            <div class="flex items-center gap-2 mb-4">
+              <CubeIcon class="w-4 h-4 text-indigo-500" />
+              <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Foundation</span>
             </div>
-            <ul class="space-y-1">
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                Unit <span class="text-xs font-mono text-[#9BA7B0] ml-1">unit</span>
-              </li>
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                Kilogram <span class="text-xs font-mono text-[#9BA7B0] ml-1">kg</span>
-              </li>
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                Liter <span class="text-xs font-mono text-[#9BA7B0] ml-1">L</span>
-              </li>
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                Box <span class="text-xs font-mono text-[#9BA7B0] ml-1">box</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Product Categories -->
-          <div class="px-6 py-5 border-b lg:border-b-0 border-[#E2E8F0]">
-            <div class="flex items-center gap-2 mb-3">
-              <TagIcon class="w-4 h-4 text-[#9BA7B0]" />
-              <span class="text-xs font-semibold text-[#637381] uppercase tracking-wide">Product Categories</span>
-              <span class="ml-auto text-xs font-semibold text-primary-500 bg-primary-50 px-2 py-0.5 rounded-full">3</span>
-            </div>
-            <ul class="space-y-1">
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                Electronics <span class="text-xs font-mono text-[#9BA7B0] ml-1">CAT-ELEC</span>
-              </li>
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                Food &amp; Beverage <span class="text-xs font-mono text-[#9BA7B0] ml-1">CAT-FOOD</span>
-              </li>
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                Office Supplies <span class="text-xs font-mono text-[#9BA7B0] ml-1">CAT-OFFC</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Products -->
-          <div class="px-6 py-5 border-b lg:border-b-0 border-[#E2E8F0]">
-            <div class="flex items-center gap-2 mb-3">
-              <CubeIcon class="w-4 h-4 text-[#9BA7B0]" />
-              <span class="text-xs font-semibold text-[#637381] uppercase tracking-wide">Products</span>
-              <span class="ml-auto text-xs font-semibold text-primary-500 bg-primary-50 px-2 py-0.5 rounded-full">7</span>
-            </div>
-            <ul class="space-y-1">
-              <li v-for="p in SEED_PRODUCTS" :key="p.sku" class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                {{ p.name }} <span class="text-xs font-mono text-[#9BA7B0] ml-1">{{ p.sku }}</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Customers -->
-          <div class="px-6 py-5 border-t border-[#E2E8F0] lg:border-t-0">
-            <div class="flex items-center gap-2 mb-3">
-              <UsersIcon class="w-4 h-4 text-[#9BA7B0]" />
-              <span class="text-xs font-semibold text-[#637381] uppercase tracking-wide">Customers</span>
-              <span class="ml-auto text-xs font-semibold text-primary-500 bg-primary-50 px-2 py-0.5 rounded-full">5 + 2 groups</span>
-            </div>
-            <p class="text-xs text-[#9BA7B0] mb-2">Groups: Retail · Wholesale</p>
-            <ul class="space-y-1">
-              <li v-for="c in SEED_CUSTOMERS" :key="c.code" class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                {{ c.name }} <span class="text-xs font-mono text-[#9BA7B0] ml-1">{{ c.code }}</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Vendors -->
-          <div class="px-6 py-5 border-t border-[#E2E8F0] lg:border-t-0">
-            <div class="flex items-center gap-2 mb-3">
-              <BuildingLibraryIcon class="w-4 h-4 text-[#9BA7B0]" />
-              <span class="text-xs font-semibold text-[#637381] uppercase tracking-wide">Vendors</span>
-              <span class="ml-auto text-xs font-semibold text-primary-500 bg-primary-50 px-2 py-0.5 rounded-full">6</span>
-            </div>
-            <ul class="space-y-1">
-              <li v-for="v in SEED_VENDORS" :key="v.code" class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  :class="v.type === 'supplier' ? 'bg-blue-300' : v.type === 'service' ? 'bg-violet-300' : 'bg-amber-300'" />
-                {{ v.name }} <span class="text-xs font-mono text-[#9BA7B0] ml-1">{{ v.code }}</span>
-              </li>
-            </ul>
-            <div class="flex items-center gap-3 mt-2.5 text-[10px] text-[#9BA7B0]">
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-300 inline-block" /> Supplier</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-violet-300 inline-block" /> Service</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-300 inline-block" /> Both</span>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div v-for="item in SECTION_FOUNDATION" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
+                  <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                </div>
+                <ul class="space-y-0.5">
+                  <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
+                    <span class="w-1 h-1 rounded-full bg-indigo-300 flex-shrink-0" />
+                    {{ row }}
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
-          <!-- Stores -->
-          <div class="px-6 py-5 border-t border-[#E2E8F0] lg:border-t-0">
-            <div class="flex items-center gap-2 mb-3">
-              <BuildingStorefrontIcon class="w-4 h-4 text-[#9BA7B0]" />
-              <span class="text-xs font-semibold text-[#637381] uppercase tracking-wide">Stores / Warehouses</span>
-              <span class="ml-auto text-xs font-semibold text-primary-500 bg-primary-50 px-2 py-0.5 rounded-full">2</span>
+          <!-- Parties -->
+          <div class="px-6 py-5">
+            <div class="flex items-center gap-2 mb-4">
+              <UsersIcon class="w-4 h-4 text-sky-500" />
+              <span class="text-xs font-bold text-sky-600 uppercase tracking-widest">Parties</span>
             </div>
-            <ul class="space-y-1">
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                Main Warehouse <span class="text-xs font-mono text-[#9BA7B0] ml-1">WHS-0001</span>
-              </li>
-              <li class="flex items-center gap-2 text-sm text-[#374151]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1] flex-shrink-0" />
-                North Branch <span class="text-xs font-mono text-[#9BA7B0] ml-1">WHS-0002</span>
-              </li>
-            </ul>
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div v-for="item in SECTION_PARTIES" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
+                  <span class="text-xs font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                </div>
+                <ul class="space-y-0.5">
+                  <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
+                    <span class="w-1 h-1 rounded-full bg-sky-300 flex-shrink-0" />
+                    {{ row }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- HRMS -->
+          <div class="px-6 py-5">
+            <div class="flex items-center gap-2 mb-4">
+              <IdentificationIcon class="w-4 h-4 text-violet-500" />
+              <span class="text-xs font-bold text-violet-600 uppercase tracking-widest">HRMS</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div v-for="item in SECTION_HRMS" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
+                  <span class="text-xs font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                </div>
+                <ul class="space-y-0.5">
+                  <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
+                    <span class="w-1 h-1 rounded-full bg-violet-300 flex-shrink-0" />
+                    {{ row }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sales Cycle -->
+          <div class="px-6 py-5">
+            <div class="flex items-center gap-2 mb-4">
+              <ShoppingCartIcon class="w-4 h-4 text-emerald-500" />
+              <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Sales Cycle</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div v-for="item in SECTION_SALES" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
+                  <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                </div>
+                <ul class="space-y-0.5">
+                  <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
+                    <span class="w-1 h-1 rounded-full bg-emerald-300 flex-shrink-0" />
+                    {{ row }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Purchasing -->
+          <div class="px-6 py-5">
+            <div class="flex items-center gap-2 mb-4">
+              <ShoppingBagIcon class="w-4 h-4 text-amber-500" />
+              <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Purchasing</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div v-for="item in SECTION_PURCHASING" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
+                  <span class="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                </div>
+                <ul class="space-y-0.5">
+                  <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
+                    <span class="w-1 h-1 rounded-full bg-amber-300 flex-shrink-0" />
+                    {{ row }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inventory Transactions -->
+          <div class="px-6 py-5">
+            <div class="flex items-center gap-2 mb-4">
+              <ArrowsRightLeftIcon class="w-4 h-4 text-teal-500" />
+              <span class="text-xs font-bold text-teal-600 uppercase tracking-widest">Inventory Transactions</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+              <div v-for="item in SECTION_INVENTORY" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
+                  <span class="text-xs font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                </div>
+                <ul class="space-y-0.5">
+                  <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
+                    <span class="w-1 h-1 rounded-full bg-teal-300 flex-shrink-0" />
+                    {{ row }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accounting -->
+          <div class="px-6 py-5">
+            <div class="flex items-center gap-2 mb-4">
+              <CalculatorIcon class="w-4 h-4 text-rose-500" />
+              <span class="text-xs font-bold text-rose-600 uppercase tracking-widest">Accounting</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
+              <div v-for="item in SECTION_ACCOUNTING" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
+                  <span class="text-xs font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                </div>
+                <ul class="space-y-0.5">
+                  <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
+                    <span class="w-1 h-1 rounded-full bg-rose-300 flex-shrink-0" />
+                    {{ row }}
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
 
         </div>
 
-        <div class="px-6 py-3 bg-[#F7F9FC]">
-          <p class="text-xs text-[#9BA7B0]">
-            Note: HRMS records (employees, departments), stock transactions, sales orders, invoices, and receipts are <span class="font-medium">not</span> included in seed data — create those manually to test the full workflow.
+        <!-- Total summary footer -->
+        <div class="px-6 py-3 bg-[#F7F9FC] border-t border-[#E2E8F0] flex items-center gap-2">
+          <SparklesIcon class="w-3.5 h-3.5 text-primary-400" />
+          <p class="text-xs text-[#637381]">
+            Seeds <span class="font-semibold text-[#374151]">{{ TOTAL_RECORDS }}+</span> records across
+            <span class="font-semibold text-[#374151]">7 domains</span> — covering the full ERP workflow from procurement to payment.
           </p>
         </div>
       </div>
 
       <!-- Reset All Data -->
       <div class="bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-red-100 flex items-start gap-2">
-          <TrashIcon class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-          <div>
-            <h2 class="text-sm font-semibold text-red-700">{{ t('erp.settings.resetAll') }}</h2>
-            <p class="text-xs text-red-400 mt-0.5">Permanently deletes all ERP records. This cannot be undone.</p>
-          </div>
-        </div>
-
-        <div class="px-6 py-5">
-          <p class="text-sm text-[#637381] mb-4">
-            Erases all data across every ERP module. System users, roles, and permissions are <span class="font-semibold">not</span> affected.
-          </p>
-
-          <!-- What gets wiped -->
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-            <div v-for="group in RESET_GROUPS" :key="group.label"
-              class="rounded-xl border border-red-100 bg-red-50/50 px-4 py-3">
-              <p class="text-xs font-semibold text-red-700 mb-1.5">{{ group.label }}</p>
-              <ul class="space-y-0.5">
-                <li v-for="item in group.items" :key="item"
-                  class="flex items-center gap-1.5 text-xs text-red-500">
-                  <span class="w-1 h-1 rounded-full bg-red-300 flex-shrink-0" />
-                  {{ item }}
-                </li>
-              </ul>
+        <div class="px-6 py-4 border-b border-red-100 flex items-center justify-between">
+          <div class="flex items-start gap-2">
+            <TrashIcon class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <h2 class="text-sm font-semibold text-red-700">{{ t('erp.settings.resetAll') }}</h2>
+              <p class="text-xs text-red-400 mt-0.5">
+                Permanently deletes <span class="font-semibold">all</span> ERP records across every module. This cannot be undone.
+              </p>
             </div>
           </div>
-
           <div v-if="!confirmReset">
             <button @click="confirmReset = true" :disabled="seeding || resetting"
-              class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
+              class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold flex-shrink-0
                      bg-white border border-red-300 text-red-600 rounded-xl hover:bg-red-50
                      disabled:opacity-50 transition-colors shadow-sm">
               <TrashIcon class="w-4 h-4" />
               {{ t('erp.settings.resetAll') }}
             </button>
           </div>
-
-          <div v-else class="flex items-center gap-3">
+          <div v-else class="flex items-center gap-3 flex-shrink-0">
             <span class="text-sm text-red-600 font-medium">{{ t('erp.settings.confirmReset') }}</span>
             <button @click="reset" :disabled="resetting"
               class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
@@ -220,6 +237,30 @@
               {{ t('common.cancel') }}
             </button>
           </div>
+        </div>
+
+        <!-- What gets wiped — mirrors seed domains -->
+        <div class="divide-y divide-red-50">
+          <div v-for="group in RESET_GROUPS" :key="group.label" class="px-6 py-4">
+            <div class="flex items-center gap-2 mb-3">
+              <component :is="group.icon" class="w-3.5 h-3.5 text-red-400" />
+              <span class="text-[10px] font-bold text-red-500 uppercase tracking-widest">{{ group.label }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span v-for="item in group.items" :key="item"
+                class="inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-100 px-2.5 py-1 rounded-lg">
+                <span class="w-1 h-1 rounded-full bg-red-300 flex-shrink-0" />
+                {{ item }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-3 bg-red-50/60 border-t border-red-100 flex items-center gap-2">
+          <ExclamationTriangleIcon class="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+          <p class="text-xs text-red-500">
+            System users, roles, and permissions are <span class="font-semibold">not</span> affected. Only ERP business data is removed.
+          </p>
         </div>
       </div>
 
@@ -241,7 +282,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   SparklesIcon,
@@ -249,12 +290,14 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
-  ScaleIcon,
-  TagIcon,
+  ExclamationTriangleIcon,
   CubeIcon,
   UsersIcon,
-  BuildingLibraryIcon,
-  BuildingStorefrontIcon,
+  ShoppingCartIcon,
+  ShoppingBagIcon,
+  ArrowsRightLeftIcon,
+  IdentificationIcon,
+  CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
@@ -267,49 +310,103 @@ const confirmReset = ref(false)
 const successMsg   = ref('')
 const errorMsg     = ref('')
 
-const SEED_PRODUCTS = [
-  { name: 'Wireless Mouse',      sku: 'PRD-0001' },
-  { name: 'USB-C Hub',           sku: 'PRD-0002' },
-  { name: 'Mechanical Keyboard', sku: 'PRD-0003' },
-  { name: 'Mineral Water 1L',    sku: 'PRD-0004' },
-  { name: 'Arabica Coffee',      sku: 'PRD-0005' },
-  { name: 'A4 Paper Ream',       sku: 'PRD-0006' },
-  { name: 'Ballpoint Pen',       sku: 'PRD-0007' },
+const SECTION_FOUNDATION = [
+  { label: 'UOM',              count: 4,  rows: ['Unit', 'Kilogram', 'Liter', 'Box'] },
+  { label: 'Categories',       count: 3,  rows: ['Electronics', 'Food & Beverage', 'Office Supplies'] },
+  { label: 'Products',         count: 7,  rows: ['Wireless Mouse', 'USB-C Hub', 'Keyboard', 'Water 1L', 'Coffee', 'A4 Paper', 'Pen'] },
+  { label: 'Stores',           count: 2,  rows: ['Main Warehouse', 'North Branch'] },
+  { label: 'Sale Items',       count: 7,  rows: ['SI-0001 → SI-0007', 'One per product'] },
+  { label: 'Price Lists',      count: 10, rows: ['5 Retail prices', '5 Wholesale prices'] },
 ]
 
-const SEED_CUSTOMERS = [
-  { code: 'CUS-0001', name: 'Alice Johnson' },
-  { code: 'CUS-0002', name: 'Bob Smith' },
-  { code: 'CUS-0003', name: 'Carol Davis' },
-  { code: 'CUS-0004', name: 'David Lee' },
-  { code: 'CUS-0005', name: 'Eva Martinez' },
+const SECTION_PARTIES = [
+  { label: 'Customer Groups',  count: 2,  rows: ['Retail', 'Wholesale'] },
+  { label: 'Customers',        count: 5,  rows: ['Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Lee', 'Eva Martinez'] },
+  { label: 'Vendors',          count: 6,  rows: ['TechSource Global', 'FoodLink Supplies', 'OfficeWorld Dist.', 'CleanPro Services', 'SwiftLogistics Co.', 'UniTrade Partners'] },
 ]
 
-const SEED_VENDORS = [
-  { code: 'VND-0001', name: 'TechSource Global',   type: 'supplier' },
-  { code: 'VND-0002', name: 'FoodLink Supplies',   type: 'supplier' },
-  { code: 'VND-0003', name: 'OfficeWorld Dist.',   type: 'supplier' },
-  { code: 'VND-0004', name: 'CleanPro Services',   type: 'service' },
-  { code: 'VND-0005', name: 'SwiftLogistics Co.',  type: 'service' },
-  { code: 'VND-0006', name: 'UniTrade Partners',   type: 'both' },
+const SECTION_HRMS = [
+  { label: 'Departments',      count: 5,  rows: ['Sales', 'Operations', 'Finance', 'HR', 'IT'] },
+  { label: 'Employees',        count: 5,  rows: ['John Smith (Sales)', 'Jane Doe (Ops)', 'Mike Johnson (Fin)', 'Sara Lee (HR)', 'Tom Brown (IT)'] },
 ]
+
+const SECTION_SALES = [
+  { label: 'Quotations',       count: 3,  rows: ['QT-2026-0001 sent', 'QT-2026-0002 draft', 'QT-2026-0003 confirmed'] },
+  { label: 'Sales Orders',     count: 3,  rows: ['SO-2026-0001 confirmed', 'SO-2026-0002 shipped', 'SO-2026-0003 draft'] },
+  { label: 'Deliveries',       count: 3,  rows: ['DO-2026-0001 confirmed', 'DO-2026-0002 shipped', 'DO-2026-0003 draft'] },
+  { label: 'Invoices',         count: 5,  rows: ['INV-0001 paid', 'INV-0002 sent', 'INV-0003 sent', 'INV-0004 draft', 'INV-0005 sent'] },
+  { label: 'Receipts',         count: 3,  rows: ['RCT-0001 confirmed', 'RCT-0002 confirmed', 'RCT-0003 draft'] },
+  { label: 'Billing Notes',    count: 1,  rows: ['BN-2026-0001'] },
+  { label: 'Recv. Payments',   count: 2,  rows: ['RP-2026-0001', 'RP-2026-0002'] },
+  { label: 'Debit / Credit',   count: 2,  rows: ['DN-2026-0001', 'CN-2026-0001'] },
+]
+
+const SECTION_PURCHASING = [
+  { label: 'Purchase Reqs.',   count: 2,  rows: ['PR-2026-0001 confirmed', 'PR-2026-0002 draft'] },
+  { label: 'Purchase Orders',  count: 2,  rows: ['PO-2026-0001 confirmed', 'PO-2026-0002 draft'] },
+]
+
+const SECTION_INVENTORY = [
+  { label: 'Good Receives',    count: 3,  rows: ['GR-0001 confirmed', 'GR-0002 confirmed', 'GR-0003 draft'] },
+  { label: 'Adjustments',      count: 2,  rows: ['SA-0001 confirmed', 'SA-0002 draft'] },
+  { label: 'Stock Counts',     count: 2,  rows: ['SC-0001 confirmed', 'SC-0002 draft'] },
+  { label: 'Transfers',        count: 2,  rows: ['SR-0001 confirmed', 'SR-0002 draft'] },
+  { label: 'Returns',          count: 1,  rows: ['RT-0001 confirmed'] },
+  { label: 'Issues',           count: 1,  rows: ['SI-0001 confirmed'] },
+  { label: 'Movements',        count: 16, rows: ['GR / SA / SR', 'DO / RT / Issue'] },
+  { label: 'Store Stock',      count: 12, rows: ['Main Whs: 7 SKUs', 'North Branch: 5 SKUs'] },
+]
+
+const SECTION_ACCOUNTING = [
+  { label: 'Chart of Accounts', count: 40, rows: ['Assets', 'Liabilities', 'Equity', 'Revenue', 'Expenses'] },
+  { label: 'Fiscal Years',      count: 2,  rows: ['FY 2025 (closed)', 'FY 2026 (active)'] },
+  { label: 'Journal Entries',   count: 10, rows: ['JE-0001 posted', 'JE-0002 posted', 'JE-0003 posted', 'JE-0004–0006 posted', 'JE-0007 posted', 'JE-0008–0010 draft'] },
+]
+
+const TOTAL_RECORDS = computed(() => {
+  const counts = [
+    ...SECTION_FOUNDATION, ...SECTION_PARTIES, ...SECTION_HRMS,
+    ...SECTION_SALES, ...SECTION_PURCHASING, ...SECTION_INVENTORY,
+    ...SECTION_ACCOUNTING,
+  ].reduce((sum, item) => sum + item.count, 0)
+  return counts
+})
 
 const RESET_GROUPS = [
   {
-    label: 'Sales',
-    items: ['Quotations', 'Sale Items', 'Sales Orders', 'Invoices', 'Receipts', 'Price Lists'],
+    label: 'Foundation',
+    icon: CubeIcon,
+    items: ['Products', 'Product Categories', 'Units of Measure', 'UOM Conversions', 'Stores', 'Store Stock', 'Sale Items', 'Price Lists'],
   },
   {
-    label: 'Stock Transactions',
-    items: ['Goods Receive', 'Stock Adjustments', 'Stock Counts', 'Stock Transfers', 'Stock Returns', 'Stock Issues', 'Stock Movements'],
+    label: 'Parties',
+    icon: UsersIcon,
+    items: ['Customer Groups', 'Customers', 'Vendors'],
   },
   {
-    label: 'Inventory Master',
-    items: ['Products', 'Product Categories', 'UOM Conversions', 'Units of Measure', 'Stores', 'Store Stock'],
+    label: 'HRMS',
+    icon: IdentificationIcon,
+    items: ['Departments', 'Employees'],
   },
   {
-    label: 'Parties & HRMS',
-    items: ['Customers', 'Customer Groups', 'Vendors', 'Employees', 'Departments'],
+    label: 'Sales Cycle',
+    icon: ShoppingCartIcon,
+    items: ['Quotations', 'Sales Orders', 'Delivery Orders', 'Invoices', 'Receipts', 'Billing Notes', 'Receive Payments', 'Debit Notes', 'Credit Notes'],
+  },
+  {
+    label: 'Purchasing',
+    icon: ShoppingBagIcon,
+    items: ['Purchase Requisitions', 'Purchase Orders'],
+  },
+  {
+    label: 'Inventory Transactions',
+    icon: ArrowsRightLeftIcon,
+    items: ['Goods Receives', 'Stock Adjustments', 'Stock Counts', 'Stock Transfers', 'Stock Returns', 'Stock Issues', 'Stock Movements'],
+  },
+  {
+    label: 'Accounting',
+    icon: CalculatorIcon,
+    items: ['Chart of Accounts', 'Fiscal Years', 'Journal Entries', 'Journal Lines'],
   },
 ]
 

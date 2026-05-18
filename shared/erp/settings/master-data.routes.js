@@ -143,6 +143,25 @@ router.delete('/values/:id', requirePermission('erp.stock.edit'), async (req, re
   } catch (err) { next(err) }
 })
 
+// GET /by-name/:name — get active values by category display name (used by form dropdowns)
+router.get('/by-name/:name', requirePermission('erp.stock.list'), async (req, res, next) => {
+  try {
+    const orgId = req.user?.organizationId || req.user?.id
+    const category = await MasterDataCategory.findOne({
+      where: { name: req.params.name, organizationId: orgId || null, dataFlag: { [Op.ne]: 2 } },
+      include: [{
+        model: MasterDataValue,
+        as: 'values',
+        where: { isActive: true, dataFlag: { [Op.ne]: 2 } },
+        required: false,
+      }],
+    })
+    if (!category) return res.json({ data: { values: [] } })
+    const values = (category.values || []).sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+    res.json({ data: { values } })
+  } catch (err) { next(err) }
+})
+
 // ── Slug lookup (must be last to avoid shadowing /categories) ─────────────────
 
 // GET /:slug — get active values by category slug (used by form dropdowns)

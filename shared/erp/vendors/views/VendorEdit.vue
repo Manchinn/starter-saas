@@ -71,15 +71,11 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-2">{{ t('erp.vendors.vendorType') }}</label>
             <div class="flex flex-col gap-2">
-              <label class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
-                <input type="checkbox" value="supplier" v-model="form.vendorTypes"
+              <label v-for="vt in vendorTypeOptions" :key="vt.id"
+                class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
+                <input type="checkbox" :value="vt.name" v-model="form.vendorTypes"
                   class="rounded text-primary-500 focus:ring-primary-500" />
-                {{ t('erp.vendors.supplier') }}
-              </label>
-              <label class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
-                <input type="checkbox" value="service_provider" v-model="form.vendorTypes"
-                  class="rounded text-primary-500 focus:ring-primary-500" />
-                {{ t('erp.vendors.serviceProvider') }}
+                {{ vt.name }}
               </label>
             </div>
           </div>
@@ -115,8 +111,9 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
 const { t } = useI18n()
-const route    = useRoute()
-const router   = useRouter()
+const route             = useRoute()
+const router            = useRouter()
+const vendorTypeOptions = ref([])
 const form     = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active', activeFrom: '', activeTo: '' })
 const loading  = ref(true)
 const notFound = ref(false)
@@ -124,6 +121,8 @@ const error    = ref('')
 const saving   = ref(false)
 
 onMounted(async () => {
+  const { data: mdData } = await api.get('/erp/master-data/by-name/Vendor Types')
+  vendorTypeOptions.value = mdData.data.values
   try {
     const { data } = await api.get(`/erp/vendors/${route.params.id}`)
     const v = data.data.vendor
