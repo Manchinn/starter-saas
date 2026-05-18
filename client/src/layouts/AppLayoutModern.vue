@@ -95,31 +95,32 @@
       <div
         v-if="openDropdown && activeItem && isMegaMenu"
         :style="megaMenuStyle"
-        class="bg-white rounded-xl shadow-xl border border-gray-200 p-4"
+        class="bg-white rounded-xl shadow-xl border border-gray-200 p-3 scrollbar-thin"
         @mouseenter="cancelClose"
         @mouseleave="scheduleClose"
       >
-        <div class="grid gap-x-5 gap-y-4" :style="{ gridTemplateColumns: `repeat(${megaColumns.length}, minmax(180px, 1fr))` }">
+        <div class="grid gap-x-3 gap-y-3"
+             :style="{ gridTemplateColumns: `repeat(auto-fit, minmax(${MEGA_COL_MIN}px, 1fr))` }">
           <div v-for="(col, ci) in megaColumns" :key="col.label || ci" class="min-w-0">
 
             <!-- Column header — uses the sub-group label, or "Quick links" for the flat column -->
-            <div class="flex items-center gap-1.5 pb-2 mb-2 border-b border-gray-100">
-              <component v-if="col.icon" :is="col.icon" class="w-3.5 h-3.5 text-gray-400" />
-              <p class="text-[10px] font-semibold tracking-widest text-gray-500 uppercase truncate">
+            <div class="flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-gray-100">
+              <component v-if="col.icon" :is="col.icon" class="w-3 h-3 text-gray-400 flex-shrink-0" />
+              <p class="text-[9.5px] font-semibold tracking-widest text-gray-500 uppercase truncate">
                 {{ t(col.label) }}
               </p>
             </div>
 
-            <ul class="space-y-0.5">
+            <ul class="space-y-px">
               <li v-for="link in col.items" :key="link.to">
                 <RouterLink
                   :to="link.to"
-                  class="flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] text-gray-600
-                         hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                  class="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[12.5px] text-gray-600
+                         hover:bg-primary-50 hover:text-primary-700 transition-colors leading-tight"
                   active-class="text-primary-700 font-medium bg-primary-50"
                   @click="openDropdown = null"
                 >
-                  <component v-if="link.icon" :is="link.icon" class="w-4 h-4 flex-shrink-0" />
+                  <component v-if="link.icon" :is="link.icon" class="w-3.5 h-3.5 flex-shrink-0" />
                   <span class="truncate">{{ t(link.label) }}</span>
                 </RouterLink>
               </li>
@@ -217,19 +218,27 @@ const megaColumns = computed(() => {
   return cols
 })
 
-// Positioning — keep mega menu within the viewport (don't overflow right edge)
-const MEGA_COL_WIDTH = 220
-const MEGA_PADDING   = 16
+// Positioning — keep mega menu within the viewport. Columns wrap to a new row
+// when the available width can't fit them all (CSS auto-fit grid handles that).
+const MEGA_COL_MIN = 150   // min column width that still keeps labels readable
+const MEGA_PADDING = 12    // matches p-3 above
+const MEGA_MAX     = 920   // hard cap, even on huge monitors
+const VIEWPORT_PAD = 12    // breathing room from window edges
+
 const megaMenuStyle = computed(() => {
-  const cols  = megaColumns.value.length || 1
-  const width = cols * MEGA_COL_WIDTH + MEGA_PADDING * 2
-  const vw    = typeof window !== 'undefined' ? window.innerWidth : 1280
-  const maxLeft = Math.max(8, vw - width - 8)
+  const cols     = megaColumns.value.length || 1
+  const vw       = typeof window !== 'undefined' ? window.innerWidth : 1280
+  const idealW   = cols * (MEGA_COL_MIN + 8) + MEGA_PADDING * 2
+  const maxW     = Math.min(MEGA_MAX, vw - VIEWPORT_PAD * 2)
+  const width    = Math.min(idealW, maxW)
+  const maxLeft  = Math.max(VIEWPORT_PAD, vw - width - VIEWPORT_PAD)
   return {
     position: 'fixed',
     top:  dropdownPos.value.top + 'px',
     left: Math.min(dropdownPos.value.left, maxLeft) + 'px',
     width: width + 'px',
+    maxHeight: `calc(100vh - ${dropdownPos.value.top + 16}px)`,
+    overflowY: 'auto',
     zIndex: 9999,
   }
 })
