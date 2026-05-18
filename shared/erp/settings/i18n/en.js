@@ -24,6 +24,9 @@ export default {
       calendarBE:         'Buddhist Era (BE / Thai)',
       calendarBEDesc:     'Thai Buddhist calendar — years are CE + 543 (e.g. 2568). Date pickers will accept and display BE years.',
 
+      dateFormat:         'Date Format',
+      dateFormatDesc:     'How dates appear in list views and detail pages across the ERP',
+
       tax:             'Tax Settings',
       taxDesc:         'Configure default tax rate and calculation method',
       taxRate:         'Default Tax Rate',

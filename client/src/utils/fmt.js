@@ -21,28 +21,29 @@ function getCurrency() {
   }
 }
 
-function getCalendarSystem() {
-  try {
-    return useSettingsStore().calendar?.system ?? 'CE'
-  } catch {
-    return 'CE'
-  }
+function getCalendar() {
+  try { return useSettingsStore().calendar ?? {} } catch { return {} }
 }
 
 const BE_OFFSET = 543
 
 /**
- * Format a CE date string for display according to the configured calendar system.
- * In CE mode returns the string unchanged. In BE mode adds 543 to the year.
+ * Format a CE date string for display using the configured calendar system and date format.
  * @param {string} ceStr  ISO date string e.g. "2025-05-18"
- * @returns {string}
+ * @returns {string}  formatted e.g. "18/05/2568" (BE) or "18/05/2025" (CE)
  */
 export function fmtDate(ceStr) {
   if (!ceStr) return ''
-  if (getCalendarSystem() !== 'BE') return ceStr
   const parts = ceStr.split('-')
-  if (parts.length < 1 || isNaN(Number(parts[0]))) return ceStr
-  return [String(Number(parts[0]) + BE_OFFSET), ...parts.slice(1)].join('-')
+  if (parts.length < 3 || isNaN(Number(parts[0]))) return ceStr
+  const cal = getCalendar()
+  let year = Number(parts[0])
+  if (cal.system === 'BE') year += BE_OFFSET
+  const fmt = cal.dateFormat || 'dd/mm/yyyy'
+  return fmt
+    .replace('dd',   parts[2].padStart(2, '0'))
+    .replace('mm',   parts[1].padStart(2, '0'))
+    .replace('yyyy', String(year))
 }
 
 /**

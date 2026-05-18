@@ -15,7 +15,8 @@ const DEFAULTS = {
     inclusive: false,  // false = tax before total (exclusive), true = tax after total (inclusive)
   },
   calendar: {
-    system: 'CE',  // 'CE' = Christian/Gregorian | 'BE' = Buddhist Era (CE + 543)
+    system:     'CE',           // 'CE' = Christian/Gregorian | 'BE' = Buddhist Era (CE + 543)
+    dateFormat: 'dd/mm/yyyy',   // display format tokens: dd, mm, yyyy
   },
 }
 

@@ -128,6 +128,8 @@
       <template v-if="activeTab === 'date'">
 
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+
+          <!-- Calendar system -->
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.calendarSystem') }}</h2>
             <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.calendarSystemDesc') }}</p>
@@ -147,7 +149,7 @@
                 <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.calendarCE') }}</p>
                 <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.calendarCEDesc') }}</p>
                 <p class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono text-[#374151]">
-                  {{ new Date().toISOString().slice(0, 10) }}
+                  {{ previewDateFor('CE') }}
                 </p>
               </div>
             </label>
@@ -164,12 +166,35 @@
                 <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.calendarBE') }}</p>
                 <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.calendarBEDesc') }}</p>
                 <p class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono text-[#374151]">
-                  {{ bePreview }}
+                  {{ previewDateFor('BE') }}
                 </p>
               </div>
             </label>
 
           </div>
+
+          <!-- Date format -->
+          <div class="px-6 py-5 border-t border-[#E2E8F0] space-y-3">
+            <div>
+              <h3 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.dateFormat') }}</h3>
+              <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.dateFormatDesc') }}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <label v-for="opt in DATE_FORMAT_OPTIONS" :key="opt"
+                class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors"
+                :class="calendarForm.dateFormat === opt
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
+                <input type="radio" name="dateFormat" :value="opt" v-model="calendarForm.dateFormat"
+                  class="accent-primary-500 flex-shrink-0" />
+                <div>
+                  <p class="text-xs font-semibold text-[#374151] font-mono">{{ opt }}</p>
+                  <p class="text-xs text-[#9BA7B0] font-mono">{{ previewFmt(opt) }}</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
         </div>
 
         <!-- Feedback + save -->
@@ -375,13 +400,28 @@ async function saveTax() {
 }
 
 // ── Calendar form ─────────────────────────────────────────
-const calendarForm = reactive({ system: store.calendar.system })
+const DATE_FORMAT_OPTIONS = ['dd/mm/yyyy', 'mm/dd/yyyy', 'yyyy-mm-dd', 'dd.mm.yyyy']
 
-const bePreview = computed(() => {
-  const today = new Date().toISOString().slice(0, 10)
-  const [y, m, d] = today.split('-')
-  return [String(Number(y) + 543), m, d].join('-')
+const calendarForm = reactive({
+  system:     store.calendar.system,
+  dateFormat: store.calendar.dateFormat || 'dd/mm/yyyy',
 })
+
+function previewFmt(fmt, system) {
+  const now   = new Date()
+  const yr    = (system ?? calendarForm.system) === 'BE' ? now.getFullYear() + 543 : now.getFullYear()
+  const mm    = String(now.getMonth() + 1).padStart(2, '0')
+  const dd    = String(now.getDate()).padStart(2, '0')
+  return fmt
+    .replace('dd',   dd)
+    .replace('mm',   mm)
+    .replace('yyyy', String(yr))
+}
+
+function previewDateFor(system) {
+  return previewFmt(calendarForm.dateFormat || 'dd/mm/yyyy', system)
+}
+
 const calendarSaving = ref(false)
 const calendarSaved  = ref(false)
 const calendarError  = ref('')
@@ -406,6 +446,9 @@ onMounted(async () => {
   await store.load()
   Object.assign(currencyForm, store.currency)
   Object.assign(taxForm, store.tax)
-  Object.assign(calendarForm, store.calendar)
+  Object.assign(calendarForm, {
+    system:     store.calendar.system,
+    dateFormat: store.calendar.dateFormat || 'dd/mm/yyyy',
+  })
 })
 </script>

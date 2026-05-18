@@ -1,7 +1,7 @@
 <template>
   <input
-    :type="isFocused || displayValue ? 'date' : 'text'"
-    :value="displayValue"
+    :type="isFocused ? 'date' : 'text'"
+    :value="isFocused ? pickerValue : displayText"
     @focus="isFocused = true"
     @blur="isFocused = false"
     @change="onChange"
@@ -33,11 +33,26 @@ function beToCe(s) {
   return [String(ceYear < 1 ? 1 : ceYear).padStart(4, '0'), m, d].join('-')
 }
 
-const isBE = computed(() => settings.calendar?.system === 'BE')
+const isBE       = computed(() => settings.calendar?.system === 'BE')
+const dateFormat = computed(() => settings.calendar?.dateFormat || 'dd/mm/yyyy')
 
-const displayValue = computed(() =>
+// Value passed to the native date picker (BE-adjusted YYYY-MM-DD if needed)
+const pickerValue = computed(() =>
   isBE.value && props.modelValue ? ceToBe(props.modelValue) : (props.modelValue || '')
 )
+
+// Formatted text shown when the input is not focused
+const displayText = computed(() => {
+  if (!props.modelValue) return ''
+  const parts = props.modelValue.split('-')
+  if (parts.length < 3) return props.modelValue
+  let year = Number(parts[0])
+  if (isBE.value) year += BE_OFFSET
+  return dateFormat.value
+    .replace('dd',   parts[2].padStart(2, '0'))
+    .replace('mm',   parts[1].padStart(2, '0'))
+    .replace('yyyy', String(year))
+})
 
 function onChange(e) {
   const raw = e.target.value

@@ -16,7 +16,8 @@ const TAX_DEFAULTS = {
 }
 
 const CALENDAR_DEFAULTS = {
-  system: 'CE',
+  system:     'CE',
+  dateFormat: 'dd/mm/yyyy',
 }
 
 export const useSettingsStore = defineStore('settings', () => {
