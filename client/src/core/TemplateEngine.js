@@ -8,6 +8,8 @@ export const templates = [
     slug: 'default',
     name: 'Default',
     description: 'Classic sidebar with blue accent',
+    tags: { nav: 'sidebar', theme: 'light' },
+    isDefault: true,
     preview: {
       sidebar:  '#1d4ed8',
       topbar:   '#ffffff',
@@ -20,6 +22,7 @@ export const templates = [
     slug: 'dark',
     name: 'Dark',
     description: 'Full dark theme with slate sidebar',
+    tags: { nav: 'sidebar', theme: 'dark' },
     preview: {
       sidebar:  '#1e293b',
       topbar:   '#1e293b',
@@ -32,6 +35,7 @@ export const templates = [
     slug: 'modern',
     name: 'Modern',
     description: 'Top navigation bar layout',
+    tags: { nav: 'topNav', theme: 'light' },
     preview: {
       sidebar:  '#1d4ed8',
       topbar:   '#1d4ed8',
@@ -44,6 +48,7 @@ export const templates = [
     slug: 'minimal',
     name: 'Minimal',
     description: 'Compact dark sidebar with clean content area',
+    tags: { nav: 'sidebar', theme: 'light' },
     preview: {
       sidebar:  '#111827',
       topbar:   '#ffffff',

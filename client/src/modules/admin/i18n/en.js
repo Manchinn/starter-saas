@@ -215,9 +215,24 @@ export default {
 
   // ── Templates ──────────────────────────────────────────────────────────────
   templates: {
-    title:   'Templates',
-    desc:    'Choose a layout template to change the look and feel of the application.',
-    active:  'Active',
-    applied: 'Template applied successfully.',
+    title:           'Templates',
+    desc:            'Choose a layout template to change the look and feel of the application.',
+    active:          'Active',
+    applied:         'Template applied successfully.',
+    appliedToast:    '{name} template applied',
+    currentlyActive: 'Currently active',
+    resetDefault:    'Reset to default',
+    defaultBadge:    'Default',
+    applyTheme:      'Apply theme',
+    inUse:           'In use',
+    noMatch:         'No templates match this filter.',
+    nav: {
+      sidebar: 'Sidebar',
+      topNav:  'Top nav',
+    },
+    theme: {
+      light: 'Light',
+      dark:  'Dark',
+    },
   },
 }
