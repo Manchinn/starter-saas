@@ -16,6 +16,14 @@ export default {
       savedOk:        'Settings saved successfully',
       saveSettings:   'Save Settings',
 
+      tabDate:            'Date & Calendar',
+      calendarSystem:     'Calendar System',
+      calendarSystemDesc: 'Choose how years are entered and displayed in all date fields across the ERP',
+      calendarCE:         'Christian Era (CE / Gregorian)',
+      calendarCEDesc:     'Standard international calendar — years shown as-is (e.g. 2025)',
+      calendarBE:         'Buddhist Era (BE / Thai)',
+      calendarBEDesc:     'Thai Buddhist calendar — years are CE + 543 (e.g. 2568). Date pickers will accept and display BE years.',
+
       tax:             'Tax Settings',
       taxDesc:         'Configure default tax rate and calculation method',
       taxRate:         'Default Tax Rate',

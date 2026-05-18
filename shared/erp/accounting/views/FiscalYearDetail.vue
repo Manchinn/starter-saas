@@ -110,13 +110,13 @@
                 <div class="grid grid-cols-2 gap-5">
                   <div>
                     <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.fiscalYears.colStartDate') }}</label>
-                    <input v-model="editForm.startDate" type="date"
+                    <DateInput v-model="editForm.startDate"
                       class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </div>
                   <div>
                     <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">{{ t('erp.fiscalYears.colEndDate') }}</label>
-                    <input v-model="editForm.endDate" type="date"
+                    <DateInput v-model="editForm.endDate"
                       class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </div>
@@ -228,6 +228,7 @@ import {
   PencilSquareIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import api from '@/api'
 
 const { t } = useI18n()

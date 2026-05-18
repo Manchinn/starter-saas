@@ -62,7 +62,7 @@
 
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.startDate') }}</label>
-              <input v-model="form.startDate" type="date"
+              <DateInput v-model="form.startDate"
                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
 
@@ -78,11 +78,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.status') }}</label>
-              <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="active">{{ t('erp.employees.active') }}</option>
-                <option value="inactive">{{ t('erp.employees.inactive') }}</option>
-                <option value="terminated">{{ t('erp.employees.terminated') }}</option>
-              </select>
+              <SearchSelect v-model="form.status" :options="EMP_STATUS_OPTIONS" :allow-empty="false" placeholder="— Select —" />
             </div>
 
           </div>
@@ -172,11 +168,18 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
+
+const EMP_STATUS_OPTIONS = computed(() => [
+  { id: 'active',     name: t('erp.employees.active') },
+  { id: 'inactive',   name: t('erp.employees.inactive') },
+  { id: 'terminated', name: t('erp.employees.terminated') },
+])
 const router        = useRouter()
 const autoCode      = useAutoCode('EMP')
 const users         = ref([])

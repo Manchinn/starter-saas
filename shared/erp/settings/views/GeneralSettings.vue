@@ -124,6 +124,77 @@
 
       </template>
 
+      <!-- ── Date & Calendar tab ────────────────────────────────────────── -->
+      <template v-if="activeTab === 'date'">
+
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.calendarSystem') }}</h2>
+            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.calendarSystemDesc') }}</p>
+          </div>
+
+          <div class="px-6 py-5 space-y-3">
+
+            <!-- CE option -->
+            <label
+              class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors"
+              :class="calendarForm.system === 'CE'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
+              <input type="radio" name="calendarSystem" value="CE" v-model="calendarForm.system"
+                class="mt-0.5 accent-primary-500 flex-shrink-0" />
+              <div>
+                <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.calendarCE') }}</p>
+                <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.calendarCEDesc') }}</p>
+                <p class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono text-[#374151]">
+                  {{ new Date().toISOString().slice(0, 10) }}
+                </p>
+              </div>
+            </label>
+
+            <!-- BE option -->
+            <label
+              class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors"
+              :class="calendarForm.system === 'BE'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
+              <input type="radio" name="calendarSystem" value="BE" v-model="calendarForm.system"
+                class="mt-0.5 accent-primary-500 flex-shrink-0" />
+              <div>
+                <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.calendarBE') }}</p>
+                <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.calendarBEDesc') }}</p>
+                <p class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono text-[#374151]">
+                  {{ bePreview }}
+                </p>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- Feedback + save -->
+        <div v-if="calendarError"
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+          <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ calendarError }}
+        </div>
+        <div v-if="calendarSaved"
+          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+          <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ t('erp.settings.savedOk') }}
+        </div>
+        <div class="flex justify-end">
+          <button @click="saveCalendar" :disabled="calendarSaving"
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
+                   bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                   disabled:opacity-50 transition-colors shadow-sm">
+            <CheckIcon v-if="!calendarSaving" class="w-4 h-4" />
+            {{ calendarSaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
+          </button>
+        </div>
+
+      </template>
+
       <!-- ── Tax tab ──────────────────────────────────────────────────── -->
       <template v-if="activeTab === 'tax'">
 
@@ -218,6 +289,7 @@ const activeTab = ref('currency')
 const TABS = computed(() => [
   { key: 'currency', label: t('erp.settings.currency') },
   { key: 'tax',      label: t('erp.settings.tax') },
+  { key: 'date',     label: t('erp.settings.tabDate') },
 ])
 
 // ── Options ───────────────────────────────────────────────
@@ -302,10 +374,38 @@ async function saveTax() {
   }
 }
 
+// ── Calendar form ─────────────────────────────────────────
+const calendarForm = reactive({ system: store.calendar.system })
+
+const bePreview = computed(() => {
+  const today = new Date().toISOString().slice(0, 10)
+  const [y, m, d] = today.split('-')
+  return [String(Number(y) + 543), m, d].join('-')
+})
+const calendarSaving = ref(false)
+const calendarSaved  = ref(false)
+const calendarError  = ref('')
+
+async function saveCalendar() {
+  calendarError.value = ''
+  calendarSaved.value = false
+  calendarSaving.value = true
+  try {
+    await store.saveCalendar({ ...calendarForm })
+    calendarSaved.value = true
+    setTimeout(() => { calendarSaved.value = false }, 3000)
+  } catch (err) {
+    calendarError.value = err.response?.data?.message || 'Failed to save calendar settings'
+  } finally {
+    calendarSaving.value = false
+  }
+}
+
 // ── Load ──────────────────────────────────────────────────
 onMounted(async () => {
   await store.load()
   Object.assign(currencyForm, store.currency)
   Object.assign(taxForm, store.tax)
+  Object.assign(calendarForm, store.calendar)
 })
 </script>

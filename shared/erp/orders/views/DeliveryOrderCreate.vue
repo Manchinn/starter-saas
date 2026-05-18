@@ -41,7 +41,7 @@
               <!-- Date -->
               <div>
                 <FieldLabel :text="t('erp.common.date')" required />
-                <input v-model="form.date" type="date"
+                <DateInput v-model="form.date"
                   :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                            'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
                            errors.date ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
@@ -51,7 +51,7 @@
               <!-- Delivery Date -->
               <div>
                 <FieldLabel :text="t('erp.deliveryOrders.deliveryDate')" />
-                <input v-model="form.deliveryDate" type="date"
+                <DateInput v-model="form.deliveryDate"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
               </div>
@@ -214,6 +214,7 @@ import {
   TruckIcon, ClipboardDocumentListIcon, CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'

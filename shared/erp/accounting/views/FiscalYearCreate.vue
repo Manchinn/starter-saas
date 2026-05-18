@@ -34,7 +34,7 @@
           <div class="grid grid-cols-2 gap-5">
             <div>
               <FieldLabel :text="t('erp.fiscalYears.colStartDate')" required />
-              <input v-model="form.startDate" type="date"
+              <DateInput v-model="form.startDate"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
                          errors.startDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
@@ -42,7 +42,7 @@
             </div>
             <div>
               <FieldLabel :text="t('erp.fiscalYears.colEndDate')" required />
-              <input v-model="form.endDate" type="date"
+              <DateInput v-model="form.endDate"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
                          errors.endDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
@@ -77,6 +77,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { CheckIcon, ArrowPathIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'

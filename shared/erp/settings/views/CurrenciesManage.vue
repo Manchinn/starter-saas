@@ -80,7 +80,7 @@
                 <SearchSelect v-if="isDraft(r)" v-model="r.currencyCode" :options="currencyOptions" placeholder="—" />
                 <span v-else class="font-mono font-semibold text-[#1C2434]">{{ r.currencyCode }}</span>
               </td>
-              <td class="px-4 py-2"><input v-model="r.asOfDate" type="date" :disabled="!isDraft(r)" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><DateInput v-model="r.asOfDate" :disabled="!isDraft(r)" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2"><input v-model.number="r.rate" type="number" min="0" step="0.0001" :disabled="!isDraft(r)" class="w-full px-2 py-1.5 border rounded-lg text-sm text-right tabular-nums disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2"><input v-model="r.notes" type="text" :disabled="!isDraft(r)" :placeholder="t('erp.currencies.notesPh')" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2 text-right">
@@ -102,6 +102,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 

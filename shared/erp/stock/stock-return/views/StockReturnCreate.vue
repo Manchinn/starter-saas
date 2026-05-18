@@ -127,7 +127,7 @@
                   class="w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-3 py-2">
-                <input v-model="item.expiryDate" type="date"
+                <DateInput v-model="item.expiryDate"
                   class="w-full px-2 py-1.5 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-3 py-2">

@@ -28,8 +28,8 @@
             <tr v-else-if="!periods.length && !drafts.length"><td colspan="6" class="py-8 text-center text-[#9BA7B0]">{{ t('erp.taxPeriods.noPeriods') }}</td></tr>
             <tr v-for="(p, i) in [...periods, ...drafts]" :key="p.id || `draft-${i}`" class="hover:bg-[#F7F9FC]">
               <td class="px-4 py-2"><input v-model="p.name" :disabled="p.status === 'closed' && !isDraft(p)" type="text" :placeholder="t('erp.taxPeriods.namePh')" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
-              <td class="px-4 py-2"><input v-model="p.startDate" :disabled="p.status === 'closed' && !isDraft(p)" type="date" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
-              <td class="px-4 py-2"><input v-model="p.endDate" :disabled="p.status === 'closed' && !isDraft(p)" type="date" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><DateInput v-model="p.startDate" :disabled="p.status === 'closed' && !isDraft(p)" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><DateInput v-model="p.endDate" :disabled="p.status === 'closed' && !isDraft(p)" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2 text-center">
                 <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize',
                   p.status === 'closed' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700']">
@@ -66,6 +66,7 @@ import { useI18n } from 'vue-i18n'
 import { PlusIcon, TrashIcon, DocumentChartBarIcon } from '@heroicons/vue/24/outline'
 import { RouterLink } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import api from '@/api'
 
 const { t } = useI18n()

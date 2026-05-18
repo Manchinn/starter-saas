@@ -57,7 +57,7 @@
 
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.startDate') }}</label>
-                <input v-model="form.startDate" type="date"
+                <DateInput v-model="form.startDate"
                   class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
 
@@ -73,11 +73,7 @@
               </div>
               <div class="col-span-2 border-t border-slate-50 pt-3">
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.employmentStatus') }}</label>
-                <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                  <option value="active">{{ t('erp.employees.active') }}</option>
-                  <option value="inactive">{{ t('erp.employees.inactive') }}</option>
-                  <option value="terminated">{{ t('erp.employees.terminated') }}</option>
-                </select>
+                <SearchSelect v-model="form.status" :options="EMP_STATUS_OPTIONS" :allow-empty="false" placeholder="— Select —" />
               </div>
             </div>
           </div>
@@ -92,14 +88,7 @@
               </div>
               <div class="px-6 py-5">
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.user') }}</label>
-                <select v-model="form.userId"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white
-                        focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                  <option value="">— None —</option>
-                  <option v-for="u in users" :key="u.id" :value="u.id">
-                    {{ u.name }} · {{ u.email }}
-                  </option>
-                </select>
+                <SearchSelect v-model="form.userId" :options="userOptions" placeholder="— None —" />
 
                 <div v-if="selectedUser" class="mt-4 p-3.5 bg-[#F7F9FC] rounded-xl space-y-2 border border-[#E2E8F0]">
                   <div class="flex items-center gap-3">
@@ -175,6 +164,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -187,6 +177,16 @@ const saving  = ref(false)
 const users   = ref([])
 const departments = ref([])
 const error   = ref('')
+
+const EMP_STATUS_OPTIONS = computed(() => [
+  { id: 'active',     name: t('erp.employees.active') },
+  { id: 'inactive',   name: t('erp.employees.inactive') },
+  { id: 'terminated', name: t('erp.employees.terminated') },
+])
+
+const userOptions = computed(() =>
+  users.value.map(u => ({ id: u.id, name: `${u.name} · ${u.email}` }))
+)
 
 const form = ref({
   employeeCode:  '',

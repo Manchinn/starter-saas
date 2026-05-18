@@ -20,11 +20,11 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('common.dateFrom') }}</label>
-          <input v-model="filterDateFrom" @change="onFilter" type="date" class="input text-sm" />
+          <DateInput v-model="filterDateFrom" @change="onFilter" class="input text-sm" />
         </div>
         <div>
           <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('common.dateTo') }}</label>
-          <input v-model="filterDateTo" @change="onFilter" type="date" class="input text-sm" />
+          <DateInput v-model="filterDateTo" @change="onFilter" class="input text-sm" />
         </div>
       </div>
 
@@ -84,6 +84,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 

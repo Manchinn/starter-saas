@@ -14,6 +14,9 @@ const DEFAULTS = {
     rate:      0,
     inclusive: false,  // false = tax before total (exclusive), true = tax after total (inclusive)
   },
+  calendar: {
+    system: 'CE',  // 'CE' = Christian/Gregorian | 'BE' = Buddhist Era (CE + 543)
+  },
 }
 
 const get = async (userId) => {
@@ -26,18 +29,20 @@ const get = async (userId) => {
       ...parsed,
       currency: { ...DEFAULTS.currency, ...parsed.currency },
       tax:      { ...DEFAULTS.tax,      ...parsed.tax },
+      calendar: { ...DEFAULTS.calendar, ...parsed.calendar },
     }
   } catch {
     return structuredClone(DEFAULTS)
   }
 }
 
-const save = async (userId, { currency, tax }) => {
+const save = async (userId, { currency, tax, calendar } = {}) => {
   const current = await get(userId)
   const merged = {
     ...current,
     ...(currency && { currency: { ...current.currency, ...currency } }),
     ...(tax      && { tax:      { ...current.tax,      ...tax      } }),
+    ...(calendar && { calendar: { ...current.calendar, ...calendar } }),
   }
   await Setting.upsert({ key: KEY, userId: userId || null, value: JSON.stringify(merged) })
   return merged

@@ -18,14 +18,13 @@
       <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm px-5 py-4 flex flex-wrap gap-4 items-end">
         <div class="flex flex-col gap-1">
           <label class="text-xs font-medium text-[#637381]">{{ t('erp.arAging.asOfDate') }}</label>
-          <input v-model="asOfDate" @change="fetch" type="date" class="input w-44" />
+          <DateInput v-model="asOfDate" @change="fetch" class="input w-44" />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-xs font-medium text-[#637381]">{{ t('erp.arAging.customer') }}</label>
-          <select v-model="filterCustomerId" @change="fetch" class="input w-52 text-sm">
-            <option value="">{{ t('erp.arAging.allCustomers') }}</option>
-            <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
+          <div class="w-52">
+            <SearchSelect v-model="filterCustomerId" :options="customerOptions" :placeholder="t('erp.arAging.allCustomers')" @change="fetch" />
+          </div>
         </div>
       </div>
 
@@ -203,6 +202,8 @@ import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ChartBarIcon, PrinterIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
