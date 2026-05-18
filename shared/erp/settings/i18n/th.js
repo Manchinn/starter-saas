@@ -4,6 +4,8 @@ export default {
       generalTitle:   'ตั้งค่าทั่วไป',
       generalDesc:    'กำหนดค่าการแสดงผลสำหรับ ERP',
       currency:       'รูปแบบสกุลเงิน',
+      currencyDesc:   'ควบคุมการแสดงมูลค่าเงินในระบบ ERP',
+      preview:        'ตัวอย่าง',
       symbol:         'สัญลักษณ์สกุลเงิน',
       symbolPosition: 'ตำแหน่งสัญลักษณ์',
       prefix:         'นำหน้า',

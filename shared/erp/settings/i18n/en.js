@@ -4,6 +4,8 @@ export default {
       generalTitle:   'General Settings',
       generalDesc:    'Configure display preferences for your ERP',
       currency:       'Currency Format',
+      currencyDesc:   'Controls how monetary values are displayed across the ERP',
+      preview:        'Preview',
       symbol:         'Currency Symbol',
       symbolPosition: 'Symbol Position',
       prefix:         'Prefix',

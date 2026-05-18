@@ -8,156 +8,194 @@
         <p class="text-sm text-[#637381] mt-0.5">{{ t('erp.settings.generalDesc') }}</p>
       </div>
 
-      <!-- Currency Format -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#E2E8F0]">
-          <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.currency') }}</h2>
-          <p class="text-xs text-[#9BA7B0] mt-0.5">Controls how monetary values are displayed across the ERP</p>
-        </div>
+      <!-- Tab bar -->
+      <div class="flex border-b border-[#E2E8F0]">
+        <button v-for="tab in TABS" :key="tab.key" @click="activeTab = tab.key"
+          class="relative px-5 py-3 text-sm font-medium transition-colors"
+          :class="activeTab === tab.key
+            ? 'text-primary-600'
+            : 'text-[#637381] hover:text-[#1C2434]'">
+          {{ tab.label }}
+          <span v-if="activeTab === tab.key"
+            class="absolute bottom-0 inset-x-0 h-0.5 bg-primary-500 rounded-t"></span>
+        </button>
+      </div>
 
-        <div class="px-6 py-5 space-y-5">
+      <!-- ── Currency tab ─────────────────────────────────────────────── -->
+      <template v-if="activeTab === 'currency'">
 
-          <!-- Live Preview -->
-          <div class="rounded-lg bg-[#F7F9FC] border border-[#E2E8F0] px-5 py-4 flex items-center justify-between">
-            <span class="text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">Preview</span>
-            <div class="text-right space-y-0.5">
-              <div class="text-2xl font-bold text-[#1C2434] tabular-nums font-mono">{{ previewLarge }}</div>
-              <div class="text-sm text-[#637381] tabular-nums font-mono">{{ previewSmall }}</div>
-            </div>
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.currency') }}</h2>
+            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.currencyDesc') }}</p>
           </div>
 
-          <div class="grid grid-cols-2 gap-5">
+          <div class="px-6 py-5 space-y-5">
 
-            <!-- Symbol -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('erp.settings.symbol') }}
-              </label>
-              <input v-model="form.symbol" type="text" maxlength="5" placeholder="e.g. ฿ or $"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
-
-            <!-- Position -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('erp.settings.symbolPosition') }}
-              </label>
-              <div class="flex rounded-lg border border-[#E2E8F0] overflow-hidden text-sm">
-                <button type="button" @click="form.position = 'prefix'"
-                  :class="form.position === 'prefix'
-                    ? 'flex-1 py-2 bg-primary-500 text-white font-medium'
-                    : 'flex-1 py-2 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
-                  {{ t('erp.settings.prefix') }} &nbsp;<span class="font-mono opacity-70">$1,234</span>
-                </button>
-                <button type="button" @click="form.position = 'suffix'"
-                  :class="form.position === 'suffix'
-                    ? 'flex-1 py-2 bg-primary-500 text-white font-medium'
-                    : 'flex-1 py-2 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
-                  {{ t('erp.settings.suffix') }} &nbsp;<span class="font-mono opacity-70">1,234 ฿</span>
-                </button>
+            <!-- Live Preview -->
+            <div class="rounded-lg bg-[#F7F9FC] border border-[#E2E8F0] px-5 py-4 flex items-center justify-between">
+              <span class="text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.settings.preview') }}</span>
+              <div class="text-right space-y-0.5">
+                <div class="text-2xl font-bold text-[#1C2434] tabular-nums font-mono">{{ previewLarge }}</div>
+                <div class="text-sm text-[#637381] tabular-nums font-mono">{{ previewSmall }}</div>
               </div>
             </div>
 
-            <!-- Thousand Separator -->
-            <div>
+            <div class="grid grid-cols-2 gap-5">
+
+              <!-- Symbol -->
+              <div>
+                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
+                  {{ t('erp.settings.symbol') }}
+                </label>
+                <input v-model="currencyForm.symbol" type="text" maxlength="5" placeholder="e.g. ฿ or $"
+                  class="input w-full" />
+              </div>
+
+              <!-- Position -->
+              <div>
+                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
+                  {{ t('erp.settings.symbolPosition') }}
+                </label>
+                <div class="flex rounded-lg border border-[#E2E8F0] overflow-hidden text-sm">
+                  <button type="button" @click="currencyForm.position = 'prefix'"
+                    :class="currencyForm.position === 'prefix'
+                      ? 'flex-1 py-2 bg-primary-500 text-white font-medium'
+                      : 'flex-1 py-2 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
+                    {{ t('erp.settings.prefix') }} &nbsp;<span class="font-mono opacity-70">$1,234</span>
+                  </button>
+                  <button type="button" @click="currencyForm.position = 'suffix'"
+                    :class="currencyForm.position === 'suffix'
+                      ? 'flex-1 py-2 bg-primary-500 text-white font-medium'
+                      : 'flex-1 py-2 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
+                    {{ t('erp.settings.suffix') }} &nbsp;<span class="font-mono opacity-70">1,234 ฿</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Thousand Separator -->
+              <div>
+                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
+                  {{ t('erp.settings.thousandSep') }}
+                </label>
+                <SearchSelect v-model="currencyForm.thousandSep" :options="thousandSepOptions" :allow-empty="false" />
+              </div>
+
+              <!-- Decimal Separator -->
+              <div>
+                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
+                  {{ t('erp.settings.decimalSep') }}
+                </label>
+                <SearchSelect v-model="currencyForm.decimalSep" :options="decimalSepOptions" :allow-empty="false" />
+              </div>
+
+              <!-- Decimal Places -->
+              <div>
+                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
+                  {{ t('erp.settings.decimalPlaces') }}
+                </label>
+                <SearchSelect v-model="currencyForm.precision" :options="precisionOptions" :allow-empty="false" />
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback + save -->
+        <div v-if="currencyError"
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+          <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ currencyError }}
+        </div>
+        <div v-if="currencySaved"
+          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+          <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ t('erp.settings.savedOk') }}
+        </div>
+        <div class="flex justify-end">
+          <button @click="saveCurrency" :disabled="currencySaving"
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
+                   bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                   disabled:opacity-50 transition-colors shadow-sm">
+            <CheckIcon v-if="!currencySaving" class="w-4 h-4" />
+            {{ currencySaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
+          </button>
+        </div>
+
+      </template>
+
+      <!-- ── Tax tab ──────────────────────────────────────────────────── -->
+      <template v-if="activeTab === 'tax'">
+
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.tax') }}</h2>
+            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.taxDesc') }}</p>
+          </div>
+
+          <div class="px-6 py-5 space-y-5">
+
+            <!-- Tax Rate -->
+            <div class="max-w-xs">
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('erp.settings.thousandSep') }}
+                {{ t('erp.settings.taxRate') }}
               </label>
-              <SearchSelect v-model="form.thousandSep" :options="thousandSepOptions" :allow-empty="false" />
+              <div class="relative">
+                <input v-model.number="taxForm.rate" type="number" min="0" max="100" step="0.01"
+                  class="input w-full pr-8" />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#9BA7B0] pointer-events-none">%</span>
+              </div>
             </div>
 
-            <!-- Decimal Separator -->
+            <!-- Tax Method -->
             <div>
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('erp.settings.decimalSep') }}
+                {{ t('erp.settings.taxMethod') }}
               </label>
-              <SearchSelect v-model="form.decimalSep" :options="decimalSepOptions" :allow-empty="false" />
-            </div>
-
-            <!-- Decimal Places -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('erp.settings.decimalPlaces') }}
-              </label>
-              <SearchSelect v-model="form.precision" :options="precisionOptions" :allow-empty="false" />
+              <div class="flex rounded-lg border border-[#E2E8F0] overflow-hidden text-sm">
+                <button type="button" @click="taxForm.inclusive = false"
+                  :class="!taxForm.inclusive
+                    ? 'flex-1 py-2.5 bg-primary-500 text-white font-medium'
+                    : 'flex-1 py-2.5 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
+                  {{ t('erp.settings.taxExclusive') }}
+                </button>
+                <button type="button" @click="taxForm.inclusive = true"
+                  :class="taxForm.inclusive
+                    ? 'flex-1 py-2.5 bg-primary-500 text-white font-medium'
+                    : 'flex-1 py-2.5 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
+                  {{ t('erp.settings.taxInclusive') }}
+                </button>
+              </div>
+              <p class="mt-1.5 text-xs text-[#9BA7B0]">
+                {{ taxForm.inclusive ? t('erp.settings.taxInclusiveDesc') : t('erp.settings.taxExclusiveDesc') }}
+              </p>
             </div>
 
           </div>
         </div>
-      </div>
 
-      <!-- Tax Settings -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#E2E8F0]">
-          <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.tax') }}</h2>
-          <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.taxDesc') }}</p>
+        <!-- Feedback + save -->
+        <div v-if="taxError"
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+          <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ taxError }}
+        </div>
+        <div v-if="taxSaved"
+          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+          <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ t('erp.settings.savedOk') }}
+        </div>
+        <div class="flex justify-end">
+          <button @click="saveTax" :disabled="taxSaving"
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
+                   bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                   disabled:opacity-50 transition-colors shadow-sm">
+            <CheckIcon v-if="!taxSaving" class="w-4 h-4" />
+            {{ taxSaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
+          </button>
         </div>
 
-        <div class="px-6 py-5 space-y-5">
-
-          <!-- Tax Rate -->
-          <div class="max-w-xs">
-            <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-              {{ t('erp.settings.taxRate') }}
-            </label>
-            <div class="relative">
-              <input v-model.number="taxForm.rate" type="number" min="0" max="100" step="0.01"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-8" />
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#9BA7B0] pointer-events-none">%</span>
-            </div>
-          </div>
-
-          <!-- Tax Method -->
-          <div>
-            <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-              {{ t('erp.settings.taxMethod') }}
-            </label>
-            <div class="flex rounded-lg border border-[#E2E8F0] overflow-hidden text-sm">
-              <button type="button" @click="taxForm.inclusive = false"
-                :class="!taxForm.inclusive
-                  ? 'flex-1 py-2.5 bg-primary-500 text-white font-medium'
-                  : 'flex-1 py-2.5 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
-                {{ t('erp.settings.taxExclusive') }}
-              </button>
-              <button type="button" @click="taxForm.inclusive = true"
-                :class="taxForm.inclusive
-                  ? 'flex-1 py-2.5 bg-primary-500 text-white font-medium'
-                  : 'flex-1 py-2.5 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
-                {{ t('erp.settings.taxInclusive') }}
-              </button>
-            </div>
-            <p class="mt-1.5 text-xs text-[#9BA7B0]">
-              {{ taxForm.inclusive ? t('erp.settings.taxInclusiveDesc') : t('erp.settings.taxExclusiveDesc') }}
-            </p>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Error -->
-      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
-        <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
-        {{ error }}
-      </div>
-
-      <!-- Success -->
-      <div v-if="saved" class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-lg">
-        <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
-        {{ t('erp.settings.savedOk') }}
-      </div>
-
-      <!-- Save -->
-      <div class="flex justify-end">
-        <button @click="save" :disabled="saving"
-          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                 bg-primary-500 text-white rounded-xl hover:bg-primary-700
-                 disabled:opacity-50 transition-colors shadow-sm">
-          <CheckIcon v-if="!saving" class="w-4 h-4" />
-          {{ saving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
-        </button>
-      </div>
+      </template>
 
     </div>
   </AppLayout>
@@ -173,7 +211,16 @@ import { useSettingsStore } from '@/stores/settings'
 import * as accounting from 'accounting-js'
 
 const { t } = useI18n()
+const store = useSettingsStore()
 
+// ── Tabs ──────────────────────────────────────────────────
+const activeTab = ref('currency')
+const TABS = computed(() => [
+  { key: 'currency', label: t('erp.settings.currency') },
+  { key: 'tax',      label: t('erp.settings.tax') },
+])
+
+// ── Options ───────────────────────────────────────────────
 const thousandSepOptions = [
   { id: ',', name: ', (comma) — 1,000'  },
   { id: '.', name: '. (period) — 1.000' },
@@ -190,56 +237,75 @@ const precisionOptions = [
   { id: 2, name: '2 — 1,234.56'   },
   { id: 3, name: '3 — 1,234.567'  },
 ]
-const store  = useSettingsStore()
-const saving = ref(false)
-const saved  = ref(false)
-const error  = ref('')
 
-const form = reactive({
+// ── Currency form ─────────────────────────────────────────
+const currencyForm = reactive({
   symbol:      store.currency.symbol,
   position:    store.currency.position,
   thousandSep: store.currency.thousandSep,
   decimalSep:  store.currency.decimalSep,
   precision:   store.currency.precision,
 })
+const currencySaving = ref(false)
+const currencySaved  = ref(false)
+const currencyError  = ref('')
 
+function formatPreview(value) {
+  const symbol = currencyForm.symbol || ''
+  const fmt    = currencyForm.position === 'prefix' ? '%s%v' : (symbol ? '%v %s' : '%v')
+  return accounting.formatMoney(value, {
+    symbol, format: fmt,
+    thousand:  currencyForm.thousandSep,
+    decimal:   currencyForm.decimalSep,
+    precision: currencyForm.precision,
+  })
+}
+const previewLarge = computed(() => formatPreview(1234567.89))
+const previewSmall = computed(() => formatPreview(0.5))
+
+async function saveCurrency() {
+  currencyError.value = ''
+  currencySaved.value = false
+  currencySaving.value = true
+  try {
+    await store.saveCurrency({ ...currencyForm })
+    currencySaved.value = true
+    setTimeout(() => { currencySaved.value = false }, 3000)
+  } catch (err) {
+    currencyError.value = err.response?.data?.message || 'Failed to save currency settings'
+  } finally {
+    currencySaving.value = false
+  }
+}
+
+// ── Tax form ──────────────────────────────────────────────
 const taxForm = reactive({
   rate:      store.tax.rate,
   inclusive: store.tax.inclusive,
 })
+const taxSaving = ref(false)
+const taxSaved  = ref(false)
+const taxError  = ref('')
 
-onMounted(async () => {
-  await store.load()
-  Object.assign(form, store.currency)
-  Object.assign(taxForm, store.tax)
-})
-
-function formatPreview(value) {
-  const symbol  = form.symbol || ''
-  const fmt     = form.position === 'prefix' ? '%s%v' : (symbol ? '%v\u00a0%s' : '%v')
-  return accounting.formatMoney(value, {
-    symbol, format: fmt,
-    thousand:  form.thousandSep,
-    decimal:   form.decimalSep,
-    precision: form.precision,
-  })
-}
-
-const previewLarge = computed(() => formatPreview(1234567.89))
-const previewSmall = computed(() => formatPreview(0.5))
-
-async function save() {
-  error.value = ''
-  saved.value = false
-  saving.value = true
+async function saveTax() {
+  taxError.value = ''
+  taxSaved.value = false
+  taxSaving.value = true
   try {
-    await store.saveAll({ currency: { ...form }, tax: { ...taxForm } })
-    saved.value = true
-    setTimeout(() => { saved.value = false }, 3000)
+    await store.saveTax({ ...taxForm })
+    taxSaved.value = true
+    setTimeout(() => { taxSaved.value = false }, 3000)
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to save settings'
+    taxError.value = err.response?.data?.message || 'Failed to save tax settings'
   } finally {
-    saving.value = false
+    taxSaving.value = false
   }
 }
+
+// ── Load ──────────────────────────────────────────────────
+onMounted(async () => {
+  await store.load()
+  Object.assign(currencyForm, store.currency)
+  Object.assign(taxForm, store.tax)
+})
 </script>

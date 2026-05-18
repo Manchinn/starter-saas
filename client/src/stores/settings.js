@@ -38,11 +38,16 @@ export const useSettingsStore = defineStore('settings', () => {
     currency.value = { ...CURRENCY_DEFAULTS, ...data.data.currency }
   }
 
+  async function saveTax(config) {
+    const { data } = await api.put('/erp/settings/general', { tax: config })
+    tax.value = { ...TAX_DEFAULTS, ...data.data.tax }
+  }
+
   async function saveAll({ currency: currencyData, tax: taxData }) {
     const { data } = await api.put('/erp/settings/general', { currency: currencyData, tax: taxData })
     if (data?.data?.currency) currency.value = { ...CURRENCY_DEFAULTS, ...data.data.currency }
     if (data?.data?.tax)      tax.value      = { ...TAX_DEFAULTS,      ...data.data.tax }
   }
 
-  return { currency, tax, load, saveCurrency, saveAll }
+  return { currency, tax, load, saveCurrency, saveTax, saveAll }
 })
