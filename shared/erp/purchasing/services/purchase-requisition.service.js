@@ -1,7 +1,7 @@
-const { PurchaseRequisition, PurchaseRequisitionItem, PurchaseOrder, Product, Vendor } = require('../../../server/models')
+const { PurchaseRequisition, PurchaseRequisitionItem, PurchaseOrder, Product, Vendor } = require('../../../../server/models')
 const { Op } = require('sequelize')
-const sequelize = require('../../../server/config/database')
-const { getNext } = require('../settings/sequence.service')
+const sequelize = require('../../../../server/config/database')
+const { getNext } = require('../../settings/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku']
 const vendorAttrs  = ['id', 'name', 'code']
@@ -51,7 +51,7 @@ const create = async ({ date, requestedBy, department, vendorId, notes, items = 
   if (!items.length) throw { status: 400, message: 'At least one item is required' }
 
   const refNo = await nextRefNo(userId)
-  const fx = await require('../settings/currency.service').getRateOn(currency, date, organizationId)
+  const fx = await require('../../settings/currency.service').getRateOn(currency, date, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   const t = await sequelize.transaction()
   try {
@@ -85,7 +85,7 @@ const approve = async (id, userId) => {
   if (!req)                       throw { status: 404, message: 'Purchase Requisition not found' }
   if (req.status !== 'draft')     throw { status: 400, message: 'Only draft requisitions can be approved' }
   await req.update({ status: 'approved', modifiedBy: userId || null })
-  require('../audit/audit.service').log({ userId, action: 'pr.approve', entityType: 'PurchaseRequisition', entityId: id, summary: { refNo: req.refNo } })
+  require('../../audit/audit.service').log({ userId, action: 'pr.approve', entityType: 'PurchaseRequisition', entityId: id, summary: { refNo: req.refNo } })
   return getById(id)
 }
 
@@ -94,7 +94,7 @@ const reject = async (id, userId) => {
   if (!req)                       throw { status: 404, message: 'Purchase Requisition not found' }
   if (req.status !== 'draft')     throw { status: 400, message: 'Only draft requisitions can be rejected' }
   await req.update({ status: 'rejected', modifiedBy: userId || null })
-  require('../audit/audit.service').log({ userId, action: 'pr.reject', entityType: 'PurchaseRequisition', entityId: id, summary: { refNo: req.refNo } })
+  require('../../audit/audit.service').log({ userId, action: 'pr.reject', entityType: 'PurchaseRequisition', entityId: id, summary: { refNo: req.refNo } })
   return getById(id)
 }
 
@@ -216,7 +216,7 @@ const generateReorder = async ({ userId, organizationId }) => {
 
   // Audit
   try {
-    const audit = require('../audit/audit.service')
+    const audit = require('../../audit/audit.service')
     audit.log({ userId, action: 'pr.reorder.generate', entityType: 'PurchaseRequisition', summary: { count: created.length, totalItems: candidates.length } })
   } catch { /* ignore */ }
 

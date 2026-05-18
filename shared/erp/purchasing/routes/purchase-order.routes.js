@@ -1,9 +1,9 @@
 const { Router } = require('express')
 const { body } = require('express-validator')
-const { validate } = require('../../../server/middleware/validate')
-const { authenticate } = require('../../../server/middleware/auth')
-const { requirePermission } = require('../../../server/middleware/permission')
-const controller = require('./purchase-order.controller')
+const { validate } = require('../../../../server/middleware/validate')
+const { authenticate } = require('../../../../server/middleware/auth')
+const { requirePermission } = require('../../../../server/middleware/permission')
+const controller = require('../controllers/purchase-order.controller')
 
 const router = Router()
 router.use(authenticate)

@@ -1,7 +1,7 @@
-const { PurchaseOrder, PurchaseOrderItem, Product, Vendor, PurchaseRequisition } = require('../../../server/models')
+const { PurchaseOrder, PurchaseOrderItem, Product, Vendor, PurchaseRequisition } = require('../../../../server/models')
 const { Op } = require('sequelize')
-const sequelize = require('../../../server/config/database')
-const { getNext } = require('../settings/sequence.service')
+const sequelize = require('../../../../server/config/database')
+const { getNext } = require('../../settings/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku']
 const vendorAttrs  = ['id', 'name', 'code']
@@ -44,7 +44,7 @@ const getById = async (id) => {
   })
   if (!po) throw { status: 404, message: 'Purchase Order not found' }
 
-  const { GoodReceive } = require('../../../server/models')
+  const { GoodReceive } = require('../../../../server/models')
   const linkedGR = await GoodReceive.findOne({
     where: { purchaseOrderId: id, dataFlag: { [Op.ne]: 2 } },
     attributes: ['id', 'refNo', 'status'],
@@ -63,7 +63,7 @@ const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, item
   if (!vendor) throw { status: 400, message: 'Vendor not found' }
 
   const refNo = await nextRefNo(userId)
-  const fx = await require('../settings/currency.service').getRateOn(currency, date, organizationId)
+  const fx = await require('../../settings/currency.service').getRateOn(currency, date, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   const t = await sequelize.transaction()
   try {
@@ -103,12 +103,12 @@ const confirm = async (id, userId, user) => {
 
   if (user) {
     const total = po.items.reduce((s, i) => s + Number(i.qty || 0) * Number(i.unitPrice || 0), 0)
-    const thresholds = require('../settings/approval-threshold.service')
+    const thresholds = require('../../settings/approval-threshold.service')
     await thresholds.enforce({ user, docType: 'purchase_order', amount: total, organizationId: po.organizationId })
   }
 
   await po.update({ status: 'confirmed', modifiedBy: userId || null })
-  require('../audit/audit.service').log({ userId, action: 'po.confirm', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
+  require('../../audit/audit.service').log({ userId, action: 'po.confirm', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
   return getById(id)
 }
 
@@ -117,7 +117,7 @@ const receive = async (id, userId) => {
   if (!po)                        throw { status: 404, message: 'Purchase Order not found' }
   if (po.status !== 'confirmed')  throw { status: 400, message: 'Only confirmed orders can be marked as received' }
   await po.update({ status: 'received', modifiedBy: userId || null })
-  require('../audit/audit.service').log({ userId, action: 'po.receive', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
+  require('../../audit/audit.service').log({ userId, action: 'po.receive', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
   return getById(id)
 }
 
@@ -127,7 +127,7 @@ const cancel = async (id, userId) => {
   if (po.status === 'received')     throw { status: 400, message: 'Received orders cannot be cancelled' }
   if (po.status === 'cancelled')    throw { status: 400, message: 'Already cancelled' }
   await po.update({ status: 'cancelled', modifiedBy: userId || null })
-  require('../audit/audit.service').log({ userId, action: 'po.cancel', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
+  require('../../audit/audit.service').log({ userId, action: 'po.cancel', entityType: 'PurchaseOrder', entityId: id, summary: { refNo: po.refNo } })
   return getById(id)
 }
 
@@ -146,7 +146,7 @@ const createGoodReceive = async (id, userId, organizationId, { storeId } = {}) =
   const productItems = po.items.filter(i => i.productId)
   if (!productItems.length) throw { status: 400, message: 'Purchase order has no product items to receive' }
 
-  const { GoodReceive } = require('../../../server/models')
+  const { GoodReceive } = require('../../../../server/models')
   const existing = await GoodReceive.findOne({
     where: { purchaseOrderId: po.id, dataFlag: { [Op.ne]: 2 } },
     attributes: ['id', 'refNo'],
@@ -156,13 +156,13 @@ const createGoodReceive = async (id, userId, organizationId, { storeId } = {}) =
   // Pick a store: caller-supplied wins, else fall back to first active Store
   let resolvedStoreId = storeId
   if (!resolvedStoreId) {
-    const { Store } = require('../../../server/models')
+    const { Store } = require('../../../../server/models')
     const firstStore = await Store.findOne({ where: { organizationId: organizationId || null }, order: [['createdAt', 'ASC']] })
     if (!firstStore) throw { status: 400, message: 'No store available — create a store before generating a Good Receive' }
     resolvedStoreId = firstStore.id
   }
 
-  const grSvc = require('../stock/good-receive/good-receive.service')
+  const grSvc = require('../../stock/good-receive/good-receive.service')
   const subtotal = po.items.reduce((sum, i) => sum + Number(i.qty || 0) * Number(i.unitPrice || 0), 0)
   const gr = await grSvc.create({
     date:             new Date().toISOString().slice(0, 10),
