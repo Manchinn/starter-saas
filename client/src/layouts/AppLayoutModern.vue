@@ -16,7 +16,15 @@
 
       <!-- Horizontal nav — overflow visible so teleported dropdowns aren't clipped -->
       <nav class="flex items-center gap-1 flex-1 overflow-x-auto" style="overflow-y:visible">
-        <template v-for="section in navSections" :key="section.label">
+        <template v-for="(section, sIdx) in visibleSections" :key="section.label">
+
+          <!-- Group divider — between sections only -->
+          <div
+            v-if="sIdx > 0"
+            class="w-px h-6 bg-white/15 mx-2 flex-shrink-0"
+            aria-hidden="true"
+          ></div>
+
           <template v-for="item in section.items" :key="item.label">
 
             <!-- Flat link -->
@@ -158,10 +166,15 @@ const openDropdown = ref(null)
 const dropdownPos  = ref({ top: 0, left: 0 })
 let   closeTimer   = null
 
+// Drop empty sections so dividers don't render around nothing
+const visibleSections = computed(() =>
+  navSections.value.filter((s) => s.items && s.items.length)
+)
+
 // Find the item whose dropdown is open so the Teleport can render its children
 const activeItem = computed(() => {
   if (!openDropdown.value) return null
-  for (const section of navSections.value) {
+  for (const section of visibleSections.value) {
     const found = section.items.find((i) => i.label === openDropdown.value)
     if (found) return found
   }
