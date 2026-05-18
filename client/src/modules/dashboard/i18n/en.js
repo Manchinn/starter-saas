@@ -1,16 +1,47 @@
 export default {
   dashboard: {
-    title:          'Dashboard',
-    welcomeBack:    'Welcome back,',
-    systemsOk:      'All systems operational',
-    sessionDetails: 'Session Details',
-    account:        'Account',
-    email:          'Email',
-    role:           'Role',
-    status:         'Status',
-    totalUsers:     'Total Users',
-    totalModules:   'Total Modules',
-    activeModules:  'Active Modules',
+    title:           'Dashboard',
+    welcomeBack:     'Welcome back,',
+    systemsOk:       'All systems operational',
+    lastSeen:        'last seen',
+    newOrg:          'New organization',
+
+    // KPI cards
+    kpiOrgs:         'Organizations',
+    kpiStaff:        'Total staff',
+    kpiSessions:     'Active sessions',
+    kpiModules:      'Modules enabled',
+    vs30d:           'vs last 30d',
+
+    // Organizations panel
+    orgsTitle:       'Organizations',
+    orgsCount:       '{n} total | {n} total',
+    seeAll:          'See all',
+    noOrgs:          'No organizations yet',
+    colOrg:          'Organization',
+    colStaff:        'Staff',
+    colRoles:        'Roles',
+    colStatus:       'Status',
+    colCreated:      'Created',
+
+    // Sign-ins panel
+    signInsTitle:    'Recent sign-ins',
+    last7d:          'Last 7 days',
+    noSignIns:       'No recent sign-ins',
+    unknownUser:     'Unknown user',
+    unknownDevice:   'Unknown device',
+
+    // Module usage
+    moduleUsageTitle: 'Module usage',
+    orgAdoption:     'across {n} organization | across {n} organizations',
+    manage:          'Manage',
+    noModules:       'No modules installed',
+
+    // Relative time
+    justNow:         'just now',
+    minAgo:          '{n}m ago',
+    hourAgo:         '{n}h ago',
+    dayAgo:          '{n}d ago',
   },
 
   notFound: {
