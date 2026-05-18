@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="max-w-3xl mx-auto space-y-5">
+    <div class="w-full space-y-5">
       <div>
         <h1 class="page-title">{{ t('profile.title') }}</h1>
         <p class="page-subtitle">{{ t('profile.subtitle') }}</p>
@@ -12,7 +12,7 @@
           <p class="text-[13px] text-[#637381]">{{ t('profile.passwordDesc') }}</p>
         </div>
 
-        <form @submit.prevent="submit" class="space-y-4 max-w-md">
+        <form @submit.prevent="submit" class="space-y-4">
           <div>
             <label class="label">{{ t('profile.currentPassword') }}</label>
             <input v-model="form.current" type="password" class="input" autocomplete="current-password"

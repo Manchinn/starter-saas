@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="max-w-3xl mx-auto space-y-5">
+    <div class="w-full space-y-5">
       <div>
         <h1 class="page-title">{{ t('profile.title') }}</h1>
         <p class="page-subtitle">{{ t('profile.subtitle') }}</p>
