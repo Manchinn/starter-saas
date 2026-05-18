@@ -16,6 +16,7 @@ export default {
     close: 'Close',
     delete: 'Delete',
     edit: 'Edit',
+    actions: 'Actions',
     create: 'Create',
     search: 'Search',
     active: 'Active',

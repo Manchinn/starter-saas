@@ -118,9 +118,14 @@ export default {
     editDesc:       'Update the role name, description, and color.',
     noDesc:         'No description.',
     noPermsAssigned: 'No permissions assigned',
+    noModulesAssigned: 'No modules assigned',
+    permsAssigned:  'Permissions',
+    modulesAssigned: 'Modules',
     modulesLabel:   'Modules:',
     systemBadge:    'System',
+    customBadge:    'Custom',
     slugHint:       '(lowercase, hyphens)',
+    slugLabel:      'Slug',
     slugPh:         'my-role',
     confirmDelete:  'Delete role "{name}"?',
     assignModules:  'Assign Modules',
@@ -129,11 +134,26 @@ export default {
     inactiveBadge:  'inactive',
     saveModules:    'Save Modules',
     saveFailed:     'Save failed',
+
+    // List view
+    searchPh:       'Search roles by name or slug…',
+    noFound:        'No roles match your filter.',
+    statTotal:      'Total roles',
+    statSystem:     'System roles',
+    statCustom:     'Custom roles',
+    statAssigned:   'Role assignments',
+    colRole:        'Role',
+    colDescription: 'Description',
+    colPerms:       'Perms',
+    colMods:        'Modules',
+    colUsers:       'Users',
+    colType:        'Type',
   },
 
   // ── Permissions ────────────────────────────────────────────────────────────
   perms: {
     title:       'Permissions',
+    desc:        'Atomic capabilities that can be granted to roles.',
     new:         'New Permission',
     newTitle:    'New Permission',
     newDesc:     'Define a new permission with a unique slug and assign it to a group.',
@@ -144,7 +164,8 @@ export default {
     colName:     'Name',
     colSlug:     'Slug',
     colDesc:     'Description',
-    noFound:     'No permissions defined yet.',
+    colInRoles:  'In roles',
+    noFound:     'No permissions match your filter.',
     slugHint:    '(e.g. posts.create)',
     slugPh:      'resource.action',
     groupLabel:  'Group',
@@ -156,6 +177,18 @@ export default {
     deselectAll: 'Deselect all',
     selectAll:   'Select all',
     savePerms:   'Save Permissions',
+
+    // List view
+    searchPh:    'Search permissions…',
+    statTotal:   'Total permissions',
+    statGroups:  'Permission groups',
+    statInUse:   'Assigned to a role',
+    statUnused:  'Unused',
+    permCount:   '{n} permission | {n} permissions',
+    view: {
+      grouped: 'Grouped',
+      flat:    'Flat',
+    },
   },
 
   // ── Modules ────────────────────────────────────────────────────────────────
