@@ -179,7 +179,7 @@ const columns = [
     meta: { thClass: 'w-28', tdClass: 'text-right' },
     cell: ({ row }) => {
       const d = row.original
-      return h('div', { class: 'flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity' }, [
+      return h('div', { class: 'flex items-center justify-end gap-1' }, [
         h(RouterLink, {
           to: `/erp/hrms/departments/${d.id}/edit`,
           class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
