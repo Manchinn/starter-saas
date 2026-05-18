@@ -63,10 +63,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.status') }}</label>
-            <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">{{ t('common.active') }}</option>
-              <option value="inactive">{{ t('common.inactive') }}</option>
-            </select>
+            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-2">{{ t('erp.vendors.vendorType') }}</label>
@@ -103,14 +100,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'active',   name: t('common.active')   },
+  { id: 'inactive', name: t('common.inactive') },
+])
 const route             = useRoute()
 const router            = useRouter()
 const vendorTypeOptions = ref([])

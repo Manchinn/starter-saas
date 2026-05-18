@@ -29,15 +29,7 @@
           <!-- Status -->
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.saleItems.status') }}</label>
-            <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <template v-if="saleItemStatuses.length">
-                <option v-for="s in saleItemStatuses" :key="s.id" :value="s.code || s.name">{{ s.name }}</option>
-              </template>
-              <template v-else>
-                <option value="active">{{ t('common.active') }}</option>
-                <option value="inactive">{{ t('common.inactive') }}</option>
-              </template>
-            </select>
+            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
           </div>
 
           <!-- Name -->
@@ -50,12 +42,7 @@
           <!-- Product Master -->
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.saleItems.productMaster') }}</label>
-            <select v-model="form.productId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">— None —</option>
-              <option v-for="p in products" :key="p.id" :value="p.id">
-                {{ p.name }}<span v-if="p.sku"> ({{ p.sku }})</span>
-              </option>
-            </select>
+            <SearchSelect v-model="form.productId" :options="productOptions" placeholder="— None —" />
           </div>
 
         </div>
@@ -76,11 +63,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { useMasterDataStore } from '@/stores/masterData'
@@ -95,6 +83,13 @@ const saleItemStatuses = ref([])
 const products = ref([])
 const error    = ref('')
 const saving   = ref(false)
+
+const statusOptions  = computed(() =>
+  saleItemStatuses.value.length
+    ? saleItemStatuses.value.map(s => ({ id: s.code || s.name, name: s.name }))
+    : [{ id: 'active', name: t('common.active') }, { id: 'inactive', name: t('common.inactive') }]
+)
+const productOptions = computed(() => products.value.map(p => ({ id: p.id, name: p.sku ? `${p.name} (${p.sku})` : p.name })))
 
 onMounted(async () => {
   try {

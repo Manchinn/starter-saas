@@ -29,21 +29,13 @@
                 <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                   {{ t('erp.uomConversion.fromUom') }} <span class="text-red-500">*</span>
                 </label>
-                <select v-model="form.fromUomId"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                  <option value="">— {{ t('erp.uomConversion.selectUom') }} —</option>
-                  <option v-for="u in uoms" :key="u.id" :value="u.id">{{ u.name }} ({{ u.abbreviation }})</option>
-                </select>
+                <SearchSelect v-model="form.fromUomId" :options="uomOptions" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                   {{ t('erp.uomConversion.toUom') }} <span class="text-red-500">*</span>
                 </label>
-                <select v-model="form.toUomId"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                  <option value="">— {{ t('erp.uomConversion.selectUom') }} —</option>
-                  <option v-for="u in uoms" :key="u.id" :value="u.id">{{ u.name }} ({{ u.abbreviation }})</option>
-                </select>
+                <SearchSelect v-model="form.toUomId" :options="uomOptions" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
               </div>
             </div>
 
@@ -100,6 +92,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t }  = useI18n()
@@ -113,6 +106,7 @@ const error   = ref('')
 
 const form = ref({ fromUomId: '', toUomId: '', factor: '', notes: '' })
 
+const uomOptions   = computed(() => uoms.value.map(u => ({ id: u.id, name: `${u.name} (${u.abbreviation})` })))
 const fromUomLabel = computed(() => uoms.value.find(u => u.id === form.value.fromUomId)?.abbreviation || '…')
 const toUomLabel   = computed(() => uoms.value.find(u => u.id === form.value.toUomId)?.abbreviation   || '…')
 

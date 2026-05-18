@@ -34,29 +34,13 @@
       <!-- Filters -->
       <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm px-5 py-4">
         <div class="flex flex-wrap items-end gap-4">
-          <div>
+          <div class="w-48">
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.stockBalance.colStore') }}</label>
-            <select v-model="filters.storeId" @change="load"
-              class="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-[#F7F9FC] focus:bg-white
-                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                     transition-colors w-48">
-              <option value="">{{ t('erp.stockMovement.allStores') }}</option>
-              <option v-for="s in stores" :key="s.id" :value="s.id">
-                {{ s.name }}{{ s.code ? ` (${s.code})` : '' }}
-              </option>
-            </select>
+            <SearchSelect v-model="filters.storeId" :options="storeOptions" :placeholder="t('erp.stockMovement.allStores')" @change="load" />
           </div>
-          <div>
+          <div class="w-56">
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.stockBalance.colProduct') }}</label>
-            <select v-model="filters.productId" @change="load"
-              class="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-[#F7F9FC] focus:bg-white
-                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                     transition-colors w-56">
-              <option value="">{{ t('erp.stockMovement.allProducts') }}</option>
-              <option v-for="p in products" :key="p.id" :value="p.id">
-                {{ p.name }}{{ p.sku ? ` [${p.sku}]` : '' }}
-              </option>
-            </select>
+            <SearchSelect v-model="filters.productId" :options="productOptions" :placeholder="t('erp.stockMovement.allProducts')" @change="load" />
           </div>
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" v-model="filters.includeZero" @change="load" class="rounded w-4 h-4" />
@@ -95,6 +79,7 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import { ArrowPathIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney, fmtQty } from '@/utils/fmt'
 
@@ -105,6 +90,9 @@ const products = ref([])
 const loading  = ref(false)
 
 const filters = ref({ storeId: '', productId: '', includeZero: false })
+
+const storeOptions   = computed(() => stores.value.map(s => ({ id: s.id, name: `${s.name}${s.code ? ` (${s.code})` : ''}` })))
+const productOptions = computed(() => products.value.map(p => ({ id: p.id, name: `${p.name}${p.sku ? ` [${p.sku}]` : ''}` })))
 
 const totalQty   = computed(() => rows.value.reduce((s, r) => s + r.qty, 0))
 const totalValue = computed(() => rows.value.reduce((s, r) => s + parseFloat(r.value || 0), 0))

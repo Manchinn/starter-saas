@@ -48,19 +48,11 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.stockReturn.colType') }}</label>
-                  <select v-model="filterType" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option value="customer_return">{{ t('erp.stockReturn.customerReturn') }}</option>
-                    <option value="vendor_return">{{ t('erp.stockReturn.returnToVendor') }}</option>
-                  </select>
+                  <SearchSelect v-model="filterType" :options="typeOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
-                  <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option value="draft">Draft</option>
-                    <option value="confirmed">Confirmed</option>
-                  </select>
+                  <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateFrom') }}</label>
@@ -146,9 +138,19 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const typeOptions = computed(() => [
+  { id: 'customer_return', name: t('erp.stockReturn.customerReturn') },
+  { id: 'vendor_return',   name: t('erp.stockReturn.returnToVendor') },
+])
+const statusOptions = computed(() => [
+  { id: 'draft',     name: t('erp.common.draft')     },
+  { id: 'confirmed', name: t('erp.common.confirmed') },
+])
 
 const rows           = ref([])
 const total          = ref(0)

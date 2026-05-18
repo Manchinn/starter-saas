@@ -53,29 +53,16 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.status') }}</label>
-            <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">{{ t('common.active') }}</option>
-              <option value="inactive">{{ t('common.inactive') }}</option>
-            </select>
+            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.customerGroup') }}</label>
-            <select v-model="form.customerGroupId"
-              class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">— None —</option>
-              <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
-            </select>
+            <SearchSelect v-model="form.customerGroupId" :options="groups" placeholder="— None —" />
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.saleItem') }}</label>
-            <select v-model="form.saleItemId"
-              class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">— None —</option>
-              <option v-for="si in saleItems" :key="si.id" :value="si.id">
-                {{ si.name }}<span v-if="si.code" class="text-[#9BA7B0]"> ({{ si.code }})</span>
-              </option>
-            </select>
+            <SearchSelect v-model="form.saleItemId" :options="saleItemOptions" placeholder="— None —" />
           </div>
         </div>
 
@@ -95,11 +82,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
@@ -112,6 +100,12 @@ const groups    = ref([])
 const saleItems = ref([])
 const error     = ref('')
 const saving    = ref(false)
+
+const statusOptions   = computed(() => [
+  { id: 'active',   name: t('common.active')   },
+  { id: 'inactive', name: t('common.inactive') },
+])
+const saleItemOptions = computed(() => saleItems.value.map(si => ({ id: si.id, name: si.code ? `${si.name} (${si.code})` : si.name })))
 
 onMounted(async () => {
   const [groupsRes, saleItemsRes] = await Promise.allSettled([

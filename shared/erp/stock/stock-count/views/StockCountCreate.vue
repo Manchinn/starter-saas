@@ -30,11 +30,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.store') }} <span class="text-red-500">*</span></label>
-            <select v-model="form.storeId" @change="onStoreChange"
-              class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">{{ t('erp.common.selectStore') }}</option>
-              <option v-for="s in stores" :key="s.id" :value="s.id">{{ s.name }}{{ s.code ? ` (${s.code})` : '' }}</option>
-            </select>
+            <SearchSelect v-model="form.storeId" :options="storeOptions" :placeholder="t('erp.common.selectStore')" @change="onStoreChange" />
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.notes') }}</label>
@@ -129,11 +125,13 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
 const router = useRouter()
 const stores = ref([])
+const storeOptions = computed(() => stores.value.map(s => ({ id: s.id, name: `${s.name}${s.code ? ` (${s.code})` : ''}` })))
 const items = ref([])
 const form = ref({ date: new Date().toISOString().slice(0, 10), storeId: '', notes: '', movementLocked: false })
 const error = ref('')

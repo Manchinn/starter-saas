@@ -30,10 +30,7 @@
           </div>
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.productCategories.parentCategory') }}</label>
-            <select v-model="form.parentId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">— None (top-level) —</option>
-              <option v-for="cat in topLevelCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-            </select>
+            <SearchSelect v-model="form.parentId" :options="topLevelCategories" placeholder="— None (top-level) —" />
           </div>
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.productCategories.description') }}</label>
@@ -52,10 +49,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.productCategories.status') }}</label>
-            <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">{{ t('common.active') }}</option>
-              <option value="inactive">{{ t('common.inactive') }}</option>
-            </select>
+            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
           </div>
         </div>
 
@@ -80,11 +74,17 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'active',   name: t('common.active')   },
+  { id: 'inactive', name: t('common.inactive') },
+])
 const router   = useRouter()
 const form     = ref({ code: '', name: '', description: '', parentId: '', status: 'active', activeFrom: '', activeTo: '' })
 const autoCode = useAutoCode('CAT')

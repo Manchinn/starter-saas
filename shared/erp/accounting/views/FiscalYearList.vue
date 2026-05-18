@@ -25,11 +25,9 @@
             <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.fiscalYears.searchPh')"
               class="input pl-9 w-full" />
           </div>
-          <select v-model="filterStatus" @change="onFilterChange" class="input text-sm w-36">
-            <option value="">{{ t('erp.common.allStatuses') }}</option>
-            <option value="open">{{ t('erp.fiscalYears.statusOpen') }}</option>
-            <option value="closed">{{ t('erp.fiscalYears.statusClosed') }}</option>
-          </select>
+          <div class="w-36">
+            <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('erp.common.allStatuses')" @change="onFilterChange" />
+          </div>
         </div>
 
         <DataTable :columns="columns" :data="fiscalYears" :loading="loading" :total="total"
@@ -53,16 +51,22 @@
 </template>
 
 <script setup>
-import { h, ref, watch, onMounted } from 'vue'
+import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, MagnifyingGlassIcon, EyeIcon, CalendarDaysIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'open',   name: t('erp.fiscalYears.statusOpen')   },
+  { id: 'closed', name: t('erp.fiscalYears.statusClosed') },
+])
 
 const fiscalYears  = ref([])
 const total        = ref(0)

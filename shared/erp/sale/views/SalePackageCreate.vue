@@ -29,10 +29,7 @@
           <!-- Status -->
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.status') }}</label>
-            <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">{{ t('common.active') }}</option>
-              <option value="inactive">{{ t('common.inactive') }}</option>
-            </select>
+            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
           </div>
 
           <!-- Name -->
@@ -55,7 +52,7 @@
       <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-4">
         <div class="flex items-center justify-between">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.salePackages.packageItems') }}</h2>
-          <button @click="showItemPicker = true"
+          <button @click="addLine" type="button"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.salePackages.addItem') }}
@@ -63,7 +60,7 @@
         </div>
 
         <!-- Items table -->
-        <div v-if="form.items.length" class="border border-[#E2E8F0] rounded-xl overflow-hidden">
+        <div v-if="form.items.length" class="border border-[#E2E8F0] rounded-xl overflow-visible">
           <table class="w-full text-sm">
             <thead class="bg-[#F7F9FC]">
               <tr>
@@ -76,8 +73,15 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-[#E2E8F0]">
-              <tr v-for="(item, idx) in form.items" :key="item.saleItemId" class="hover:bg-[#F7F9FC]/60">
-                <td class="px-4 py-2.5 font-medium text-[#1C2434]">{{ item.name }}</td>
+              <tr v-for="(item, idx) in form.items" :key="idx" class="hover:bg-[#F7F9FC]/60">
+                <td class="px-4 py-2.5">
+                  <SearchSelect v-model="item.saleItemId" :options="availableItemsFor(item)" placeholder="— Item —" @change="onSaleItemChange(item)">
+                    <template #option="{ option }">
+                      <span class="font-medium">{{ option.name }}</span>
+                      <span v-if="option.code" class="text-[#9BA7B0] font-mono text-xs ml-2">{{ option.code }}</span>
+                    </template>
+                  </SearchSelect>
+                </td>
                 <td class="px-4 py-2.5 font-mono text-xs text-[#637381]">{{ item.code || '—' }}</td>
                 <td class="px-4 py-2.5">
                   <input v-model.number="item.quantity" type="number" min="0.01" step="0.01"
@@ -95,7 +99,7 @@
                   <span v-else class="text-[#CBD5E1]">—</span>
                 </td>
                 <td class="px-2 py-2.5 text-center">
-                  <button @click="removeItem(idx)" class="p-1 text-[#9BA7B0] hover:text-red-500 rounded transition-colors">
+                  <button @click="removeItem(idx)" type="button" class="p-1 text-[#9BA7B0] hover:text-red-500 rounded transition-colors">
                     <XMarkIcon class="w-4 h-4" />
                   </button>
                 </td>
@@ -129,50 +133,6 @@
       </div>
 
     </div>
-
-    <!-- Sale Item Picker modal -->
-    <Teleport to="body">
-      <div v-if="showItemPicker" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg flex flex-col" style="max-height: 80vh">
-          <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0]">
-            <h3 class="font-semibold text-[#1C2434]">{{ t('erp.salePackages.pickItem') }}</h3>
-            <button @click="showItemPicker = false" class="text-[#9BA7B0] hover:text-[#637381]">
-              <XMarkIcon class="w-5 h-5" />
-            </button>
-          </div>
-          <div class="px-5 py-3 border-b border-[#E2E8F0]">
-            <div class="relative">
-              <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
-              <input v-model="pickerSearch" @input="onPickerSearch" type="search" :placeholder="t('erp.saleItems.searchPh')"
-                class="input pl-9 w-full text-sm" />
-            </div>
-          </div>
-          <div class="overflow-y-auto flex-1">
-            <div v-if="pickerLoading" class="py-8 text-center text-sm text-[#9BA7B0]">{{ t('common.loading') }}</div>
-            <div v-else-if="!pickerItems.length" class="py-8 text-center text-sm text-[#9BA7B0]">{{ t('erp.saleItems.noFound') }}</div>
-            <ul v-else class="divide-y divide-[#F1F5F9]">
-              <li v-for="si in pickerItems" :key="si.id"
-                class="flex items-center justify-between px-5 py-3 hover:bg-[#F7F9FC] cursor-pointer"
-                @click="addItem(si)">
-                <div>
-                  <p class="text-sm font-medium text-[#1C2434]">{{ si.name }}</p>
-                  <p class="text-xs text-[#9BA7B0] font-mono">
-                    <span v-if="si.code">{{ si.code }}</span>
-                    <span v-if="si.code && si.pricings?.length"> · </span>
-                    <span v-if="si.pricings?.length">{{ formatNumber(si.pricings[0].unitPrice) }}</span>
-                  </p>
-                </div>
-                <span v-if="isAdded(si.id)"
-                  class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
-                  {{ t('erp.salePackages.added') }}
-                </span>
-                <PlusCircleIcon v-else class="w-5 h-5 text-[#9BA7B0]" />
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </AppLayout>
 </template>
 
@@ -180,8 +140,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon, PlusIcon, PlusCircleIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
+import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 
@@ -193,11 +154,12 @@ const form  = ref({ code: '', name: '', description: '', status: 'active', items
 const error  = ref('')
 const saving = ref(false)
 
-const showItemPicker = ref(false)
-const pickerSearch   = ref('')
-const pickerItems    = ref([])
-const pickerLoading  = ref(false)
-let pickerTimeout    = null
+const saleItems = ref([])
+
+const statusOptions = computed(() => [
+  { id: 'active',   name: t('common.active')   },
+  { id: 'inactive', name: t('common.inactive') },
+])
 
 const totalPrice = computed(() =>
   form.value.items.reduce((sum, i) => {
@@ -210,34 +172,36 @@ function formatNumber(n) {
   return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-async function loadPickerItems() {
-  pickerLoading.value = true
+onMounted(async () => {
   try {
-    const { data } = await api.get('/erp/sale-items', { params: { limit: 50, search: pickerSearch.value, status: 'active' } })
-    pickerItems.value = data.data.items
-  } finally { pickerLoading.value = false }
+    const { data } = await api.get('/erp/sale-items', { params: { limit: 500, status: 'active' } })
+    saleItems.value = data.data.items
+  } catch { /* picker stays empty */ }
+})
+
+function addLine() {
+  form.value.items.push({ saleItemId: '', name: '', code: '', quantity: 1, unitPrice: null, sortOrder: form.value.items.length })
 }
 
-function onPickerSearch() {
-  clearTimeout(pickerTimeout)
-  pickerTimeout = setTimeout(loadPickerItems, 250)
+function availableItemsFor(currentItem) {
+  const usedIds = new Set(form.value.items.filter(i => i !== currentItem && i.saleItemId).map(i => i.saleItemId))
+  return saleItems.value.filter(s => !usedIds.has(s.id))
 }
 
-function isAdded(id) { return form.value.items.some(i => i.saleItemId === id) }
-
-function addItem(si) {
-  if (isAdded(si.id)) return
-  const defaultPrice = si.pricings?.[0]?.unitPrice ?? null
-  form.value.items.push({ saleItemId: si.id, name: si.name, code: si.code, quantity: 1, unitPrice: defaultPrice, sortOrder: form.value.items.length })
+function onSaleItemChange(item) {
+  const si = saleItems.value.find(s => s.id === item.saleItemId)
+  if (!si) { item.name = ''; item.code = ''; item.unitPrice = null; return }
+  item.name      = si.name
+  item.code      = si.code
+  item.unitPrice = si.pricings?.[0]?.unitPrice ?? null
 }
 
 function removeItem(idx) { form.value.items.splice(idx, 1) }
 
-onMounted(loadPickerItems)
-
 async function save() {
   error.value = ''
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
+  if (form.value.items.some(i => !i.saleItemId)) { error.value = 'Pick an item for every row, or remove empty rows'; return }
   saving.value = true
   try {
     const payload = {

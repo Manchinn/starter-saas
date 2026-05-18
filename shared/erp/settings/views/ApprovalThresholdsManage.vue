@@ -35,22 +35,14 @@
             </tr>
             <tr v-for="(r, i) in [...rows, ...drafts]" :key="r.id || `draft-${i}`" class="hover:bg-[#F7F9FC]">
               <td class="px-4 py-2">
-                <select v-model="r.docType" :disabled="!isDraft(r)"
-                  class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white disabled:bg-[#F7F9FC] disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-primary-500">
-                  <option value="purchase_order">{{ t('erp.thresholds.docPO') }}</option>
-                  <option value="vendor_bill">{{ t('erp.thresholds.docBill') }}</option>
-                </select>
+                <SearchSelect v-model="r.docType" :options="docTypeOptions" :disabled="!isDraft(r)" :allow-empty="false" />
               </td>
               <td class="px-4 py-2">
                 <input v-model.number="r.amount" type="number" min="0" step="0.01"
                   class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-4 py-2">
-                <select v-model="r.requiredPermission"
-                  class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary-500">
-                  <option value="erp.purchasing.approve">{{ t('erp.thresholds.permPurchasingApprove') }}</option>
-                  <option value="erp.bills.approve">{{ t('erp.thresholds.permBillsApprove') }}</option>
-                </select>
+                <SearchSelect v-model="r.requiredPermission" :options="permissionOptions" :allow-empty="false" />
               </td>
               <td class="px-4 py-2">
                 <input v-model="r.notes" type="text" :placeholder="t('erp.thresholds.notesPh')"
@@ -79,10 +71,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
@@ -90,6 +83,15 @@ const rows    = ref([])
 const drafts  = ref([])
 const loading = ref(false)
 const error   = ref('')
+
+const docTypeOptions = computed(() => [
+  { id: 'purchase_order', name: t('erp.thresholds.docPO')   },
+  { id: 'vendor_bill',    name: t('erp.thresholds.docBill') },
+])
+const permissionOptions = computed(() => [
+  { id: 'erp.purchasing.approve', name: t('erp.thresholds.permPurchasingApprove') },
+  { id: 'erp.bills.approve',      name: t('erp.thresholds.permBillsApprove')      },
+])
 
 const isDraft = (r) => !r.id
 

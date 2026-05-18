@@ -51,23 +51,11 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.status') }}</label>
-                  <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option value="draft">{{ t('erp.common.draft') }}</option>
-                    <option value="confirmed">{{ t('erp.common.confirmed') }}</option>
-                    <option value="cancelled">{{ t('erp.common.cancelled') }}</option>
-                  </select>
+                  <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.receipts.paymentMethod') }}</label>
-                  <select v-model="filterPaymentMethod" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('erp.receipts.allMethods') }}</option>
-                    <option value="cash">{{ t('erp.receipts.cash') }}</option>
-                    <option value="bank_transfer">{{ t('erp.receipts.bankTransfer') }}</option>
-                    <option value="cheque">{{ t('erp.receipts.cheque') }}</option>
-                    <option value="credit_card">{{ t('erp.receipts.creditCard') }}</option>
-                    <option value="other">{{ t('erp.receipts.other') }}</option>
-                  </select>
+                  <SearchSelect v-model="filterPaymentMethod" :options="paymentMethodOptions" :placeholder="t('erp.receipts.allMethods')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateFrom') }}</label>
@@ -155,10 +143,24 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'draft',     name: t('erp.common.draft')     },
+  { id: 'confirmed', name: t('erp.common.confirmed') },
+  { id: 'cancelled', name: t('erp.common.cancelled') },
+])
+const paymentMethodOptions = computed(() => [
+  { id: 'cash',          name: t('erp.receipts.cash')         },
+  { id: 'bank_transfer', name: t('erp.receipts.bankTransfer') },
+  { id: 'cheque',        name: t('erp.receipts.cheque')       },
+  { id: 'credit_card',   name: t('erp.receipts.creditCard')   },
+  { id: 'other',         name: t('erp.receipts.other')        },
+])
 
 const receipts            = ref([])
 const total               = ref(0)

@@ -131,11 +131,7 @@
                   class="w-full px-2 py-1.5 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-3 py-2">
-                <select v-if="returnReasons.length" v-model="item.reason"
-                  class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary-500">
-                  <option value="">—</option>
-                  <option v-for="r in returnReasons" :key="r.id" :value="r.name">{{ r.name }}</option>
-                </select>
+                <SearchSelect v-if="returnReasons.length" v-model="item.reason" :options="returnReasons" track-by="name" label-key="name" placeholder="—" />
                 <input v-else v-model="item.reason" type="text" placeholder="Optional"
                   class="w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>

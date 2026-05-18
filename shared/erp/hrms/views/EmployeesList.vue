@@ -49,19 +49,11 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
-                  <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option value="active">{{ t('erp.employees.active') }}</option>
-                    <option value="inactive">{{ t('erp.employees.inactive') }}</option>
-                    <option value="terminated">{{ t('erp.employees.terminated') }}</option>
-                  </select>
+                  <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.employees.colDepartment') }}</label>
-                  <select v-model="filterDeptId" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
-                  </select>
+                  <SearchSelect v-model="filterDeptId" :options="departments" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.activeFrom') }}</label>
@@ -170,9 +162,16 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'active',     name: t('erp.employees.active')     },
+  { id: 'inactive',   name: t('erp.employees.inactive')   },
+  { id: 'terminated', name: t('erp.employees.terminated') },
+])
 
 const employees    = ref([])
 const departments  = ref([])

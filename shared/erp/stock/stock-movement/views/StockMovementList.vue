@@ -42,18 +42,7 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.stockMovement.colType') }}</label>
-                  <select v-model="filterType" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('erp.stockMovement.allTypes') }}</option>
-                    <option value="receive">{{ t('erp.stockMovement.typeReceive') }}</option>
-                    <option value="sale">{{ t('erp.stockMovement.typeSale') }}</option>
-                    <option value="adjust">{{ t('erp.stockMovement.typeAdjustment') }}</option>
-                    <option value="issue">Issue</option>
-                    <option value="count">Count</option>
-                    <option value="transfer_in">{{ t('erp.stockMovement.typeTransferIn') }}</option>
-                    <option value="transfer_out">{{ t('erp.stockMovement.typeTransferOut') }}</option>
-                    <option value="customer_return">Customer Return</option>
-                    <option value="vendor_return">Vendor Return</option>
-                  </select>
+                  <SearchSelect v-model="filterType" :options="typeOptions" :placeholder="t('erp.stockMovement.allTypes')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateFrom') }}</label>
@@ -133,9 +122,22 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const typeOptions = computed(() => [
+  { id: 'receive',         name: t('erp.stockMovement.typeReceive')     },
+  { id: 'sale',            name: t('erp.stockMovement.typeSale')        },
+  { id: 'adjust',          name: t('erp.stockMovement.typeAdjustment')  },
+  { id: 'issue',           name: 'Issue'                                },
+  { id: 'count',           name: 'Count'                                },
+  { id: 'transfer_in',     name: t('erp.stockMovement.typeTransferIn')  },
+  { id: 'transfer_out',    name: t('erp.stockMovement.typeTransferOut') },
+  { id: 'customer_return', name: 'Customer Return'                      },
+  { id: 'vendor_return',   name: 'Vendor Return'                        },
+])
 const route          = useRoute()
 const rows           = ref([])
 const products       = ref([])

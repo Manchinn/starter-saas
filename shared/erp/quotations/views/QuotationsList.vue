@@ -50,14 +50,7 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
-                  <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option value="draft">{{ t('erp.quotations.draft') }}</option>
-                    <option value="sent">{{ t('erp.quotations.sent') }}</option>
-                    <option value="accepted">{{ t('erp.quotations.accepted') }}</option>
-                    <option value="rejected">{{ t('erp.quotations.rejected') }}</option>
-                    <option value="converted">{{ t('erp.quotations.converted') }}</option>
-                  </select>
+                  <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateFrom') }}</label>
@@ -139,9 +132,18 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'draft',     name: t('erp.quotations.draft')     },
+  { id: 'sent',      name: t('erp.quotations.sent')      },
+  { id: 'accepted',  name: t('erp.quotations.accepted')  },
+  { id: 'rejected',  name: t('erp.quotations.rejected')  },
+  { id: 'converted', name: t('erp.quotations.converted') },
+])
 const quotations    = ref([])
 const total         = ref(0)
 const page          = ref(1)

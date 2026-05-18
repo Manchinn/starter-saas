@@ -59,17 +59,11 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.status') }}</label>
-            <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">{{ t('common.active') }}</option>
-              <option value="inactive">{{ t('common.inactive') }}</option>
-            </select>
+            <SearchSelect v-model="form.status" :options="STATUS_OPTIONS" :allow-empty="false" />
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.group') }}</label>
-            <select v-model="form.customerGroupId" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-              <option value="">— None —</option>
-              <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
-            </select>
+            <SearchSelect v-model="form.customerGroupId" :options="groups" placeholder="— None —" />
           </div>
         </div>
 
@@ -88,16 +82,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
+const STATUS_OPTIONS = computed(() => [
+  { id: 'active',   name: t('common.active') },
+  { id: 'inactive', name: t('common.inactive') },
+])
 const router   = useRouter()
 const form     = ref({ code: '', name: '', company: '', email: '', phone: '', address: '', notes: '', status: 'active', activeFrom: '', activeTo: '', customerGroupId: '' })
 const groups   = ref([])

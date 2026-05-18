@@ -79,12 +79,7 @@
             <!-- Payment Method -->
             <div>
               <FieldLabel :text="t('erp.receipts.paymentMethod')" required />
-              <select v-model="form.paymentMethod"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                <option value="">— Select —</option>
-                <option v-for="m in paymentMethods" :key="m.id" :value="m.code || m.name">{{ m.name }}</option>
-              </select>
+              <SearchSelect v-model="form.paymentMethod" :options="paymentMethodOptions" placeholder="— Select —" />
             </div>
 
             <!-- Amount -->
@@ -181,6 +176,7 @@ const masterDataStore  = useMasterDataStore()
 const customers        = ref([])
 const invoices         = ref([])
 const paymentMethods   = ref([])
+const paymentMethodOptions = computed(() => paymentMethods.value.map(m => ({ id: m.code || m.name, name: m.name })))
 const saving           = ref(false)
 const globalError      = ref('')
 const errors           = ref({})

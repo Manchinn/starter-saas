@@ -38,10 +38,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.status') }}</label>
-            <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">{{ t('common.active') }}</option>
-              <option value="inactive">{{ t('common.inactive') }}</option>
-            </select>
+            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
           </div>
         </div>
 
@@ -61,15 +58,21 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'active',   name: t('common.active')   },
+  { id: 'inactive', name: t('common.inactive') },
+])
 const router = useRouter()
 const form   = ref({ name: '', abbreviation: '', description: '', status: 'active', activeFrom: '', activeTo: '' })
 const error  = ref('')

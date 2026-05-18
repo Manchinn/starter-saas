@@ -49,12 +49,7 @@
                 <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                   {{ t('erp.stockAdjust.reason') }}
                 </label>
-                <select v-if="adjustReasons.length" v-model="form.reason"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm bg-white text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                  <option value="">{{ t('erp.masterData.selectPh') }}</option>
-                  <option v-for="r in adjustReasons" :key="r.id" :value="r.name">{{ r.name }}</option>
-                </select>
+                <SearchSelect v-if="adjustReasons.length" v-model="form.reason" :options="adjustReasons" track-by="name" label-key="name" :placeholder="t('erp.masterData.selectPh')" />
                 <input v-else v-model="form.reason" type="text" placeholder="e.g. Damaged goods, Stocktake"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400

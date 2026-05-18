@@ -73,10 +73,7 @@
           <tbody class="divide-y divide-[#E2E8F0]">
             <tr v-for="(r, i) in [...rateDrafts, ...rates]" :key="r.id || `rate-draft-${i}`" class="hover:bg-[#F7F9FC]">
               <td class="px-4 py-2">
-                <select v-if="isDraft(r)" v-model="r.currencyCode" class="w-full px-2 py-1.5 border rounded-lg text-sm bg-white">
-                  <option value="">—</option>
-                  <option v-for="c in foreignCurrencies" :key="c.code" :value="c.code">{{ c.code }} — {{ c.name }}</option>
-                </select>
+                <SearchSelect v-if="isDraft(r)" v-model="r.currencyCode" :options="currencyOptions" placeholder="—" />
                 <span v-else class="font-mono font-semibold text-[#1C2434]">{{ r.currencyCode }}</span>
               </td>
               <td class="px-4 py-2"><input v-model="r.asOfDate" type="date" class="w-full px-2 py-1.5 border rounded-lg text-sm" /></td>
@@ -104,6 +101,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
@@ -117,6 +115,7 @@ const error           = ref('')
 const isDraft = (r) => !r.id
 const baseCode = computed(() => currencies.value.find(c => c.isBase)?.code || '')
 const foreignCurrencies = computed(() => currencies.value.filter(c => !c.isBase))
+const currencyOptions   = computed(() => foreignCurrencies.value.map(c => ({ id: c.code, name: `${c.code} — ${c.name}` })))
 
 async function load() {
   loading.value = true

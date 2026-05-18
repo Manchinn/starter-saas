@@ -52,13 +52,7 @@
             <!-- Payment Method -->
             <div>
               <FieldLabel text="Payment Method" required />
-              <select v-model="form.paymentMethod"
-                :class="['w-full px-3.5 py-2.5 border text-sm bg-white transition-colors',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.paymentMethod ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']">
-                <option value="">— Select —</option>
-                <option v-for="m in paymentMethods" :key="m.id" :value="m.name">{{ m.name }}</option>
-              </select>
+              <SearchSelect v-model="form.paymentMethod" :options="paymentMethods" track-by="name" label-key="name" placeholder="— Select —" :invalid="!!errors.paymentMethod" />
               <p v-if="errors.paymentMethod" class="mt-1 text-xs text-red-500">{{ errors.paymentMethod }}</p>
             </div>
 

@@ -50,19 +50,11 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
-                  <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option value="active">{{ t('common.active') }}</option>
-                    <option value="inactive">{{ t('common.inactive') }}</option>
-                  </select>
+                  <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.vendors.colType') }}</label>
-                  <select v-model="filterType" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option value="supplier">{{ t('erp.vendors.supplier') }}</option>
-                    <option value="service_provider">{{ t('erp.vendors.serviceProvider') }}</option>
-                  </select>
+                  <SearchSelect v-model="filterType" :options="typeOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.activeFrom') }}</label>
@@ -150,9 +142,19 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'active',   name: t('common.active')   },
+  { id: 'inactive', name: t('common.inactive') },
+])
+const typeOptions = computed(() => [
+  { id: 'supplier',         name: t('erp.vendors.supplier')        },
+  { id: 'service_provider', name: t('erp.vendors.serviceProvider') },
+])
 const vendors      = ref([])
 const total        = ref(0)
 const page         = ref(1)

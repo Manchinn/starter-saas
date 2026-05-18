@@ -24,12 +24,9 @@
             <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.journals.searchPh')"
               class="input pl-9 w-full" />
           </div>
-          <select v-model="filterStatus" @change="onFilterChange" class="input text-sm w-36">
-            <option value="">{{ t('erp.common.allStatuses') }}</option>
-            <option value="draft">{{ t('erp.common.draft') }}</option>
-            <option value="posted">{{ t('erp.journals.statusPosted') }}</option>
-            <option value="voided">{{ t('erp.journals.statusVoided') }}</option>
-          </select>
+          <div class="w-36">
+            <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('erp.common.allStatuses')" @change="onFilterChange" />
+          </div>
         </div>
 
         <DataTable :columns="columns" :data="journals" :loading="loading" :total="total"
@@ -53,17 +50,24 @@
 </template>
 
 <script setup>
-import { h, ref, watch, onMounted } from 'vue'
+import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'draft',  name: t('erp.common.draft')          },
+  { id: 'posted', name: t('erp.journals.statusPosted') },
+  { id: 'voided', name: t('erp.journals.statusVoided') },
+])
 
 const journals     = ref([])
 const total        = ref(0)

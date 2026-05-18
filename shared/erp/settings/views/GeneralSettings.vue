@@ -64,14 +64,7 @@
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                 {{ t('erp.settings.thousandSep') }}
               </label>
-              <select v-model="form.thousandSep"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                <option value=",">, (comma) — 1,000</option>
-                <option value=".">. (period) — 1.000</option>
-                <option value=" ">  (space) — 1 000</option>
-                <option value="">None — 1000</option>
-              </select>
+              <SearchSelect v-model="form.thousandSep" :options="thousandSepOptions" :allow-empty="false" />
             </div>
 
             <!-- Decimal Separator -->
@@ -79,12 +72,7 @@
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                 {{ t('erp.settings.decimalSep') }}
               </label>
-              <select v-model="form.decimalSep"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                <option value=".">. (period) — 1,234.56</option>
-                <option value=",">, (comma) — 1.234,56</option>
-              </select>
+              <SearchSelect v-model="form.decimalSep" :options="decimalSepOptions" :allow-empty="false" />
             </div>
 
             <!-- Decimal Places -->
@@ -92,14 +80,7 @@
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                 {{ t('erp.settings.decimalPlaces') }}
               </label>
-              <select v-model.number="form.precision"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                <option :value="0">0 — 1,235</option>
-                <option :value="1">1 — 1,234.5</option>
-                <option :value="2">2 — 1,234.56</option>
-                <option :value="3">3 — 1,234.567</option>
-              </select>
+              <SearchSelect v-model="form.precision" :options="precisionOptions" :allow-empty="false" />
             </div>
 
           </div>
@@ -187,10 +168,28 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CheckIcon, ExclamationCircleIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import { useSettingsStore } from '@/stores/settings'
 import * as accounting from 'accounting-js'
 
 const { t } = useI18n()
+
+const thousandSepOptions = [
+  { id: ',', name: ', (comma) — 1,000'  },
+  { id: '.', name: '. (period) — 1.000' },
+  { id: ' ', name: '  (space) — 1 000'  },
+  { id: '',  name: 'None — 1000'        },
+]
+const decimalSepOptions = [
+  { id: '.', name: '. (period) — 1,234.56' },
+  { id: ',', name: ', (comma) — 1.234,56'  },
+]
+const precisionOptions = [
+  { id: 0, name: '0 — 1,235'      },
+  { id: 1, name: '1 — 1,234.5'    },
+  { id: 2, name: '2 — 1,234.56'   },
+  { id: 3, name: '3 — 1,234.567'  },
+]
 const store  = useSettingsStore()
 const saving = ref(false)
 const saved  = ref(false)

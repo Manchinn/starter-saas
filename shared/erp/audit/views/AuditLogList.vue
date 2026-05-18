@@ -12,15 +12,7 @@
       <div class="bg-white rounded-2xl border border-[#E2E8F0] p-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div>
           <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('erp.audit.entityType') }}</label>
-          <select v-model="filterEntityType" @change="onFilter" class="input text-sm">
-            <option value="">{{ t('common.all') }}</option>
-            <option value="Invoice">Invoice</option>
-            <option value="Receipt">Receipt</option>
-            <option value="PurchaseOrder">Purchase Order</option>
-            <option value="PurchaseRequisition">Purchase Requisition</option>
-            <option value="VendorBill">Vendor Bill</option>
-            <option value="GoodReceive">Good Receive</option>
-          </select>
+          <SearchSelect v-model="filterEntityType" :options="entityTypeOptions" :placeholder="t('common.all')" @change="onFilter" />
         </div>
         <div>
           <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('erp.audit.action') }}</label>
@@ -92,9 +84,19 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const entityTypeOptions = [
+  { id: 'Invoice',             name: 'Invoice'              },
+  { id: 'Receipt',             name: 'Receipt'              },
+  { id: 'PurchaseOrder',       name: 'Purchase Order'       },
+  { id: 'PurchaseRequisition', name: 'Purchase Requisition' },
+  { id: 'VendorBill',          name: 'Vendor Bill'          },
+  { id: 'GoodReceive',         name: 'Good Receive'         },
+]
 const logs    = ref([])
 const total   = ref(0)
 const page    = ref(1)

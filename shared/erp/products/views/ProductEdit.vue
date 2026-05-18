@@ -32,13 +32,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.category') }}</label>
-              <select v-model="form.category" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">— None —</option>
-                <template v-for="cat in categories" :key="cat.id">
-                  <option v-if="!cat.parentId" :value="cat.name" class="font-medium">{{ cat.name }}</option>
-                  <option v-else :value="cat.name">&nbsp;&nbsp;↳ {{ cat.name }}</option>
-                </template>
-              </select>
+              <SearchSelect v-model="form.category" :options="categoryOptions" track-by="name" label-key="name" placeholder="— None —" />
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.costPrice') }}</label>
@@ -94,17 +88,11 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.sellingUom') }}</label>
-              <select v-model="form.sellingUomId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">— None —</option>
-                <option v-for="u in uoms" :key="u.id" :value="u.id">{{ u.name }}{{ u.abbreviation ? ` (${u.abbreviation})` : '' }}</option>
-              </select>
+              <SearchSelect v-model="form.sellingUomId" :options="uomOptions" placeholder="— None —" />
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.purchasingUom') }}</label>
-              <select v-model="form.purchasingUomId" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">— None —</option>
-                <option v-for="u in uoms" :key="u.id" :value="u.id">{{ u.name }}{{ u.abbreviation ? ` (${u.abbreviation})` : '' }}</option>
-              </select>
+              <SearchSelect v-model="form.purchasingUomId" :options="uomOptions" placeholder="— None —" />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -118,10 +106,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.status') }}</label>
-              <select v-model="form.status" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="active">{{ t('common.active') }}</option>
-                <option value="inactive">{{ t('common.inactive') }}</option>
-              </select>
+              <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
             </div>
           </div>
 
@@ -149,11 +134,7 @@
           <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5 space-y-4">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.linkedStores') }}</h2>
             <div class="flex gap-2">
-              <select v-model="selectedStoreId"
-                class="flex-1 px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">{{ t('erp.common.selectStore') }}</option>
-                <option v-for="s in availableStores" :key="s.id" :value="s.id">{{ s.name }}{{ s.code ? ` (${s.code})` : '' }}</option>
-              </select>
+              <div class="flex-1"><SearchSelect v-model="selectedStoreId" :options="availableStoreOptions" :placeholder="t('erp.common.selectStore')" /></div>
               <button @click="addStore" :disabled="!selectedStoreId"
                 class="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
                 +
@@ -176,11 +157,7 @@
           <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5 space-y-4">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.linkedVendors') }}</h2>
             <div class="flex gap-2">
-              <select v-model="selectedVendorId"
-                class="flex-1 px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">— Select vendor —</option>
-                <option v-for="v in availableVendors" :key="v.id" :value="v.id">{{ v.name }}{{ v.code ? ` (${v.code})` : '' }}</option>
-              </select>
+              <div class="flex-1"><SearchSelect v-model="selectedVendorId" :options="availableVendorOptions" placeholder="— Select vendor —" /></div>
               <button @click="addVendor" :disabled="!selectedVendorId"
                 class="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
                 +
@@ -212,10 +189,16 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { id: 'active',   name: t('common.active')   },
+  { id: 'inactive', name: t('common.inactive') },
+])
 const route    = useRoute()
 const router   = useRouter()
 const form         = ref({ name: '', sku: '', category: '', cost: '', description: '', status: 'active', activeFrom: '', activeTo: '', sellingUomId: '', purchasingUomId: '', reorderPoint: '', reorderQty: '' })
@@ -236,6 +219,13 @@ const saving   = ref(false)
 
 const availableStores   = computed(() => stores.value.filter(s => !linkedStores.value.some(l => l.id === s.id)))
 const availableVendors  = computed(() => vendors.value.filter(v => !linkedVendors.value.some(l => l.id === v.id)))
+const categoryOptions   = computed(() => categories.value.map(cat => ({
+  id: cat.name,
+  name: cat.parentId ? `  ↳ ${cat.name}` : cat.name,
+})))
+const uomOptions             = computed(() => uoms.value.map(u => ({ id: u.id, name: `${u.name}${u.abbreviation ? ` (${u.abbreviation})` : ''}` })))
+const availableStoreOptions  = computed(() => availableStores.value.map(s => ({ id: s.id, name: `${s.name}${s.code ? ` (${s.code})` : ''}` })))
+const availableVendorOptions = computed(() => availableVendors.value.map(v => ({ id: v.id, name: `${v.name}${v.code ? ` (${v.code})` : ''}` })))
 
 onMounted(async () => {
   try {
