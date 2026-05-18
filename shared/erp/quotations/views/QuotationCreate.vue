@@ -68,6 +68,12 @@
                 </div>
               </div>
 
+              <!-- Currency -->
+              <div>
+                <FieldLabel :text="t('erp.common.currency')" />
+                <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.quotationDate" />
+              </div>
+
               <!-- Notes -->
               <div class="col-span-2">
                 <FieldLabel :text="t('erp.quotations.notes')" />
@@ -105,10 +111,10 @@
           <div v-else>
             <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
                         text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider"
-              style="grid-template-columns: 1.8rem 2.5fr 1.5fr 5rem 7rem 5rem 5.5rem 2rem">
+              style="grid-template-columns: 1.8rem 2.5fr 2fr 5rem 7rem 5rem 5.5rem 2rem">
               <div class="text-center">#</div>
-              <div>{{ t('erp.quotations.colProductName') }}</div>
               <div>{{ t('erp.quotations.saleItem') }}</div>
+              <div>{{ t('erp.quotations.colProductName') }}</div>
               <div class="text-right">{{ t('erp.quotations.colQty') }}</div>
               <div class="text-right">{{ t('erp.quotations.colUnitPrice') }}</div>
               <div class="text-right">{{ t('erp.quotations.colDiscount') }}</div>
@@ -119,16 +125,21 @@
             <div class="divide-y divide-[#E2E8F0]">
               <div v-for="(line, idx) in form.items" :key="idx"
                 class="group grid items-center gap-3 px-5 py-3 hover:bg-[#F7F9FC] transition-colors"
-                style="grid-template-columns: 1.8rem 2.5fr 1.5fr 5rem 7rem 5rem 5.5rem 2rem">
+                style="grid-template-columns: 1.8rem 2.5fr 2fr 5rem 7rem 5rem 5.5rem 2rem">
 
                 <div class="text-xs font-semibold text-[#CBD5E1] text-center">{{ idx + 1 }}</div>
+
+                <SearchSelect v-model="line.saleItemId" :options="availableItemsFor(line)" placeholder="— Item —" @change="onSaleItemChange(line)">
+                  <template #option="{ option }">
+                    <span class="font-medium">{{ option.name }}</span>
+                    <span v-if="option.code" class="text-[#9BA7B0] font-mono text-xs ml-2">{{ option.code }}</span>
+                  </template>
+                </SearchSelect>
 
                 <input v-model="line.productName" type="text" :placeholder="t('erp.quotations.productNamePh')"
                   class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                          transition-colors placeholder-[#CBD5E1]" />
-
-                <SearchSelect v-model="line.saleItemId" :options="saleItems" placeholder="— Item —" @change="onSaleItemChange(line)" />
 
                 <input v-model.number="line.qty" type="number" min="0.001" step="any" @input="calcLine(line)"
                   class="w-full px-2 py-2 border border-[#E2E8F0] text-sm text-right text-[#1C2434] tabular-nums
@@ -159,7 +170,7 @@
             </div>
 
             <div class="grid items-center gap-3 px-5 py-3.5 bg-[#F7F9FC] border-t border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 2.5fr 1.5fr 5rem 7rem 5rem 5.5rem 2rem">
+              style="grid-template-columns: 1.8rem 2.5fr 2fr 5rem 7rem 5rem 5.5rem 2rem">
               <div class="col-span-6 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">
                 {{ t('erp.quotations.subtotal') }}
               </div>
@@ -213,16 +224,16 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, TrashIcon,
-  CheckIcon,
-  ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
+  UserIcon, ClipboardDocumentListIcon,
   CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import CurrencySelector from '@/components/CurrencySelector.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -250,6 +261,8 @@ const form  = ref({
   quotationDate: today,
   validUntil:    '',
   taxRate:       0,
+  currency:      '',
+  exchangeRate:  1,
   notes:         '',
   items:         [],
 })
@@ -273,6 +286,11 @@ function addLine() {
 
 function removeLine(idx) {
   form.value.items.splice(idx, 1)
+}
+
+function availableItemsFor(currentLine) {
+  const usedIds = new Set(form.value.items.filter(l => l !== currentLine && l.saleItemId).map(l => l.saleItemId))
+  return saleItems.value.filter(s => !usedIds.has(s.id))
 }
 
 function calcLine(line) {
@@ -303,8 +321,8 @@ function applyPricing(line) {
 
 function onSaleItemChange(line) {
   const si = saleItems.value.find(s => s.id === line.saleItemId)
-  if (!si) { line.unitPrice = 0; calcLine(line); return }
-  if (!line.productName) line.productName = si.name
+  if (!si) { line.productName = ''; line.unitPrice = 0; calcLine(line); return }
+  line.productName = si.name
   applyPricing(line)
 }
 
@@ -338,6 +356,8 @@ async function save() {
       quotationDate: form.value.quotationDate,
       validUntil:    form.value.validUntil    || null,
       taxRate:       form.value.taxRate,
+      currency:      form.value.currency      || null,
+      exchangeRate:  form.value.exchangeRate,
       notes:         form.value.notes,
       items: form.value.items.map(({ saleItemId, productName, qty, unitPrice, discount }) => ({
         saleItemId: saleItemId || null,

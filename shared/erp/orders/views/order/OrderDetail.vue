@@ -286,9 +286,15 @@
             <span v-if="convertError" class="self-center text-xs text-red-600">{{ convertError }}</span>
           </div>
 
-          <!-- Delete (draft only) -->
-          <div v-if="order.status === 'draft'" v-can="'erp.orders.delete'" class="flex justify-end">
-            <button @click="confirmDelete"
+          <!-- Edit / Delete (draft only) -->
+          <div v-if="order.status === 'draft'" class="flex justify-end gap-2">
+            <RouterLink v-can="'erp.orders.edit'" :to="`/erp/orders/${order.id}/edit`"
+              class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-600 border border-primary-200
+                     rounded-xl hover:bg-primary-50 transition-colors">
+              <PencilSquareIcon class="w-4 h-4" />
+              {{ t('erp.orders.editOrder') }}
+            </RouterLink>
+            <button v-can="'erp.orders.delete'" @click="confirmDelete"
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-500 border border-red-200
                      rounded-xl hover:bg-red-50 transition-colors">
               <TrashIcon class="w-4 h-4" />
@@ -311,7 +317,7 @@ import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import {
   ArrowLeftIcon, ChevronRightIcon, UserIcon, DocumentTextIcon,
-  ClipboardDocumentListIcon, CheckIcon, XMarkIcon, TrashIcon,
+  ClipboardDocumentListIcon, CheckIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
   BoltIcon, ArrowPathIcon, ExclamationCircleIcon, CalculatorIcon, TruckIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'

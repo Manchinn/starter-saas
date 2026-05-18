@@ -39,11 +39,9 @@
             <label class="block text-sm font-medium text-[#374151] mb-1">
               {{ t('erp.accounting.accountType') }} <span class="text-red-500">*</span>
             </label>
-            <select v-if="accountTypeOptions.length" v-model="form.accountType" @change="onTypeChange"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-              <option value="">— {{ t('erp.accounting.selectType') }} —</option>
-              <option v-for="at in accountTypeOptions" :key="at.code" :value="at.code">{{ at.name }}</option>
-            </select>
+            <SearchSelect v-if="accountTypeOptions.length" v-model="form.accountType"
+              :options="accountTypeOptions" track-by="code" :placeholder="`— ${t('erp.accounting.selectType')} —`"
+              :allow-empty="false" @change="onTypeChange" />
             <p v-else class="text-xs text-amber-600 mt-1 px-3 py-2 bg-amber-50 rounded-lg border border-amber-200">
               {{ t('erp.accounting.noAccountTypes') }}
               <RouterLink to="/erp/settings/master-data" class="underline font-medium">{{ t('erp.accounting.setupMasterData') }}</RouterLink>
@@ -52,22 +50,15 @@
 
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.accounting.normalBalance') }}</label>
-            <select v-model="form.normalBalance"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-              <option value="debit">{{ t('erp.accounting.debit') }}</option>
-              <option value="credit">{{ t('erp.accounting.credit') }}</option>
-            </select>
+            <SearchSelect v-model="form.normalBalance" :options="NORMAL_BALANCE_OPTIONS" :allow-empty="false" />
           </div>
 
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.accounting.parentAccount') }}</label>
-            <select v-model="form.parentId"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-              <option value="">— {{ t('erp.accounting.noParent') }} —</option>
-              <option v-for="a in parentOptions" :key="a.id" :value="a.id">
-                {{ a.code }} — {{ a.name }}
-              </option>
-            </select>
+            <SearchSelect v-model="form.parentId" :options="parentOptions" :placeholder="`— ${t('erp.accounting.noParent')} —`">
+              <template #option="{ option }">{{ option.code }} — {{ option.name }}</template>
+              <template #singleLabel="{ option }">{{ option.code }} — {{ option.name }}</template>
+            </SearchSelect>
           </div>
 
           <div class="col-span-2">
@@ -78,11 +69,7 @@
 
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.accounting.status') }}</label>
-            <select v-model="form.status"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="active">{{ t('common.active') }}</option>
-              <option value="inactive">{{ t('common.inactive') }}</option>
-            </select>
+            <SearchSelect v-model="form.status" :options="STATUS_OPTIONS" :allow-empty="false" />
           </div>
 
         </div>
@@ -111,17 +98,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const route   = useRoute()
 const router  = useRouter()
+
+const NORMAL_BALANCE_OPTIONS = computed(() => [
+  { id: 'debit',  name: t('erp.accounting.debit') },
+  { id: 'credit', name: t('erp.accounting.credit') },
+])
+const STATUS_OPTIONS = computed(() => [
+  { id: 'active',   name: t('common.active') },
+  { id: 'inactive', name: t('common.inactive') },
+])
 
 const normalBalanceFor = { asset: 'debit', expense: 'debit', liability: 'credit', equity: 'credit', revenue: 'credit' }
 

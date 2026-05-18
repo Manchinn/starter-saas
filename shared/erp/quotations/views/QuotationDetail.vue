@@ -149,13 +149,10 @@
                     <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                       {{ t('erp.quotations.customer') }}
                     </label>
-                    <select v-model="editForm.customerId"
-                      class="w-full px-3 py-2.5 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors">
-                      <option value="">— {{ t('erp.quotations.noCustomer') }} —</option>
-                      <option v-for="c in customers" :key="c.id" :value="c.id">
-                        {{ c.name }}{{ c.company ? ` (${c.company})` : '' }}
-                      </option>
-                    </select>
+                    <SearchSelect v-model="editForm.customerId" :options="customers" :placeholder="`— ${t('erp.quotations.noCustomer')} —`">
+                      <template #option="{ option }">{{ option.name }}{{ option.company ? ` (${option.company})` : '' }}</template>
+                      <template #singleLabel="{ option }">{{ option.name }}{{ option.company ? ` (${option.company})` : '' }}</template>
+                    </SearchSelect>
                   </div>
                   <div>
                     <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
@@ -509,6 +506,7 @@ import {
   CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const { t }       = useI18n()

@@ -48,17 +48,11 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="label">{{ t('staff.roleLabel') }}</label>
-              <select v-model="form.role" class="input">
-                <option value="user">{{ t('org.roleUser') }}</option>
-                <option value="admin">Admin</option>
-              </select>
+              <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" />
             </div>
             <div>
               <label class="label">{{ t('staff.statusLabel') }}</label>
-              <select v-model="form.isActive" class="input">
-                <option :value="true">{{ t('common.active') }}</option>
-                <option :value="false">{{ t('common.inactive') }}</option>
-              </select>
+              <SearchSelect v-model="form.isActive" :options="STATUS_OPTIONS" :allow-empty="false" />
             </div>
           </div>
 
@@ -81,10 +75,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import { ArrowLeftIcon, UserIcon } from '@heroicons/vue/24/outline'
 import api from '@/api'
 
@@ -92,6 +87,15 @@ const route  = useRoute()
 const router = useRouter()
 const { t }  = useI18n()
 const id     = route.params.id
+
+const ROLE_OPTIONS = computed(() => [
+  { id: 'user',  name: t('org.roleUser') },
+  { id: 'admin', name: 'Admin' },
+])
+const STATUS_OPTIONS = computed(() => [
+  { id: true,  name: t('common.active') },
+  { id: false, name: t('common.inactive') },
+])
 
 const loading = ref(true)
 const error   = ref('')

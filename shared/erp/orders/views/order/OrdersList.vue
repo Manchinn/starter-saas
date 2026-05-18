@@ -53,14 +53,7 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
-                  <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
-                    <option value="">{{ t('common.all') }}</option>
-                    <option value="draft">{{ t('erp.orders.draft') }}</option>
-                    <option value="confirmed">{{ t('erp.orders.confirmed') }}</option>
-                    <option value="shipped">{{ t('erp.orders.shipped') }}</option>
-                    <option value="delivered">{{ t('erp.orders.delivered') }}</option>
-                    <option value="cancelled">{{ t('erp.orders.cancelled') }}</option>
-                  </select>
+                  <SearchSelect v-model="filterStatus" :options="STATUS_FILTER_OPTIONS" :placeholder="t('common.all')" @change="onFilterChange" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateFrom') }}</label>
@@ -142,10 +135,19 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
 const { t } = useI18n()
+
+const STATUS_FILTER_OPTIONS = computed(() => [
+  { id: 'draft',     name: t('erp.orders.draft') },
+  { id: 'confirmed', name: t('erp.orders.confirmed') },
+  { id: 'shipped',   name: t('erp.orders.shipped') },
+  { id: 'delivered', name: t('erp.orders.delivered') },
+  { id: 'cancelled', name: t('erp.orders.cancelled') },
+])
 
 const orders         = ref([])
 const total          = ref(0)

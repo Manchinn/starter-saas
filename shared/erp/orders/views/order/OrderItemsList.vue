@@ -38,10 +38,10 @@
             <!-- Link toggle -->
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.orderItems.itemMasterLink') }}</label>
-              <select v-model="editForm.productId" @change="onEditProductSelected" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">Custom item (no link)</option>
-                <option v-for="p in masterItems" :key="p.id" :value="p.id">{{ p.name }}{{ p.sku ? ` — ${p.sku}` : '' }}</option>
-              </select>
+              <SearchSelect v-model="editForm.productId" :options="masterItems" placeholder="Custom item (no link)" @change="onEditProductSelected">
+                <template #option="{ option }">{{ option.name }}{{ option.sku ? ` — ${option.sku}` : '' }}</template>
+                <template #singleLabel="{ option }">{{ option.name }}{{ option.sku ? ` — ${option.sku}` : '' }}</template>
+              </SearchSelect>
               <p v-if="editForm.productId" class="mt-1 text-xs text-green-600">Linked to Item Master</p>
               <p v-else class="mt-1 text-xs text-[#9BA7B0]">Not linked — custom description</p>
             </div>
@@ -108,6 +108,7 @@ import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 

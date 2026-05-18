@@ -66,23 +66,13 @@
           <!-- Parent Organization -->
           <div>
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ $t('org.parentOrg') }}</label>
-            <select v-model="form.parentId"
-              class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white
-                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-              <option value="">{{ $t('org.noParent') }}</option>
-              <option v-for="o in allOrgs" :key="o.id" :value="o.id">{{ o.name }}</option>
-            </select>
+            <SearchSelect v-model="form.parentId" :options="allOrgs" :placeholder="$t('org.noParent')" />
           </div>
 
           <!-- System Role -->
           <div>
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ $t('org.systemRole') }}</label>
-            <select v-model="form.role"
-              class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-white
-                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-              <option value="user">{{ $t('org.roleUser') }}</option>
-              <option value="admin">{{ $t('org.roleAdmin') }}</option>
-            </select>
+            <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" />
           </div>
 
           <!-- Default Page (user role only) -->
@@ -146,13 +136,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 
 const router = useRouter()
+const { t } = useI18n()
+
+const ROLE_OPTIONS = computed(() => [
+  { id: 'user',  name: t('org.roleUser')  },
+  { id: 'admin', name: t('org.roleAdmin') },
+])
 
 const allRoles = ref([])
 const allOrgs  = ref([])

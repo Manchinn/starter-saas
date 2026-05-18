@@ -51,13 +51,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div>
                 <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
-                <select v-model="filterStatus" @change="onFilterChange" class="input text-sm">
-                  <option value="">{{ t('common.all') }}</option>
-                  <option value="draft">{{ t('erp.po.statusDraft') }}</option>
-                  <option value="confirmed">{{ t('erp.po.statusConfirmed') }}</option>
-                  <option value="received">{{ t('erp.po.statusReceived') }}</option>
-                  <option value="cancelled">{{ t('erp.po.statusCancelled') }}</option>
-                </select>
+                <SearchSelect v-model="filterStatus" :options="STATUS_FILTER_OPTIONS" :placeholder="t('common.all')" @change="onFilterChange" />
               </div>
             </div>
             <div class="mt-3 flex justify-end">
@@ -87,7 +81,7 @@
 </template>
 
 <script setup>
-import { h, ref, watch, onMounted } from 'vue'
+import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -97,11 +91,19 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
 
 const { t }  = useI18n()
 const auth   = useAuthStore()
+
+const STATUS_FILTER_OPTIONS = computed(() => [
+  { id: 'draft',     name: t('erp.po.statusDraft') },
+  { id: 'confirmed', name: t('erp.po.statusConfirmed') },
+  { id: 'received',  name: t('erp.po.statusReceived') },
+  { id: 'cancelled', name: t('erp.po.statusCancelled') },
+])
 
 const orders       = ref([])
 const total        = ref(0)

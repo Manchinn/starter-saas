@@ -25,13 +25,9 @@
             <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.billingNotes.searchPh')"
               class="input pl-9 w-full" />
           </div>
-          <select v-model="filterStatus" @change="onFilterChange" class="input text-sm w-40">
-            <option value="">{{ t('erp.common.allStatuses') }}</option>
-            <option value="draft">{{ t('erp.common.draft') }}</option>
-            <option value="sent">{{ t('erp.billingNotes.statusSent') }}</option>
-            <option value="paid">{{ t('erp.billingNotes.statusPaid') }}</option>
-            <option value="cancelled">{{ t('erp.common.cancelled') }}</option>
-          </select>
+          <div class="w-40">
+            <SearchSelect v-model="filterStatus" :options="STATUS_FILTER_OPTIONS" :placeholder="t('erp.common.allStatuses')" @change="onFilterChange" />
+          </div>
         </div>
 
         <DataTable :columns="columns" :data="billingNotes" :loading="loading" :total="total"
@@ -55,17 +51,25 @@
 </template>
 
 <script setup>
-import { h, ref, watch, onMounted } from 'vue'
+import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, MagnifyingGlassIcon, EyeIcon, DocumentTextIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 
 const { t } = useI18n()
+
+const STATUS_FILTER_OPTIONS = computed(() => [
+  { id: 'draft',     name: t('erp.common.draft') },
+  { id: 'sent',      name: t('erp.billingNotes.statusSent') },
+  { id: 'paid',      name: t('erp.billingNotes.statusPaid') },
+  { id: 'cancelled', name: t('erp.common.cancelled') },
+])
 
 const billingNotes  = ref([])
 const total         = ref(0)

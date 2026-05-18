@@ -206,10 +206,17 @@ const updateStatus = async (id, status, userId) => {
   return getById(id)
 }
 
-const update = async (id, { customerId, orderDate, notes, taxRate, items }, userId) => {
+const update = async (id, { customerId, orderDate, notes, taxRate, currency, exchangeRate, items }, userId) => {
   const order = await Order.findByPk(id)
   if (!order) throw { status: 404, message: 'Order not found' }
   if (order.status !== 'draft') throw { status: 400, message: 'Only draft orders can be edited' }
+
+  const headerExtras = {}
+  if (currency !== undefined) headerExtras.currency = currency || null
+  if (currency !== undefined || exchangeRate !== undefined) {
+    const fx = await require('../settings/currency.service').getRateOn(currency, orderDate || order.orderDate, order.organizationId)
+    headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
+  }
 
   await sequelize.transaction(async (t) => {
     if (items) {
@@ -220,7 +227,7 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }, user
       const tax   = toFixed(subtotal * (rate / 100), 2)
       const total = toFixed(subtotal + tax, 2)
 
-      await order.update({ customerId: customerId || null, orderDate, notes, subtotal, tax, total, modifiedBy: userId || null }, { transaction: t })
+      await order.update({ customerId: customerId || null, orderDate, notes, taxRate: rate, subtotal, tax, total, ...headerExtras, modifiedBy: userId || null }, { transaction: t })
 
       for (const item of items) {
         const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
@@ -242,7 +249,7 @@ const update = async (id, { customerId, orderDate, notes, taxRate, items }, user
         )
       }
     } else {
-      await order.update({ customerId: customerId || null, orderDate, notes, modifiedBy: userId || null }, { transaction: t })
+      await order.update({ customerId: customerId || null, orderDate, notes, ...headerExtras, modifiedBy: userId || null }, { transaction: t })
     }
   })
 
