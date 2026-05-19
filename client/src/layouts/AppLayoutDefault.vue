@@ -1,20 +1,47 @@
 <template>
   <div class="flex h-screen bg-[#F1F5F9] overflow-hidden">
 
+    <!-- ── Mobile backdrop ───────────────────────────────────────────────────── -->
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0" enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-150"
+      leave-from-class="opacity-100" leave-to-class="opacity-0"
+    >
+      <div
+        v-if="sidebarOpen"
+        class="md:hidden fixed inset-0 bg-black/50 z-30"
+        @click="sidebarOpen = false"
+      />
+    </Transition>
+
     <!-- ── Sidebar ───────────────────────────────────────────────────────────── -->
-    <aside class="w-[260px] bg-[#1C2434] flex flex-col flex-shrink-0">
+    <aside
+      class="w-[260px] bg-[#1C2434] flex flex-col flex-shrink-0
+             fixed inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-out
+             md:relative md:translate-x-0 md:transition-none"
+      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+    >
 
       <!-- Logo -->
-      <div class="h-[64px] flex items-center px-6 border-b border-white/[0.07] flex-shrink-0">
-        <div class="flex items-center gap-3">
+      <div class="h-[64px] flex items-center px-6 border-b border-white/[0.07] flex-shrink-0 gap-3">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
           <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
             <svg class="w-[15px] h-[15px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                     d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span class="text-[15px] font-bold text-white tracking-tight">Starter SaaS</span>
+          <span class="text-[15px] font-bold text-white tracking-tight truncate">Starter SaaS</span>
         </div>
+        <button
+          type="button"
+          class="md:hidden p-2 -mr-2 rounded-lg text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
+          @click="sidebarOpen = false"
+          aria-label="Close navigation"
+        >
+          <XMarkIcon class="w-5 h-5" />
+        </button>
       </div>
 
       <!-- Nav -->
@@ -138,17 +165,25 @@
     <div class="flex-1 flex flex-col overflow-hidden">
 
       <!-- Topbar -->
-      <header class="h-[64px] bg-white border-b border-[#E2E8F0] flex items-center px-6 gap-4 flex-shrink-0">
+      <header class="h-[64px] bg-white border-b border-[#E2E8F0] flex items-center px-3 sm:px-4 md:px-6 gap-2 sm:gap-4 flex-shrink-0">
+        <button
+          type="button"
+          class="md:hidden p-2 -ml-1 rounded-lg text-[#637381] hover:bg-[#F7F9FC] transition-colors flex-shrink-0"
+          @click="sidebarOpen = true"
+          aria-label="Open navigation"
+        >
+          <Bars3Icon class="w-6 h-6" />
+        </button>
         <div class="flex-1 min-w-0">
           <h2 class="text-[14px] font-semibold text-[#1C2434] truncate">{{ currentPageTitle }}</h2>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-1.5 sm:gap-2.5">
           <!-- Language switcher -->
           <div class="relative" ref="langMenuRef">
             <button
               @click="langOpen = !langOpen"
-              class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium text-[#637381]
+              class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-[13px] font-medium text-[#637381]
                      border border-[#E2E8F0] bg-white hover:bg-[#F7F9FC] transition-colors select-none"
             >
               <span>{{ currentLangLabel }}</span>
@@ -188,7 +223,7 @@
           </div>
 
           <!-- Notification bell -->
-          <button class="w-10 h-10 flex items-center justify-center rounded-xl border border-[#E2E8F0]
+          <button class="hidden sm:flex w-10 h-10 items-center justify-center rounded-xl border border-[#E2E8F0]
                          bg-white hover:bg-[#F7F9FC] text-[#637381] hover:text-[#1C2434] transition-colors">
             <BellIcon class="w-5 h-5" />
           </button>
@@ -198,18 +233,18 @@
             <button
               type="button"
               @click="userOpen = !userOpen"
-              class="flex items-center gap-2.5 pl-2.5 pr-3.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-white
+              class="flex items-center gap-2.5 p-1 sm:pl-2.5 sm:pr-3.5 sm:py-1.5 rounded-xl border border-transparent sm:border-[#E2E8F0] bg-transparent sm:bg-white
                      hover:bg-[#F7F9FC] transition-colors"
             >
               <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
                           text-white text-[12px] font-bold flex-shrink-0">
                 {{ userInitial }}
               </div>
-              <div class="hidden sm:block min-w-0 text-left">
+              <div class="hidden lg:block min-w-0 text-left">
                 <p class="text-[13px] font-semibold text-[#1C2434] truncate max-w-32 leading-tight">{{ auth.user?.name }}</p>
                 <p class="text-[11px] text-[#637381] capitalize leading-tight">{{ auth.user?.role }}</p>
               </div>
-              <ChevronDownIcon class="w-3.5 h-3.5 text-[#9BA7B0] transition-transform"
+              <ChevronDownIcon class="hidden lg:block w-3.5 h-3.5 text-[#9BA7B0] transition-transform"
                                :class="{ 'rotate-180': userOpen }" />
             </button>
 
@@ -253,7 +288,7 @@
       </header>
 
       <!-- Impersonation banner -->
-      <div v-if="auth.impersonating" class="flex-shrink-0 bg-amber-400 px-6 py-2 flex items-center gap-3">
+      <div v-if="auth.impersonating" class="flex-shrink-0 bg-amber-400 px-4 md:px-6 py-2 flex items-center gap-3">
         <UserCircleIcon class="w-4 h-4 text-amber-900 flex-shrink-0" />
         <p class="text-[13px] font-semibold text-amber-900 flex-1 leading-none">
           Viewing as <span class="font-bold">{{ auth.user?.name }}</span> ({{ auth.user?.email }})
@@ -265,7 +300,7 @@
       </div>
 
       <!-- Content -->
-      <main class="flex-1 overflow-y-auto p-6 scrollbar-thin">
+      <main class="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin">
         <slot />
       </main>
 
@@ -274,10 +309,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { ChevronDownIcon, ArrowRightOnRectangleIcon, BellIcon, UserCircleIcon, ComputerDesktopIcon } from '@heroicons/vue/24/outline'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import {
+  ChevronDownIcon, ArrowRightOnRectangleIcon, BellIcon,
+  UserCircleIcon, ComputerDesktopIcon, Bars3Icon, XMarkIcon,
+} from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAppLayout } from '@/composables/useAppLayout'
 
 const {
@@ -291,6 +329,19 @@ const {
 } = useAppLayout()
 
 const router = useRouter()
+const route  = useRoute()
+
+// ── Mobile sidebar state ────────────────────────────────────────────────
+const sidebarOpen = ref(false)
+
+watch(() => route.path, () => { sidebarOpen.value = false })
+
+watch(sidebarOpen, (open) => {
+  if (typeof document === 'undefined') return
+  // Only lock when sidebar is opened as overlay (mobile). On md+ it's static.
+  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+  document.body.style.overflow = open && isMobile ? 'hidden' : ''
+})
 
 function handleReturnToAdmin() {
   auth.returnToAdmin()
@@ -330,8 +381,19 @@ function onClickOutside(e) {
   }
 }
 
-onMounted(() => document.addEventListener('mousedown', onClickOutside))
-onUnmounted(() => document.removeEventListener('mousedown', onClickOutside))
+function onKeydown(e) {
+  if (e.key === 'Escape' && sidebarOpen.value) sidebarOpen.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', onClickOutside)
+  window.addEventListener('keydown', onKeydown)
+})
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onClickOutside)
+  window.removeEventListener('keydown', onKeydown)
+  if (typeof document !== 'undefined') document.body.style.overflow = ''
+})
 </script>
 
 <style scoped>

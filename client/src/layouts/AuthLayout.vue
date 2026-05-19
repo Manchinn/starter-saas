@@ -15,7 +15,7 @@
       <div class="absolute bottom-1/4 left-0 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] pointer-events-none" />
 
       <!-- Content -->
-      <div class="relative z-10 flex flex-col h-full p-10">
+      <div class="relative z-10 flex flex-col h-full p-8 xl:p-10">
 
         <!-- Logo -->
         <div class="flex items-center gap-3">
@@ -78,11 +78,11 @@
     </div>
 
     <!-- ── Form panel ──────────────────────────────────────────────────────────── -->
-    <div class="flex-1 flex items-center justify-center px-6 py-12 bg-[#F1F5F9]">
+    <div class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-[#F1F5F9]">
       <div class="w-full max-w-[400px]">
 
         <!-- Mobile logo -->
-        <div class="flex items-center gap-2.5 lg:hidden mb-8">
+        <div class="flex items-center gap-2.5 lg:hidden mb-6 sm:mb-8">
           <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -93,9 +93,9 @@
         </div>
 
         <!-- Form card -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card-lg p-8">
-          <div class="mb-7">
-            <h2 class="text-[22px] font-bold text-[#1C2434] tracking-tight">{{ subtitle }}</h2>
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card-lg p-6 sm:p-8">
+          <div class="mb-6 sm:mb-7">
+            <h2 class="text-[20px] sm:text-[22px] font-bold text-[#1C2434] tracking-tight">{{ subtitle }}</h2>
             <p class="mt-1 text-[13px] text-[#637381]">{{ t('auth.continueDetails') }}</p>
           </div>
           <slot />

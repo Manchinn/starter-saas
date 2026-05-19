@@ -1,19 +1,46 @@
 <template>
   <div class="flex h-screen bg-[#F1F5F9] overflow-hidden">
 
+    <!-- ── Mobile backdrop ────────────────────────────────────────────────── -->
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0" enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-150"
+      leave-from-class="opacity-100" leave-to-class="opacity-0"
+    >
+      <div
+        v-if="sidebarOpen"
+        class="md:hidden fixed inset-0 bg-black/50 z-30"
+        @click="sidebarOpen = false"
+      />
+    </Transition>
+
     <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
-    <aside class="w-[220px] bg-[#1C2434] flex flex-col flex-shrink-0">
+    <aside
+      class="w-[220px] bg-[#1C2434] flex flex-col flex-shrink-0
+             fixed inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-out
+             md:relative md:translate-x-0 md:transition-none"
+      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+    >
 
       <!-- Logo -->
-      <div class="h-[64px] flex items-center px-5 flex-shrink-0 border-b border-white/[0.07]">
-        <div class="flex items-center gap-2.5">
+      <div class="h-[64px] flex items-center px-5 flex-shrink-0 border-b border-white/[0.07] gap-2">
+        <div class="flex items-center gap-2.5 flex-1 min-w-0">
           <div class="w-7 h-7 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span class="text-[14px] font-bold text-white tracking-tight">Starter SaaS</span>
+          <span class="text-[14px] font-bold text-white tracking-tight truncate">Starter SaaS</span>
         </div>
+        <button
+          type="button"
+          class="md:hidden p-2 -mr-2 rounded-lg text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
+          @click="sidebarOpen = false"
+          aria-label="Close navigation"
+        >
+          <XMarkIcon class="w-5 h-5" />
+        </button>
       </div>
 
       <!-- Nav sections -->
@@ -129,12 +156,20 @@
     <!-- ── Main area ───────────────────────────────────────────────────────── -->
     <div class="flex-1 flex flex-col overflow-hidden">
 
-      <header class="h-[64px] bg-white border-b border-[#E2E8F0] flex items-center px-6 gap-4 flex-shrink-0">
+      <header class="h-[64px] bg-white border-b border-[#E2E8F0] flex items-center px-3 sm:px-4 md:px-6 gap-2 sm:gap-4 flex-shrink-0">
+        <button
+          type="button"
+          class="md:hidden p-2 -ml-1 rounded-lg text-[#637381] hover:bg-[#F7F9FC] transition-colors flex-shrink-0"
+          @click="sidebarOpen = true"
+          aria-label="Open navigation"
+        >
+          <Bars3Icon class="w-6 h-6" />
+        </button>
         <h2 class="text-[14px] font-semibold text-[#1C2434] truncate">{{ currentPageTitle }}</h2>
-        <div class="ml-auto text-[12px] text-[#637381] truncate max-w-48">{{ auth.user?.email }}</div>
+        <div class="ml-auto text-[12px] text-[#637381] truncate max-w-48 hidden sm:block">{{ auth.user?.email }}</div>
       </header>
 
-      <main class="flex-1 overflow-y-auto p-6 scrollbar-thin">
+      <main class="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin">
         <slot />
       </main>
 
@@ -143,7 +178,12 @@
 </template>
 
 <script setup>
-import { ChevronDownIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import {
+  ChevronDownIcon, ArrowRightOnRectangleIcon,
+  Bars3Icon, XMarkIcon,
+} from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { useAppLayout } from '@/composables/useAppLayout'
 
@@ -158,6 +198,26 @@ const {
 } = useAppLayout()
 
 const { t } = useI18n()
+const route = useRoute()
+
+const sidebarOpen = ref(false)
+
+watch(() => route.path, () => { sidebarOpen.value = false })
+
+watch(sidebarOpen, (open) => {
+  if (typeof document === 'undefined') return
+  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+  document.body.style.overflow = open && isMobile ? 'hidden' : ''
+})
+
+function onKeydown(e) {
+  if (e.key === 'Escape' && sidebarOpen.value) sidebarOpen.value = false
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  if (typeof document !== 'undefined') document.body.style.overflow = ''
+})
 </script>
 
 <style scoped>
