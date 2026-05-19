@@ -1,12 +1,12 @@
 export default {
   erp: {
     salePackages: {
-      title:          'ชุดขาย',
-      new:            'ชุดขายใหม่',
-      edit:           'แก้ไขชุดขาย',
-      create:         'สร้างชุดขาย',
+      title:          'รายการขายแบบกลุ่ม',
+      new:            'รายการขายแบบกลุ่มใหม่',
+      edit:           'แก้ไขรายการขายแบบกลุ่ม',
+      create:         'สร้างรายการขายแบบกลุ่ม',
       searchPh:       'ค้นหาชื่อหรือรหัส…',
-      noFound:        'ไม่พบชุดขาย',
+      noFound:        'ไม่พบรายการขายแบบกลุ่ม',
       code:           'รหัส',
       name:           'ชื่อ',
       namePh:         'เช่น ชุดพื้นฐาน',
@@ -28,7 +28,7 @@ export default {
       colLineTotal:   'รวมรายการ',
       pricePh:        'ราคาที่กำหนดเอง',
       totalPrice:     'ราคารวมชุด',
-      deleteTitle:    'ลบชุดขาย',
+      deleteTitle:    'ลบรายการขายแบบกลุ่ม',
     },
 
     saleItems: {

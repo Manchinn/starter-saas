@@ -92,7 +92,7 @@ export default {
     stockBalance:      'ยอดคงเหลือ',
     stockMovement:     'ความเคลื่อนไหวสต็อก',
     sales:             'การขาย',
-    salePackages:      'ชุดขาย',
+    salePackages:      'รายการขายแบบกลุ่ม',
     saleItems:         'รายการขาย',
     priceLists:        'รายการราคา',
     quotations:        'ใบเสนอราคา',
