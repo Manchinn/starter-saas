@@ -198,19 +198,25 @@
 
         <!-- Summary + Actions -->
         <FormCard :title="t('erp.orders.orderSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
-          <div class="px-6 py-4 grid grid-cols-3 gap-6">
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.items') }}</span>
-              <span class="text-[13px] font-semibold text-[#1C2434]">{{ form.items.length }}</span>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.subtotal') }}</span>
-              <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</span>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.tax') }}</span>
-              <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</span>
-            </div>
+          <div class="px-6 py-5 flex justify-end">
+            <dl class="w-full max-w-xs space-y-2.5">
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.orders.items') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ form.items.length }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.orders.tax') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</dd>
+              </div>
+              <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
+                <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.total') }}</dt>
+                <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
+              </div>
+            </dl>
           </div>
 
           <DocFooterBar
