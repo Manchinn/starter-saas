@@ -9,19 +9,16 @@
       </div>
 
       <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
-          <div class="relative flex-1 min-w-0">
-            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
-            <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.bills.searchPh')"
-              class="input pl-9 w-full" />
-          </div>
-          <div class="w-40">
-            <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
-          </div>
-        </div>
-
         <DataTable :columns="columns" :data="items" :loading="loading" :total="total"
-          v-model:page="page" :page-size="limit">
+          v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          searchable :search-placeholder="t('erp.bills.searchPh')">
+
+          <template #toolbar>
+            <div class="w-40">
+              <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
+            </div>
+          </template>
+
           <template #empty>
             <div class="flex flex-col items-center gap-3 py-4">
               <DocumentTextIcon class="w-8 h-8 text-[#CBD5E1]" />
@@ -38,7 +35,7 @@
 import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { MagnifyingGlassIcon, DocumentTextIcon, EyeIcon } from '@heroicons/vue/24/outline'
+import { DocumentTextIcon, EyeIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -60,7 +57,6 @@ const limit        = 20
 const search       = ref('')
 const filterStatus = ref('')
 const loading      = ref(false)
-let searchTimeout  = null
 
 async function loadItems() {
   loading.value = true
@@ -73,10 +69,9 @@ async function loadItems() {
   } finally { loading.value = false }
 }
 
-function onSearch() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => { page.value = 1; loadItems() }, 300) }
 function onFilterChange() { page.value = 1; loadItems() }
 
-watch(page, loadItems)
+watch([page, search], loadItems)
 onMounted(loadItems)
 
 const fmtMoney = (n) => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })

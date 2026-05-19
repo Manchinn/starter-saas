@@ -17,21 +17,16 @@
       </div>
 
       <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-
-        <!-- Toolbar -->
-        <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
-          <div class="relative flex-1 min-w-0">
-            <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
-            <input v-model="search" @input="onSearch" type="search" :placeholder="t('erp.fiscalYears.searchPh')"
-              class="input pl-9 w-full" />
-          </div>
-          <div class="w-36">
-            <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('erp.common.allStatuses')" @change="onFilterChange" />
-          </div>
-        </div>
-
         <DataTable :columns="columns" :data="fiscalYears" :loading="loading" :total="total"
-          v-model:page="page" :page-size="limit">
+          v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          searchable :search-placeholder="t('erp.fiscalYears.searchPh')">
+
+          <template #toolbar>
+            <div class="w-36">
+              <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('erp.common.allStatuses')" @change="onFilterChange" />
+            </div>
+          </template>
+
           <template #empty>
             <div class="flex flex-col items-center gap-3 py-4">
               <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
@@ -54,7 +49,7 @@
 import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { PlusIcon, MagnifyingGlassIcon, EyeIcon, CalendarDaysIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, EyeIcon, CalendarDaysIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
@@ -75,7 +70,6 @@ const limit        = 20
 const search       = ref('')
 const filterStatus = ref('')
 const loading      = ref(false)
-let searchTimeout  = null
 
 async function fetchFiscalYears() {
   loading.value = true
@@ -90,13 +84,9 @@ async function fetchFiscalYears() {
   }
 }
 
-function onSearch() {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => { page.value = 1; fetchFiscalYears() }, 350)
-}
 function onFilterChange() { page.value = 1; fetchFiscalYears() }
 
-watch(page, fetchFiscalYears)
+watch([page, search], fetchFiscalYears)
 onMounted(fetchFiscalYears)
 
 function durationDays(start, end) {

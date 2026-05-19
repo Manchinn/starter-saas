@@ -1,5 +1,29 @@
 <template>
   <div>
+    <!-- Toolbar: server-side global filter + caller-provided extras -->
+    <div
+      v-if="searchable || $slots.toolbar"
+      class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3"
+    >
+      <div v-if="searchable" class="relative flex-1 min-w-0">
+        <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
+        <input
+          v-model="searchInput"
+          @input="onSearchInput"
+          type="search"
+          :placeholder="searchPlaceholder"
+          class="input pl-9 w-full"
+        />
+      </div>
+      <slot name="toolbar" />
+    </div>
+
+    <!-- Advanced filter panel (collapsible) — parent controls visibility -->
+    <slot name="filters" />
+
+    <!-- Active filter chips bar -->
+    <slot name="active-filters" />
+
     <table class="w-full text-sm">
       <thead>
         <tr class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
@@ -107,41 +131,75 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 import {
   useVueTable, FlexRender, getCoreRowModel, getSortedRowModel,
 } from '@tanstack/vue-table'
 import {
   ChevronLeftIcon, ChevronRightIcon,
   ChevronUpIcon, ChevronDownIcon, ChevronUpDownIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
-  columns:        { type: Array,   required: true },
-  data:           { type: Array,   default: () => [] },
-  loading:        { type: Boolean, default: false },
-  total:          { type: Number,  default: 0 },
-  page:           { type: Number,  default: 1 },
-  pageSize:       { type: Number,  default: 20 },
-  initialSorting: { type: Array,   default: () => [] },
+  columns:           { type: Array,   required: true },
+  data:              { type: Array,   default: () => [] },
+  loading:           { type: Boolean, default: false },
+  total:             { type: Number,  default: 0 },
+  page:              { type: Number,  default: 1 },
+  pageSize:          { type: Number,  default: 20 },
+  initialSorting:    { type: Array,   default: () => [] },
+  // Server-side global filter (TanStack docs: https://tanstack.com/table/v8/docs/guide/global-filtering)
+  searchable:        { type: Boolean, default: false },
+  globalFilter:      { type: String,  default: '' },
+  searchPlaceholder: { type: String,  default: 'Search…' },
+  searchDebounce:    { type: Number,  default: 350 },
 })
 
-defineEmits(['update:page'])
+const emit = defineEmits(['update:page', 'update:globalFilter'])
 
 const sorting = ref([...props.initialSorting])
+
+// Debounced local mirror of globalFilter — input binds here, emits fire after `searchDebounce`.
+const searchInput = ref(props.globalFilter)
+let debounceHandle = null
+
+// External reset (e.g. parent clears filters) syncs back into the input.
+watch(() => props.globalFilter, v => {
+  if (v !== searchInput.value) searchInput.value = v
+})
+
+function onSearchInput() {
+  clearTimeout(debounceHandle)
+  debounceHandle = setTimeout(() => {
+    if (searchInput.value === props.globalFilter) return
+    emit('update:globalFilter', searchInput.value)
+    if (props.page !== 1) emit('update:page', 1)
+  }, props.searchDebounce)
+}
+
+onBeforeUnmount(() => clearTimeout(debounceHandle))
 
 const table = useVueTable({
   get data()    { return props.data },
   get columns() { return props.columns },
-  getCoreRowModel:    getCoreRowModel(),
+  getCoreRowModel:   getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
   state: {
-    get sorting() { return sorting.value },
+    get sorting()      { return sorting.value },
+    get globalFilter() { return props.globalFilter },
   },
   onSortingChange: updater => {
     sorting.value = typeof updater === 'function' ? updater(sorting.value) : updater
   },
+  onGlobalFilterChange: updater => {
+    const next = typeof updater === 'function' ? updater(props.globalFilter) : updater
+    if (next === props.globalFilter) return
+    emit('update:globalFilter', next)
+    if (props.page !== 1) emit('update:page', 1)
+  },
   sortDescFirst:    true,
+  manualFiltering:  true,
   manualPagination: true,
   get pageCount() { return Math.ceil(props.total / props.pageSize) },
 })

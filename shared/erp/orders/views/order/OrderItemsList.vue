@@ -4,19 +4,12 @@
 
       <div class="flex items-center justify-between gap-4">
         <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.orderItems.title') }}</h1>
-        <div class="flex items-center gap-3">
-          <input
-            v-model="search"
-            @input="onSearch"
-            type="search"
-            :placeholder="t('erp.orderItems.colProduct')"
-            class="px-4 py-2 border border-[#CBD5E1] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-64"
-          />
-        </div>
       </div>
 
       <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-        <DataTable :columns="columns" :data="items" :loading="loading" :total="total" v-model:page="page" :page-size="limit">
+        <DataTable :columns="columns" :data="items" :loading="loading" :total="total"
+          v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          searchable :search-placeholder="t('erp.orderItems.colProduct')">
           <template #empty>
             <p class="text-center text-sm text-[#9BA7B0]">{{ t('erp.common.noRecords') }}</p>
           </template>
@@ -120,7 +113,6 @@ const page         = ref(1)
 const limit        = 50
 const search       = ref('')
 const loading      = ref(false)
-let searchTimeout  = null
 
 const masterItems  = ref([])
 
@@ -238,12 +230,7 @@ async function fetchMasterItems() {
   }
 }
 
-function onSearch() {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => { page.value = 1; fetchItems() }, 350)
-}
-
-watch(page, fetchItems)
+watch([page, search], fetchItems)
 onMounted(() => { fetchItems(); fetchMasterItems() })
 
 function openEdit(item) {
