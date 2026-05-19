@@ -102,10 +102,18 @@
 
             <div class="divide-y divide-[#E2E8F0]">
               <div v-for="(line, idx) in form.items" :key="idx"
-                class="grid items-center gap-3 px-5 py-3 hover:bg-[#F7F9FC] transition-colors group"
+                class="grid items-center gap-3 px-5 py-3 transition-colors group border-l-2"
+                :class="isDuplicate(line)
+                  ? 'bg-amber-50 hover:bg-amber-100 border-l-amber-400'
+                  : 'border-l-transparent hover:bg-[#F7F9FC]'"
+                :title="isDuplicate(line) ? t('erp.orders.duplicateItemWarning') : ''"
                 style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 2rem">
 
-                <div class="text-[12px] font-semibold text-[#CBD5E1] text-center select-none">{{ idx + 1 }}</div>
+                <div class="text-[12px] font-semibold text-center select-none flex items-center justify-center"
+                  :class="isDuplicate(line) ? 'text-amber-600' : 'text-[#CBD5E1]'">
+                  <ExclamationTriangleIcon v-if="isDuplicate(line)" class="w-4 h-4" />
+                  <span v-else>{{ idx + 1 }}</span>
+                </div>
 
                 <SearchSelectPopup
                   v-model="line.saleItemId"
@@ -230,7 +238,7 @@ import {
   PlusIcon, TrashIcon,
   CheckIcon, ShoppingCartIcon,
   ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
-  CalculatorIcon, LightBulbIcon,
+  CalculatorIcon, LightBulbIcon, ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -451,6 +459,23 @@ watch(() => form.value.customerId, () => {
   errors.value.customerId = ''
   for (const line of form.value.items) applyPricing(line)
 })
+
+// Sale-item IDs that appear on more than one line — used to highlight
+// duplicate rows so the user can spot accidental double-adds.
+const duplicateSaleItemIds = computed(() => {
+  const counts = new Map()
+  for (const it of form.value.items) {
+    const id = it.saleItemId
+    if (!id) continue
+    counts.set(id, (counts.get(id) || 0) + 1)
+  }
+  const dupes = new Set()
+  for (const [id, n] of counts) if (n > 1) dupes.add(id)
+  return dupes
+})
+function isDuplicate(line) {
+  return !!line.saleItemId && duplicateSaleItemIds.value.has(line.saleItemId)
+}
 
 const subtotal   = computed(() => form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0))
 const taxAmount  = computed(() => toFixed(

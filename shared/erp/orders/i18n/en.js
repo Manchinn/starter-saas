@@ -19,6 +19,7 @@ export default {
       lineItems:    'Line Items',
       addItem:      'Add Item',
       addFirstItem: 'Add First Item',
+      duplicateItemWarning: 'This item appears on more than one line',
       saleItem:     'Sale Item',
       saleItems:    'Sale Items',
       salePackages: 'Sale Packages',
