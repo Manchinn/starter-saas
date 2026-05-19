@@ -1,3 +1,7 @@
+// Run from any cwd — relative paths in config.db.storage are resolved against
+// the server directory (this file's grandparent).
+const path = require('path')
+process.chdir(path.resolve(__dirname, '..'))
 require('dotenv').config()
 const { sequelize } = require('../models')
 

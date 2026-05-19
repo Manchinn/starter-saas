@@ -1,3 +1,5 @@
+const path = require('path')
+process.chdir(path.resolve(__dirname, '..'))
 require('dotenv').config()
 const { sequelize } = require('../models')
 
