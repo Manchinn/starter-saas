@@ -80,7 +80,7 @@
           <!-- Items table -->
           <div v-else>
             <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem">
+              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 1.5rem 2rem">
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-center">#</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.saleItem') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.store') }}</div>
@@ -91,6 +91,7 @@
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.tax') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.amount') }}</div>
               <div></div>
+              <div></div>
             </div>
 
             <div class="divide-y divide-[#E2E8F0]">
@@ -98,14 +99,12 @@
                 v-show="isRowVisible(line)"
                 class="grid items-center gap-3 px-5 py-3 transition-colors group border-l-2"
                 :class="[
-                  line.isPackage ? 'bg-primary-50/40 border-l-primary-400' :
-                  isDuplicate(line) ? 'bg-amber-50 hover:bg-amber-100 border-l-amber-400'
-                  : (line.parentKey ? 'bg-[#F7F9FC]/60 hover:bg-[#F1F5F9] border-l-primary-200' : 'border-l-transparent hover:bg-[#F7F9FC]'),
+                  line.isPackage ? 'bg-primary-50/40 border-l-primary-400'
+                    : (line.parentKey ? 'bg-[#F7F9FC]/60 hover:bg-[#F1F5F9] border-l-primary-200' : 'border-l-transparent hover:bg-[#F7F9FC]'),
                   dragFromIdx === topLevelStart(idx) ? 'opacity-40' : '',
                   dragOverIdx === topLevelStart(idx) && dragFromIdx !== topLevelStart(idx) ? 'border-t-2 border-t-primary-500' : '',
                 ]"
-                :title="isDuplicate(line) ? t('erp.orders.duplicateItemWarning') : ''"
-                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem"
+                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 1.5rem 2rem"
                 @dragover="onDragOver($event, idx)"
                 @drop="onDrop(idx)"
                 @dragleave="onDragLeave(idx)">
@@ -117,11 +116,10 @@
                   @dragend="onDragEnd"
                   :title="t('erp.orders.dragToReorder')"
                   class="text-[12px] font-semibold text-center select-none flex items-center justify-center
-                         cursor-grab active:cursor-grabbing rounded hover:bg-[#E2E8F0]/60 h-7"
-                  :class="isDuplicate(line) ? 'text-amber-600' : 'text-[#CBD5E1] group-hover:text-[#637381]'">
-                  <ExclamationTriangleIcon v-if="isDuplicate(line)" class="w-4 h-4" />
-                  <Bars3Icon v-else class="w-4 h-4 hidden group-hover:block" />
-                  <span v-if="!isDuplicate(line)" class="group-hover:hidden">{{ idx + 1 }}</span>
+                         cursor-grab active:cursor-grabbing rounded hover:bg-[#E2E8F0]/60 h-7
+                         text-[#CBD5E1] group-hover:text-[#637381]">
+                  <Bars3Icon class="w-4 h-4 hidden group-hover:block" />
+                  <span class="group-hover:hidden">{{ idx + 1 }}</span>
                 </div>
                 <div v-else class="text-[11px] text-[#CBD5E1] text-center select-none">↳</div>
 
@@ -202,6 +200,14 @@
                   </div>
                 </template>
 
+                <!-- Duplicate-item indicator (after amount, before delete) -->
+                <div v-if="!line.parentKey" class="flex items-center justify-center">
+                  <ExclamationTriangleIcon v-if="isDuplicate(line)"
+                    :title="t('erp.orders.duplicateItemWarning')"
+                    class="w-4 h-4 text-amber-500" />
+                </div>
+                <div v-else></div>
+
                 <button @click="removeLine(idx)" type="button"
                   :title="line.isPackage ? t('erp.orders.removePackage') : ''"
                   class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
@@ -214,12 +220,13 @@
 
             <!-- Subtotal footer -->
             <div class="grid items-center gap-3 px-5 py-3.5 bg-[#F7F9FC] border-t border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem">
+              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 1.5rem 2rem">
               <div class="col-span-7 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">
                 {{ t('erp.orders.subtotal') }}
               </div>
               <div class="text-[13px] font-semibold text-[#637381] tabular-nums text-right">{{ fmtMoney(taxAmount) }}</div>
               <div class="text-[13px] font-bold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(subtotal) }}</div>
+              <div></div>
               <div></div>
             </div>
 
@@ -618,11 +625,12 @@ watch(() => form.value.customerId, () => {
   for (const line of form.value.items) applyPricing(line)
 })
 
-// Sale-item IDs that appear on more than one line — used to highlight
-// duplicate rows so the user can spot accidental double-adds.
+// Sale-item IDs that appear on more than one *top-level* line — package
+// children are sold as part of their parent and don't count as duplicates.
 const duplicateSaleItemIds = computed(() => {
   const counts = new Map()
   for (const it of form.value.items) {
+    if (it.parentKey) continue
     const id = it.saleItemId
     if (!id) continue
     counts.set(id, (counts.get(id) || 0) + 1)
@@ -632,7 +640,7 @@ const duplicateSaleItemIds = computed(() => {
   return dupes
 })
 function isDuplicate(line) {
-  return !!line.saleItemId && duplicateSaleItemIds.value.has(line.saleItemId)
+  return !line.parentKey && !!line.saleItemId && duplicateSaleItemIds.value.has(line.saleItemId)
 }
 
 function lineTax(line) {
