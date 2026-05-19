@@ -96,16 +96,30 @@
             <div class="divide-y divide-[#E2E8F0]">
               <div v-for="(line, idx) in form.items" :key="idx"
                 class="grid items-center gap-3 px-5 py-3 transition-colors group border-l-2"
-                :class="isDuplicate(line)
-                  ? 'bg-amber-50 hover:bg-amber-100 border-l-amber-400'
-                  : 'border-l-transparent hover:bg-[#F7F9FC]'"
+                :class="[
+                  isDuplicate(line)
+                    ? 'bg-amber-50 hover:bg-amber-100 border-l-amber-400'
+                    : 'border-l-transparent hover:bg-[#F7F9FC]',
+                  dragFromIdx === idx ? 'opacity-40' : '',
+                  dragOverIdx === idx && dragFromIdx !== idx ? 'border-t-2 border-t-primary-500' : '',
+                ]"
                 :title="isDuplicate(line) ? t('erp.orders.duplicateItemWarning') : ''"
-                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem">
+                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem"
+                @dragover="onDragOver($event, idx)"
+                @drop="onDrop(idx)"
+                @dragleave="onDragLeave(idx)">
 
-                <div class="text-[12px] font-semibold text-center select-none flex items-center justify-center"
-                  :class="isDuplicate(line) ? 'text-amber-600' : 'text-[#CBD5E1]'">
+                <div
+                  draggable="true"
+                  @dragstart="onDragStart($event, idx)"
+                  @dragend="onDragEnd"
+                  :title="t('erp.orders.dragToReorder')"
+                  class="text-[12px] font-semibold text-center select-none flex items-center justify-center
+                         cursor-grab active:cursor-grabbing rounded hover:bg-[#E2E8F0]/60 h-7"
+                  :class="isDuplicate(line) ? 'text-amber-600' : 'text-[#CBD5E1] group-hover:text-[#637381]'">
                   <ExclamationTriangleIcon v-if="isDuplicate(line)" class="w-4 h-4" />
-                  <span v-else>{{ idx + 1 }}</span>
+                  <Bars3Icon v-else class="w-4 h-4 hidden group-hover:block" />
+                  <span v-if="!isDuplicate(line)" class="group-hover:hidden">{{ idx + 1 }}</span>
                 </div>
 
                 <SearchSelectPopup
@@ -248,6 +262,7 @@ import {
   CheckIcon, ShoppingCartIcon,
   ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
   CalculatorIcon, LightBulbIcon, ExclamationTriangleIcon,
+  Bars3Icon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -323,6 +338,37 @@ function addLine() {
 
 function removeLine(idx) {
   form.value.items.splice(idx, 1)
+}
+
+// ── Drag-and-drop reorder ────────────────────────────────────────────────
+const dragFromIdx = ref(null)
+const dragOverIdx = ref(null)
+
+function onDragStart(e, idx) {
+  dragFromIdx.value = idx
+  e.dataTransfer.effectAllowed = 'move'
+  // Required for Firefox to initiate the drag
+  e.dataTransfer.setData('text/plain', String(idx))
+}
+function onDragOver(e, idx) {
+  if (dragFromIdx.value === null) return
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+  dragOverIdx.value = idx
+}
+function onDragLeave(idx) {
+  if (dragOverIdx.value === idx) dragOverIdx.value = null
+}
+function onDrop(idx) {
+  const from = dragFromIdx.value
+  if (from === null || from === idx) { onDragEnd(); return }
+  const [moved] = form.value.items.splice(from, 1)
+  form.value.items.splice(idx, 0, moved)
+  onDragEnd()
+}
+function onDragEnd() {
+  dragFromIdx.value = null
+  dragOverIdx.value = null
 }
 
 // ── Bulk-add popup wiring ───────────────────────────────────────────────

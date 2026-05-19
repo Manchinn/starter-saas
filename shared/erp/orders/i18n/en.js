@@ -20,6 +20,7 @@ export default {
       addItem:      'Add Item',
       addFirstItem: 'Add First Item',
       duplicateItemWarning: 'This item appears on more than one line',
+      dragToReorder: 'Drag to reorder',
       saleItem:     'Sale Item',
       saleItems:    'Sale Items',
       salePackages: 'Sale Packages',

@@ -20,6 +20,7 @@ export default {
       addItem:      'เพิ่มรายการ',
       addFirstItem: 'เพิ่มรายการแรก',
       duplicateItemWarning: 'รายการนี้ปรากฏมากกว่าหนึ่งบรรทัด',
+      dragToReorder: 'ลากเพื่อจัดเรียงใหม่',
       saleItem:     'รายการขาย',
       saleItems:    'รายการขาย',
       salePackages: 'รายการขายแบบกลุ่ม',
