@@ -65,7 +65,9 @@ export default {
       newCustomer:       'เพิ่มลูกค้าใหม่',
       saveDraft:         'บันทึกร่าง',
       savedDraft:        'บันทึกร่างแล้ว',
-      unsavedChanges:    'คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ต้องการละทิ้งหรือไม่?',
+      unsavedChanges:    'คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก',
+      unsavedChangesHint:'ต้องการออกจากหน้านี้และละทิ้งการเปลี่ยนแปลงหรือไม่?',
+      fillRequiredFields:'กรุณากรอกข้อมูลที่จำเป็นก่อน',
     },
 
     orderItems: {

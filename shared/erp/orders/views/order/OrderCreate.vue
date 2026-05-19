@@ -17,6 +17,8 @@
             :saving="saving"
             :saving-label="t('erp.common.creating')"
             :save-label="t('erp.orders.createOrder')"
+            :disabled="!canSave"
+            :disabled-hint="t('erp.orders.fillRequiredFields')"
             @save="save"
           />
         </template>
@@ -429,7 +431,8 @@
           class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
           {{ t('erp.orders.discard') }}
         </button>
-        <button @click="saveDraft" :disabled="savingDraft || saving" type="button"
+        <button @click="saveDraft" :disabled="!canSave || savingDraft || saving" type="button"
+          :title="!canSave ? t('erp.orders.fillRequiredFields') : ''"
           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
                  bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 rounded-xl
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -437,7 +440,8 @@
           <BookmarkSquareIcon v-else class="w-4 h-4" />
           {{ savingDraft ? t('erp.common.saving') : t('erp.orders.saveDraft') }}
         </button>
-        <button @click="save" :disabled="saving || savingDraft" type="button"
+        <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
+          :title="!canSave ? t('erp.orders.fillRequiredFields') : ''"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -447,6 +451,31 @@
         </button>
       </div>
     </div>
+
+    <!-- Confirm dialog (replaces window.confirm) -->
+    <Teleport to="body">
+      <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
+        <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div class="px-5 py-4 flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <ExclamationTriangleIcon class="w-5 h-5 text-amber-600" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-[#1C2434]">{{ confirmTitle }}</p>
+              <p v-if="confirmMessage" class="mt-1 text-[12px] text-[#637381] leading-snug">{{ confirmMessage }}</p>
+            </div>
+          </div>
+          <div class="px-5 py-3 bg-[#F7F9FC] flex items-center justify-end gap-2">
+            <button type="button" @click="confirmAnswer(false)"
+              class="px-4 py-2 text-sm font-medium text-[#637381] hover:text-[#1C2434]">{{ t('common.cancel') }}</button>
+            <button type="button" @click="confirmAnswer(true)"
+              class="px-4 py-2 text-sm font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 shadow-sm">
+              {{ confirmOkLabel }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Inline customer create slide-over -->
     <Teleport to="body">
@@ -595,17 +624,41 @@ onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
 
 function onBeforeUnload(e) {
   if (!dirty.value) return
+  // Browsers ignore custom messages here — they only show their own dialog —
+  // but setting returnValue is what triggers the prompt at all on reload/close.
   e.preventDefault()
-  e.returnValue = ''
+  e.returnValue = t('erp.orders.unsavedChanges')
 }
 onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
 onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
 
+// ── Custom confirm modal (replaces window.confirm) ──────────────────────
+const confirmOpen     = ref(false)
+const confirmTitle    = ref('')
+const confirmMessage  = ref('')
+const confirmOkLabel  = ref('OK')
+let confirmResolver   = null
+function confirmAsync({ title, message, okLabel } = {}) {
+  confirmTitle.value   = title   || ''
+  confirmMessage.value = message || ''
+  confirmOkLabel.value = okLabel || 'OK'
+  confirmOpen.value    = true
+  return new Promise(resolve => { confirmResolver = resolve })
+}
+function confirmAnswer(ok) {
+  confirmOpen.value = false
+  if (confirmResolver) { confirmResolver(ok); confirmResolver = null }
+}
+
 // Vue Router guard — covers in-app navigation (RouterLink in HeaderSaveActions,
 // breadcrumbs, sidebar clicks). beforeunload above handles tab close / reload.
-onBeforeRouteLeave(() => {
+onBeforeRouteLeave(async () => {
   if (!dirty.value) return true
-  return confirm(t('erp.orders.unsavedChanges'))
+  return await confirmAsync({
+    title:   t('erp.orders.unsavedChanges'),
+    message: t('erp.orders.unsavedChangesHint'),
+    okLabel: t('erp.orders.discard'),
+  })
 })
 
 const selectedCustomer = computed(() =>
@@ -1019,6 +1072,23 @@ const discountAmount = computed(() => {
 })
 const grandTotal = computed(() => subtotal.value + Number(taxAmount.value) - Number(discountAmount.value))
 
+// Same rules as validate() but pure (no side-effects) — used to disable the
+// save buttons until required fields are filled.
+const canSave = computed(() => {
+  if (!form.value.customerId || !form.value.orderDate) return false
+  if (!form.value.items.filter(i => !i.parentKey).length) return false
+  for (const item of form.value.items) {
+    if (item.isPackage) {
+      if (!item.quantity || item.quantity < 1) return false
+      continue
+    }
+    if (!item.productName?.trim()) return false
+    if (item.hasProduct && !item.storeId) return false
+    if (!item.quantity || item.quantity < 1) return false
+  }
+  return true
+})
+
 function validate() {
   const e = {}
   if (!form.value.customerId) e.customerId = 'Customer is required'
@@ -1095,8 +1165,15 @@ const savedAtRelative = computed(() => {
   return `${Math.round(secs / 3600)}h ago`
 })
 
-function discard() {
-  if (dirty.value && !confirm(t('erp.orders.unsavedChanges'))) return
+async function discard() {
+  if (dirty.value) {
+    const ok = await confirmAsync({
+      title:   t('erp.orders.unsavedChanges'),
+      message: t('erp.orders.unsavedChangesHint'),
+      okLabel: t('erp.orders.discard'),
+    })
+    if (!ok) return
+  }
   router.push('/erp/orders')
 }
 </script>

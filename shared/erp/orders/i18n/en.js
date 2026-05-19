@@ -65,7 +65,9 @@ export default {
       newCustomer:       'New Customer',
       saveDraft:         'Save Draft',
       savedDraft:        'Draft saved',
-      unsavedChanges:    'You have unsaved changes. Discard them?',
+      unsavedChanges:    'You have unsaved changes',
+      unsavedChangesHint:'Leave this page and discard your changes?',
+      fillRequiredFields:'Fill in the required fields first',
     },
 
     orderItems: {
