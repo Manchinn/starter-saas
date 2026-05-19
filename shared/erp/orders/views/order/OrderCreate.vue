@@ -218,22 +218,20 @@
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                        transition-all resize-none placeholder:text-[#9BA7B0]" />
             </div>
-            <div class="flex justify-end">
-              <dl class="w-full max-w-xs space-y-2.5">
-                <div class="flex items-center justify-between text-[13px]">
-                  <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
-                  <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</dd>
-                </div>
-                <div class="flex items-center justify-between text-[13px]">
-                  <dt class="text-[#637381]">{{ t('erp.orders.tax') }}</dt>
-                  <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</dd>
-                </div>
-                <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
-                  <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.total') }}</dt>
-                  <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
-                </div>
-              </dl>
-            </div>
+            <dl class="w-full space-y-2.5">
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.orders.tax') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</dd>
+              </div>
+              <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
+                <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.total') }}</dt>
+                <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
+              </div>
+            </dl>
           </div>
 
           <DocFooterBar
