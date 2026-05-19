@@ -80,7 +80,7 @@
           <!-- Items table -->
           <div v-else>
             <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 2rem">
+              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem">
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-center">#</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.saleItem') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.store') }}</div>
@@ -88,6 +88,7 @@
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.items') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.unitPrice') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.tax') }} %</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.tax') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.amount') }}</div>
               <div></div>
             </div>
@@ -99,7 +100,7 @@
                   ? 'bg-amber-50 hover:bg-amber-100 border-l-amber-400'
                   : 'border-l-transparent hover:bg-[#F7F9FC]'"
                 :title="isDuplicate(line) ? t('erp.orders.duplicateItemWarning') : ''"
-                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 2rem">
+                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem">
 
                 <div class="text-[12px] font-semibold text-center select-none flex items-center justify-center"
                   :class="isDuplicate(line) ? 'text-amber-600' : 'text-[#CBD5E1]'">
@@ -144,6 +145,10 @@
                          text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
                          focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
 
+                <div class="text-[13px] text-[#637381] tabular-nums text-right">
+                  {{ fmtMoney(lineTax(line)) }}
+                </div>
+
                 <div class="text-[13px] font-semibold text-[#1C2434] tabular-nums text-right">
                   {{ fmtMoney((line.quantity || 0) * (line.unitPrice || 0)) }}
                 </div>
@@ -159,10 +164,11 @@
 
             <!-- Subtotal footer -->
             <div class="grid items-center gap-3 px-5 py-3.5 bg-[#F7F9FC] border-t border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 2rem">
+              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem">
               <div class="col-span-7 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">
                 {{ t('erp.orders.subtotal') }}
               </div>
+              <div class="text-[13px] font-semibold text-[#637381] tabular-nums text-right">{{ fmtMoney(taxAmount) }}</div>
               <div class="text-[13px] font-bold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(subtotal) }}</div>
               <div></div>
             </div>
@@ -480,11 +486,11 @@ function isDuplicate(line) {
   return !!line.saleItemId && duplicateSaleItemIds.value.has(line.saleItemId)
 }
 
+function lineTax(line) {
+  return (line.quantity || 0) * (line.unitPrice || 0) * ((line.taxRate || 0) / 100)
+}
 const subtotal   = computed(() => form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0))
-const taxAmount  = computed(() => toFixed(
-  form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0) * ((i.taxRate || 0) / 100), 0),
-  2,
-))
+const taxAmount  = computed(() => toFixed(form.value.items.reduce((s, i) => s + lineTax(i), 0), 2))
 const grandTotal = computed(() => subtotal.value + taxAmount.value)
 
 function validate() {
