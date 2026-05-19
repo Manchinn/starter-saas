@@ -136,6 +136,14 @@ const updateStatus = async (id, status, userId) => {
   const resolveProductId = (item) => item.productId || item.saleItem?.productId || null
   // Package headers carry no stock — their children do.
   const isPackageHeader = (item) => !!item.salePackageId && !item.parentItemId
+  // Child qty is "per package" — multiply by the parent's qty for stock moves.
+  const itemsById = new Map((order.items || []).map(i => [i.id, i]))
+  const effectiveQty = (item) => {
+    const base = Number(item.quantity) || 0
+    if (!item.parentItemId) return base
+    const parent = itemsById.get(item.parentItemId)
+    return base * (Number(parent?.quantity) || 1)
+  }
 
   await sequelize.transaction(async (t) => {
     // Cut stock when moving to confirmed
@@ -145,12 +153,13 @@ const updateStatus = async (id, status, userId) => {
       await checkStoreLock(storeIds)
       for (const item of order.items) {
         if (isPackageHeader(item)) continue
+        const qty = effectiveQty(item)
         const productId = resolveProductId(item)
         if (productId) {
           const product = await Product.findByPk(productId, { transaction: t })
           if (product) {
             const before = parseFloat(product.stock)
-            const after  = before - item.quantity
+            const after  = before - qty
             await product.update({ stock: after }, { transaction: t })
 
             if (item.storeId) {
@@ -159,14 +168,14 @@ const updateStatus = async (id, status, userId) => {
                 defaults: { stock: 0 },
                 transaction: t,
               })
-              await storeStock.update({ stock: storeStock.stock - item.quantity }, { transaction: t })
+              await storeStock.update({ stock: storeStock.stock - qty }, { transaction: t })
             }
 
             await StockMovement.create({
               productId,
               storeId:     item.storeId || null,
               type:        'sale',
-              qty:         -item.quantity,
+              qty:         -qty,
               stockBefore: before,
               stockAfter:  after,
               refType:     'SalesOrder',
@@ -178,7 +187,7 @@ const updateStatus = async (id, status, userId) => {
         }
         if (item.itemId) {
           const masterItem = await Item.findByPk(item.itemId, { transaction: t })
-          if (masterItem) await masterItem.update({ stock: masterItem.stock - item.quantity }, { transaction: t })
+          if (masterItem) await masterItem.update({ stock: masterItem.stock - qty }, { transaction: t })
         }
       }
     }
@@ -190,12 +199,13 @@ const updateStatus = async (id, status, userId) => {
       await checkStoreLock(storeIds)
       for (const item of order.items) {
         if (isPackageHeader(item)) continue
+        const qty = effectiveQty(item)
         const productId = resolveProductId(item)
         if (productId) {
           const product = await Product.findByPk(productId, { transaction: t })
           if (product) {
             const before = parseFloat(product.stock)
-            const after  = before + item.quantity
+            const after  = before + qty
             await product.update({ stock: after }, { transaction: t })
 
             if (item.storeId) {
@@ -204,14 +214,14 @@ const updateStatus = async (id, status, userId) => {
                 defaults: { stock: 0 },
                 transaction: t,
               })
-              await storeStock.update({ stock: storeStock.stock + item.quantity }, { transaction: t })
+              await storeStock.update({ stock: storeStock.stock + qty }, { transaction: t })
             }
 
             await StockMovement.create({
               productId,
               storeId:     item.storeId || null,
               type:        'sale_cancel',
-              qty:         item.quantity,
+              qty,
               stockBefore: before,
               stockAfter:  after,
               refType:     'SalesOrder',
@@ -223,7 +233,7 @@ const updateStatus = async (id, status, userId) => {
         }
         if (item.itemId) {
           const masterItem = await Item.findByPk(item.itemId, { transaction: t })
-          if (masterItem) await masterItem.update({ stock: masterItem.stock + item.quantity }, { transaction: t })
+          if (masterItem) await masterItem.update({ stock: masterItem.stock + qty }, { transaction: t })
         }
       }
     }
@@ -407,13 +417,21 @@ const createDeliveryOrder = async (id, userId, organizationId) => {
     }, { transaction: t })
     createdId = doc.id
 
+    // DO ships physical items, so skip package headers and use the children's
+    // (per-package) qty multiplied by their parent's qty.
+    const itemsByDOId = new Map((order.items || []).map(i => [i.id, i]))
     for (const item of order.items) {
       if (item.salePackageId && !item.parentItemId) continue
+      let qty = Number(item.quantity) || 0
+      if (item.parentItemId) {
+        const parent = itemsByDOId.get(item.parentItemId)
+        qty *= Number(parent?.quantity) || 1
+      }
       await DeliveryOrderItem.create({
         deliveryOrderId: doc.id,
         productId:       item.productId || null,
         productName:     item.productName,
-        qty:             item.quantity,
+        qty,
         notes:           null,
         organizationId:  organizationId || null,
       }, { transaction: t })
@@ -441,8 +459,10 @@ const createInvoice = async (id, userId, organizationId) => {
     orderId:     order.id,
     invoiceDate: new Date(),
     notes:       `Auto-created from Sales Order ${order.orderNumber}`,
+    // Invoice prices live on package headers (priced as a single unit) and on
+    // standalone items — package children carry no price and are skipped.
     items: order.items
-      .filter(i => !(i.salePackageId && !i.parentItemId))
+      .filter(i => !i.parentItemId)
       .map(i => ({
         productName: i.productName,
         quantity:    i.quantity,

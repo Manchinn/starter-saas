@@ -171,7 +171,20 @@
                 </thead>
                 <tbody class="divide-y divide-[#E2E8F0]">
                   <template v-for="item in order.items" :key="item.id">
-                    <tr v-if="item.salePackageId && !item.parentItemId" class="bg-primary-50/40">
+                    <!-- Package child: name + "× N" only -->
+                    <tr v-if="item.parentItemId" class="bg-[#FAFBFD] hover:bg-[#F7F9FC] transition-colors">
+                      <td class="px-5 py-2.5 text-[13px] text-[#374151] pl-10">
+                        <span class="text-[#CBD5E1] mr-1">↳</span>
+                        {{ item.productName }}
+                        <span class="text-[11px] font-semibold text-[#9BA7B0] tabular-nums ml-2">× {{ item.quantity }}</span>
+                        <span v-if="item.product?.sku" class="text-xs text-[#9BA7B0] ml-1.5">
+                          ({{ item.product.sku }})
+                        </span>
+                      </td>
+                      <td colspan="4"></td>
+                    </tr>
+                    <!-- Package parent: priced row -->
+                    <tr v-else-if="item.salePackageId" class="bg-primary-50/40 hover:bg-primary-50/60 transition-colors">
                       <td class="px-5 py-3 font-semibold text-primary-700">
                         <span class="inline-flex items-center gap-1.5">
                           <CubeIcon class="w-4 h-4" />
@@ -179,18 +192,16 @@
                           <span class="text-[11px] font-normal text-[#9BA7B0] ml-1">· {{ t('erp.orders.salePackage') }}</span>
                         </span>
                       </td>
-                      <td colspan="3" class="px-5 py-3 text-right text-[12px] italic text-[#637381]">
-                        {{ packageChildCount(item.id) }} item{{ packageChildCount(item.id) !== 1 ? 's' : '' }}
-                      </td>
+                      <td class="px-5 py-3 text-right text-[#637381] tabular-nums">{{ item.quantity }}</td>
+                      <td class="px-5 py-3 text-right text-[#637381] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
+                      <td class="px-5 py-3 text-right text-[#637381] tabular-nums">{{ Number(item.taxRate || 0) }}%</td>
                       <td class="px-5 py-3 text-right font-bold text-primary-700 tabular-nums">
-                        {{ fmtMoney(packageChildTotal(item.id)) }}
+                        {{ fmtMoney((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)) }}
                       </td>
                     </tr>
-                    <tr v-else class="hover:bg-[#F7F9FC] transition-colors"
-                        :class="item.parentItemId ? 'bg-[#FAFBFD]' : ''">
-                      <td class="px-5 py-3.5 font-medium text-[#1C2434]"
-                          :class="item.parentItemId ? 'pl-10' : ''">
-                        <span v-if="item.parentItemId" class="text-[#CBD5E1] mr-1">↳</span>
+                    <!-- Standalone line -->
+                    <tr v-else class="hover:bg-[#F7F9FC] transition-colors">
+                      <td class="px-5 py-3.5 font-medium text-[#1C2434]">
                         {{ item.productName }}
                         <span v-if="item.product?.sku" class="text-xs text-[#9BA7B0] ml-1.5">
                           ({{ item.product.sku }})
@@ -502,15 +513,4 @@ async function confirmDelete() {
 }
 
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—' }
-
-function packageChildren(parentId) {
-  return (order.value?.items || []).filter(i => i.parentItemId === parentId)
-}
-function packageChildCount(parentId) { return packageChildren(parentId).length }
-function packageChildTotal(parentId) {
-  return packageChildren(parentId).reduce(
-    (s, c) => s + (Number(c.quantity) || 0) * (Number(c.unitPrice) || 0),
-    0,
-  )
-}
 </script>

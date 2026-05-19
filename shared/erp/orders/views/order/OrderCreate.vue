@@ -153,21 +153,21 @@
                 </div>
 
                 <!-- Description -->
-                <div v-if="line.isPackage" class="text-[12px] text-[#637381] italic">
+                <div v-if="line.parentKey" class="flex items-center gap-2 pl-5 text-[13px] text-[#374151] truncate">
+                  <span class="truncate">{{ line.productName }}</span>
+                  <span class="text-[11px] font-semibold text-[#9BA7B0] tabular-nums flex-shrink-0">× {{ line.quantity }}</span>
+                </div>
+                <div v-else-if="line.isPackage" class="text-[12px] text-[#637381] italic">
                   {{ childrenOf(line.key).length }} item{{ childrenOf(line.key).length !== 1 ? 's' : '' }}
                 </div>
                 <input v-else v-model="line.productName" type="text" placeholder="Description…"
                   class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-all placeholder:text-[#CBD5E1]"
-                  :class="line.parentKey ? 'pl-5' : ''" />
+                         transition-all placeholder:text-[#CBD5E1]" />
 
-                <!-- Quantity / Unit price / Tax -->
-                <template v-if="line.isPackage">
-                  <div></div><div></div><div></div>
-                  <div class="text-[12px] text-[#9BA7B0] tabular-nums text-right">
-                    {{ fmtMoney(packageTaxTotal(line)) }}
-                  </div>
+                <!-- Quantity / Unit price / Tax % / Tax / Amount: priced on parents + standalone only -->
+                <template v-if="line.parentKey">
+                  <div></div><div></div><div></div><div></div><div></div>
                 </template>
                 <template v-else>
                   <input v-model.number="line.quantity" type="number" min="1"
@@ -188,12 +188,12 @@
                   <div class="text-[13px] text-[#637381] tabular-nums text-right">
                     {{ fmtMoney(lineTax(line)) }}
                   </div>
-                </template>
 
-                <div class="text-[13px] tabular-nums text-right"
-                  :class="line.isPackage ? 'font-bold text-primary-700' : 'font-semibold text-[#1C2434]'">
-                  {{ fmtMoney(line.isPackage ? packageTotal(line) : (line.quantity || 0) * (line.unitPrice || 0)) }}
-                </div>
+                  <div class="text-[13px] tabular-nums text-right"
+                    :class="line.isPackage ? 'font-bold text-primary-700' : 'font-semibold text-[#1C2434]'">
+                    {{ fmtMoney((line.quantity || 0) * (line.unitPrice || 0)) }}
+                  </div>
+                </template>
 
                 <button @click="removeLine(idx)" type="button"
                   :title="line.isPackage ? t('erp.orders.removePackage') : ''"
@@ -388,12 +388,8 @@ function removeLine(idx) {
   }
 }
 
-function isChildLine(line) { return !!line.parentKey }
 function childrenOf(parentKey) {
   return form.value.items.filter(it => it.parentKey === parentKey)
-}
-function packageTotal(parent) {
-  return childrenOf(parent.key).reduce((s, c) => s + (c.quantity || 0) * (c.unitPrice || 0), 0)
 }
 
 // ── Drag-and-drop reorder ────────────────────────────────────────────────
@@ -479,12 +475,42 @@ function makeLineFromSaleItem(si, parentKey = '') {
 }
 
 // Fetch a package and return [parentHeader, ...childLines].
+// The parent carries the package's qty / unitPrice / tax — the children are
+// shown read-only as "what's in the box" and contribute 0 to totals.
 async function linesFromPackage(packageId) {
   try {
     const { data } = await api.get(`/erp/sale-packages/${packageId}`)
     const pkg = data.data.package
     const customer = customers.value.find(c => c.id === form.value.customerId)
     const parentKey = newKey()
+    let parentPrice = 0
+    const children = (pkg.packageItems || []).map(pi => {
+      const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
+      const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
+      // Resolve a per-item price purely so we can sum up a sensible default
+      // package price for the parent — the price doesn't live on the child.
+      let resolved = pi.unitPrice != null ? Number(pi.unitPrice) : 0
+      if (!resolved) {
+        const siFull = saleItems.value.find(s => s.id === pi.saleItemId)
+        const pricing = siFull ? getBestPricing(siFull, customer?.customerGroupId) : null
+        if (pricing) resolved = Number(pricing.unitPrice)
+      }
+      const childQty = Number(pi.quantity) || 1
+      parentPrice += childQty * resolved
+      return {
+        key:           newKey(),
+        parentKey,
+        isPackage:     false,
+        salePackageId: '',
+        saleItemId:    pi.saleItemId,
+        storeId:       '',
+        hasProduct,
+        productName:   si.name || 'Item',
+        quantity:      childQty,
+        unitPrice:     0,
+        taxRate:       0,
+      }
+    })
     const parent = {
       key:           parentKey,
       parentKey:     '',
@@ -495,32 +521,9 @@ async function linesFromPackage(packageId) {
       hasProduct:    false,
       productName:   pkg.code ? `${pkg.name} (${pkg.code})` : pkg.name,
       quantity:      1,
-      unitPrice:     0,
-      taxRate:       0,
+      unitPrice:     parentPrice,
+      taxRate:       Number(settings.tax?.rate) || 0,
     }
-    const children = (pkg.packageItems || []).map(pi => {
-      const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
-      const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
-      let unitPrice = pi.unitPrice != null ? Number(pi.unitPrice) : 0
-      if (!unitPrice) {
-        const siFull = saleItems.value.find(s => s.id === pi.saleItemId)
-        const pricing = siFull ? getBestPricing(siFull, customer?.customerGroupId) : null
-        if (pricing) unitPrice = Number(pricing.unitPrice)
-      }
-      return {
-        key:           newKey(),
-        parentKey,
-        isPackage:     false,
-        salePackageId: '',
-        saleItemId:    pi.saleItemId,
-        storeId:       '',
-        hasProduct,
-        productName:   si.name || 'Item',
-        quantity:      Number(pi.quantity) || 1,
-        unitPrice,
-        taxRate:       Number(settings.tax?.rate) || 0,
-      }
-    })
     return [parent, ...children]
   } catch {
     return []
@@ -612,22 +615,20 @@ function isDuplicate(line) {
 }
 
 function lineTax(line) {
-  if (line.isPackage) return 0
+  // Children carry no price — only their parent (the package) contributes.
+  if (line.parentKey) return 0
   return (line.quantity || 0) * (line.unitPrice || 0) * ((line.taxRate || 0) / 100)
 }
-function packageTaxTotal(parent) {
-  return childrenOf(parent.key).reduce((s, c) => s + lineTax(c), 0)
-}
 const itemsSubtitle = computed(() => {
-  const priced  = form.value.items.filter(i => !i.isPackage).length
-  const packages = form.value.items.filter(i =>  i.isPackage).length
-  if (!priced && !packages) return 'No items yet'
+  const standalone = form.value.items.filter(i => !i.parentKey && !i.isPackage).length
+  const packages   = form.value.items.filter(i =>  i.isPackage).length
+  if (!standalone && !packages) return 'No items yet'
   const parts = []
-  if (priced)  parts.push(`${priced} item${priced  !== 1 ? 's' : ''}`)
-  if (packages) parts.push(`${packages} package${packages !== 1 ? 's' : ''}`)
+  if (standalone) parts.push(`${standalone} item${standalone !== 1 ? 's' : ''}`)
+  if (packages)   parts.push(`${packages} package${packages !== 1 ? 's' : ''}`)
   return parts.join(' · ')
 })
-const subtotal   = computed(() => form.value.items.reduce((s, i) => i.isPackage ? s : s + (i.quantity || 0) * (i.unitPrice || 0), 0))
+const subtotal   = computed(() => form.value.items.reduce((s, i) => i.parentKey ? s : s + (i.quantity || 0) * (i.unitPrice || 0), 0))
 const taxAmount  = computed(() => toFixed(form.value.items.reduce((s, i) => s + lineTax(i), 0), 2))
 const grandTotal = computed(() => subtotal.value + taxAmount.value)
 
@@ -635,11 +636,14 @@ function validate() {
   const e = {}
   if (!form.value.customerId) e.customerId = 'Customer is required'
   if (!form.value.orderDate)  e.orderDate  = 'Order date is required'
-  // A package header alone doesn't count — require at least one priced item.
-  const pricedCount = form.value.items.filter(i => !i.isPackage).length
+  // Standalone items + package parents are "priced lines" — at least one needed.
+  const pricedCount = form.value.items.filter(i => !i.parentKey).length
   if (!pricedCount) e.items = 'Add at least one item'
   for (const item of form.value.items) {
-    if (item.isPackage) continue
+    if (item.isPackage) {
+      if (!item.quantity || item.quantity < 1) { e.items = 'Package quantity must be at least 1'; break }
+      continue
+    }
     if (!item.productName?.trim())        { e.items = 'All items need a description'; break }
     if (item.hasProduct && !item.storeId) { e.items = 'Select a store for product items'; break }
     if (!item.quantity || item.quantity < 1) { e.items = 'All items need a valid quantity'; break }
