@@ -190,20 +190,16 @@
 
         <!-- Summary + Actions -->
         <FormCard :title="t('erp.orders.orderSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
-          <div class="px-6 py-5 grid grid-cols-2 gap-6">
-            <div class="text-left">
+          <div class="px-6 py-5 grid grid-cols-2 gap-6 items-stretch">
+            <div class="flex flex-col text-left">
               <FieldLabel :text="t('erp.orders.notes')" />
-              <textarea v-model="form.notes" rows="4" placeholder="Order notes or special instructions…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+              <textarea v-model="form.notes" placeholder="Order notes or special instructions…"
+                class="flex-1 w-full min-h-[8rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                        transition-all resize-none placeholder:text-[#9BA7B0]" />
             </div>
             <div class="flex justify-end">
               <dl class="w-full max-w-xs space-y-2.5">
-                <div class="flex items-center justify-between text-[13px]">
-                  <dt class="text-[#637381]">{{ t('erp.orders.items') }}</dt>
-                  <dd class="font-semibold text-[#1C2434] tabular-nums">{{ form.items.length }}</dd>
-                </div>
                 <div class="flex items-center justify-between text-[13px]">
                   <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
                   <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</dd>
