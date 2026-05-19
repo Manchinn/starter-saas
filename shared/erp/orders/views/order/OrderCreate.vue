@@ -51,18 +51,6 @@
               <p v-if="errors.orderDate" class="mt-1 text-[11px] text-red-500">{{ errors.orderDate }}</p>
             </div>
 
-            <!-- Tax Rate -->
-            <div>
-              <FieldLabel :text="t('erp.orders.taxRate')" />
-              <div class="relative">
-                <input v-model.number="form.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
-                  class="w-full pl-3.5 pr-9 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-all placeholder:text-[#9BA7B0]" />
-                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] text-[#9BA7B0] font-medium select-none">%</span>
-              </div>
-            </div>
-
             <!-- Currency -->
             <div>
               <FieldLabel :text="t('erp.common.currency')" />
@@ -184,11 +172,20 @@
               <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.subtotal') }}</span>
               <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</span>
             </div>
-            <div class="flex flex-col gap-0.5">
+            <div class="flex flex-col gap-1">
               <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">
-                {{ t('erp.orders.tax') }} ({{ form.taxRate || 0 }}%)
+                {{ t('erp.orders.tax') }}
               </span>
-              <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</span>
+              <div class="flex items-center gap-2">
+                <div class="relative w-20">
+                  <input v-model.number="form.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
+                    class="w-full pl-2 pr-6 py-1 border border-[#E2E8F0] rounded-md text-[13px] text-[#1C2434] tabular-nums
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                           transition-all placeholder:text-[#9BA7B0]" />
+                  <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-[#9BA7B0] font-medium select-none">%</span>
+                </div>
+                <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</span>
+              </div>
             </div>
           </div>
 
