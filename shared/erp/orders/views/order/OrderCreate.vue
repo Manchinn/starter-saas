@@ -88,13 +88,14 @@
           <!-- Items table -->
           <div v-else>
             <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 5rem 7rem 5.5rem 2rem">
+              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 2rem">
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-center">#</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.saleItem') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.store') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.description') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.items') }}</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.unitPrice') }}</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.tax') }} %</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.orders.amount') }}</div>
               <div></div>
             </div>
@@ -102,7 +103,7 @@
             <div class="divide-y divide-[#E2E8F0]">
               <div v-for="(line, idx) in form.items" :key="idx"
                 class="grid items-center gap-3 px-5 py-3 hover:bg-[#F7F9FC] transition-colors group"
-                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 5rem 7rem 5.5rem 2rem">
+                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 2rem">
 
                 <div class="text-[12px] font-semibold text-[#CBD5E1] text-center select-none">{{ idx + 1 }}</div>
 
@@ -130,6 +131,11 @@
                          text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
                          focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
 
+                <input v-model.number="line.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
+                  class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
+                         text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                         focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
+
                 <div class="text-[13px] font-semibold text-[#1C2434] tabular-nums text-right">
                   {{ fmtMoney((line.quantity || 0) * (line.unitPrice || 0)) }}
                 </div>
@@ -145,8 +151,8 @@
 
             <!-- Subtotal footer -->
             <div class="grid items-center gap-3 px-5 py-3.5 bg-[#F7F9FC] border-t border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 5rem 7rem 5.5rem 2rem">
-              <div class="col-span-6 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">
+              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 2rem">
+              <div class="col-span-7 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">
                 {{ t('erp.orders.subtotal') }}
               </div>
               <div class="text-[13px] font-bold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(subtotal) }}</div>
@@ -172,20 +178,9 @@
               <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.subtotal') }}</span>
               <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</span>
             </div>
-            <div class="flex flex-col gap-1">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">
-                {{ t('erp.orders.tax') }}
-              </span>
-              <div class="flex items-center gap-2">
-                <div class="relative w-20">
-                  <input v-model.number="form.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
-                    class="w-full pl-2 pr-6 py-1 border border-[#E2E8F0] rounded-md text-[13px] text-[#1C2434] tabular-nums
-                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                           transition-all placeholder:text-[#9BA7B0]" />
-                  <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-[#9BA7B0] font-medium select-none">%</span>
-                </div>
-                <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</span>
-              </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.tax') }}</span>
+              <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</span>
             </div>
           </div>
 
@@ -243,7 +238,7 @@ const saving    = ref(false)
 const errors    = ref({})
 
 const today = new Date().toISOString().slice(0, 10)
-const form  = ref({ customerId: '', orderDate: today, taxRate: 0, currency: '', exchangeRate: 1, notes: '', items: [] })
+const form  = ref({ customerId: '', orderDate: today, currency: '', exchangeRate: 1, notes: '', items: [] })
 
 const selectedCustomer = computed(() =>
   form.value.customerId ? customers.value.find(c => c.id === form.value.customerId) : null
@@ -275,7 +270,9 @@ onMounted(async () => {
 })
 
 function addLine() {
-  form.value.items.push({ saleItemId: '', storeId: '', hasProduct: false, productName: '', quantity: 1, unitPrice: 0 })
+  // Inherit tax rate from the last line so users don't retype it on every row
+  const prevRate = form.value.items.length ? Number(form.value.items[form.value.items.length - 1].taxRate) || 0 : 0
+  form.value.items.push({ saleItemId: '', storeId: '', hasProduct: false, productName: '', quantity: 1, unitPrice: 0, taxRate: prevRate })
 }
 
 function removeLine(idx) {
@@ -345,6 +342,7 @@ async function expandPackageInto(idx, packageId) {
         productName: `${si.name || 'Item'} (${pkg.code || pkg.name})`,
         quantity:    Number(pi.quantity) || 1,
         unitPrice,
+        taxRate:     0,
       }
     })
     if (expanded.length) form.value.items.splice(idx, 1, ...expanded)
@@ -362,7 +360,10 @@ watch(() => form.value.customerId, () => {
 })
 
 const subtotal   = computed(() => form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0))
-const taxAmount  = computed(() => toFixed(subtotal.value * ((form.value.taxRate || 0) / 100), 2))
+const taxAmount  = computed(() => toFixed(
+  form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0) * ((i.taxRate || 0) / 100), 0),
+  2,
+))
 const grandTotal = computed(() => subtotal.value + taxAmount.value)
 
 function validate() {
@@ -386,10 +387,11 @@ async function save() {
   try {
     const payload = {
       ...form.value,
-      items: form.value.items.map(({ saleItemId, storeId, productName, quantity, unitPrice }) => ({
+      items: form.value.items.map(({ saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
         saleItemId: saleItemId || null,
         storeId:    storeId    || null,
         productName, quantity, unitPrice,
+        taxRate: Number(taxRate) || 0,
       })),
     }
     const { data } = await api.post('/erp/orders', payload)

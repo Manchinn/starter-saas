@@ -46,13 +46,27 @@ const getById = async (id) => {
   return json
 }
 
-const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0, currency, exchangeRate, userId, organizationId }) => {
+// Compute per-line + order-level totals from incoming items.
+// Returns { subtotal, tax, total, lines } where each line carries taxAmount/total.
+const computeTotals = (items) => {
+  const lines = items.map((i) => {
+    const qty   = Number(i.quantity)  || 0
+    const price = Number(i.unitPrice) || 0
+    const rate  = Number(i.taxRate)   || 0
+    const lineSubtotal = qty * price
+    const taxAmount    = toFixed(lineSubtotal * (rate / 100), 2)
+    return { ...i, taxRate: rate, taxAmount, total: toFixed(lineSubtotal + taxAmount, 2), lineSubtotal: toFixed(lineSubtotal, 2) }
+  })
+  const subtotal = lines.reduce((s, l) => s + Number(l.lineSubtotal), 0)
+  const tax      = lines.reduce((s, l) => s + Number(l.taxAmount), 0)
+  return { subtotal: toFixed(subtotal, 2), tax: toFixed(tax, 2), total: toFixed(subtotal + tax, 2), lines }
+}
+
+const create = async ({ customerId, orderDate, notes, items = [], currency, exchangeRate, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Order must have at least one item' }
 
   const orderNumber = await generateOrderNumber()
-  const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
-  const tax   = toFixed(subtotal * (taxRate / 100), 2)
-  const total = toFixed(subtotal + tax, 2)
+  const { subtotal, tax, total, lines } = computeTotals(items)
   const fx = await require('../settings/currency.service').getRateOn(currency, orderDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
@@ -64,7 +78,7 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0, c
     )
     createdId = order.id
 
-    for (const item of items) {
+    for (const item of lines) {
       const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
       const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
       if (item.productId && !item.storeId) throw { status: 400, message: `Store is required for item "${item.productName || 'Unknown'}"` }
@@ -78,7 +92,9 @@ const create = async ({ customerId, orderDate, notes, items = [], taxRate = 0, c
           productName:    item.productName || masterItem?.title || product?.name || 'Unknown',
           quantity:       item.quantity,
           unitPrice:      item.unitPrice,
-          total:          toFixed(item.quantity * item.unitPrice, 2),
+          taxRate:        item.taxRate,
+          taxAmount:      item.taxAmount,
+          total:          item.total,
           organizationId: organizationId || null,
         },
         { transaction: t }
@@ -207,7 +223,7 @@ const updateStatus = async (id, status, userId) => {
   return getById(id)
 }
 
-const update = async (id, { customerId, orderDate, notes, taxRate, currency, exchangeRate, items }, userId) => {
+const update = async (id, { customerId, orderDate, notes, currency, exchangeRate, items }, userId) => {
   const order = await Order.findByPk(id)
   if (!order) throw { status: 404, message: 'Order not found' }
   if (order.status !== 'draft') throw { status: 400, message: 'Only draft orders can be edited' }
@@ -223,14 +239,11 @@ const update = async (id, { customerId, orderDate, notes, taxRate, currency, exc
     if (items) {
       await SalesOrderItem.destroy({ where: { orderId: id }, transaction: t })
 
-      const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
-      const rate = taxRate !== undefined ? taxRate : 0
-      const tax   = toFixed(subtotal * (rate / 100), 2)
-      const total = toFixed(subtotal + tax, 2)
+      const { subtotal, tax, total, lines } = computeTotals(items)
 
-      await order.update({ customerId: customerId || null, orderDate, notes, taxRate: rate, subtotal, tax, total, ...headerExtras, modifiedBy: userId || null }, { transaction: t })
+      await order.update({ customerId: customerId || null, orderDate, notes, subtotal, tax, total, ...headerExtras, modifiedBy: userId || null }, { transaction: t })
 
-      for (const item of items) {
+      for (const item of lines) {
         const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
         const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
         if (item.productId && !item.storeId) throw { status: 400, message: `Store is required for item "${item.productName || 'Unknown'}"` }
@@ -244,7 +257,9 @@ const update = async (id, { customerId, orderDate, notes, taxRate, currency, exc
             productName: item.productName || masterItem?.title || product?.name || 'Unknown',
             quantity:    item.quantity,
             unitPrice:   item.unitPrice,
-            total:       toFixed(item.quantity * item.unitPrice, 2),
+            taxRate:     item.taxRate,
+            taxAmount:   item.taxAmount,
+            total:       item.total,
           },
           { transaction: t }
         )
@@ -300,15 +315,14 @@ const getItemById = async (id) => {
 
 const recalcOrderTotals = async (orderId, t) => {
   const items = await SalesOrderItem.findAll({ where: { orderId }, transaction: t })
-  const subtotal = items.reduce((sum, i) => sum + parseFloat(i.total), 0)
+  const subtotal = items.reduce((sum, i) => sum + (Number(i.quantity) || 0) * (Number(i.unitPrice) || 0), 0)
+  const tax      = items.reduce((sum, i) => sum + Number(i.taxAmount || 0), 0)
+  const total    = subtotal + tax
   const order = await Order.findByPk(orderId, { transaction: t })
-  const taxRate = parseFloat(order.subtotal) > 0 ? (parseFloat(order.tax) / parseFloat(order.subtotal)) : 0
-  const newTax   = toFixed(subtotal * taxRate, 2)
-  const newTotal = toFixed(subtotal + newTax, 2)
-  await order.update({ subtotal: toFixed(subtotal, 2), tax: newTax, total: newTotal }, { transaction: t })
+  await order.update({ subtotal: toFixed(subtotal, 2), tax: toFixed(tax, 2), total: toFixed(total, 2) }, { transaction: t })
 }
 
-const updateItem = async (id, { productId, productName, quantity, unitPrice }) => {
+const updateItem = async (id, { productId, productName, quantity, unitPrice, taxRate }) => {
   const item = await SalesOrderItem.findByPk(id, {
     include: [{ model: Order, as: 'order', attributes: ['id', 'status'] }],
   })
@@ -324,9 +338,12 @@ const updateItem = async (id, { productId, productName, quantity, unitPrice }) =
       resolvedName = product?.name || 'Unknown'
     }
 
-    const qty = quantity ?? item.quantity
+    const qty   = quantity ?? item.quantity
     const price = unitPrice ?? item.unitPrice
-    const lineTotal = toFixed(qty * price, 2)
+    const rate  = taxRate ?? Number(item.taxRate || 0)
+    const lineSubtotal = (Number(qty) || 0) * (Number(price) || 0)
+    const taxAmount    = toFixed(lineSubtotal * (Number(rate) / 100), 2)
+    const lineTotal    = toFixed(lineSubtotal + taxAmount, 2)
 
     await item.update(
       {
@@ -334,6 +351,8 @@ const updateItem = async (id, { productId, productName, quantity, unitPrice }) =
         productName: resolvedName || item.productName,
         quantity: qty,
         unitPrice: price,
+        taxRate: rate,
+        taxAmount,
         total: lineTotal,
       },
       { transaction: t }

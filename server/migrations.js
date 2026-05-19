@@ -275,6 +275,10 @@ const columns = [
   `ALTER TABLE StockMovements        ADD COLUMN organizationId TEXT`,
   `ALTER TABLE Items                 ADD COLUMN organizationId TEXT`,
 
+  // ── Per-line tax — SalesOrderItem ────────────────────────────────────────────
+  `ALTER TABLE sales_order_items ADD COLUMN taxRate   REAL DEFAULT 0`,
+  `ALTER TABLE sales_order_items ADD COLUMN taxAmount REAL DEFAULT 0`,
+
   // ── Session tracking — RefreshToken device/IP metadata ──────────────────────
   `ALTER TABLE RefreshTokens ADD COLUMN userAgent   TEXT`,
   `ALTER TABLE RefreshTokens ADD COLUMN ip          TEXT`,

@@ -45,6 +45,8 @@ const SalesOrderItem = sequelize.define('SalesOrderItem', {
     allowNull: false,
     defaultValue: 0,
   },
+  taxRate:        { type: DataTypes.DECIMAL(5, 2),  allowNull: false, defaultValue: 0 },
+  taxAmount:      { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   total:          { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   organizationId: { type: DataTypes.UUID, allowNull: true },
   dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },

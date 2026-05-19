@@ -132,10 +132,6 @@
                     Created:
                     <span class="font-semibold text-[#1C2434] ml-1">{{ fmtDate(order.createdAt) }}</span>
                   </p>
-                  <p v-if="order.taxRate" class="text-xs text-[#637381]">
-                    {{ t('erp.orders.taxRate') }}:
-                    <span class="font-semibold text-[#1C2434] ml-1">{{ order.taxRate }}%</span>
-                  </p>
                 </div>
               </div>
             </div>
@@ -166,6 +162,9 @@
                       {{ t('erp.orders.colUnitPrice') }}
                     </th>
                     <th class="px-5 py-3 text-right text-[11px] font-semibold text-[#637381] uppercase tracking-wider">
+                      {{ t('erp.orders.tax') }} %
+                    </th>
+                    <th class="px-5 py-3 text-right text-[11px] font-semibold text-[#637381] uppercase tracking-wider">
                       {{ t('erp.orders.colTotal') }}
                     </th>
                   </tr>
@@ -180,8 +179,9 @@
                     </td>
                     <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ item.quantity }}</td>
                     <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
+                    <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ Number(item.taxRate || 0) }}%</td>
                     <td class="px-5 py-3.5 text-right font-semibold text-[#1C2434] tabular-nums">
-                      {{ fmtMoney(item.total) }}
+                      {{ fmtMoney((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)) }}
                     </td>
                   </tr>
                 </tbody>
@@ -221,7 +221,7 @@
               </div>
               <div>
                 <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-1">
-                  {{ t('erp.orders.tax') }} ({{ order.taxRate || 0 }}%)
+                  {{ t('erp.orders.tax') }}
                 </p>
                 <p class="text-xl font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(order.tax) }}</p>
               </div>
