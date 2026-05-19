@@ -201,10 +201,23 @@
                 </template>
 
                 <!-- Duplicate-item indicator (after amount, before delete) -->
-                <div v-if="!line.parentKey" class="flex items-center justify-center">
-                  <ExclamationTriangleIcon v-if="isDuplicate(line)"
-                    :title="t('erp.orders.duplicateItemWarning')"
-                    class="w-4 h-4 text-amber-500" />
+                <div v-if="!line.parentKey" class="flex items-center justify-center relative" data-dup-popover>
+                  <button v-if="isDuplicate(line)" type="button"
+                    @click="toggleDupPopover(line)"
+                    :aria-label="t('erp.orders.duplicateItemWarning')"
+                    class="flex items-center justify-center w-5 h-5 rounded hover:bg-amber-100 text-amber-500 transition-colors">
+                    <ExclamationTriangleIcon class="w-4 h-4" />
+                  </button>
+                  <!-- Popover: small bubble pointing to the icon -->
+                  <div v-if="openDupKey === line.key"
+                    class="absolute z-20 right-full top-1/2 -translate-y-1/2 mr-2 w-56
+                           bg-amber-50 border border-amber-200 rounded-lg shadow-lg p-2.5
+                           text-[12px] text-amber-800 leading-snug">
+                    <div class="flex items-start gap-1.5">
+                      <ExclamationTriangleIcon class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>{{ t('erp.orders.duplicateItemWarning') }}</span>
+                    </div>
+                  </div>
                 </div>
                 <div v-else></div>
 
@@ -295,7 +308,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
@@ -405,6 +418,19 @@ function removeLine(idx) {
 function childrenOf(parentKey) {
   return form.value.items.filter(it => it.parentKey === parentKey)
 }
+
+// Which line's duplicate-warning popover is currently open (empty = none).
+const openDupKey = ref('')
+function toggleDupPopover(line) {
+  openDupKey.value = openDupKey.value === line.key ? '' : line.key
+}
+function onDocClickClosePopover(e) {
+  if (!openDupKey.value) return
+  if (e.target.closest('[data-dup-popover]')) return
+  openDupKey.value = ''
+}
+onMounted(() => document.addEventListener('mousedown', onDocClickClosePopover))
+onUnmounted(() => document.removeEventListener('mousedown', onDocClickClosePopover))
 
 // Per-package collapse state — Set of parent keys whose children are hidden.
 const collapsedPackages = ref(new Set())
