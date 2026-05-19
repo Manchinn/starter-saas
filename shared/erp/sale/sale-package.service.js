@@ -47,7 +47,8 @@ const create = async ({ code, name, description, status = 'active', autoCode, it
     if (existing) throw { status: 400, message: 'Package code already exists' }
   }
 
-  return sequelize.transaction(async (t) => {
+  let createdId
+  await sequelize.transaction(async (t) => {
     const pkg = await SalePackage.create({
       code:           code?.trim() || null,
       name,
@@ -56,6 +57,7 @@ const create = async ({ code, name, description, status = 'active', autoCode, it
       organizationId: organizationId || null,
       createdBy:      userId || null,
     }, { transaction: t })
+    createdId = pkg.id
 
     if (items.length) {
       await SalePackageItem.bulkCreate(
@@ -70,9 +72,10 @@ const create = async ({ code, name, description, status = 'active', autoCode, it
         { transaction: t }
       )
     }
-
-    return getById(pkg.id)
   })
+
+  // Fetch the fully-populated package AFTER the transaction has committed
+  return getById(createdId)
 }
 
 const update = async (id, { code, name, description, status, items }, userId) => {
@@ -84,7 +87,7 @@ const update = async (id, { code, name, description, status, items }, userId) =>
     if (existing) throw { status: 400, message: 'Package code already exists' }
   }
 
-  return sequelize.transaction(async (t) => {
+  await sequelize.transaction(async (t) => {
     await pkg.update({
       ...(code        !== undefined && { code: code?.trim() || null }),
       ...(name        !== undefined && { name }),
@@ -101,6 +104,7 @@ const update = async (id, { code, name, description, status, items }, userId) =>
             packageId:  id,
             saleItemId: item.saleItemId,
             quantity:   item.quantity || 1,
+            unitPrice:  item.unitPrice != null ? item.unitPrice : null,
             sortOrder:  item.sortOrder ?? idx,
             notes:      item.notes || null,
           })),
@@ -108,9 +112,9 @@ const update = async (id, { code, name, description, status, items }, userId) =>
         )
       }
     }
-
-    return getById(id)
   })
+
+  return getById(id)
 }
 
 const remove = async (id) => {
