@@ -62,7 +62,7 @@
 
         <!-- Line Items -->
         <FormCard :title="t('erp.orders.lineItems')" :icon="ClipboardDocumentListIcon" icon-color="green"
-          :subtitle="form.items.length ? `${form.items.length} item${form.items.length !== 1 ? 's' : ''}` : 'No items yet'"
+          :subtitle="itemsSubtitle"
           :padded="false">
           <template #actions>
             <button @click="openBulkPicker" type="button"
@@ -94,14 +94,14 @@
             </div>
 
             <div class="divide-y divide-[#E2E8F0]">
-              <div v-for="(line, idx) in form.items" :key="idx"
+              <div v-for="(line, idx) in form.items" :key="line.key || idx"
                 class="grid items-center gap-3 px-5 py-3 transition-colors group border-l-2"
                 :class="[
-                  isDuplicate(line)
-                    ? 'bg-amber-50 hover:bg-amber-100 border-l-amber-400'
-                    : 'border-l-transparent hover:bg-[#F7F9FC]',
-                  dragFromIdx === idx ? 'opacity-40' : '',
-                  dragOverIdx === idx && dragFromIdx !== idx ? 'border-t-2 border-t-primary-500' : '',
+                  line.isPackage ? 'bg-primary-50/40 border-l-primary-400' :
+                  isDuplicate(line) ? 'bg-amber-50 hover:bg-amber-100 border-l-amber-400'
+                  : (line.parentKey ? 'bg-[#F7F9FC]/60 hover:bg-[#F1F5F9] border-l-primary-200' : 'border-l-transparent hover:bg-[#F7F9FC]'),
+                  dragFromIdx === topLevelStart(idx) ? 'opacity-40' : '',
+                  dragOverIdx === topLevelStart(idx) && dragFromIdx !== topLevelStart(idx) ? 'border-t-2 border-t-primary-500' : '',
                 ]"
                 :title="isDuplicate(line) ? t('erp.orders.duplicateItemWarning') : ''"
                 style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem"
@@ -109,7 +109,8 @@
                 @drop="onDrop(idx)"
                 @dragleave="onDragLeave(idx)">
 
-                <div
+                <!-- Drag handle: only top-level rows are draggable; children are anchored to their parent. -->
+                <div v-if="!line.parentKey"
                   draggable="true"
                   @dragstart="onDragStart($event, idx)"
                   @dragend="onDragEnd"
@@ -121,8 +122,19 @@
                   <Bars3Icon v-else class="w-4 h-4 hidden group-hover:block" />
                   <span v-if="!isDuplicate(line)" class="group-hover:hidden">{{ idx + 1 }}</span>
                 </div>
+                <div v-else class="text-[11px] text-[#CBD5E1] text-center select-none">↳</div>
 
+                <!-- Item picker / package label -->
+                <div v-if="line.isPackage" class="flex items-center gap-1.5 text-[13px] font-semibold text-primary-700">
+                  <CubeIcon class="w-4 h-4 flex-shrink-0" />
+                  <span class="truncate">{{ line.productName }}</span>
+                  <span class="text-[11px] font-normal text-[#9BA7B0]">· {{ t('erp.orders.salePackage') }}</span>
+                </div>
+                <div v-else-if="line.parentKey" class="text-[12px] text-[#9BA7B0] truncate pl-2">
+                  {{ t('erp.orders.packageItem') }}
+                </div>
                 <SearchSelectPopup
+                  v-else
                   v-model="line.saleItemId"
                   :options="groupedItemOptions"
                   group-values="items"
@@ -132,42 +144,59 @@
                   @change="onPickerChange(line, idx)"
                 />
 
+                <!-- Store -->
                 <div>
-                  <SearchSelect v-if="line.hasProduct" v-model="line.storeId" :options="stores" :invalid="line.hasProduct && !line.storeId" placeholder="— Store —" />
+                  <SearchSelect v-if="!line.isPackage && line.hasProduct" v-model="line.storeId" :options="stores" :invalid="line.hasProduct && !line.storeId" placeholder="— Store —" />
                   <div v-else class="flex items-center justify-center h-9">
                     <span class="text-[12px] text-[#CBD5E1]">—</span>
                   </div>
                 </div>
 
-                <input v-model="line.productName" type="text" placeholder="Description…"
+                <!-- Description -->
+                <div v-if="line.isPackage" class="text-[12px] text-[#637381] italic">
+                  {{ childrenOf(line.key).length }} item{{ childrenOf(line.key).length !== 1 ? 's' : '' }}
+                </div>
+                <input v-else v-model="line.productName" type="text" placeholder="Description…"
                   class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-all placeholder:text-[#CBD5E1]" />
+                         transition-all placeholder:text-[#CBD5E1]"
+                  :class="line.parentKey ? 'pl-5' : ''" />
 
-                <input v-model.number="line.quantity" type="number" min="1"
-                  class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
-                         text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
-                         focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                <!-- Quantity / Unit price / Tax -->
+                <template v-if="line.isPackage">
+                  <div></div><div></div><div></div>
+                  <div class="text-[12px] text-[#9BA7B0] tabular-nums text-right">
+                    {{ fmtMoney(packageTaxTotal(line)) }}
+                  </div>
+                </template>
+                <template v-else>
+                  <input v-model.number="line.quantity" type="number" min="1"
+                    class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
 
-                <input v-model.number="line.unitPrice" type="number" min="0" step="0.01" placeholder="0.00"
-                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-right
-                         text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
-                         focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
+                  <input v-model.number="line.unitPrice" type="number" min="0" step="0.01" placeholder="0.00"
+                    class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
 
-                <input v-model.number="line.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
-                  class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
-                         text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
-                         focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
+                  <input v-model.number="line.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
+                    class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
 
-                <div class="text-[13px] text-[#637381] tabular-nums text-right">
-                  {{ fmtMoney(lineTax(line)) }}
-                </div>
+                  <div class="text-[13px] text-[#637381] tabular-nums text-right">
+                    {{ fmtMoney(lineTax(line)) }}
+                  </div>
+                </template>
 
-                <div class="text-[13px] font-semibold text-[#1C2434] tabular-nums text-right">
-                  {{ fmtMoney((line.quantity || 0) * (line.unitPrice || 0)) }}
+                <div class="text-[13px] tabular-nums text-right"
+                  :class="line.isPackage ? 'font-bold text-primary-700' : 'font-semibold text-[#1C2434]'">
+                  {{ fmtMoney(line.isPackage ? packageTotal(line) : (line.quantity || 0) * (line.unitPrice || 0)) }}
                 </div>
 
                 <button @click="removeLine(idx)" type="button"
+                  :title="line.isPackage ? t('erp.orders.removePackage') : ''"
                   class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
                          text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-colors
                          opacity-0 group-hover:opacity-100">
@@ -260,7 +289,7 @@ import {
   CheckIcon, ShoppingCartIcon,
   ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
   CalculatorIcon, LightBulbIcon, ExclamationTriangleIcon,
-  Bars3Icon,
+  Bars3Icon, CubeIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -324,44 +353,101 @@ onMounted(async () => {
 })
 
 function defaultTaxRate() {
-  if (form.value.items.length) return Number(form.value.items[form.value.items.length - 1].taxRate) || 0
+  // Prefer the previous *priced* row's rate (skip package headers, which are 0).
+  for (let i = form.value.items.length - 1; i >= 0; i--) {
+    if (form.value.items[i].isPackage) continue
+    return Number(form.value.items[i].taxRate) || 0
+  }
   return Number(settings.tax?.rate) || 0
 }
 
+// Stable per-row id so children can reference their parent before the server
+// assigns real UUIDs. Falls back to a counter-based id where crypto is missing.
+let _localKeyCounter = 0
+function newKey() {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `k${Date.now()}-${++_localKeyCounter}`
+}
+
 function addLine() {
-  // First line uses the org default from /erp/settings/general; subsequent
-  // lines inherit the previous row's rate so users don't retype it.
-  form.value.items.push({ saleItemId: '', storeId: '', hasProduct: false, productName: '', quantity: 1, unitPrice: 0, taxRate: defaultTaxRate() })
+  form.value.items.push({
+    key: newKey(), parentKey: '', isPackage: false, salePackageId: '',
+    saleItemId: '', storeId: '', hasProduct: false, productName: '',
+    quantity: 1, unitPrice: 0, taxRate: defaultTaxRate(),
+  })
 }
 
 function removeLine(idx) {
-  form.value.items.splice(idx, 1)
+  const line = form.value.items[idx]
+  if (line.isPackage) {
+    // Drop the package header and all of its children in one go.
+    form.value.items = form.value.items.filter(it => it.key !== line.key && it.parentKey !== line.key)
+  } else {
+    form.value.items.splice(idx, 1)
+  }
+}
+
+function isChildLine(line) { return !!line.parentKey }
+function childrenOf(parentKey) {
+  return form.value.items.filter(it => it.parentKey === parentKey)
+}
+function packageTotal(parent) {
+  return childrenOf(parent.key).reduce((s, c) => s + (c.quantity || 0) * (c.unitPrice || 0), 0)
 }
 
 // ── Drag-and-drop reorder ────────────────────────────────────────────────
+// Only top-level rows are draggable. A package parent drags together with all
+// of its children as one group. Dropping over a child snaps to that child's
+// parent group, so children never get reparented or stranded.
 const dragFromIdx = ref(null)
 const dragOverIdx = ref(null)
 
+function topLevelStart(idx) {
+  // For a child row, return its parent's index; otherwise the row itself.
+  const line = form.value.items[idx]
+  if (!line || !line.parentKey) return idx
+  return form.value.items.findIndex(it => it.key === line.parentKey)
+}
+function groupSpan(startIdx) {
+  // Returns how many consecutive rows belong to the group starting at startIdx.
+  const start = form.value.items[startIdx]
+  if (!start || !start.isPackage) return 1
+  let n = 1
+  for (let i = startIdx + 1; i < form.value.items.length; i++) {
+    if (form.value.items[i].parentKey === start.key) n++
+    else break
+  }
+  return n
+}
+
 function onDragStart(e, idx) {
-  dragFromIdx.value = idx
+  // Children aren't draggable individually — the parent row owns the group.
+  const top = topLevelStart(idx)
+  dragFromIdx.value = top
   e.dataTransfer.effectAllowed = 'move'
-  // Required for Firefox to initiate the drag
-  e.dataTransfer.setData('text/plain', String(idx))
+  e.dataTransfer.setData('text/plain', String(top))
 }
 function onDragOver(e, idx) {
   if (dragFromIdx.value === null) return
   e.preventDefault()
   e.dataTransfer.dropEffect = 'move'
-  dragOverIdx.value = idx
+  dragOverIdx.value = topLevelStart(idx)
 }
 function onDragLeave(idx) {
-  if (dragOverIdx.value === idx) dragOverIdx.value = null
+  if (dragOverIdx.value === topLevelStart(idx)) dragOverIdx.value = null
 }
 function onDrop(idx) {
   const from = dragFromIdx.value
-  if (from === null || from === idx) { onDragEnd(); return }
-  const [moved] = form.value.items.splice(from, 1)
-  form.value.items.splice(idx, 0, moved)
+  const to   = topLevelStart(idx)
+  if (from === null || from === to) { onDragEnd(); return }
+  const fromSpan   = groupSpan(from)
+  const targetSpan = groupSpan(to)
+  const moved = form.value.items.splice(from, fromSpan)
+  // Moving down → land just past the target group's end (target shifts up).
+  // Moving up   → land at the target's position (target shifts down).
+  const insertAt = from < to ? (to - fromSpan) + targetSpan : to
+  form.value.items.splice(insertAt, 0, ...moved)
   onDragEnd()
 }
 function onDragEnd() {
@@ -374,27 +460,45 @@ const bulkPickerRef = ref(null)
 function openBulkPicker() { bulkPickerRef.value?.open() }
 
 // Build a new line from a sale item (resolves customer-group pricing).
-function makeLineFromSaleItem(si) {
+function makeLineFromSaleItem(si, parentKey = '') {
   const customer = customers.value.find(c => c.id === form.value.customerId)
   const pricing  = getBestPricing(si, customer?.customerGroupId)
   return {
-    saleItemId:  si.id,
-    storeId:     '',
-    hasProduct:  !!si.productId,
-    productName: si.name,
-    quantity:    1,
-    unitPrice:   pricing ? Number(pricing.unitPrice) : 0,
-    taxRate:     defaultTaxRate(),
+    key:           newKey(),
+    parentKey,
+    isPackage:     false,
+    salePackageId: '',
+    saleItemId:    si.id,
+    storeId:       '',
+    hasProduct:    !!si.productId,
+    productName:   si.name,
+    quantity:      1,
+    unitPrice:     pricing ? Number(pricing.unitPrice) : 0,
+    taxRate:       defaultTaxRate(),
   }
 }
 
-// Fetch a package and return one line per package item.
+// Fetch a package and return [parentHeader, ...childLines].
 async function linesFromPackage(packageId) {
   try {
     const { data } = await api.get(`/erp/sale-packages/${packageId}`)
     const pkg = data.data.package
     const customer = customers.value.find(c => c.id === form.value.customerId)
-    return (pkg.packageItems || []).map(pi => {
+    const parentKey = newKey()
+    const parent = {
+      key:           parentKey,
+      parentKey:     '',
+      isPackage:     true,
+      salePackageId: pkg.id,
+      saleItemId:    '',
+      storeId:       '',
+      hasProduct:    false,
+      productName:   pkg.code ? `${pkg.name} (${pkg.code})` : pkg.name,
+      quantity:      1,
+      unitPrice:     0,
+      taxRate:       0,
+    }
+    const children = (pkg.packageItems || []).map(pi => {
       const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
       const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
       let unitPrice = pi.unitPrice != null ? Number(pi.unitPrice) : 0
@@ -404,22 +508,27 @@ async function linesFromPackage(packageId) {
         if (pricing) unitPrice = Number(pricing.unitPrice)
       }
       return {
-        saleItemId:  pi.saleItemId,
-        storeId:     '',
+        key:           newKey(),
+        parentKey,
+        isPackage:     false,
+        salePackageId: '',
+        saleItemId:    pi.saleItemId,
+        storeId:       '',
         hasProduct,
-        productName: `${si.name || 'Item'} (${pkg.code || pkg.name})`,
-        quantity:    Number(pi.quantity) || 1,
+        productName:   si.name || 'Item',
+        quantity:      Number(pi.quantity) || 1,
         unitPrice,
-        taxRate:     Number(settings.tax?.rate) || 0,
+        taxRate:       Number(settings.tax?.rate) || 0,
       }
     })
+    return [parent, ...children]
   } catch {
     return []
   }
 }
 
 // The bulk picker emits an array of mixed sale items + packages.
-// Append a new line per sale item; expand each package into its items.
+// Append one line per sale item; append parent+children for each package.
 async function onBulkAdd(objects) {
   const newLines = []
   for (const obj of objects) {
@@ -475,37 +584,9 @@ async function onPickerChange(line, idx) {
 }
 
 async function expandPackageInto(idx, packageId) {
-  try {
-    const { data } = await api.get(`/erp/sale-packages/${packageId}`)
-    const pkg = data.data.package
-    const customer = customers.value.find(c => c.id === form.value.customerId)
-    const expanded = (pkg.packageItems || []).map(pi => {
-      const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
-      const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
-      // Resolve price: package override > best sale-item pricing > 0
-      let unitPrice = pi.unitPrice != null ? Number(pi.unitPrice) : 0
-      if (!unitPrice) {
-        const siFull = saleItems.value.find(s => s.id === pi.saleItemId)
-        const pricing = siFull ? getBestPricing(siFull, customer?.customerGroupId) : null
-        if (pricing) unitPrice = Number(pricing.unitPrice)
-      }
-      return {
-        saleItemId:  pi.saleItemId,
-        storeId:     '',
-        hasProduct,
-        productName: `${si.name || 'Item'} (${pkg.code || pkg.name})`,
-        quantity:    Number(pi.quantity) || 1,
-        unitPrice,
-        taxRate:     Number(settings.tax?.rate) || 0,
-      }
-    })
-    if (expanded.length) form.value.items.splice(idx, 1, ...expanded)
-    else                 form.value.items.splice(idx, 1) // empty package → just drop the placeholder line
-  } catch (err) {
-    // On failure, reset the picker so the user can try again
-    form.value.items[idx].saleItemId = ''
-    onSaleItemChange(form.value.items[idx])
-  }
+  const lines = await linesFromPackage(packageId)
+  if (lines.length) form.value.items.splice(idx, 1, ...lines)
+  else              form.value.items.splice(idx, 1) // empty package → drop the placeholder
 }
 
 watch(() => form.value.customerId, () => {
@@ -531,9 +612,22 @@ function isDuplicate(line) {
 }
 
 function lineTax(line) {
+  if (line.isPackage) return 0
   return (line.quantity || 0) * (line.unitPrice || 0) * ((line.taxRate || 0) / 100)
 }
-const subtotal   = computed(() => form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0))
+function packageTaxTotal(parent) {
+  return childrenOf(parent.key).reduce((s, c) => s + lineTax(c), 0)
+}
+const itemsSubtitle = computed(() => {
+  const priced  = form.value.items.filter(i => !i.isPackage).length
+  const packages = form.value.items.filter(i =>  i.isPackage).length
+  if (!priced && !packages) return 'No items yet'
+  const parts = []
+  if (priced)  parts.push(`${priced} item${priced  !== 1 ? 's' : ''}`)
+  if (packages) parts.push(`${packages} package${packages !== 1 ? 's' : ''}`)
+  return parts.join(' · ')
+})
+const subtotal   = computed(() => form.value.items.reduce((s, i) => i.isPackage ? s : s + (i.quantity || 0) * (i.unitPrice || 0), 0))
 const taxAmount  = computed(() => toFixed(form.value.items.reduce((s, i) => s + lineTax(i), 0), 2))
 const grandTotal = computed(() => subtotal.value + taxAmount.value)
 
@@ -541,8 +635,11 @@ function validate() {
   const e = {}
   if (!form.value.customerId) e.customerId = 'Customer is required'
   if (!form.value.orderDate)  e.orderDate  = 'Order date is required'
-  if (!form.value.items.length) e.items = 'Add at least one item'
+  // A package header alone doesn't count — require at least one priced item.
+  const pricedCount = form.value.items.filter(i => !i.isPackage).length
+  if (!pricedCount) e.items = 'Add at least one item'
   for (const item of form.value.items) {
+    if (item.isPackage) continue
     if (!item.productName?.trim())        { e.items = 'All items need a description'; break }
     if (item.hasProduct && !item.storeId) { e.items = 'Select a store for product items'; break }
     if (!item.quantity || item.quantity < 1) { e.items = 'All items need a valid quantity'; break }
@@ -558,9 +655,11 @@ async function save() {
   try {
     const payload = {
       ...form.value,
-      items: form.value.items.map(({ saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
-        saleItemId: saleItemId || null,
-        storeId:    storeId    || null,
+      items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
+        key, parentKey: parentKey || '',
+        salePackageId: salePackageId || null,
+        saleItemId:    saleItemId    || null,
+        storeId:       storeId       || null,
         productName, quantity, unitPrice,
         taxRate: Number(taxRate) || 0,
       })),

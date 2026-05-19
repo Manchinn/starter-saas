@@ -23,6 +23,14 @@ const SalesOrderItem = sequelize.define('SalesOrderItem', {
     type: DataTypes.UUID,
     allowNull: true,
   },
+  salePackageId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
+  parentItemId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
   storeId: {
     type: DataTypes.UUID,
     allowNull: true,

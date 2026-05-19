@@ -111,46 +111,70 @@
             </div>
 
             <div class="divide-y divide-[#E2E8F0]">
-              <div v-for="(line, idx) in form.items" :key="idx"
-                class="grid items-center gap-3 px-5 py-3 hover:bg-[#F7F9FC] transition-colors group"
+              <div v-for="(line, idx) in form.items" :key="line.key || idx"
+                class="grid items-center gap-3 px-5 py-3 transition-colors group border-l-2"
+                :class="line.isPackage ? 'bg-primary-50/40 border-l-primary-400'
+                         : (line.parentKey ? 'bg-[#F7F9FC]/60 hover:bg-[#F1F5F9] border-l-primary-200'
+                                            : 'border-l-transparent hover:bg-[#F7F9FC]')"
                 style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 2rem">
 
-                <div class="text-[12px] font-semibold text-[#CBD5E1] text-center select-none">{{ idx + 1 }}</div>
+                <div class="text-[12px] font-semibold text-[#CBD5E1] text-center select-none">
+                  {{ line.parentKey ? '↳' : (idx + 1) }}
+                </div>
 
-                <SearchSelect v-model="line.saleItemId" :options="groupedItemOptions" group-values="items" group-label="label" placeholder="— Item —" @change="onPickerChange(line, idx)" />
+                <div v-if="line.isPackage" class="flex items-center gap-1.5 text-[13px] font-semibold text-primary-700">
+                  <CubeIcon class="w-4 h-4 flex-shrink-0" />
+                  <span class="truncate">{{ line.productName }}</span>
+                  <span class="text-[11px] font-normal text-[#9BA7B0]">· {{ t('erp.orders.salePackage') }}</span>
+                </div>
+                <div v-else-if="line.parentKey" class="text-[12px] text-[#9BA7B0] truncate pl-2">
+                  {{ t('erp.orders.packageItem') }}
+                </div>
+                <SearchSelect v-else v-model="line.saleItemId" :options="groupedItemOptions" group-values="items" group-label="label" placeholder="— Item —" @change="onPickerChange(line, idx)" />
 
                 <div>
-                  <SearchSelect v-if="line.hasProduct" v-model="line.storeId" :options="stores" :invalid="line.hasProduct && !line.storeId" placeholder="— Store —" />
+                  <SearchSelect v-if="!line.isPackage && line.hasProduct" v-model="line.storeId" :options="stores" :invalid="line.hasProduct && !line.storeId" placeholder="— Store —" />
                   <div v-else class="flex items-center justify-center h-9">
                     <span class="text-[12px] text-[#CBD5E1]">—</span>
                   </div>
                 </div>
 
-                <input v-model="line.productName" type="text" placeholder="Description…"
+                <div v-if="line.isPackage" class="text-[12px] text-[#637381] italic">
+                  {{ childrenOf(line.key).length }} item{{ childrenOf(line.key).length !== 1 ? 's' : '' }}
+                </div>
+                <input v-else v-model="line.productName" type="text" placeholder="Description…"
                   class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-all placeholder:text-[#CBD5E1]" />
+                         transition-all placeholder:text-[#CBD5E1]"
+                  :class="line.parentKey ? 'pl-5' : ''" />
 
-                <input v-model.number="line.quantity" type="number" min="1"
-                  class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
-                         text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
-                         focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                <template v-if="line.isPackage">
+                  <div></div><div></div><div></div>
+                </template>
+                <template v-else>
+                  <input v-model.number="line.quantity" type="number" min="1"
+                    class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
 
-                <input v-model.number="line.unitPrice" type="number" min="0" step="0.01" placeholder="0.00"
-                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-right
-                         text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
-                         focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
+                  <input v-model.number="line.unitPrice" type="number" min="0" step="0.01" placeholder="0.00"
+                    class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
 
-                <input v-model.number="line.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
-                  class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
-                         text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
-                         focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
+                  <input v-model.number="line.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
+                    class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
+                </template>
 
-                <div class="text-[13px] font-semibold text-[#1C2434] tabular-nums text-right">
-                  {{ fmtMoney((line.quantity || 0) * (line.unitPrice || 0)) }}
+                <div class="text-[13px] tabular-nums text-right"
+                  :class="line.isPackage ? 'font-bold text-primary-700' : 'font-semibold text-[#1C2434]'">
+                  {{ fmtMoney(line.isPackage ? packageTotal(line) : (line.quantity || 0) * (line.unitPrice || 0)) }}
                 </div>
 
                 <button @click="removeLine(idx)" type="button"
+                  :title="line.isPackage ? t('erp.orders.removePackage') : ''"
                   class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
                          text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-colors
                          opacity-0 group-hover:opacity-100">
@@ -218,6 +242,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   PlusIcon, TrashIcon, ShoppingCartIcon,
   UserIcon, ClipboardDocumentListIcon, CalculatorIcon,
+  CubeIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -297,6 +322,11 @@ onMounted(async () => {
   }
   order.value = o
 
+  // Reconstruct parent/child links: server uses real UUIDs, the client uses
+  // local keys so freshly-added rows can reference their parent before save.
+  const idToKey = new Map()
+  for (const it of o.items || []) idToKey.set(it.id, newKey())
+
   form.value = {
     customerId:   o.customerId   || '',
     orderDate:    o.orderDate    || '',
@@ -306,14 +336,19 @@ onMounted(async () => {
     items: (o.items || []).map(it => {
       const si = saleItems.value.find(s => s.id === it.saleItemId)
       const hasProduct = !!(it.productId || si?.productId)
+      const isPackage = !!it.salePackageId && !it.parentItemId
       return {
-        saleItemId:  it.saleItemId || '',
-        storeId:     it.storeId    || '',
-        hasProduct,
-        productName: it.productName || '',
-        quantity:    Number(it.quantity) || 1,
-        unitPrice:   it.unitPrice != null ? Number(it.unitPrice) : 0,
-        taxRate:     it.taxRate   != null ? Number(it.taxRate)   : 0,
+        key:           idToKey.get(it.id),
+        parentKey:     it.parentItemId ? (idToKey.get(it.parentItemId) || '') : '',
+        isPackage,
+        salePackageId: it.salePackageId || '',
+        saleItemId:    it.saleItemId    || '',
+        storeId:       it.storeId       || '',
+        hasProduct:    isPackage ? false : hasProduct,
+        productName:   it.productName || '',
+        quantity:      Number(it.quantity) || 1,
+        unitPrice:     it.unitPrice != null ? Number(it.unitPrice) : 0,
+        taxRate:       it.taxRate   != null ? Number(it.taxRate)   : 0,
       }
     }),
   }
@@ -321,16 +356,45 @@ onMounted(async () => {
 })
 
 function defaultTaxRate() {
-  if (form.value.items.length) return Number(form.value.items[form.value.items.length - 1].taxRate) || 0
+  for (let i = form.value.items.length - 1; i >= 0; i--) {
+    if (form.value.items[i].isPackage) continue
+    return Number(form.value.items[i].taxRate) || 0
+  }
   return Number(settings.tax?.rate) || 0
 }
 
+let _localKeyCounter = 0
+function newKey() {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `k${Date.now()}-${++_localKeyCounter}`
+}
+
 function addLine() {
-  form.value.items.push({ saleItemId: '', storeId: '', hasProduct: false, productName: '', quantity: 1, unitPrice: 0, taxRate: defaultTaxRate() })
+  form.value.items.push({
+    key: newKey(), parentKey: '', isPackage: false, salePackageId: '',
+    saleItemId: '', storeId: '', hasProduct: false, productName: '',
+    quantity: 1, unitPrice: 0, taxRate: defaultTaxRate(),
+  })
 }
 
 function removeLine(idx) {
-  form.value.items.splice(idx, 1)
+  const line = form.value.items[idx]
+  if (line.isPackage) {
+    form.value.items = form.value.items.filter(it => it.key !== line.key && it.parentKey !== line.key)
+  } else {
+    form.value.items.splice(idx, 1)
+  }
+}
+
+function childrenOf(parentKey) {
+  return form.value.items.filter(it => it.parentKey === parentKey)
+}
+function packageTotal(parent) {
+  return childrenOf(parent.key).reduce((s, c) => s + (c.quantity || 0) * (c.unitPrice || 0), 0)
+}
+function packageTaxTotal(parent) {
+  return childrenOf(parent.key).reduce((s, c) => s + (c.quantity || 0) * (c.unitPrice || 0) * ((c.taxRate || 0) / 100), 0)
 }
 
 function getBestPricing(si, customerGroupId) {
@@ -370,12 +434,26 @@ async function onPickerChange(line, idx) {
   }
 }
 
-async function expandPackageInto(idx, packageId) {
+async function linesFromPackage(packageId) {
   try {
     const { data } = await api.get(`/erp/sale-packages/${packageId}`)
     const pkg = data.data.package
     const customer = customers.value.find(c => c.id === form.value.customerId)
-    const expanded = (pkg.packageItems || []).map(pi => {
+    const parentKey = newKey()
+    const parent = {
+      key:           parentKey,
+      parentKey:     '',
+      isPackage:     true,
+      salePackageId: pkg.id,
+      saleItemId:    '',
+      storeId:       '',
+      hasProduct:    false,
+      productName:   pkg.code ? `${pkg.name} (${pkg.code})` : pkg.name,
+      quantity:      1,
+      unitPrice:     0,
+      taxRate:       0,
+    }
+    const children = (pkg.packageItems || []).map(pi => {
       const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
       const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
       let unitPrice = pi.unitPrice != null ? Number(pi.unitPrice) : 0
@@ -385,21 +463,29 @@ async function expandPackageInto(idx, packageId) {
         if (pricing) unitPrice = Number(pricing.unitPrice)
       }
       return {
-        saleItemId:  pi.saleItemId,
-        storeId:     '',
+        key:           newKey(),
+        parentKey,
+        isPackage:     false,
+        salePackageId: '',
+        saleItemId:    pi.saleItemId,
+        storeId:       '',
         hasProduct,
-        productName: `${si.name || 'Item'} (${pkg.code || pkg.name})`,
-        quantity:    Number(pi.quantity) || 1,
+        productName:   si.name || 'Item',
+        quantity:      Number(pi.quantity) || 1,
         unitPrice,
-        taxRate:     Number(settings.tax?.rate) || 0,
+        taxRate:       Number(settings.tax?.rate) || 0,
       }
     })
-    if (expanded.length) form.value.items.splice(idx, 1, ...expanded)
-    else                 form.value.items.splice(idx, 1)
+    return [parent, ...children]
   } catch {
-    form.value.items[idx].saleItemId = ''
-    onSaleItemChange(form.value.items[idx])
+    return []
   }
+}
+
+async function expandPackageInto(idx, packageId) {
+  const lines = await linesFromPackage(packageId)
+  if (lines.length) form.value.items.splice(idx, 1, ...lines)
+  else              form.value.items.splice(idx, 1)
 }
 
 watch(() => form.value.customerId, () => {
@@ -407,9 +493,9 @@ watch(() => form.value.customerId, () => {
   for (const line of form.value.items) applyPricing(line)
 })
 
-const subtotal   = computed(() => form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0))
+const subtotal   = computed(() => form.value.items.reduce((s, i) => i.isPackage ? s : s + (i.quantity || 0) * (i.unitPrice || 0), 0))
 const taxAmount  = computed(() => toFixed(
-  form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0) * ((i.taxRate || 0) / 100), 0),
+  form.value.items.reduce((s, i) => i.isPackage ? s : s + (i.quantity || 0) * (i.unitPrice || 0) * ((i.taxRate || 0) / 100), 0),
   2,
 ))
 const grandTotal = computed(() => subtotal.value + taxAmount.value)
@@ -418,8 +504,10 @@ function validate() {
   const e = {}
   if (!form.value.customerId) e.customerId = 'Customer is required'
   if (!form.value.orderDate)  e.orderDate  = 'Order date is required'
-  if (!form.value.items.length) e.items = 'Add at least one item'
+  const pricedCount = form.value.items.filter(i => !i.isPackage).length
+  if (!pricedCount) e.items = 'Add at least one item'
   for (const item of form.value.items) {
+    if (item.isPackage) continue
     if (!item.productName?.trim())        { e.items = 'All items need a description'; break }
     if (item.hasProduct && !item.storeId) { e.items = 'Select a store for product items'; break }
     if (!item.quantity || item.quantity < 1) { e.items = 'All items need a valid quantity'; break }
@@ -439,9 +527,11 @@ async function save() {
       currency:     form.value.currency || null,
       exchangeRate: form.value.exchangeRate,
       notes:        form.value.notes,
-      items: form.value.items.map(({ saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
-        saleItemId: saleItemId || null,
-        storeId:    storeId    || null,
+      items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
+        key, parentKey: parentKey || '',
+        salePackageId: salePackageId || null,
+        saleItemId:    saleItemId    || null,
+        storeId:       storeId       || null,
         productName, quantity, unitPrice,
         taxRate: Number(taxRate) || 0,
       })),

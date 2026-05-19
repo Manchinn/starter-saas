@@ -170,20 +170,40 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[#E2E8F0]">
-                  <tr v-for="item in order.items" :key="item.id" class="hover:bg-[#F7F9FC] transition-colors">
-                    <td class="px-5 py-3.5 font-medium text-[#1C2434]">
-                      {{ item.productName }}
-                      <span v-if="item.product?.sku" class="text-xs text-[#9BA7B0] ml-1.5">
-                        ({{ item.product.sku }})
-                      </span>
-                    </td>
-                    <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ item.quantity }}</td>
-                    <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
-                    <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ Number(item.taxRate || 0) }}%</td>
-                    <td class="px-5 py-3.5 text-right font-semibold text-[#1C2434] tabular-nums">
-                      {{ fmtMoney((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)) }}
-                    </td>
-                  </tr>
+                  <template v-for="item in order.items" :key="item.id">
+                    <tr v-if="item.salePackageId && !item.parentItemId" class="bg-primary-50/40">
+                      <td class="px-5 py-3 font-semibold text-primary-700">
+                        <span class="inline-flex items-center gap-1.5">
+                          <CubeIcon class="w-4 h-4" />
+                          {{ item.productName }}
+                          <span class="text-[11px] font-normal text-[#9BA7B0] ml-1">· {{ t('erp.orders.salePackage') }}</span>
+                        </span>
+                      </td>
+                      <td colspan="3" class="px-5 py-3 text-right text-[12px] italic text-[#637381]">
+                        {{ packageChildCount(item.id) }} item{{ packageChildCount(item.id) !== 1 ? 's' : '' }}
+                      </td>
+                      <td class="px-5 py-3 text-right font-bold text-primary-700 tabular-nums">
+                        {{ fmtMoney(packageChildTotal(item.id)) }}
+                      </td>
+                    </tr>
+                    <tr v-else class="hover:bg-[#F7F9FC] transition-colors"
+                        :class="item.parentItemId ? 'bg-[#FAFBFD]' : ''">
+                      <td class="px-5 py-3.5 font-medium text-[#1C2434]"
+                          :class="item.parentItemId ? 'pl-10' : ''">
+                        <span v-if="item.parentItemId" class="text-[#CBD5E1] mr-1">↳</span>
+                        {{ item.productName }}
+                        <span v-if="item.product?.sku" class="text-xs text-[#9BA7B0] ml-1.5">
+                          ({{ item.product.sku }})
+                        </span>
+                      </td>
+                      <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ item.quantity }}</td>
+                      <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
+                      <td class="px-5 py-3.5 text-right text-[#637381] tabular-nums">{{ Number(item.taxRate || 0) }}%</td>
+                      <td class="px-5 py-3.5 text-right font-semibold text-[#1C2434] tabular-nums">
+                        {{ fmtMoney((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)) }}
+                      </td>
+                    </tr>
+                  </template>
                 </tbody>
               </table>
               <div class="border-t border-[#E2E8F0] px-5 py-3 bg-[#F7F9FC] flex items-center justify-between text-sm text-[#637381]">
@@ -319,6 +339,7 @@ import {
   ArrowLeftIcon, ChevronRightIcon, UserIcon, DocumentTextIcon,
   ClipboardDocumentListIcon, CheckIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
   BoltIcon, ArrowPathIcon, ExclamationCircleIcon, CalculatorIcon, TruckIcon,
+  CubeIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
@@ -481,4 +502,15 @@ async function confirmDelete() {
 }
 
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—' }
+
+function packageChildren(parentId) {
+  return (order.value?.items || []).filter(i => i.parentItemId === parentId)
+}
+function packageChildCount(parentId) { return packageChildren(parentId).length }
+function packageChildTotal(parentId) {
+  return packageChildren(parentId).reduce(
+    (s, c) => s + (Number(c.quantity) || 0) * (Number(c.unitPrice) || 0),
+    0,
+  )
+}
 </script>

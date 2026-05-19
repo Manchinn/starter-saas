@@ -31,6 +31,9 @@ const getById = async (id) => {
       { model: Customer, as: 'customer' },
       { model: SalesOrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'sku'] }] },
     ],
+    // Insert order keeps package headers immediately followed by their children
+    // (the service writes them in that sequence).
+    order: [[{ model: SalesOrderItem, as: 'items' }, 'createdAt', 'ASC']],
   })
   if (!order) throw { status: 404, message: 'Order not found' }
 
@@ -62,6 +65,40 @@ const computeTotals = (items) => {
   return { subtotal: toFixed(subtotal, 2), tax: toFixed(tax, 2), total: toFixed(subtotal + tax, 2), lines }
 }
 
+// Persist `lines` to `sales_order_items` resolving parentKey → parentItemId.
+// Items must be supplied in tree-order (parent before its children) so that
+// each child can resolve its parent's freshly-minted UUID.
+const persistOrderItems = async ({ orderId, lines, organizationId, t }) => {
+  const keyToId = new Map()
+  for (const item of lines) {
+    const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
+    const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
+    if (item.productId && !item.storeId) throw { status: 400, message: `Store is required for item "${item.productName || 'Unknown'}"` }
+
+    const parentItemId = item.parentKey ? keyToId.get(item.parentKey) || null : null
+    const row = await SalesOrderItem.create(
+      {
+        orderId,
+        itemId:         item.itemId    || null,
+        productId:      item.productId || null,
+        saleItemId:     item.saleItemId || null,
+        salePackageId:  item.salePackageId || null,
+        parentItemId,
+        storeId:        item.storeId   || null,
+        productName:    item.productName || masterItem?.title || product?.name || 'Unknown',
+        quantity:       item.quantity,
+        unitPrice:      item.unitPrice,
+        taxRate:        item.taxRate,
+        taxAmount:      item.taxAmount,
+        total:          item.total,
+        organizationId: organizationId || null,
+      },
+      { transaction: t }
+    )
+    if (item.key) keyToId.set(item.key, row.id)
+  }
+}
+
 const create = async ({ customerId, orderDate, notes, items = [], currency, exchangeRate, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Order must have at least one item' }
 
@@ -77,29 +114,7 @@ const create = async ({ customerId, orderDate, notes, items = [], currency, exch
       { transaction: t }
     )
     createdId = order.id
-
-    for (const item of lines) {
-      const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
-      const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
-      if (item.productId && !item.storeId) throw { status: 400, message: `Store is required for item "${item.productName || 'Unknown'}"` }
-      await SalesOrderItem.create(
-        {
-          orderId:     order.id,
-          itemId:      item.itemId    || null,
-          productId:   item.productId || null,
-          saleItemId:  item.saleItemId || null,
-          storeId:        item.storeId   || null,
-          productName:    item.productName || masterItem?.title || product?.name || 'Unknown',
-          quantity:       item.quantity,
-          unitPrice:      item.unitPrice,
-          taxRate:        item.taxRate,
-          taxAmount:      item.taxAmount,
-          total:          item.total,
-          organizationId: organizationId || null,
-        },
-        { transaction: t }
-      )
-    }
+    await persistOrderItems({ orderId: order.id, lines, organizationId, t })
   })
 
   // Fetch the fully-populated order AFTER the transaction has committed
@@ -119,6 +134,8 @@ const updateStatus = async (id, status, userId) => {
   if (oldStatus === status) return getById(id)
 
   const resolveProductId = (item) => item.productId || item.saleItem?.productId || null
+  // Package headers carry no stock — their children do.
+  const isPackageHeader = (item) => !!item.salePackageId && !item.parentItemId
 
   await sequelize.transaction(async (t) => {
     // Cut stock when moving to confirmed
@@ -127,6 +144,7 @@ const updateStatus = async (id, status, userId) => {
       const { checkStoreLock } = require('../stock/stock-count/stock-count.service')
       await checkStoreLock(storeIds)
       for (const item of order.items) {
+        if (isPackageHeader(item)) continue
         const productId = resolveProductId(item)
         if (productId) {
           const product = await Product.findByPk(productId, { transaction: t })
@@ -171,6 +189,7 @@ const updateStatus = async (id, status, userId) => {
       const { checkStoreLock } = require('../stock/stock-count/stock-count.service')
       await checkStoreLock(storeIds)
       for (const item of order.items) {
+        if (isPackageHeader(item)) continue
         const productId = resolveProductId(item)
         if (productId) {
           const product = await Product.findByPk(productId, { transaction: t })
@@ -242,28 +261,7 @@ const update = async (id, { customerId, orderDate, notes, currency, exchangeRate
       const { subtotal, tax, total, lines } = computeTotals(items)
 
       await order.update({ customerId: customerId || null, orderDate, notes, subtotal, tax, total, ...headerExtras, modifiedBy: userId || null }, { transaction: t })
-
-      for (const item of lines) {
-        const product    = item.productId ? await Product.findByPk(item.productId, { transaction: t }) : null
-        const masterItem = item.itemId    ? await Item.findByPk(item.itemId,       { transaction: t }) : null
-        if (item.productId && !item.storeId) throw { status: 400, message: `Store is required for item "${item.productName || 'Unknown'}"` }
-        await SalesOrderItem.create(
-          {
-            orderId:     id,
-            itemId:      item.itemId    || null,
-            productId:   item.productId || null,
-            saleItemId:  item.saleItemId || null,
-            storeId:     item.storeId   || null,
-            productName: item.productName || masterItem?.title || product?.name || 'Unknown',
-            quantity:    item.quantity,
-            unitPrice:   item.unitPrice,
-            taxRate:     item.taxRate,
-            taxAmount:   item.taxAmount,
-            total:       item.total,
-          },
-          { transaction: t }
-        )
-      }
+      await persistOrderItems({ orderId: id, lines, organizationId: order.organizationId, t })
     } else {
       await order.update({ customerId: customerId || null, orderDate, notes, ...headerExtras, modifiedBy: userId || null }, { transaction: t })
     }
@@ -410,6 +408,7 @@ const createDeliveryOrder = async (id, userId, organizationId) => {
     createdId = doc.id
 
     for (const item of order.items) {
+      if (item.salePackageId && !item.parentItemId) continue
       await DeliveryOrderItem.create({
         deliveryOrderId: doc.id,
         productId:       item.productId || null,
@@ -442,11 +441,13 @@ const createInvoice = async (id, userId, organizationId) => {
     orderId:     order.id,
     invoiceDate: new Date(),
     notes:       `Auto-created from Sales Order ${order.orderNumber}`,
-    items: order.items.map(i => ({
-      productName: i.productName,
-      quantity:    i.quantity,
-      unitPrice:   parseFloat(i.unitPrice) || 0,
-    })),
+    items: order.items
+      .filter(i => !(i.salePackageId && !i.parentItemId))
+      .map(i => ({
+        productName: i.productName,
+        quantity:    i.quantity,
+        unitPrice:   parseFloat(i.unitPrice) || 0,
+      })),
     taxRate: parseFloat(order.subtotal) > 0
       ? toFixed((parseFloat(order.tax) / parseFloat(order.subtotal)) * 100, 2)
       : 0,

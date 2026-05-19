@@ -3,7 +3,7 @@
  */
 module.exports = function associate({
   Order, SalesOrderItem,
-  Customer, Product, Item, Store, SaleItem,
+  Customer, Product, Item, Store, SaleItem, SalePackage,
 }) {
   // ── Order ↔ Customer ──────────────────────────────────────────────────────
   Order.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' })
@@ -28,4 +28,14 @@ module.exports = function associate({
   // ── SalesOrderItem ↔ SaleItem ─────────────────────────────────────────────
   SalesOrderItem.belongsTo(SaleItem, { foreignKey: 'saleItemId', as: 'saleItem' })
   SaleItem.hasMany(SalesOrderItem,   { foreignKey: 'saleItemId', as: 'orderItems' })
+
+  // ── SalesOrderItem ↔ SalePackage (package header row) ─────────────────────
+  if (SalePackage) {
+    SalesOrderItem.belongsTo(SalePackage, { foreignKey: 'salePackageId', as: 'salePackage' })
+    SalePackage.hasMany(SalesOrderItem,   { foreignKey: 'salePackageId', as: 'orderItems' })
+  }
+
+  // ── SalesOrderItem self-reference (parent → children) ─────────────────────
+  SalesOrderItem.belongsTo(SalesOrderItem, { foreignKey: 'parentItemId', as: 'parentItem' })
+  SalesOrderItem.hasMany(SalesOrderItem,   { foreignKey: 'parentItemId', as: 'childItems' })
 }
