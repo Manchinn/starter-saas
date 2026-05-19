@@ -57,14 +57,6 @@
               <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.orderDate" />
             </div>
 
-            <!-- Notes -->
-            <div class="col-span-2">
-              <FieldLabel :text="t('erp.orders.notes')" />
-              <textarea v-model="form.notes" rows="2" placeholder="Order notes or special instructions…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
-            </div>
           </div>
         </FormCard>
 
@@ -198,25 +190,34 @@
 
         <!-- Summary + Actions -->
         <FormCard :title="t('erp.orders.orderSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
-          <div class="px-6 py-5 flex justify-end">
-            <dl class="w-full max-w-xs space-y-2.5">
-              <div class="flex items-center justify-between text-[13px]">
-                <dt class="text-[#637381]">{{ t('erp.orders.items') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ form.items.length }}</dd>
-              </div>
-              <div class="flex items-center justify-between text-[13px]">
-                <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</dd>
-              </div>
-              <div class="flex items-center justify-between text-[13px]">
-                <dt class="text-[#637381]">{{ t('erp.orders.tax') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</dd>
-              </div>
-              <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
-                <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.total') }}</dt>
-                <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
-              </div>
-            </dl>
+          <div class="px-6 py-5 grid grid-cols-2 gap-6">
+            <div class="text-left">
+              <FieldLabel :text="t('erp.orders.notes')" />
+              <textarea v-model="form.notes" rows="4" placeholder="Order notes or special instructions…"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+            </div>
+            <div class="flex justify-end">
+              <dl class="w-full max-w-xs space-y-2.5">
+                <div class="flex items-center justify-between text-[13px]">
+                  <dt class="text-[#637381]">{{ t('erp.orders.items') }}</dt>
+                  <dd class="font-semibold text-[#1C2434] tabular-nums">{{ form.items.length }}</dd>
+                </div>
+                <div class="flex items-center justify-between text-[13px]">
+                  <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
+                  <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</dd>
+                </div>
+                <div class="flex items-center justify-between text-[13px]">
+                  <dt class="text-[#637381]">{{ t('erp.orders.tax') }}</dt>
+                  <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</dd>
+                </div>
+                <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
+                  <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.total') }}</dt>
+                  <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
+                </div>
+              </dl>
+            </div>
           </div>
 
           <DocFooterBar
