@@ -27,6 +27,8 @@ export default {
       salePackages: 'รายการขายแบบกลุ่ม',
       packageItem:  'รายการในแพ็กเกจ',
       removePackage: 'ลบแพ็กเกจและรายการทั้งหมด',
+      collapsePackage: 'ย่อรายการในแพ็กเกจ',
+      expandPackage:   'ขยายรายการในแพ็กเกจ',
       store:        'คลัง',
       description:  'คำอธิบาย',
       unitPrice:    'ราคาต่อหน่วย',

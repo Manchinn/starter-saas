@@ -27,6 +27,8 @@ export default {
       salePackages: 'Sale Packages',
       packageItem:  'Package item',
       removePackage: 'Remove package and all its items',
+      collapsePackage: 'Collapse package items',
+      expandPackage:   'Expand package items',
       store:        'Store',
       description:  'Description',
       unitPrice:    'Unit Price',

@@ -112,6 +112,7 @@
 
             <div class="divide-y divide-[#E2E8F0]">
               <div v-for="(line, idx) in form.items" :key="line.key || idx"
+                v-show="isRowVisible(line)"
                 class="grid items-center gap-3 px-5 py-3 transition-colors group border-l-2"
                 :class="line.isPackage ? 'bg-primary-50/40 border-l-primary-400'
                          : (line.parentKey ? 'bg-[#F7F9FC]/60 hover:bg-[#F1F5F9] border-l-primary-200'
@@ -123,6 +124,12 @@
                 </div>
 
                 <div v-if="line.isPackage" class="flex items-center gap-1.5 text-[13px] font-semibold text-primary-700">
+                  <button type="button" @click="toggleCollapse(line.key)"
+                    :title="isCollapsed(line.key) ? t('erp.orders.expandPackage') : t('erp.orders.collapsePackage')"
+                    class="flex items-center justify-center w-5 h-5 rounded hover:bg-primary-100 text-primary-600 flex-shrink-0">
+                    <ChevronRightIcon v-if="isCollapsed(line.key)" class="w-3.5 h-3.5" />
+                    <ChevronDownIcon  v-else                       class="w-3.5 h-3.5" />
+                  </button>
                   <CubeIcon class="w-4 h-4 flex-shrink-0" />
                   <span class="truncate">{{ line.productName }}</span>
                   <span class="text-[11px] font-normal text-[#9BA7B0]">· {{ t('erp.orders.salePackage') }}</span>
@@ -245,7 +252,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   PlusIcon, TrashIcon, ShoppingCartIcon,
   UserIcon, ClipboardDocumentListIcon, CalculatorIcon,
-  CubeIcon,
+  CubeIcon, ChevronDownIcon, ChevronRightIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -392,6 +399,18 @@ function removeLine(idx) {
 
 function childrenOf(parentKey) {
   return form.value.items.filter(it => it.parentKey === parentKey)
+}
+
+const collapsedPackages = ref(new Set())
+function isCollapsed(key) { return collapsedPackages.value.has(key) }
+function toggleCollapse(key) {
+  const next = new Set(collapsedPackages.value)
+  if (next.has(key)) next.delete(key)
+  else               next.add(key)
+  collapsedPackages.value = next
+}
+function isRowVisible(line) {
+  return !(line.parentKey && isCollapsed(line.parentKey))
 }
 
 function getBestPricing(si, customerGroupId) {
