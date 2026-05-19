@@ -1,7 +1,7 @@
 <template>
   <div>
-    <!-- Trigger — looks like the regular line-item input -->
-    <button type="button" @click="openModal"
+    <!-- Default trigger — hidden when parent controls opening externally -->
+    <button v-if="!hideTrigger" type="button" @click="openModal"
       class="w-full text-left px-2.5 py-2 border text-[13px] text-[#1C2434] bg-white
              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
              transition-all flex items-center gap-2 min-h-[36px]"
@@ -43,7 +43,7 @@
                 :placeholder="searchPlaceholder || 'Search code or name…'"
                 class="flex-1 text-[14px] text-[#1C2434] focus:outline-none placeholder:text-[#9BA7B0] bg-transparent"
                 @keydown.escape.prevent="close"
-                @keydown.enter.prevent="pickSelected"
+                @keydown.enter.prevent="onEnter"
                 @keydown.down.prevent="moveSel(1)"
                 @keydown.up.prevent="moveSel(-1)"
               />
@@ -67,18 +67,26 @@
                   </div>
                   <button v-else type="button"
                     :data-row-idx="idx"
-                    @click="pick(row.option)"
+                    @click="onRowClick(row.option)"
                     @mouseenter="selIdx = idx"
                     class="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors border-l-2"
                     :class="selIdx === idx
                       ? 'bg-primary-50 border-primary-500'
                       : 'border-transparent hover:bg-[#F7F9FC]'">
+                    <!-- Multi: checkbox; Single: nothing here, check icon at end -->
+                    <span v-if="multiple"
+                      class="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors"
+                      :class="isChecked(row.option)
+                        ? 'bg-primary-500 border-primary-500 text-white'
+                        : 'border-[#CBD5E1] bg-white'">
+                      <CheckIcon v-if="isChecked(row.option)" class="w-3 h-3" stroke-width="3" />
+                    </span>
                     <span v-if="row.option[codeKey]"
                       class="font-mono text-[12px] text-[#637381] flex-shrink-0 min-w-[80px]">
                       {{ row.option[codeKey] }}
                     </span>
                     <span class="flex-1 text-[13px] text-[#1C2434] truncate">{{ row.option[labelKey] }}</span>
-                    <CheckIcon v-if="isSelected(row.option)"
+                    <CheckIcon v-if="!multiple && isSelectedSingle(row.option)"
                       class="w-4 h-4 text-primary-600 flex-shrink-0" />
                   </button>
                 </template>
@@ -86,13 +94,29 @@
             </div>
 
             <!-- Footer / hint -->
-            <div v-if="flatOptionCount" class="px-4 py-2 border-t border-[#E2E8F0] bg-[#F7F9FC] flex items-center justify-between text-[11px] text-[#9BA7B0]">
-              <span>{{ flatOptionCount }} result{{ flatOptionCount === 1 ? '' : 's' }}</span>
-              <span class="flex items-center gap-3">
-                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">↑↓</kbd> navigate</span>
-                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Enter</kbd> select</span>
-                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Esc</kbd> close</span>
+            <div v-if="flatOptionCount" class="px-4 py-2.5 border-t border-[#E2E8F0] bg-[#F7F9FC] flex items-center gap-3">
+              <span class="text-[11px] text-[#9BA7B0] flex-1 truncate">
+                <template v-if="multiple">
+                  {{ checkedCount }} of {{ flatOptionCount }} selected
+                </template>
+                <template v-else>
+                  {{ flatOptionCount }} result{{ flatOptionCount === 1 ? '' : 's' }}
+                </template>
               </span>
+              <span class="hidden sm:flex items-center gap-3 text-[11px] text-[#9BA7B0]">
+                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">↑↓</kbd></span>
+                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">{{ multiple ? 'Space' : 'Enter' }}</kbd></span>
+                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Esc</kbd></span>
+              </span>
+              <button v-if="multiple" type="button"
+                @click="submitMulti"
+                :disabled="!checkedCount"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold rounded-lg
+                       bg-primary-500 text-white hover:bg-primary-600
+                       disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors">
+                <PlusIcon class="w-3.5 h-3.5" />
+                {{ submitLabel || `Add ${checkedCount || 0} item${checkedCount === 1 ? '' : 's'}` }}
+              </button>
             </div>
           </div>
         </div>
@@ -103,7 +127,7 @@
 
 <script setup>
 import { ref, computed, nextTick, watch, onUnmounted } from 'vue'
-import { MagnifyingGlassIcon, XMarkIcon, CheckIcon } from '@heroicons/vue/24/outline'
+import { MagnifyingGlassIcon, XMarkIcon, CheckIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   modelValue:        { type: [String, Number, null], default: '' },
@@ -118,18 +142,22 @@ const props = defineProps({
   searchPlaceholder: { type: String, default: '' },
   invalid:           { type: Boolean, default: false },
   noResult:          { type: String, default: '' },
+  // Multi-select: rows render checkboxes; emit `submit` with chosen objects on Add.
+  multiple:          { type: Boolean, default: false },
+  submitLabel:       { type: String, default: '' },
+  // Hide built-in trigger button; parent opens via exposed open()
+  hideTrigger:       { type: Boolean, default: false },
 })
-const emit = defineEmits(['update:modelValue', 'change'])
+const emit = defineEmits(['update:modelValue', 'change', 'submit'])
 
 const open    = ref(false)
 const search  = ref('')
 const selIdx  = ref(-1)
+const checked = ref(new Set())
 const searchInput = ref(null)
 const listEl  = ref(null)
 
 // ── Flatten options into a single array of rows ────────────────────────
-// Grouped: [{kind:'group', label}, {kind:'option', option}, ...]
-// Flat:    [{kind:'option', option}, ...]
 const groups = computed(() => {
   if (props.groupValues) {
     return props.options.map((g) => ({
@@ -164,6 +192,7 @@ const flat = computed(() => {
 })
 
 const flatOptionCount = computed(() => flat.value.filter((r) => r.kind === 'option').length)
+const checkedCount    = computed(() => checked.value.size)
 
 const selectedObject = computed(() => {
   if (props.modelValue === '' || props.modelValue == null) return null
@@ -182,14 +211,26 @@ const selectedLabel = computed(() => {
   return code ? `${code} · ${name}` : name
 })
 
-function isSelected(option) {
+function isSelectedSingle(option) {
   return String(option?.[props.trackBy]) === String(props.modelValue)
+}
+
+function isChecked(option) {
+  return checked.value.has(String(option?.[props.trackBy]))
+}
+
+function toggleChecked(option) {
+  const id = String(option?.[props.trackBy])
+  const next = new Set(checked.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  checked.value = next
 }
 
 function openModal() {
   open.value = true
   search.value = ''
-  // Position the highlight on the currently selected row (or first option)
+  checked.value = new Set()
   nextTick(() => {
     selIdx.value = findInitialSelIdx()
     scrollToSelected()
@@ -201,21 +242,46 @@ function close() {
   open.value = false
 }
 
-function pick(option) {
+function onRowClick(option) {
+  if (props.multiple) toggleChecked(option)
+  else pickSingle(option)
+}
+
+function pickSingle(option) {
   const v = option?.[props.trackBy]
   emit('update:modelValue', v)
   emit('change', v, option)
   close()
 }
 
-function pickSelected() {
+function submitMulti() {
+  if (!checked.value.size) return
+  const ids = Array.from(checked.value)
+  const objects = []
+  for (const id of ids) {
+    for (const g of groups.value) {
+      const hit = g.items.find((o) => String(o?.[props.trackBy]) === id)
+      if (hit) { objects.push(hit); break }
+    }
+  }
+  emit('submit', objects)
+  close()
+}
+
+function onEnter() {
+  if (props.multiple) {
+    // In multi mode, Enter on the search field submits whatever's been
+    // checked. To toggle the highlighted row, use Space.
+    submitMulti()
+    return
+  }
   const row = flat.value[selIdx.value]
-  if (row?.kind === 'option') pick(row.option)
+  if (row?.kind === 'option') pickSingle(row.option)
 }
 
 function findInitialSelIdx() {
-  if (props.modelValue) {
-    const i = flat.value.findIndex((r) => r.kind === 'option' && isSelected(r.option))
+  if (!props.multiple && props.modelValue) {
+    const i = flat.value.findIndex((r) => r.kind === 'option' && isSelectedSingle(r.option))
     if (i >= 0) return i
   }
   return flat.value.findIndex((r) => r.kind === 'option')
@@ -241,23 +307,40 @@ function scrollToSelected() {
   })
 }
 
+// Space toggles the highlighted row in multi mode (typical multi-select UX)
+function onSpace(e) {
+  if (!props.multiple || !open.value) return
+  // Don't intercept Space while the user is typing into the search field
+  const tag = (e.target?.tagName || '').toLowerCase()
+  if (tag === 'input' || tag === 'textarea') return
+  const row = flat.value[selIdx.value]
+  if (row?.kind === 'option') {
+    e.preventDefault()
+    toggleChecked(row.option)
+  }
+}
+
 // Reset highlight when search changes
 watch(search, () => {
   selIdx.value = flat.value.findIndex((r) => r.kind === 'option')
 })
 
-// Lock body scroll while open + esc handler
+// Lock body scroll + global key handler
 watch(open, (v) => {
   if (typeof document === 'undefined') return
   document.body.style.overflow = v ? 'hidden' : ''
 })
 
 function onKeydown(e) {
-  if (e.key === 'Escape' && open.value) close()
+  if (!open.value) return
+  if (e.key === 'Escape') close()
+  if (e.key === ' ') onSpace(e)
 }
 if (typeof window !== 'undefined') window.addEventListener('keydown', onKeydown)
 onUnmounted(() => {
   if (typeof window !== 'undefined') window.removeEventListener('keydown', onKeydown)
   if (typeof document !== 'undefined') document.body.style.overflow = ''
 })
+
+defineExpose({ open: openModal, close })
 </script>

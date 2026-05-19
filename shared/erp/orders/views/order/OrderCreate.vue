@@ -73,7 +73,7 @@
           :subtitle="form.items.length ? `${form.items.length} item${form.items.length !== 1 ? 's' : ''}` : 'No items yet'"
           :padded="false">
           <template #actions>
-            <button @click="addLine" type="button"
+            <button @click="openBulkPicker" type="button"
               class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
                      text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
                      rounded-xl transition-colors">
@@ -83,7 +83,7 @@
           </template>
 
           <!-- Empty state -->
-          <EmptyState v-if="!form.items.length" :icon="ShoppingCartIcon" :title="t('erp.common.noItems')" subtitle="Add products or services to this order" :action-label="t('erp.orders.addFirstItem')" :error-message="errors.items" @action="addLine" />
+          <EmptyState v-if="!form.items.length" :icon="ShoppingCartIcon" :title="t('erp.common.noItems')" subtitle="Add products or services to this order" :action-label="t('erp.orders.addFirstItem')" :error-message="errors.items" @action="openBulkPicker" />
 
           <!-- Items table -->
           <div v-else>
@@ -171,6 +171,19 @@
               {{ errors.items }}
             </p>
           </div>
+
+          <!-- Bulk-add popup (hidden trigger; opened by the Add Item button + empty state) -->
+          <SearchSelectPopup
+            ref="bulkPickerRef"
+            :model-value="''"
+            :options="groupedItemOptions"
+            group-values="items"
+            group-label="label"
+            multiple
+            hide-trigger
+            search-placeholder="Search by code or name…"
+            @submit="onBulkAdd"
+          />
         </FormCard>
 
         <ErrorBanner :message="globalError" />
@@ -293,6 +306,70 @@ function addLine() {
 
 function removeLine(idx) {
   form.value.items.splice(idx, 1)
+}
+
+// ── Bulk-add popup wiring ───────────────────────────────────────────────
+const bulkPickerRef = ref(null)
+function openBulkPicker() { bulkPickerRef.value?.open() }
+
+// Build a new line from a sale item (resolves customer-group pricing).
+function makeLineFromSaleItem(si) {
+  const customer = customers.value.find(c => c.id === form.value.customerId)
+  const pricing  = getBestPricing(si, customer?.customerGroupId)
+  return {
+    saleItemId:  si.id,
+    storeId:     '',
+    hasProduct:  !!si.productId,
+    productName: si.name,
+    quantity:    1,
+    unitPrice:   pricing ? Number(pricing.unitPrice) : 0,
+    taxRate:     defaultTaxRate(),
+  }
+}
+
+// Fetch a package and return one line per package item.
+async function linesFromPackage(packageId) {
+  try {
+    const { data } = await api.get(`/erp/sale-packages/${packageId}`)
+    const pkg = data.data.package
+    const customer = customers.value.find(c => c.id === form.value.customerId)
+    return (pkg.packageItems || []).map(pi => {
+      const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
+      const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
+      let unitPrice = pi.unitPrice != null ? Number(pi.unitPrice) : 0
+      if (!unitPrice) {
+        const siFull = saleItems.value.find(s => s.id === pi.saleItemId)
+        const pricing = siFull ? getBestPricing(siFull, customer?.customerGroupId) : null
+        if (pricing) unitPrice = Number(pricing.unitPrice)
+      }
+      return {
+        saleItemId:  pi.saleItemId,
+        storeId:     '',
+        hasProduct,
+        productName: `${si.name || 'Item'} (${pkg.code || pkg.name})`,
+        quantity:    Number(pi.quantity) || 1,
+        unitPrice,
+        taxRate:     Number(settings.tax?.rate) || 0,
+      }
+    })
+  } catch {
+    return []
+  }
+}
+
+// The bulk picker emits an array of mixed sale items + packages.
+// Append a new line per sale item; expand each package into its items.
+async function onBulkAdd(objects) {
+  const newLines = []
+  for (const obj of objects) {
+    if (saleItems.value.some(s => s.id === obj.id)) {
+      newLines.push(makeLineFromSaleItem(obj))
+    } else if (salePackages.value.some(p => p.id === obj.id)) {
+      const lines = await linesFromPackage(obj.id)
+      newLines.push(...lines)
+    }
+  }
+  if (newLines.length) form.value.items.push(...newLines)
 }
 
 function getBestPricing(si, customerGroupId) {
