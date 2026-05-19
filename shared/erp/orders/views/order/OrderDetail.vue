@@ -551,9 +551,18 @@ async function confirmDelete() {
 
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—' }
 
-const PAYMENT_TERM_LABELS = {
-  cod: 'COD', prepaid: 'Prepaid',
-  net7: 'Net 7', net15: 'Net 15', net30: 'Net 30', net60: 'Net 60', net90: 'Net 90',
+// Payment-terms labels come from master-data so admins can rename them.
+// Fall back to the stored raw value if the lookup is empty or missing.
+const paymentTerms = ref([])
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/erp/master-data/payment-terms')
+    paymentTerms.value = data.data.values || []
+  } catch { /* lookup failed — labels fall back to raw stored value */ }
+})
+function paymentTermLabel(v) {
+  if (!v) return '—'
+  const hit = paymentTerms.value.find(opt => opt.code === v || opt.name === v)
+  return hit?.name || v
 }
-function paymentTermLabel(v) { return v ? (PAYMENT_TERM_LABELS[v] || v) : '—' }
 </script>

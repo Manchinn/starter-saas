@@ -83,7 +83,7 @@
                 class="w-full px-3 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434] bg-white
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
                 <option value="">—</option>
-                <option v-for="opt in PAYMENT_TERMS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
               </select>
             </div>
 
@@ -375,15 +375,7 @@ const loading      = ref(true)
 const loadError    = ref('')
 const billingSameAsShipping = ref(false)
 
-const PAYMENT_TERMS = [
-  { value: 'cod',     label: 'COD (Cash on Delivery)' },
-  { value: 'prepaid', label: 'Prepaid' },
-  { value: 'net7',    label: 'Net 7' },
-  { value: 'net15',   label: 'Net 15' },
-  { value: 'net30',   label: 'Net 30' },
-  { value: 'net60',   label: 'Net 60' },
-  { value: 'net90',   label: 'Net 90' },
-]
+const paymentTerms = ref([])
 const globalError  = ref('')
 const saving       = ref(false)
 const errors       = ref({})
@@ -412,19 +404,21 @@ const groupedItemOptions = computed(() => {
 
 onMounted(async () => {
   const id = route.params.id
-  const [orderRes, customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes] = await Promise.allSettled([
+  const [orderRes, customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes, paymentTermsRes] = await Promise.allSettled([
     api.get(`/erp/orders/${id}`),
     api.get('/erp/customers',     { params: { limit: 200 } }),
     api.get('/erp/sale-items',    { params: { limit: 500, status: 'active' } }),
     api.get('/erp/sale-packages', { params: { limit: 200, status: 'active' } }),
     api.get('/erp/stores',        { params: { limit: 200 } }),
     api.get('/organizations/staff'),
+    api.get('/erp/master-data/payment-terms'),
   ])
   if (customersRes.status    === 'fulfilled') customers.value    = customersRes.value.data.data.customers
   if (saleItemsRes.status    === 'fulfilled') saleItems.value    = saleItemsRes.value.data.data.items
   if (salePackagesRes.status === 'fulfilled') salePackages.value = salePackagesRes.value.data.data.items
   if (storesRes.status       === 'fulfilled') stores.value       = storesRes.value.data.data.stores
   if (staffRes.status        === 'fulfilled') staff.value        = staffRes.value.data.data.staff
+  if (paymentTermsRes.status === 'fulfilled') paymentTerms.value = paymentTermsRes.value.data.data.values || []
 
   if (orderRes.status !== 'fulfilled') {
     loadError.value = parseApiError(orderRes.reason, 'Failed to load order')
