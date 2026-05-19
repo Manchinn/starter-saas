@@ -107,7 +107,15 @@
 
                 <div class="text-[12px] font-semibold text-[#CBD5E1] text-center select-none">{{ idx + 1 }}</div>
 
-                <SearchSelect v-model="line.saleItemId" :options="groupedItemOptions" group-values="items" group-label="label" placeholder="— Item —" @change="onPickerChange(line, idx)" />
+                <SearchSelectPopup
+                  v-model="line.saleItemId"
+                  :options="groupedItemOptions"
+                  group-values="items"
+                  group-label="label"
+                  placeholder="— Item —"
+                  search-placeholder="Search by code or name…"
+                  @change="onPickerChange(line, idx)"
+                />
 
                 <div>
                   <SearchSelect v-if="line.hasProduct" v-model="line.storeId" :options="stores" :invalid="line.hasProduct && !line.storeId" placeholder="— Store —" />
@@ -214,6 +222,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
