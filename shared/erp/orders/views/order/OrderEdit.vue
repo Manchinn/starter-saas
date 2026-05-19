@@ -234,10 +234,12 @@ import DocFooterBar from '@/components/form/DocFooterBar.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
+import { useSettingsStore } from '@/stores/settings'
 
 const { t }       = useI18n()
 const route       = useRoute()
 const router      = useRouter()
+const settings    = useSettingsStore()
 
 const order        = ref(null)
 const customers    = ref([])
@@ -318,9 +320,13 @@ onMounted(async () => {
   loading.value = false
 })
 
+function defaultTaxRate() {
+  if (form.value.items.length) return Number(form.value.items[form.value.items.length - 1].taxRate) || 0
+  return Number(settings.tax?.rate) || 0
+}
+
 function addLine() {
-  const prevRate = form.value.items.length ? Number(form.value.items[form.value.items.length - 1].taxRate) || 0 : 0
-  form.value.items.push({ saleItemId: '', storeId: '', hasProduct: false, productName: '', quantity: 1, unitPrice: 0, taxRate: prevRate })
+  form.value.items.push({ saleItemId: '', storeId: '', hasProduct: false, productName: '', quantity: 1, unitPrice: 0, taxRate: defaultTaxRate() })
 }
 
 function removeLine(idx) {
@@ -385,7 +391,7 @@ async function expandPackageInto(idx, packageId) {
         productName: `${si.name || 'Item'} (${pkg.code || pkg.name})`,
         quantity:    Number(pi.quantity) || 1,
         unitPrice,
-        taxRate:     0,
+        taxRate:     Number(settings.tax?.rate) || 0,
       }
     })
     if (expanded.length) form.value.items.splice(idx, 1, ...expanded)
