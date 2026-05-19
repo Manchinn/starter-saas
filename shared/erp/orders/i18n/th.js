@@ -62,7 +62,10 @@ export default {
       sameAsShipping:    'ใช้ที่อยู่จัดส่ง',
       useCustomerAddress: 'ใช้ที่อยู่ของลูกค้า',
       discount:          'ส่วนลด',
-      newCustomer:       '+ เพิ่มลูกค้าใหม่',
+      newCustomer:       'เพิ่มลูกค้าใหม่',
+      saveDraft:         'บันทึกร่าง',
+      savedDraft:        'บันทึกร่างแล้ว',
+      unsavedChanges:    'คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ต้องการละทิ้งหรือไม่?',
     },
 
     orderItems: {

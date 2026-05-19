@@ -403,9 +403,20 @@
     <!-- Sticky save bar at the viewport bottom -->
     <div class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
                 flex items-center justify-between gap-3">
-      <div>
-        <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.orders.total') }}</p>
-        <p class="text-2xl font-extrabold tabular-nums leading-none text-primary-600">{{ fmtMoney(grandTotal) }}</p>
+      <div class="flex items-center gap-4">
+        <div>
+          <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.orders.total') }}</p>
+          <p class="text-2xl font-extrabold tabular-nums leading-none text-primary-600">{{ fmtMoney(grandTotal) }}</p>
+        </div>
+        <!-- Draft-saved hint shows once the user has stashed a draft -->
+        <span v-if="draftSavedAt" class="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-600">
+          <CheckIcon class="w-3.5 h-3.5" />
+          {{ t('erp.orders.savedDraft') }} · {{ savedAtRelative }}
+        </span>
+        <span v-else-if="dirty" class="hidden sm:inline-flex items-center gap-1 text-[11px] text-amber-600">
+          <ExclamationTriangleIcon class="w-3.5 h-3.5" />
+          {{ t('erp.orders.unsavedChanges') }}
+        </span>
       </div>
       <div class="flex items-center gap-2.5">
         <span class="hidden md:inline text-[11px] text-[#9BA7B0]">
@@ -414,11 +425,19 @@
           <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">S</kbd>
           {{ t('erp.common.toSave') }}
         </span>
-        <RouterLink to="/erp/orders"
+        <button @click="discard" type="button"
           class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
           {{ t('erp.orders.discard') }}
-        </RouterLink>
-        <button @click="save" :disabled="saving" type="button"
+        </button>
+        <button @click="saveDraft" :disabled="savingDraft || saving" type="button"
+          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+                 bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 rounded-xl
+                 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <ArrowPathIcon v-if="savingDraft" class="w-4 h-4 animate-spin" />
+          <BookmarkSquareIcon v-else class="w-4 h-4" />
+          {{ savingDraft ? t('erp.common.saving') : t('erp.orders.saveDraft') }}
+        </button>
+        <button @click="save" :disabled="saving || savingDraft" type="button"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -496,14 +515,14 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, RouterLink } from 'vue-router'
+import { useRouter, RouterLink, onBeforeRouteLeave } from 'vue-router'
 import {
   PlusIcon, TrashIcon, XMarkIcon,
   CheckIcon, ShoppingCartIcon,
   ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
   CalculatorIcon, LightBulbIcon, ExclamationTriangleIcon,
   Bars3Icon, CubeIcon, ChevronDownIcon, ChevronRightIcon,
-  MapPinIcon,
+  MapPinIcon, BookmarkSquareIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -559,6 +578,35 @@ const form  = ref({
   discountType: '', discountValue: 0,
 })
 const billingSameAsShipping = ref(true)
+
+// Once a draft has been saved-without-redirect we have an order id, so further
+// saves PUT instead of POST and the page silently switches to edit mode.
+const createdOrderId = ref('')
+const savingDraft    = ref(false)
+const draftSavedAt   = ref(null)
+
+// Dirty tracking: warn on tab close / Discard click after the user changes
+// anything. We arm the watcher after the initial form ref is set up so the
+// default values don't immediately mark the form dirty.
+const dirty = ref(false)
+let dirtyArmed = false
+watch(form, () => { if (dirtyArmed) dirty.value = true }, { deep: true })
+onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
+
+function onBeforeUnload(e) {
+  if (!dirty.value) return
+  e.preventDefault()
+  e.returnValue = ''
+}
+onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
+onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
+
+// Vue Router guard — covers in-app navigation (RouterLink in HeaderSaveActions,
+// breadcrumbs, sidebar clicks). beforeunload above handles tab close / reload.
+onBeforeRouteLeave(() => {
+  if (!dirty.value) return true
+  return confirm(t('erp.orders.unsavedChanges'))
+})
 
 const selectedCustomer = computed(() =>
   form.value.customerId ? customers.value.find(c => c.id === form.value.customerId) : null
@@ -991,14 +1039,17 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-async function save() {
+// Single entry point for both buttons. `redirect` controls whether we leave
+// the form after a successful save. When called repeatedly (Save Draft used
+// multiple times) the second+ calls PUT to the order we already created.
+async function save({ redirect = true } = {}) {
   globalError.value = ''
   if (!validate()) return
-  saving.value = true
+  if (redirect) saving.value = true
+  else          savingDraft.value = true
   try {
     const payload = {
       ...form.value,
-      // Empty strings become null on the server side; just pass them through.
       discountType:  form.value.discountType  || null,
       discountValue: Number(form.value.discountValue) || 0,
       items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
@@ -1010,12 +1061,42 @@ async function save() {
         taxRate: Number(taxRate) || 0,
       })),
     }
-    const { data } = await api.post('/erp/orders', payload)
-    router.push(`/erp/orders/${data.data.order.id}`)
+    let data
+    if (createdOrderId.value) {
+      ({ data } = await api.put(`/erp/orders/${createdOrderId.value}`, payload))
+    } else {
+      ({ data } = await api.post('/erp/orders', payload))
+      createdOrderId.value = data.data.order.id
+    }
+    dirty.value = false
+    if (redirect) {
+      router.push(`/erp/orders/${data.data.order.id}`)
+    } else {
+      draftSavedAt.value = new Date()
+    }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to create order')
+    globalError.value = parseApiError(err, 'Failed to save order')
   } finally {
     saving.value = false
+    savingDraft.value = false
   }
+}
+
+function saveDraft() { save({ redirect: false }) }
+
+// "12 sec ago" / "2 min ago" hint next to the Draft saved indicator.
+const _now = ref(Date.now())
+onMounted(() => { const id = setInterval(() => { _now.value = Date.now() }, 15000); onUnmounted(() => clearInterval(id)) })
+const savedAtRelative = computed(() => {
+  if (!draftSavedAt.value) return ''
+  const secs = Math.max(0, Math.round((_now.value - draftSavedAt.value.getTime()) / 1000))
+  if (secs < 60)   return `${secs}s ago`
+  if (secs < 3600) return `${Math.round(secs / 60)}m ago`
+  return `${Math.round(secs / 3600)}h ago`
+})
+
+function discard() {
+  if (dirty.value && !confirm(t('erp.orders.unsavedChanges'))) return
+  router.push('/erp/orders')
 }
 </script>

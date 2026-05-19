@@ -62,7 +62,10 @@ export default {
       sameAsShipping:    'Same as shipping',
       useCustomerAddress: 'Use customer address',
       discount:          'Discount',
-      newCustomer:       '+ New Customer',
+      newCustomer:       'New Customer',
+      saveDraft:         'Save Draft',
+      savedDraft:        'Draft saved',
+      unsavedChanges:    'You have unsaved changes. Discard them?',
     },
 
     orderItems: {
