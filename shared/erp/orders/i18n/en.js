@@ -51,6 +51,18 @@ export default {
       cancelOrder:    'Cancel Order',
       createDeliveryOrder: 'Create Delivery Order',
       createInvoice:       'Create Invoice',
+
+      referenceNumber:   'Reference / PO #',
+      expectedDelivery:  'Expected Delivery',
+      paymentTerms:      'Payment Terms',
+      salesperson:       'Salesperson',
+      addresses:         'Addresses',
+      shippingAddress:   'Shipping Address',
+      billingAddress:    'Billing Address',
+      sameAsShipping:    'Same as shipping',
+      useCustomerAddress: 'Use customer address',
+      discount:          'Discount',
+      newCustomer:       '+ New Customer',
     },
 
     orderItems: {

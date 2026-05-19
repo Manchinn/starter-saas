@@ -40,6 +40,19 @@ const Order = sequelize.define('Order', {
   notes:          { type: DataTypes.TEXT, allowNull: true },
   currency:       { type: DataTypes.STRING(3), allowNull: true },
   exchangeRate:   { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 },
+
+  // Customer's PO / internal reference number
+  referenceNumber:      { type: DataTypes.STRING, allowNull: true },
+  expectedDeliveryDate: { type: DataTypes.DATEONLY, allowNull: true },
+  paymentTerms:         { type: DataTypes.STRING(20), allowNull: true },
+  salespersonId:        { type: DataTypes.UUID, allowNull: true },
+  shippingAddress:      { type: DataTypes.TEXT, allowNull: true },
+  billingAddress:       { type: DataTypes.TEXT, allowNull: true },
+
+  // Order-level discount applied before tax
+  discountType:  { type: DataTypes.ENUM('percent', 'fixed'), allowNull: true },
+  discountValue: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+  discountAmount:{ type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   organizationId: { type: DataTypes.UUID, allowNull: true },
   dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
   createdBy:      { type: DataTypes.UUID, allowNull: true },

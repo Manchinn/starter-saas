@@ -51,6 +51,18 @@ export default {
       cancelOrder:    'ยกเลิกใบสั่ง',
       createDeliveryOrder: 'สร้างใบส่งสินค้า',
       createInvoice:       'สร้างใบแจ้งหนี้',
+
+      referenceNumber:   'เลขที่อ้างอิง / PO',
+      expectedDelivery:  'วันที่ส่งที่คาดหวัง',
+      paymentTerms:      'เงื่อนไขการชำระเงิน',
+      salesperson:       'พนักงานขาย',
+      addresses:         'ที่อยู่',
+      shippingAddress:   'ที่อยู่จัดส่ง',
+      billingAddress:    'ที่อยู่ใบกำกับ',
+      sameAsShipping:    'ใช้ที่อยู่จัดส่ง',
+      useCustomerAddress: 'ใช้ที่อยู่ของลูกค้า',
+      discount:          'ส่วนลด',
+      newCustomer:       '+ เพิ่มลูกค้าใหม่',
     },
 
     orderItems: {

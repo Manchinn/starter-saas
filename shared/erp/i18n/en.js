@@ -50,6 +50,7 @@ export default {
       workflow:     'Workflow',
       currentStatus:'Current status',
       terminalState:'Terminal state',
+      toSave:       'to save',
     },
 
     activity: {

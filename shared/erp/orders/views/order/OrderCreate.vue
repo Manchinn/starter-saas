@@ -27,18 +27,37 @@
 
         <!-- Customer & Order Info -->
         <FormCard :title="t('erp.orders.customerInfo')" :icon="UserIcon" icon-color="primary" :padded="false">
-          <div class="px-6 py-5 grid grid-cols-2 gap-x-6 gap-y-5">
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
             <!-- Customer -->
-            <div class="col-span-2 lg:col-span-1">
+            <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.orders.customer')" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
-                <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-              </SearchSelect>
+              <div class="flex gap-2 items-start">
+                <div class="flex-1 min-w-0">
+                  <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
+                    <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                    <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                  </SearchSelect>
+                </div>
+                <button type="button" @click="openCustomerCreate"
+                  :title="t('erp.orders.newCustomer')"
+                  class="px-3 py-2.5 text-[12px] font-semibold rounded-xl border border-primary-200
+                         text-primary-600 bg-primary-50 hover:bg-primary-100 transition-colors flex-shrink-0 inline-flex items-center gap-1">
+                  <PlusIcon class="w-3.5 h-3.5" />
+                  {{ t('erp.orders.newCustomer') }}
+                </button>
+              </div>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
-
               <CustomerChip :customer="selectedCustomer" />
+            </div>
+
+            <!-- Reference / PO # -->
+            <div>
+              <FieldLabel :text="t('erp.orders.referenceNumber')" />
+              <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-all placeholder:text-[#9BA7B0]" />
             </div>
 
             <!-- Order Date -->
@@ -51,12 +70,80 @@
               <p v-if="errors.orderDate" class="mt-1 text-[11px] text-red-500">{{ errors.orderDate }}</p>
             </div>
 
+            <!-- Expected delivery date -->
+            <div>
+              <FieldLabel :text="t('erp.orders.expectedDelivery')" />
+              <DateInput v-model="form.expectedDeliveryDate"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+            </div>
+
             <!-- Currency -->
             <div>
               <FieldLabel :text="t('erp.common.currency')" />
               <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.orderDate" />
             </div>
 
+            <!-- Payment terms -->
+            <div>
+              <FieldLabel :text="t('erp.orders.paymentTerms')" />
+              <select v-model="form.paymentTerms"
+                class="w-full px-3 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434] bg-white
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
+                <option value="">—</option>
+                <option v-for="t in PAYMENT_TERMS" :key="t.value" :value="t.value">{{ t.label }}</option>
+              </select>
+            </div>
+
+            <!-- Salesperson -->
+            <div>
+              <FieldLabel :text="t('erp.orders.salesperson')" />
+              <SearchSelect v-model="form.salespersonId" :options="staff" placeholder="— Salesperson —">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.email" class="text-[#9BA7B0]"> · {{ option.email }}</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}</template>
+              </SearchSelect>
+            </div>
+
+          </div>
+        </FormCard>
+
+        <!-- Addresses -->
+        <FormCard :title="t('erp.orders.addresses')" :icon="MapPinIcon" icon-color="primary" :padded="false">
+          <template #actions>
+            <button type="button" @click="syncAddressesFromCustomer"
+              :disabled="!selectedCustomer?.address"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold rounded-xl
+                     text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
+                     transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <ArrowPathIcon class="w-3.5 h-3.5" />
+              {{ t('erp.orders.useCustomerAddress') }}
+            </button>
+          </template>
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <FieldLabel :text="t('erp.orders.shippingAddress')" />
+              <textarea v-model="form.shippingAddress" rows="3"
+                placeholder="Ship to address…"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+            </div>
+            <div>
+              <div class="flex items-center justify-between">
+                <FieldLabel :text="t('erp.orders.billingAddress')" />
+                <label class="flex items-center gap-1.5 text-[11px] text-[#637381] cursor-pointer select-none">
+                  <input type="checkbox" v-model="billingSameAsShipping" class="rounded" />
+                  {{ t('erp.orders.sameAsShipping') }}
+                </label>
+              </div>
+              <textarea v-model="form.billingAddress" rows="3"
+                :disabled="billingSameAsShipping"
+                placeholder="Bill to address…"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-all resize-none placeholder:text-[#9BA7B0]
+                       disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+            </div>
           </div>
         </FormCard>
 
@@ -264,13 +351,13 @@
 
         <ErrorBanner :message="globalError" />
 
-        <!-- Summary + Actions -->
+        <!-- Summary + totals -->
         <FormCard :title="t('erp.orders.orderSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
-          <div class="px-6 py-5 grid grid-cols-2 gap-6 items-stretch">
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             <div class="flex flex-col text-left">
               <FieldLabel :text="t('erp.orders.notes')" />
               <textarea v-model="form.notes" placeholder="Order notes or special instructions…"
-                class="flex-1 w-full min-h-[8rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                class="flex-1 w-full min-h-[10rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                        transition-all resize-none placeholder:text-[#9BA7B0]" />
             </div>
@@ -283,40 +370,140 @@
                 <dt class="text-[#637381]">{{ t('erp.orders.tax') }}</dt>
                 <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</dd>
               </div>
+              <!-- Discount input row -->
+              <div class="flex items-center justify-between text-[13px] gap-3">
+                <dt class="text-[#637381] flex-shrink-0">{{ t('erp.orders.discount') }}</dt>
+                <div class="flex items-center gap-1.5">
+                  <select v-model="form.discountType"
+                    class="px-2 py-1.5 border border-[#E2E8F0] text-[12px] bg-white
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400">
+                    <option value="">—</option>
+                    <option value="percent">%</option>
+                    <option value="fixed">{{ form.currency || '฿' }}</option>
+                  </select>
+                  <input v-model.number="form.discountValue" type="number" min="0" step="0.01" placeholder="0"
+                    :disabled="!form.discountType"
+                    class="w-20 px-2 py-1.5 border border-[#E2E8F0] text-[12px] text-right tabular-nums
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                           disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+                  <span class="text-[13px] font-semibold text-red-600 tabular-nums w-20 text-right">−{{ fmtMoney(discountAmount) }}</span>
+                </div>
+              </div>
               <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
                 <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.total') }}</dt>
                 <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
               </div>
             </dl>
           </div>
-
-          <DocFooterBar
-            :total-label="t('erp.orders.total')"
-            :total="fmtMoney(grandTotal)"
-            discard-to="/erp/orders"
-            :discard-label="t('erp.orders.discard')"
-            :saving="saving"
-            :saving-label="t('erp.common.creating')"
-            :save-label="t('erp.orders.createOrder')"
-            @save="save"
-          />
         </FormCard>
 
       </div>
     </div>
+
+    <!-- Sticky save bar at the viewport bottom -->
+    <div class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+                flex items-center justify-between gap-3">
+      <div>
+        <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.orders.total') }}</p>
+        <p class="text-2xl font-extrabold tabular-nums leading-none text-primary-600">{{ fmtMoney(grandTotal) }}</p>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <span class="hidden md:inline text-[11px] text-[#9BA7B0]">
+          <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl</kbd>
+          +
+          <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">S</kbd>
+          {{ t('erp.common.toSave') }}
+        </span>
+        <RouterLink to="/erp/orders"
+          class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
+          {{ t('erp.orders.discard') }}
+        </RouterLink>
+        <button @click="save" :disabled="saving" type="button"
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
+                 bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
+          <CheckIcon v-else class="w-4 h-4" />
+          {{ saving ? t('erp.common.creating') : t('erp.orders.createOrder') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Inline customer create slide-over -->
+    <Teleport to="body">
+      <div v-if="customerCreateOpen" class="fixed inset-0 z-50 flex">
+        <div class="flex-1 bg-black/30" @click="closeCustomerCreate"></div>
+        <div class="w-full max-w-md bg-white shadow-2xl overflow-y-auto flex flex-col">
+          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+            <h3 class="text-base font-semibold text-[#1C2434]">{{ t('erp.orders.newCustomer') }}</h3>
+            <button @click="closeCustomerCreate" type="button"
+              class="w-8 h-8 rounded-lg hover:bg-[#F1F5F9] text-[#637381] flex items-center justify-center">
+              <XMarkIcon class="w-4 h-4" />
+            </button>
+          </div>
+          <div class="flex-1 px-6 py-5 space-y-4">
+            <div>
+              <FieldLabel :text="t('erp.customers.name')" required />
+              <input v-model="newCustomer.name" type="text" placeholder="Customer name"
+                ref="newCustomerNameRef"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+            </div>
+            <div>
+              <FieldLabel :text="t('erp.customers.company')" />
+              <input v-model="newCustomer.company" type="text"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <FieldLabel :text="t('erp.customers.email')" />
+                <input v-model="newCustomer.email" type="email"
+                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+              </div>
+              <div>
+                <FieldLabel :text="t('erp.customers.phone')" />
+                <input v-model="newCustomer.phone" type="text"
+                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+              </div>
+            </div>
+            <div>
+              <FieldLabel :text="t('erp.customers.address')" />
+              <textarea v-model="newCustomer.address" rows="3"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 resize-none" />
+            </div>
+            <p v-if="newCustomerError" class="text-[12px] text-red-600">{{ newCustomerError }}</p>
+          </div>
+          <div class="px-6 py-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
+            <button @click="closeCustomerCreate" type="button"
+              class="px-4 py-2 text-sm text-[#637381] hover:text-[#1C2434]">{{ t('common.cancel') }}</button>
+            <button @click="saveCustomer" :disabled="newCustomerSaving" type="button"
+              class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50">
+              <ArrowPathIcon v-if="newCustomerSaving" class="w-4 h-4 animate-spin" />
+              <CheckIcon v-else class="w-4 h-4" />
+              {{ newCustomerSaving ? t('erp.common.creating') : t('common.save') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, RouterLink } from 'vue-router'
 import {
-  PlusIcon, TrashIcon,
+  PlusIcon, TrashIcon, XMarkIcon,
   CheckIcon, ShoppingCartIcon,
   ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
   CalculatorIcon, LightBulbIcon, ExclamationTriangleIcon,
   Bars3Icon, CubeIcon, ChevronDownIcon, ChevronRightIcon,
+  MapPinIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -330,7 +517,6 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
-import DocFooterBar from '@/components/form/DocFooterBar.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -343,12 +529,36 @@ const customers    = ref([])
 const saleItems    = ref([])
 const salePackages = ref([])
 const stores       = ref([])
+const staff        = ref([])
 const globalError = ref('')
 const saving    = ref(false)
 const errors    = ref({})
 
+// Inline customer create slide-over state
+const customerCreateOpen = ref(false)
+const newCustomer        = ref({ name: '', company: '', email: '', phone: '', address: '' })
+const newCustomerError   = ref('')
+const newCustomerSaving  = ref(false)
+const newCustomerNameRef = ref(null)
+
+const PAYMENT_TERMS = [
+  { value: 'cod',     label: 'COD (Cash on Delivery)' },
+  { value: 'prepaid', label: 'Prepaid' },
+  { value: 'net7',    label: 'Net 7' },
+  { value: 'net15',   label: 'Net 15' },
+  { value: 'net30',   label: 'Net 30' },
+  { value: 'net60',   label: 'Net 60' },
+  { value: 'net90',   label: 'Net 90' },
+]
+
 const today = new Date().toISOString().slice(0, 10)
-const form  = ref({ customerId: '', orderDate: today, currency: '', exchangeRate: 1, notes: '', items: [] })
+const form  = ref({
+  customerId: '', orderDate: today, currency: '', exchangeRate: 1, notes: '', items: [],
+  referenceNumber: '', expectedDeliveryDate: '', paymentTerms: '', salespersonId: '',
+  shippingAddress: '', billingAddress: '',
+  discountType: '', discountValue: 0,
+})
+const billingSameAsShipping = ref(true)
 
 const selectedCustomer = computed(() =>
   form.value.customerId ? customers.value.find(c => c.id === form.value.customerId) : null
@@ -367,17 +577,84 @@ const groupedItemOptions = computed(() => {
 })
 
 onMounted(async () => {
-  const [customersRes, saleItemsRes, salePackagesRes, storesRes] = await Promise.allSettled([
+  const [customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes] = await Promise.allSettled([
     api.get('/erp/customers',     { params: { limit: 200 } }),
     api.get('/erp/sale-items',    { params: { limit: 500, status: 'active' } }),
     api.get('/erp/sale-packages', { params: { limit: 200, status: 'active' } }),
     api.get('/erp/stores',        { params: { limit: 200 } }),
+    api.get('/organizations/staff'),
   ])
   if (customersRes.status    === 'fulfilled') customers.value    = customersRes.value.data.data.customers
   if (saleItemsRes.status    === 'fulfilled') saleItems.value    = saleItemsRes.value.data.data.items
   if (salePackagesRes.status === 'fulfilled') salePackages.value = salePackagesRes.value.data.data.items
   if (storesRes.status       === 'fulfilled') stores.value       = storesRes.value.data.data.stores
+  if (staffRes.status        === 'fulfilled') staff.value        = staffRes.value.data.data.staff
 })
+
+// Auto-populate addresses from the selected customer if both are empty.
+watch(() => form.value.customerId, (id) => {
+  const c = customers.value.find(x => x.id === id)
+  if (!c) return
+  if (!form.value.shippingAddress && c.address) form.value.shippingAddress = c.address
+})
+
+// Mirror shipping → billing while the "same as shipping" toggle is on.
+watch(billingSameAsShipping, (on) => {
+  if (on) form.value.billingAddress = form.value.shippingAddress
+}, { immediate: true })
+watch(() => form.value.shippingAddress, (v) => {
+  if (billingSameAsShipping.value) form.value.billingAddress = v
+})
+
+function syncAddressesFromCustomer() {
+  const c = selectedCustomer.value
+  if (!c?.address) return
+  form.value.shippingAddress = c.address
+  if (billingSameAsShipping.value) form.value.billingAddress = c.address
+}
+
+// ── Inline customer create ──────────────────────────────────────────────
+function openCustomerCreate() {
+  newCustomer.value = { name: '', company: '', email: '', phone: '', address: '' }
+  newCustomerError.value = ''
+  customerCreateOpen.value = true
+  // Focus the name field once Vue renders the slide-over.
+  setTimeout(() => newCustomerNameRef.value?.focus(), 50)
+}
+function closeCustomerCreate() {
+  customerCreateOpen.value = false
+}
+async function saveCustomer() {
+  newCustomerError.value = ''
+  if (!newCustomer.value.name?.trim()) {
+    newCustomerError.value = 'Name is required'
+    return
+  }
+  newCustomerSaving.value = true
+  try {
+    const { data } = await api.post('/erp/customers', { ...newCustomer.value, status: 'active' })
+    const created = data.data?.customer || data.data
+    if (created?.id) {
+      customers.value = [created, ...customers.value]
+      form.value.customerId = created.id
+    }
+    customerCreateOpen.value = false
+  } catch (err) {
+    newCustomerError.value = parseApiError(err, 'Failed to create customer')
+  } finally {
+    newCustomerSaving.value = false
+  }
+}
+
+// ── Keyboard shortcuts ──────────────────────────────────────────────────
+function onPageKeydown(e) {
+  const ctrl = e.ctrlKey || e.metaKey
+  if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
+  else if (ctrl && e.key.toLowerCase() === 'k') { e.preventDefault(); openBulkPicker() }
+  else if (e.key === 'Escape' && customerCreateOpen.value) { closeCustomerCreate() }
+}
+onMounted(() => document.addEventListener('keydown', onPageKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 function defaultTaxRate() {
   // Prefer the previous *priced* row's rate (skip package headers, which are 0).
@@ -685,7 +962,14 @@ const itemsSubtitle = computed(() => {
 })
 const subtotal   = computed(() => form.value.items.reduce((s, i) => i.parentKey ? s : s + (i.quantity || 0) * (i.unitPrice || 0), 0))
 const taxAmount  = computed(() => toFixed(form.value.items.reduce((s, i) => s + lineTax(i), 0), 2))
-const grandTotal = computed(() => subtotal.value + taxAmount.value)
+const discountAmount = computed(() => {
+  const gross = subtotal.value + Number(taxAmount.value)
+  const v = Number(form.value.discountValue) || 0
+  if (form.value.discountType === 'percent') return toFixed(gross * v / 100, 2)
+  if (form.value.discountType === 'fixed')   return toFixed(Math.min(v, gross), 2)
+  return 0
+})
+const grandTotal = computed(() => subtotal.value + Number(taxAmount.value) - Number(discountAmount.value))
 
 function validate() {
   const e = {}
@@ -714,6 +998,9 @@ async function save() {
   try {
     const payload = {
       ...form.value,
+      // Empty strings become null on the server side; just pass them through.
+      discountType:  form.value.discountType  || null,
+      discountValue: Number(form.value.discountValue) || 0,
       items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
         key, parentKey: parentKey || '',
         salePackageId: salePackageId || null,

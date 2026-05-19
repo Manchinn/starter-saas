@@ -50,6 +50,7 @@ export default {
       workflow:      'สถานะดำเนินการ',
       currentStatus: 'สถานะปัจจุบัน',
       terminalState: 'สถานะสุดท้าย',
+      toSave:        'เพื่อบันทึก',
     },
 
     activity: {

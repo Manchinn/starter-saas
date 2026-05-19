@@ -37,21 +37,25 @@
 
         <!-- Customer & Order Info -->
         <FormCard :title="t('erp.orders.customerInfo')" :icon="UserIcon" icon-color="primary" :padded="false">
-          <div class="px-6 py-5 grid grid-cols-2 gap-x-6 gap-y-5">
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
-            <!-- Customer -->
-            <div class="col-span-2 lg:col-span-1">
+            <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.orders.customer')" required />
               <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
-
               <CustomerChip :customer="selectedCustomer" />
             </div>
 
-            <!-- Order Date -->
+            <div>
+              <FieldLabel :text="t('erp.orders.referenceNumber')" />
+              <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+            </div>
+
             <div>
               <FieldLabel :text="t('erp.orders.orderDate')" required />
               <DateInput v-model="form.orderDate"
@@ -61,19 +65,59 @@
               <p v-if="errors.orderDate" class="mt-1 text-[11px] text-red-500">{{ errors.orderDate }}</p>
             </div>
 
-            <!-- Currency -->
+            <div>
+              <FieldLabel :text="t('erp.orders.expectedDelivery')" />
+              <DateInput v-model="form.expectedDeliveryDate"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+            </div>
+
             <div>
               <FieldLabel :text="t('erp.common.currency')" />
               <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.orderDate" />
             </div>
 
-            <!-- Notes -->
-            <div class="col-span-2">
-              <FieldLabel :text="t('erp.orders.notes')" />
-              <textarea v-model="form.notes" rows="2" placeholder="Order notes or special instructions…"
+            <div>
+              <FieldLabel :text="t('erp.orders.paymentTerms')" />
+              <select v-model="form.paymentTerms"
+                class="w-full px-3 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434] bg-white
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
+                <option value="">—</option>
+                <option v-for="opt in PAYMENT_TERMS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+              </select>
+            </div>
+
+            <div>
+              <FieldLabel :text="t('erp.orders.salesperson')" />
+              <SearchSelect v-model="form.salespersonId" :options="staff" placeholder="— Salesperson —">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.email" class="text-[#9BA7B0]"> · {{ option.email }}</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}</template>
+              </SearchSelect>
+            </div>
+          </div>
+        </FormCard>
+
+        <!-- Addresses -->
+        <FormCard :title="t('erp.orders.addresses')" :icon="MapPinIcon" icon-color="primary" :padded="false">
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <FieldLabel :text="t('erp.orders.shippingAddress')" />
+              <textarea v-model="form.shippingAddress" rows="3"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none" />
+            </div>
+            <div>
+              <div class="flex items-center justify-between">
+                <FieldLabel :text="t('erp.orders.billingAddress')" />
+                <label class="flex items-center gap-1.5 text-[11px] text-[#637381] cursor-pointer select-none">
+                  <input type="checkbox" v-model="billingSameAsShipping" class="rounded" />
+                  {{ t('erp.orders.sameAsShipping') }}
+                </label>
+              </div>
+              <textarea v-model="form.billingAddress" rows="3" :disabled="billingSameAsShipping"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none
+                       disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
             </div>
           </div>
         </FormCard>
@@ -211,48 +255,94 @@
 
         <ErrorBanner :message="globalError" />
 
-        <!-- Summary + Actions -->
+        <!-- Summary + totals -->
         <FormCard :title="t('erp.orders.orderSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
-          <div class="px-6 py-4 grid grid-cols-3 gap-6">
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.items') }}</span>
-              <span class="text-[13px] font-semibold text-[#1C2434]">{{ form.items.length }}</span>
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <div class="flex flex-col text-left">
+              <FieldLabel :text="t('erp.orders.notes')" />
+              <textarea v-model="form.notes" placeholder="Order notes or special instructions…"
+                class="flex-1 w-full min-h-[10rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-all resize-none placeholder:text-[#9BA7B0]" />
             </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.subtotal') }}</span>
-              <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</span>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.tax') }}</span>
-              <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</span>
-            </div>
+            <dl class="w-full space-y-2.5">
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.orders.tax') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-[13px] gap-3">
+                <dt class="text-[#637381] flex-shrink-0">{{ t('erp.orders.discount') }}</dt>
+                <div class="flex items-center gap-1.5">
+                  <select v-model="form.discountType"
+                    class="px-2 py-1.5 border border-[#E2E8F0] text-[12px] bg-white
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400">
+                    <option value="">—</option>
+                    <option value="percent">%</option>
+                    <option value="fixed">{{ form.currency || '฿' }}</option>
+                  </select>
+                  <input v-model.number="form.discountValue" type="number" min="0" step="0.01" placeholder="0"
+                    :disabled="!form.discountType"
+                    class="w-20 px-2 py-1.5 border border-[#E2E8F0] text-[12px] text-right tabular-nums
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                           disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+                  <span class="text-[13px] font-semibold text-red-600 tabular-nums w-20 text-right">−{{ fmtMoney(discountAmount) }}</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
+                <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.orders.total') }}</dt>
+                <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
+              </div>
+            </dl>
           </div>
-
-          <DocFooterBar
-            :total-label="t('erp.orders.total')"
-            :total="fmtMoney(grandTotal)"
-            :discard-to="`/erp/orders/${route.params.id}`"
-            :discard-label="t('common.cancel')"
-            :saving="saving"
-            :saving-label="t('erp.common.saving')"
-            :save-label="t('common.saveChanges')"
-            @save="save"
-          />
         </FormCard>
 
+      </div>
+    </div>
+
+    <!-- Sticky save bar -->
+    <div v-if="!loading && !loadError" class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+                flex items-center justify-between gap-3">
+      <div>
+        <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.orders.total') }}</p>
+        <p class="text-2xl font-extrabold tabular-nums leading-none text-primary-600">{{ fmtMoney(grandTotal) }}</p>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <span class="hidden md:inline text-[11px] text-[#9BA7B0]">
+          <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl</kbd>
+          +
+          <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">S</kbd>
+          {{ t('erp.common.toSave') }}
+        </span>
+        <RouterLink :to="`/erp/orders/${route.params.id}`"
+          class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
+          {{ t('common.cancel') }}
+        </RouterLink>
+        <button @click="save" :disabled="saving" type="button"
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
+                 bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
+          <CheckIcon v-else class="w-4 h-4" />
+          {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
+        </button>
       </div>
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import {
   PlusIcon, TrashIcon, ShoppingCartIcon,
   UserIcon, ClipboardDocumentListIcon, CalculatorIcon,
   CubeIcon, ChevronDownIcon, ChevronRightIcon,
+  MapPinIcon, ArrowPathIcon, CheckIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -265,7 +355,6 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
-import DocFooterBar from '@/components/form/DocFooterBar.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -281,13 +370,30 @@ const customers    = ref([])
 const saleItems    = ref([])
 const salePackages = ref([])
 const stores       = ref([])
+const staff        = ref([])
 const loading      = ref(true)
 const loadError    = ref('')
+const billingSameAsShipping = ref(false)
+
+const PAYMENT_TERMS = [
+  { value: 'cod',     label: 'COD (Cash on Delivery)' },
+  { value: 'prepaid', label: 'Prepaid' },
+  { value: 'net7',    label: 'Net 7' },
+  { value: 'net15',   label: 'Net 15' },
+  { value: 'net30',   label: 'Net 30' },
+  { value: 'net60',   label: 'Net 60' },
+  { value: 'net90',   label: 'Net 90' },
+]
 const globalError  = ref('')
 const saving       = ref(false)
 const errors       = ref({})
 
-const form = ref({ customerId: '', orderDate: '', currency: '', exchangeRate: 1, notes: '', items: [] })
+const form = ref({
+  customerId: '', orderDate: '', currency: '', exchangeRate: 1, notes: '', items: [],
+  referenceNumber: '', expectedDeliveryDate: '', paymentTerms: '', salespersonId: '',
+  shippingAddress: '', billingAddress: '',
+  discountType: '', discountValue: 0,
+})
 
 const selectedCustomer = computed(() =>
   form.value.customerId ? customers.value.find(c => c.id === form.value.customerId) : null
@@ -306,17 +412,19 @@ const groupedItemOptions = computed(() => {
 
 onMounted(async () => {
   const id = route.params.id
-  const [orderRes, customersRes, saleItemsRes, salePackagesRes, storesRes] = await Promise.allSettled([
+  const [orderRes, customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes] = await Promise.allSettled([
     api.get(`/erp/orders/${id}`),
     api.get('/erp/customers',     { params: { limit: 200 } }),
     api.get('/erp/sale-items',    { params: { limit: 500, status: 'active' } }),
     api.get('/erp/sale-packages', { params: { limit: 200, status: 'active' } }),
     api.get('/erp/stores',        { params: { limit: 200 } }),
+    api.get('/organizations/staff'),
   ])
   if (customersRes.status    === 'fulfilled') customers.value    = customersRes.value.data.data.customers
   if (saleItemsRes.status    === 'fulfilled') saleItems.value    = saleItemsRes.value.data.data.items
   if (salePackagesRes.status === 'fulfilled') salePackages.value = salePackagesRes.value.data.data.items
   if (storesRes.status       === 'fulfilled') stores.value       = storesRes.value.data.data.stores
+  if (staffRes.status        === 'fulfilled') staff.value        = staffRes.value.data.data.staff
 
   if (orderRes.status !== 'fulfilled') {
     loadError.value = parseApiError(orderRes.reason, 'Failed to load order')
@@ -337,12 +445,24 @@ onMounted(async () => {
   const idToKey = new Map()
   for (const it of o.items || []) idToKey.set(it.id, newKey())
 
+  // Sync the "same as shipping" toggle from saved data — if shipping == billing
+  // we present them as linked; otherwise both are independently editable.
+  billingSameAsShipping.value = !!o.shippingAddress && o.shippingAddress === o.billingAddress
+
   form.value = {
     customerId:   o.customerId   || '',
     orderDate:    o.orderDate    || '',
     currency:     o.currency     || '',
     exchangeRate: o.exchangeRate != null ? Number(o.exchangeRate) : 1,
     notes:        o.notes        || '',
+    referenceNumber:      o.referenceNumber      || '',
+    expectedDeliveryDate: o.expectedDeliveryDate || '',
+    paymentTerms:         o.paymentTerms         || '',
+    salespersonId:        o.salespersonId        || '',
+    shippingAddress:      o.shippingAddress      || '',
+    billingAddress:       o.billingAddress       || '',
+    discountType:         o.discountType         || '',
+    discountValue:        Number(o.discountValue) || 0,
     items: (o.items || []).map(it => {
       const si = saleItems.value.find(s => s.id === it.saleItemId)
       const hasProduct = !!(it.productId || si?.productId)
@@ -512,12 +632,33 @@ watch(() => form.value.customerId, () => {
   for (const line of form.value.items) applyPricing(line)
 })
 
+watch(billingSameAsShipping, (on) => {
+  if (on) form.value.billingAddress = form.value.shippingAddress
+})
+watch(() => form.value.shippingAddress, (v) => {
+  if (billingSameAsShipping.value) form.value.billingAddress = v
+})
+
+function onPageKeydown(e) {
+  const ctrl = e.ctrlKey || e.metaKey
+  if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
+}
+onMounted(() => document.addEventListener('keydown', onPageKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+
 const subtotal   = computed(() => form.value.items.reduce((s, i) => i.parentKey ? s : s + (i.quantity || 0) * (i.unitPrice || 0), 0))
 const taxAmount  = computed(() => toFixed(
   form.value.items.reduce((s, i) => i.parentKey ? s : s + (i.quantity || 0) * (i.unitPrice || 0) * ((i.taxRate || 0) / 100), 0),
   2,
 ))
-const grandTotal = computed(() => subtotal.value + taxAmount.value)
+const discountAmount = computed(() => {
+  const gross = subtotal.value + Number(taxAmount.value)
+  const v = Number(form.value.discountValue) || 0
+  if (form.value.discountType === 'percent') return toFixed(gross * v / 100, 2)
+  if (form.value.discountType === 'fixed')   return toFixed(Math.min(v, gross), 2)
+  return 0
+})
+const grandTotal = computed(() => subtotal.value + Number(taxAmount.value) - Number(discountAmount.value))
 
 function validate() {
   const e = {}
@@ -549,6 +690,14 @@ async function save() {
       currency:     form.value.currency || null,
       exchangeRate: form.value.exchangeRate,
       notes:        form.value.notes,
+      referenceNumber:      form.value.referenceNumber      || null,
+      expectedDeliveryDate: form.value.expectedDeliveryDate || null,
+      paymentTerms:         form.value.paymentTerms         || null,
+      salespersonId:        form.value.salespersonId        || null,
+      shippingAddress:      form.value.shippingAddress      || null,
+      billingAddress:       form.value.billingAddress       || null,
+      discountType:         form.value.discountType         || null,
+      discountValue:        Number(form.value.discountValue) || 0,
       items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
         key, parentKey: parentKey || '',
         salePackageId: salePackageId || null,

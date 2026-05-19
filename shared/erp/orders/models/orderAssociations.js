@@ -9,6 +9,7 @@ module.exports = function associate({
   Order.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' })
   Customer.hasMany(Order,   { foreignKey: 'customerId', as: 'orders' })
 
+
   // ── Order ↔ SalesOrderItem ────────────────────────────────────────────────
   Order.hasMany(SalesOrderItem,    { foreignKey: 'orderId', as: 'items', onDelete: 'CASCADE' })
   SalesOrderItem.belongsTo(Order,  { foreignKey: 'orderId', as: 'order' })

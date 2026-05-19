@@ -95,7 +95,7 @@
           </div>
 
             <!-- Customer + Order info -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-5">
                 <div class="flex items-center gap-2 mb-3">
                   <div class="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
@@ -123,16 +123,47 @@
                     {{ t('erp.orders.salesOrderInfo') }}
                   </p>
                 </div>
-                <div class="space-y-1.5">
-                  <p class="text-xs text-[#637381]">
-                    {{ t('erp.orders.orderDate') }}:
-                    <span class="font-semibold text-[#1C2434] ml-1">{{ order.orderDate }}</span>
-                  </p>
-                  <p class="text-xs text-[#637381]">
-                    Created:
-                    <span class="font-semibold text-[#1C2434] ml-1">{{ fmtDate(order.createdAt) }}</span>
+                <dl class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                  <dt class="text-[#637381]">{{ t('erp.orders.orderDate') }}</dt>
+                  <dd class="font-semibold text-[#1C2434] tabular-nums">{{ order.orderDate || '—' }}</dd>
+
+                  <dt class="text-[#637381]">{{ t('erp.orders.expectedDelivery') }}</dt>
+                  <dd class="font-semibold text-[#1C2434] tabular-nums">{{ order.expectedDeliveryDate || '—' }}</dd>
+
+                  <dt class="text-[#637381]">{{ t('erp.orders.referenceNumber') }}</dt>
+                  <dd class="font-semibold text-[#1C2434]">{{ order.referenceNumber || '—' }}</dd>
+
+                  <dt class="text-[#637381]">{{ t('erp.orders.paymentTerms') }}</dt>
+                  <dd class="font-semibold text-[#1C2434]">{{ paymentTermLabel(order.paymentTerms) }}</dd>
+
+                  <dt class="text-[#637381]">{{ t('erp.orders.salesperson') }}</dt>
+                  <dd class="font-semibold text-[#1C2434]">{{ order.salesperson?.name || '—' }}</dd>
+
+                  <dt class="text-[#637381]">Created</dt>
+                  <dd class="font-semibold text-[#1C2434]">{{ fmtDate(order.createdAt) }}</dd>
+                </dl>
+              </div>
+            </div>
+
+            <!-- Addresses -->
+            <div v-if="order.shippingAddress || order.billingAddress" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-5">
+                <div class="flex items-center gap-2 mb-2">
+                  <MapPinIcon class="w-3.5 h-3.5 text-primary-500" />
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">
+                    {{ t('erp.orders.shippingAddress') }}
                   </p>
                 </div>
+                <p class="text-sm text-[#1C2434] whitespace-pre-line">{{ order.shippingAddress || '—' }}</p>
+              </div>
+              <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-5">
+                <div class="flex items-center gap-2 mb-2">
+                  <MapPinIcon class="w-3.5 h-3.5 text-primary-500" />
+                  <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">
+                    {{ t('erp.orders.billingAddress') }}
+                  </p>
+                </div>
+                <p class="text-sm text-[#1C2434] whitespace-pre-line">{{ order.billingAddress || '—' }}</p>
               </div>
             </div>
 
@@ -237,7 +268,7 @@
               <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
               <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.orders.orderSummary') }}</h2>
             </div>
-            <div class="px-6 py-4 grid grid-cols-3 gap-6">
+            <div class="px-6 py-4 grid grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
                 <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-1">
                   {{ t('erp.orders.items') }}
@@ -255,6 +286,12 @@
                   {{ t('erp.orders.tax') }}
                 </p>
                 <p class="text-xl font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(order.tax) }}</p>
+              </div>
+              <div v-if="Number(order.discountAmount) > 0">
+                <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-1">
+                  {{ t('erp.orders.discount') }}
+                </p>
+                <p class="text-xl font-bold text-red-600 tabular-nums">−{{ fmtMoney(order.discountAmount) }}</p>
               </div>
             </div>
             <div class="px-6 py-5 bg-[#F7F9FC] border-t border-[#E2E8F0] flex items-center justify-between">
@@ -350,7 +387,7 @@ import {
   ArrowLeftIcon, ChevronRightIcon, UserIcon, DocumentTextIcon,
   ClipboardDocumentListIcon, CheckIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
   BoltIcon, ArrowPathIcon, ExclamationCircleIcon, CalculatorIcon, TruckIcon,
-  CubeIcon,
+  CubeIcon, MapPinIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
@@ -513,4 +550,10 @@ async function confirmDelete() {
 }
 
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—' }
+
+const PAYMENT_TERM_LABELS = {
+  cod: 'COD', prepaid: 'Prepaid',
+  net7: 'Net 7', net15: 'Net 15', net30: 'Net 30', net60: 'Net 60', net90: 'Net 90',
+}
+function paymentTermLabel(v) { return v ? (PAYMENT_TERM_LABELS[v] || v) : '—' }
 </script>

@@ -1,4 +1,4 @@
-const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, Store, StoreStock, StockMovement, sequelize } = require('../../../server/models')
+const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, Store, StoreStock, StockMovement, User, sequelize } = require('../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../server/utils/fmt')
 
@@ -29,6 +29,7 @@ const getById = async (id) => {
   const order = await Order.findByPk(id, {
     include: [
       { model: Customer, as: 'customer' },
+      { model: User, as: 'salesperson', attributes: ['id', 'name', 'email'] },
       { model: SalesOrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'sku'] }] },
     ],
     // Insert order keeps package headers immediately followed by their children
@@ -50,8 +51,9 @@ const getById = async (id) => {
 }
 
 // Compute per-line + order-level totals from incoming items.
-// Returns { subtotal, tax, total, lines } where each line carries taxAmount/total.
-const computeTotals = (items) => {
+// Discount is applied as a flat reduction to the total (after tax), shown
+// as its own line in the summary — matches the "10% off your order" pattern.
+const computeTotals = (items, { discountType, discountValue } = {}) => {
   const lines = items.map((i) => {
     const qty   = Number(i.quantity)  || 0
     const price = Number(i.unitPrice) || 0
@@ -62,7 +64,20 @@ const computeTotals = (items) => {
   })
   const subtotal = lines.reduce((s, l) => s + Number(l.lineSubtotal), 0)
   const tax      = lines.reduce((s, l) => s + Number(l.taxAmount), 0)
-  return { subtotal: toFixed(subtotal, 2), tax: toFixed(tax, 2), total: toFixed(subtotal + tax, 2), lines }
+  const grossTotal = subtotal + tax
+
+  let discountAmount = 0
+  if (discountType === 'percent') discountAmount = grossTotal * (Number(discountValue) || 0) / 100
+  else if (discountType === 'fixed') discountAmount = Math.min(Number(discountValue) || 0, grossTotal)
+  discountAmount = toFixed(discountAmount, 2)
+
+  return {
+    subtotal: toFixed(subtotal, 2),
+    tax: toFixed(tax, 2),
+    discountAmount,
+    total: toFixed(grossTotal - Number(discountAmount), 2),
+    lines,
+  }
 }
 
 // Persist `lines` to `sales_order_items` resolving parentKey → parentItemId.
@@ -99,18 +114,39 @@ const persistOrderItems = async ({ orderId, lines, organizationId, t }) => {
   }
 }
 
-const create = async ({ customerId, orderDate, notes, items = [], currency, exchangeRate, userId, organizationId }) => {
+const create = async ({
+  customerId, orderDate, notes, items = [], currency, exchangeRate,
+  referenceNumber, expectedDeliveryDate, paymentTerms, salespersonId,
+  shippingAddress, billingAddress,
+  discountType, discountValue,
+  userId, organizationId,
+}) => {
   if (!items.length) throw { status: 400, message: 'Order must have at least one item' }
 
   const orderNumber = await generateOrderNumber()
-  const { subtotal, tax, total, lines } = computeTotals(items)
+  const { subtotal, tax, total, discountAmount, lines } = computeTotals(items, { discountType, discountValue })
   const fx = await require('../settings/currency.service').getRateOn(currency, orderDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
   await sequelize.transaction(async (t) => {
     const order = await Order.create(
-      { orderNumber, customerId: customerId || null, orderDate: orderDate || new Date(), notes, subtotal, tax, total, currency: currency || null, exchangeRate: resolvedRate, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null },
+      {
+        orderNumber, customerId: customerId || null, orderDate: orderDate || new Date(),
+        notes, subtotal, tax, total,
+        currency: currency || null, exchangeRate: resolvedRate,
+        referenceNumber:      referenceNumber || null,
+        expectedDeliveryDate: expectedDeliveryDate || null,
+        paymentTerms:         paymentTerms || null,
+        salespersonId:        salespersonId || null,
+        shippingAddress:      shippingAddress || null,
+        billingAddress:       billingAddress || null,
+        discountType:         discountType || null,
+        discountValue:        Number(discountValue) || 0,
+        discountAmount,
+        organizationId: organizationId || null,
+        createdBy: userId || null, modifiedBy: userId || null,
+      },
       { transaction: t }
     )
     createdId = order.id
@@ -252,7 +288,14 @@ const updateStatus = async (id, status, userId) => {
   return getById(id)
 }
 
-const update = async (id, { customerId, orderDate, notes, currency, exchangeRate, items }, userId) => {
+const update = async (id, payload, userId) => {
+  const {
+    customerId, orderDate, notes, currency, exchangeRate, items,
+    referenceNumber, expectedDeliveryDate, paymentTerms, salespersonId,
+    shippingAddress, billingAddress,
+    discountType, discountValue,
+  } = payload || {}
+
   const order = await Order.findByPk(id)
   if (!order) throw { status: 404, message: 'Order not found' }
   if (order.status !== 'draft') throw { status: 400, message: 'Only draft orders can be edited' }
@@ -263,16 +306,46 @@ const update = async (id, { customerId, orderDate, notes, currency, exchangeRate
     const fx = await require('../settings/currency.service').getRateOn(currency, orderDate || order.orderDate, order.organizationId)
     headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   }
+  // Optional header-only fields — only overwrite the column when the client
+  // explicitly sent the key so a partial update doesn't blank things.
+  if (referenceNumber      !== undefined) headerExtras.referenceNumber      = referenceNumber      || null
+  if (expectedDeliveryDate !== undefined) headerExtras.expectedDeliveryDate = expectedDeliveryDate || null
+  if (paymentTerms         !== undefined) headerExtras.paymentTerms         = paymentTerms         || null
+  if (salespersonId        !== undefined) headerExtras.salespersonId        = salespersonId        || null
+  if (shippingAddress      !== undefined) headerExtras.shippingAddress      = shippingAddress      || null
+  if (billingAddress       !== undefined) headerExtras.billingAddress       = billingAddress       || null
 
   await sequelize.transaction(async (t) => {
     if (items) {
       await SalesOrderItem.destroy({ where: { orderId: id }, transaction: t })
 
-      const { subtotal, tax, total, lines } = computeTotals(items)
+      // Use the request's discount when provided, otherwise keep the current.
+      const dType  = discountType  !== undefined ? (discountType  || null) : order.discountType
+      const dValue = discountValue !== undefined ? (Number(discountValue) || 0) : Number(order.discountValue) || 0
+      const { subtotal, tax, total, discountAmount, lines } = computeTotals(items, { discountType: dType, discountValue: dValue })
 
-      await order.update({ customerId: customerId || null, orderDate, notes, subtotal, tax, total, ...headerExtras, modifiedBy: userId || null }, { transaction: t })
+      await order.update({
+        customerId: customerId || null, orderDate, notes,
+        subtotal, tax, total,
+        discountType: dType, discountValue: dValue, discountAmount,
+        ...headerExtras, modifiedBy: userId || null,
+      }, { transaction: t })
       await persistOrderItems({ orderId: id, lines, organizationId: order.organizationId, t })
     } else {
+      // No item change — still allow header-only updates including discount.
+      if (discountType !== undefined || discountValue !== undefined) {
+        const dType  = discountType  !== undefined ? (discountType  || null) : order.discountType
+        const dValue = discountValue !== undefined ? (Number(discountValue) || 0) : Number(order.discountValue) || 0
+        const sub = Number(order.subtotal) || 0
+        const tax = Number(order.tax) || 0
+        let amt = 0
+        if (dType === 'percent') amt = (sub + tax) * dValue / 100
+        else if (dType === 'fixed') amt = Math.min(dValue, sub + tax)
+        headerExtras.discountType   = dType
+        headerExtras.discountValue  = dValue
+        headerExtras.discountAmount = toFixed(amt, 2)
+        headerExtras.total          = toFixed(sub + tax - amt, 2)
+      }
       await order.update({ customerId: customerId || null, orderDate, notes, ...headerExtras, modifiedBy: userId || null }, { transaction: t })
     }
   })
