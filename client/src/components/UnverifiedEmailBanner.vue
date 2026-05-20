@@ -1,6 +1,6 @@
 <template>
   <div v-if="show"
-    class="mb-4 flex flex-wrap items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-sm">
+    class="unverified-email-banner mb-4 flex flex-wrap items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-sm">
     <svg class="w-5 h-5 flex-shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.34 16a2 2 0 001.73 3z" />
@@ -43,3 +43,9 @@ async function resend() {
   }
 }
 </script>
+
+<style>
+@media print {
+  .unverified-email-banner { display: none !important; }
+}
+</style>
