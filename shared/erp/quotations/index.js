@@ -14,6 +14,12 @@ export const routes = [
     meta: { requiresAuth: true, title: 'New Quotation' },
   },
   {
+    path: '/erp/quotations/:id/edit',
+    name: 'erp-quotations-edit',
+    component: () => import('./views/QuotationEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Quotation' },
+  },
+  {
     path: '/erp/quotations/:id',
     name: 'erp-quotations-detail',
     component: () => import('./views/QuotationDetail.vue'),

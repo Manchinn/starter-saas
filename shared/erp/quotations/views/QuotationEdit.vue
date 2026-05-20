@@ -2,21 +2,23 @@
   <AppLayout>
     <div class="space-y-5">
 
-      <PageHeader :title="t('erp.quotations.new')" back-to="/erp/quotations"
+      <PageHeader :title="loading ? t('erp.quotations.editQuotation') : (quotation?.refNo || t('erp.quotations.editQuotation'))"
+        :back-to="`/erp/quotations/${route.params.id}`"
         :breadcrumb="[
           { label: t('erp.quotations.title'), to: '/erp/quotations' },
-          { label: t('erp.quotations.create') },
+          { label: quotation?.refNo || '…', to: `/erp/quotations/${route.params.id}` },
+          { label: t('common.edit') },
         ]">
         <template #badge>
           <StatusPill :label="t('erp.quotations.draft')" />
         </template>
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/erp/quotations"
+            :cancel-to="`/erp/quotations/${route.params.id}`"
             :cancel-label="t('common.cancel')"
             :saving="saving"
-            :saving-label="t('erp.common.creating')"
-            :save-label="t('erp.quotations.create')"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('common.saveChanges')"
             :disabled="!canSave"
             :disabled-hint="t('erp.quotations.fillRequiredFields')"
             @save="save"
@@ -24,17 +26,22 @@
         </template>
       </PageHeader>
 
-      <div class="space-y-5">
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+
+      <ErrorBanner v-else-if="loadError" :message="loadError" />
+
+      <div v-else class="space-y-5">
 
         <!-- Customer & Quotation Info -->
         <FormCard :title="t('erp.quotations.quotationInfo')" :icon="UserIcon" icon-color="primary" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
-            <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.quotations.customer')" />
               <div class="flex gap-2 items-start">
-                <div ref="customerFieldRef" class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0 customer-field">
                   <SearchSelect v-model="form.customerId" :options="customers" :placeholder="`— ${t('erp.quotations.noCustomer')} —`">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                     <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
@@ -46,22 +53,18 @@
                          text-primary-600 bg-primary-50 hover:bg-primary-100 transition-colors flex-shrink-0 inline-flex items-center gap-1.5">
                   <PlusIcon class="w-3.5 h-3.5" />
                   {{ t('erp.quotations.newCustomer') }}
-                  <kbd class="hidden lg:inline px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Alt+C</kbd>
                 </button>
               </div>
               <CustomerChip :customer="selectedCustomer" />
             </div>
 
-            <!-- Reference / PO # -->
             <div>
               <FieldLabel :text="t('erp.quotations.referenceNumber')" />
               <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all placeholder:text-[#9BA7B0]" />
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
             </div>
 
-            <!-- Quotation Date -->
             <div>
               <FieldLabel :text="t('erp.quotations.quotationDate')" required />
               <DateInput v-model="form.quotationDate"
@@ -71,7 +74,6 @@
               <p v-if="errors.quotationDate" class="mt-1 text-[11px] text-red-500">{{ errors.quotationDate }}</p>
             </div>
 
-            <!-- Valid Until -->
             <div>
               <FieldLabel :text="t('erp.quotations.validUntil')" />
               <DateInput v-model="form.validUntil"
@@ -79,13 +81,11 @@
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
             </div>
 
-            <!-- Currency -->
             <div>
               <FieldLabel :text="t('erp.common.currency')" />
               <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.quotationDate" />
             </div>
 
-            <!-- Payment terms -->
             <div>
               <FieldLabel :text="t('erp.quotations.paymentTerms')" />
               <select v-model="form.paymentTerms"
@@ -96,7 +96,6 @@
               </select>
             </div>
 
-            <!-- Salesperson -->
             <div>
               <FieldLabel :text="t('erp.quotations.salesperson')" />
               <SearchSelect v-model="form.salespersonId" :options="staff" placeholder="— Salesperson —">
@@ -124,10 +123,9 @@
             <div>
               <FieldLabel :text="t('erp.quotations.shippingAddress')" />
               <textarea v-model="form.shippingAddress" rows="3"
-                placeholder="Ship to address…"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+                       transition-all resize-none" />
             </div>
             <div>
               <div class="flex items-center justify-between">
@@ -139,11 +137,9 @@
               </div>
               <textarea v-model="form.billingAddress" rows="3"
                 :disabled="billingSameAsShipping"
-                placeholder="Bill to address…"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]
-                       disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+                       transition-all resize-none disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
             </div>
           </div>
         </FormCard>
@@ -159,7 +155,6 @@
                      rounded-xl transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.quotations.addItem') }}
-              <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+A</kbd>
             </button>
           </template>
 
@@ -207,7 +202,6 @@
                   draggable="true"
                   @dragstart="onDragStart($event, idx)"
                   @dragend="onDragEnd"
-                  :title="t('erp.quotations.dragToReorder')"
                   class="text-[12px] font-semibold text-center select-none flex items-center justify-center
                          cursor-grab active:cursor-grabbing rounded hover:bg-[#E2E8F0]/60 h-7
                          text-[#CBD5E1] group-hover:text-[#637381]">
@@ -218,7 +212,6 @@
 
                 <div v-if="line.isPackage" class="flex items-center gap-1.5 text-[13px] font-semibold text-primary-700">
                   <button type="button" @click="toggleCollapse(line.key)"
-                    :title="isCollapsed(line.key) ? t('erp.quotations.expandPackage') : t('erp.quotations.collapsePackage')"
                     class="flex items-center justify-center w-5 h-5 rounded hover:bg-primary-100 text-primary-600 flex-shrink-0">
                     <ChevronRightIcon v-if="isCollapsed(line.key)" class="w-3.5 h-3.5" />
                     <ChevronDownIcon  v-else                       class="w-3.5 h-3.5" />
@@ -289,28 +282,9 @@
                   </div>
                 </template>
 
-                <div v-if="!line.parentKey" class="flex items-center justify-center relative" data-dup-popover>
-                  <button v-if="isDuplicate(line)" type="button"
-                    tabindex="-1"
-                    @click="toggleDupPopover(line)"
-                    :aria-label="t('erp.quotations.duplicateItemWarning')"
-                    class="flex items-center justify-center w-5 h-5 rounded hover:bg-amber-100 text-amber-500 transition-colors">
-                    <ExclamationTriangleIcon class="w-4 h-4" />
-                  </button>
-                  <div v-if="openDupKey === line.key"
-                    class="absolute z-20 right-full top-1/2 -translate-y-1/2 mr-2 w-56
-                           bg-amber-50 border border-amber-200 rounded-lg shadow-lg p-2.5
-                           text-[12px] text-amber-800 leading-snug">
-                    <div class="flex items-start gap-1.5">
-                      <ExclamationTriangleIcon class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <span>{{ t('erp.quotations.duplicateItemWarning') }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div v-else></div>
+                <div></div>
 
                 <button @click="removeLine(idx)" type="button"
-                  :title="line.isPackage ? t('erp.quotations.removePackage') : ''"
                   class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
                          text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-colors
                          opacity-0 group-hover:opacity-100">
@@ -350,15 +324,14 @@
 
         <ErrorBanner :message="globalError" />
 
-        <!-- Summary + totals -->
         <FormCard :title="t('erp.quotations.summary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             <div class="flex flex-col text-left">
               <FieldLabel :text="t('erp.quotations.notes')" />
-              <textarea v-model="form.notes" placeholder="Quotation notes or special instructions…"
+              <textarea v-model="form.notes"
                 class="flex-1 w-full min-h-[10rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+                       transition-all resize-none" />
             </div>
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
@@ -399,7 +372,7 @@
     </div>
 
     <!-- Sticky save bar -->
-    <div class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+    <div v-if="!loading && !loadError" class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
                 flex items-center justify-between gap-3">
       <div class="flex items-center gap-4">
         <div>
@@ -416,26 +389,11 @@
         </span>
       </div>
       <div class="flex items-center gap-2.5">
-        <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1" :title="t('erp.quotations.saveDraft')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
-            <span>draft</span>
-          </span>
-          <span class="flex items-center gap-1" :title="t('erp.quotations.create')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
-            <span>save</span>
-          </span>
-          <span class="flex items-center gap-1" :title="t('erp.quotations.addItem')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
-            <span>item</span>
-          </span>
-        </div>
         <button @click="discard" type="button"
           class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
           {{ t('erp.quotations.discard') }}
         </button>
         <button @click="saveDraft" :disabled="!canSave || savingDraft || saving" type="button"
-          :title="!canSave ? t('erp.quotations.fillRequiredFields') : `${t('erp.quotations.saveDraft')} (Ctrl+S)`"
           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
                  bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 rounded-xl
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -444,13 +402,12 @@
           {{ savingDraft ? t('erp.common.saving') : t('erp.quotations.saveDraft') }}
         </button>
         <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
-          :title="!canSave ? t('erp.quotations.fillRequiredFields') : `${t('erp.quotations.create')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />
-          {{ saving ? t('erp.common.creating') : t('erp.quotations.create') }}
+          {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
         </button>
       </div>
     </div>
@@ -495,8 +452,7 @@
           <div class="flex-1 px-6 py-5 space-y-4">
             <div>
               <FieldLabel :text="t('erp.customers.name')" required />
-              <input v-model="newCustomer.name" type="text" placeholder="Customer name"
-                ref="newCustomerNameRef"
+              <input v-model="newCustomer.name" type="text" ref="newCustomerNameRef"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
             </div>
@@ -547,10 +503,9 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
-  PlusIcon, TrashIcon, XMarkIcon,
-  CheckIcon,
+  PlusIcon, TrashIcon, XMarkIcon, CheckIcon,
   ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
   CalculatorIcon, ExclamationTriangleIcon,
   Bars3Icon, CubeIcon, ChevronDownIcon, ChevronRightIcon,
@@ -573,15 +528,21 @@ import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
 import { useSettingsStore } from '@/stores/settings'
 
-const { t }       = useI18n()
-const router      = useRouter()
-const settings    = useSettingsStore()
+const { t }    = useI18n()
+const route    = useRoute()
+const router   = useRouter()
+const settings = useSettingsStore()
 
+const quotation    = ref(null)
 const customers    = ref([])
 const saleItems    = ref([])
 const salePackages = ref([])
 const stores       = ref([])
 const staff        = ref([])
+const loading      = ref(true)
+const loadError    = ref('')
+const billingSameAsShipping = ref(false)
+
 const paymentTerms = ref([])
 const globalError  = ref('')
 const saving       = ref(false)
@@ -589,33 +550,23 @@ const savingDraft  = ref(false)
 const draftSavedAt = ref(null)
 const errors       = ref({})
 
-// Inline customer create slide-over state
 const customerCreateOpen = ref(false)
 const newCustomer        = ref({ name: '', company: '', email: '', phone: '', address: '' })
 const newCustomerError   = ref('')
 const newCustomerSaving  = ref(false)
 const newCustomerNameRef = ref(null)
-const customerFieldRef   = ref(null)
 
-const today = new Date().toISOString().slice(0, 10)
-const form  = ref({
-  customerId: '', quotationDate: today, validUntil: '', currency: '', exchangeRate: 1,
-  notes: '', items: [],
+const form = ref({
+  customerId: '', quotationDate: '', validUntil: '',
+  currency: '', exchangeRate: 1, notes: '', items: [],
   referenceNumber: '', paymentTerms: '', salespersonId: '',
   shippingAddress: '', billingAddress: '',
   discountType: '', discountValue: 0,
 })
-const billingSameAsShipping = ref(true)
 
-// Once a draft has been saved-without-redirect we have a quotation id, so
-// further saves PUT instead of POST and the page silently switches to edit mode.
-const createdQuotationId = ref('')
-
-// Dirty tracking
 const dirty = ref(false)
 let dirtyArmed = false
 watch(form, () => { if (dirtyArmed) dirty.value = true }, { deep: true })
-onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
 
 function onBeforeUnload(e) {
   if (!dirty.value) return
@@ -666,15 +617,17 @@ const groupedItemOptions = computed(() => {
   return groups
 })
 
-onMounted(() => {
-  setTimeout(() => {
-    const root = customerFieldRef.value?.querySelector('.multiselect')
-    root?.focus()
-  }, 100)
-})
+let _localKeyCounter = 0
+function newKey() {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `k${Date.now()}-${++_localKeyCounter}`
+}
 
 onMounted(async () => {
-  const [customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes, paymentTermsRes] = await Promise.allSettled([
+  const id = route.params.id
+  const [quotationRes, customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes, paymentTermsRes] = await Promise.allSettled([
+    api.get(`/erp/quotations/${id}`),
     api.get('/erp/customers',     { params: { limit: 200 } }),
     api.get('/erp/sale-items',    { params: { limit: 500, status: 'active' } }),
     api.get('/erp/sale-packages', { params: { limit: 200, status: 'active' } }),
@@ -688,6 +641,61 @@ onMounted(async () => {
   if (storesRes.status       === 'fulfilled') stores.value       = storesRes.value.data.data.stores
   if (staffRes.status        === 'fulfilled') staff.value        = staffRes.value.data.data.staff
   if (paymentTermsRes.status === 'fulfilled') paymentTerms.value = paymentTermsRes.value.data.data.values || []
+
+  if (quotationRes.status !== 'fulfilled') {
+    loadError.value = parseApiError(quotationRes.reason, 'Failed to load quotation')
+    loading.value = false
+    return
+  }
+
+  const q = quotationRes.value.data.data.quotation
+  if (q.status !== 'draft') {
+    router.replace(`/erp/quotations/${id}`)
+    return
+  }
+  quotation.value = q
+
+  const idToKey = new Map()
+  for (const it of q.items || []) idToKey.set(it.id, newKey())
+
+  billingSameAsShipping.value = !!q.shippingAddress && q.shippingAddress === q.billingAddress
+
+  form.value = {
+    customerId:    q.customerId    || '',
+    quotationDate: q.quotationDate || '',
+    validUntil:    q.validUntil    || '',
+    currency:      q.currency      || '',
+    exchangeRate:  q.exchangeRate != null ? Number(q.exchangeRate) : 1,
+    notes:         q.notes         || '',
+    referenceNumber: q.referenceNumber || '',
+    paymentTerms:    q.paymentTerms    || '',
+    salespersonId:   q.salespersonId   || '',
+    shippingAddress: q.shippingAddress || '',
+    billingAddress:  q.billingAddress  || '',
+    discountType:    q.discountType    || '',
+    discountValue:   Number(q.discountValue) || 0,
+    items: (q.items || []).map(it => {
+      const si = saleItems.value.find(s => s.id === it.saleItemId)
+      const hasProduct = !!(it.productId || si?.productId)
+      const isPackage = !!it.salePackageId && !it.parentItemId
+      return {
+        key:           idToKey.get(it.id),
+        parentKey:     it.parentItemId ? (idToKey.get(it.parentItemId) || '') : '',
+        isPackage,
+        salePackageId: it.salePackageId || '',
+        saleItemId:    it.saleItemId    || '',
+        storeId:       it.storeId       || '',
+        hasProduct:    isPackage ? false : hasProduct,
+        productName:   it.productName || '',
+        quantity:      Number(it.quantity) || 1,
+        unitPrice:     it.unitPrice != null ? Number(it.unitPrice) : 0,
+        taxRate:       it.taxRate   != null ? Number(it.taxRate)   : 0,
+      }
+    }),
+  }
+  loading.value = false
+  await nextTick()
+  dirtyArmed = true
 })
 
 watch(() => form.value.customerId, (id) => {
@@ -698,7 +706,7 @@ watch(() => form.value.customerId, (id) => {
 
 watch(billingSameAsShipping, (on) => {
   if (on) form.value.billingAddress = form.value.shippingAddress
-}, { immediate: true })
+})
 watch(() => form.value.shippingAddress, (v) => {
   if (billingSameAsShipping.value) form.value.billingAddress = v
 })
@@ -743,12 +751,10 @@ function onPageKeydown(e) {
   const shift = e.shiftKey
   const alt   = e.altKey
   const key   = e.key.toLowerCase()
-
   if (customerCreateOpen.value) {
     if (e.key === 'Escape') { e.preventDefault(); closeCustomerCreate() }
     return
   }
-
   if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
   else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
   else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
@@ -766,13 +772,6 @@ function defaultTaxRate() {
   return Number(settings.tax?.rate) || 0
 }
 
-let _localKeyCounter = 0
-function newKey() {
-  return (typeof crypto !== 'undefined' && crypto.randomUUID)
-    ? crypto.randomUUID()
-    : `k${Date.now()}-${++_localKeyCounter}`
-}
-
 function removeLine(idx) {
   const line = form.value.items[idx]
   if (line.isPackage) {
@@ -786,18 +785,6 @@ function childrenOf(parentKey) {
   return form.value.items.filter(it => it.parentKey === parentKey)
 }
 
-const openDupKey = ref('')
-function toggleDupPopover(line) {
-  openDupKey.value = openDupKey.value === line.key ? '' : line.key
-}
-function onDocClickClosePopover(e) {
-  if (!openDupKey.value) return
-  if (e.target.closest('[data-dup-popover]')) return
-  openDupKey.value = ''
-}
-onMounted(() => document.addEventListener('mousedown', onDocClickClosePopover))
-onUnmounted(() => document.removeEventListener('mousedown', onDocClickClosePopover))
-
 const collapsedPackages = ref(new Set())
 function isCollapsed(key) { return collapsedPackages.value.has(key) }
 function toggleCollapse(key) {
@@ -810,10 +797,8 @@ function isRowVisible(line) {
   return !(line.parentKey && isCollapsed(line.parentKey))
 }
 
-// ── Drag-and-drop reorder ────────────────────────────────────────────────
 const dragFromIdx = ref(null)
 const dragOverIdx = ref(null)
-
 function topLevelStart(idx) {
   const line = form.value.items[idx]
   if (!line || !line.parentKey) return idx
@@ -829,7 +814,6 @@ function groupSpan(startIdx) {
   }
   return n
 }
-
 function onDragStart(e, idx) {
   const top = topLevelStart(idx)
   dragFromIdx.value = top
@@ -859,100 +843,6 @@ function onDrop(idx) {
 function onDragEnd() {
   dragFromIdx.value = null
   dragOverIdx.value = null
-}
-
-// ── Bulk-add popup wiring ───────────────────────────────────────────────
-const bulkPickerRef = ref(null)
-function openBulkPicker() { bulkPickerRef.value?.open() }
-
-function makeLineFromSaleItem(si, parentKey = '') {
-  const customer = customers.value.find(c => c.id === form.value.customerId)
-  const pricing  = getBestPricing(si, customer?.customerGroupId)
-  return {
-    key:           newKey(),
-    parentKey,
-    isPackage:     false,
-    salePackageId: '',
-    saleItemId:    si.id,
-    storeId:       '',
-    hasProduct:    !!si.productId,
-    productName:   si.name,
-    quantity:      1,
-    unitPrice:     pricing ? Number(pricing.unitPrice) : 0,
-    taxRate:       defaultTaxRate(),
-  }
-}
-
-async function linesFromPackage(packageId) {
-  try {
-    const { data } = await api.get(`/erp/sale-packages/${packageId}`)
-    const pkg = data.data.package
-    const customer = customers.value.find(c => c.id === form.value.customerId)
-    const parentKey = newKey()
-    let parentPrice = 0
-    const children = (pkg.packageItems || []).map(pi => {
-      const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
-      const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
-      let resolved = pi.unitPrice != null ? Number(pi.unitPrice) : 0
-      if (!resolved) {
-        const siFull = saleItems.value.find(s => s.id === pi.saleItemId)
-        const pricing = siFull ? getBestPricing(siFull, customer?.customerGroupId) : null
-        if (pricing) resolved = Number(pricing.unitPrice)
-      }
-      const childQty = Number(pi.quantity) || 1
-      parentPrice += childQty * resolved
-      return {
-        key:           newKey(),
-        parentKey,
-        isPackage:     false,
-        salePackageId: '',
-        saleItemId:    pi.saleItemId,
-        storeId:       '',
-        hasProduct,
-        productName:   si.name || 'Item',
-        quantity:      childQty,
-        unitPrice:     0,
-        taxRate:       0,
-      }
-    })
-    const parent = {
-      key:           parentKey,
-      parentKey:     '',
-      isPackage:     true,
-      salePackageId: pkg.id,
-      saleItemId:    '',
-      storeId:       '',
-      hasProduct:    false,
-      productName:   pkg.name,
-      quantity:      1,
-      unitPrice:     parentPrice,
-      taxRate:       Number(settings.tax?.rate) || 0,
-    }
-    return [parent, ...children]
-  } catch {
-    return []
-  }
-}
-
-async function onBulkAdd(objects) {
-  const newLines = []
-  for (const obj of objects) {
-    if (saleItems.value.some(s => s.id === obj.id)) {
-      newLines.push(makeLineFromSaleItem(obj))
-    } else if (salePackages.value.some(p => p.id === obj.id)) {
-      const lines = await linesFromPackage(obj.id)
-      newLines.push(...lines)
-    }
-  }
-  if (!newLines.length) return
-  form.value.items.push(...newLines)
-  await nextTick()
-  const firstPriced = newLines.find(l => !l.parentKey)
-  if (!firstPriced) return
-  const row = document.querySelector(`[data-line-key="${firstPriced.key}"]`)
-  const qty = row?.querySelector('input[type="number"]')
-  qty?.focus()
-  qty?.select?.()
 }
 
 function getBestPricing(si, customerGroupId) {
@@ -992,31 +882,94 @@ async function onPickerChange(line, idx) {
   }
 }
 
+async function linesFromPackage(packageId) {
+  try {
+    const { data } = await api.get(`/erp/sale-packages/${packageId}`)
+    const pkg = data.data.package
+    const customer = customers.value.find(c => c.id === form.value.customerId)
+    const parentKey = newKey()
+    let parentPrice = 0
+    const children = (pkg.packageItems || []).map(pi => {
+      const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
+      const hasProduct = !!(si.productId || saleItems.value.find(s => s.id === pi.saleItemId)?.productId)
+      let resolved = pi.unitPrice != null ? Number(pi.unitPrice) : 0
+      if (!resolved) {
+        const siFull = saleItems.value.find(s => s.id === pi.saleItemId)
+        const pricing = siFull ? getBestPricing(siFull, customer?.customerGroupId) : null
+        if (pricing) resolved = Number(pricing.unitPrice)
+      }
+      const childQty = Number(pi.quantity) || 1
+      parentPrice += childQty * resolved
+      return {
+        key: newKey(), parentKey,
+        isPackage: false, salePackageId: '',
+        saleItemId: pi.saleItemId, storeId: '',
+        hasProduct, productName: si.name || 'Item',
+        quantity: childQty, unitPrice: 0, taxRate: 0,
+      }
+    })
+    const parent = {
+      key: parentKey, parentKey: '',
+      isPackage: true, salePackageId: pkg.id,
+      saleItemId: '', storeId: '',
+      hasProduct: false, productName: pkg.name,
+      quantity: 1, unitPrice: parentPrice,
+      taxRate: Number(settings.tax?.rate) || 0,
+    }
+    return [parent, ...children]
+  } catch {
+    return []
+  }
+}
+
 async function expandPackageInto(idx, packageId) {
   const lines = await linesFromPackage(packageId)
   if (lines.length) form.value.items.splice(idx, 1, ...lines)
   else              form.value.items.splice(idx, 1)
 }
 
+const bulkPickerRef = ref(null)
+function openBulkPicker() { bulkPickerRef.value?.open() }
+
+function makeLineFromSaleItem(si, parentKey = '') {
+  const customer = customers.value.find(c => c.id === form.value.customerId)
+  const pricing  = getBestPricing(si, customer?.customerGroupId)
+  return {
+    key: newKey(), parentKey,
+    isPackage: false, salePackageId: '',
+    saleItemId: si.id, storeId: '',
+    hasProduct: !!si.productId,
+    productName: si.name,
+    quantity: 1,
+    unitPrice: pricing ? Number(pricing.unitPrice) : 0,
+    taxRate: defaultTaxRate(),
+  }
+}
+
+async function onBulkAdd(objects) {
+  const newLines = []
+  for (const obj of objects) {
+    if (saleItems.value.some(s => s.id === obj.id)) {
+      newLines.push(makeLineFromSaleItem(obj))
+    } else if (salePackages.value.some(p => p.id === obj.id)) {
+      const lines = await linesFromPackage(obj.id)
+      newLines.push(...lines)
+    }
+  }
+  if (!newLines.length) return
+  form.value.items.push(...newLines)
+  await nextTick()
+  const firstPriced = newLines.find(l => !l.parentKey)
+  if (!firstPriced) return
+  const row = document.querySelector(`[data-line-key="${firstPriced.key}"]`)
+  const qty = row?.querySelector('input[type="number"]')
+  qty?.focus()
+  qty?.select?.()
+}
+
 watch(() => form.value.customerId, () => {
   for (const line of form.value.items) applyPricing(line)
 })
-
-const duplicateSaleItemIds = computed(() => {
-  const counts = new Map()
-  for (const it of form.value.items) {
-    if (it.parentKey) continue
-    const id = it.saleItemId
-    if (!id) continue
-    counts.set(id, (counts.get(id) || 0) + 1)
-  }
-  const dupes = new Set()
-  for (const [id, n] of counts) if (n > 1) dupes.add(id)
-  return dupes
-})
-function isDuplicate(line) {
-  return !line.parentKey && !!line.saleItemId && duplicateSaleItemIds.value.has(line.saleItemId)
-}
 
 function lineTax(line) {
   if (line.parentKey) return 0
@@ -1082,11 +1035,19 @@ async function save({ redirect = true } = {}) {
   else          savingDraft.value = true
   try {
     const payload = {
-      ...form.value,
-      customerId:   form.value.customerId   || null,
-      validUntil:   form.value.validUntil   || null,
-      discountType: form.value.discountType || null,
-      discountValue: Number(form.value.discountValue) || 0,
+      customerId:    form.value.customerId   || null,
+      quotationDate: form.value.quotationDate,
+      validUntil:    form.value.validUntil   || null,
+      currency:      form.value.currency     || null,
+      exchangeRate:  form.value.exchangeRate,
+      notes:         form.value.notes,
+      referenceNumber: form.value.referenceNumber || null,
+      paymentTerms:    form.value.paymentTerms    || null,
+      salespersonId:   form.value.salespersonId   || null,
+      shippingAddress: form.value.shippingAddress || null,
+      billingAddress:  form.value.billingAddress  || null,
+      discountType:    form.value.discountType    || null,
+      discountValue:   Number(form.value.discountValue) || 0,
       items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, storeId, productName, quantity, unitPrice, taxRate }) => ({
         key, parentKey: parentKey || '',
         salePackageId: salePackageId || null,
@@ -1096,21 +1057,15 @@ async function save({ redirect = true } = {}) {
         taxRate: Number(taxRate) || 0,
       })),
     }
-    let data
-    if (createdQuotationId.value) {
-      ({ data } = await api.put(`/erp/quotations/${createdQuotationId.value}`, payload))
-    } else {
-      ({ data } = await api.post('/erp/quotations', payload))
-      createdQuotationId.value = data.data.quotation.id
-    }
+    await api.put(`/erp/quotations/${route.params.id}`, payload)
     dirty.value = false
     if (redirect) {
-      router.push(`/erp/quotations/${data.data.quotation.id}`)
+      router.push(`/erp/quotations/${route.params.id}`)
     } else {
       draftSavedAt.value = new Date()
     }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to save quotation')
+    globalError.value = parseApiError(err, 'Failed to update quotation')
   } finally {
     saving.value = false
     savingDraft.value = false
@@ -1118,16 +1073,6 @@ async function save({ redirect = true } = {}) {
 }
 
 function saveDraft() { save({ redirect: false }) }
-
-const _now = ref(Date.now())
-onMounted(() => { const id = setInterval(() => { _now.value = Date.now() }, 15000); onUnmounted(() => clearInterval(id)) })
-const savedAtRelative = computed(() => {
-  if (!draftSavedAt.value) return ''
-  const secs = Math.max(0, Math.round((_now.value - draftSavedAt.value.getTime()) / 1000))
-  if (secs < 60)   return `${secs}s ago`
-  if (secs < 3600) return `${Math.round(secs / 60)}m ago`
-  return `${Math.round(secs / 3600)}h ago`
-})
 
 async function discard() {
   if (dirty.value) {
@@ -1138,6 +1083,24 @@ async function discard() {
     })
     if (!ok) return
   }
-  router.push('/erp/quotations')
+  router.push(`/erp/quotations/${route.params.id}`)
 }
+
+const _now = ref(Date.now())
+onMounted(() => { const id = setInterval(() => { _now.value = Date.now() }, 15000); onUnmounted(() => clearInterval(id)) })
+const savedAtRelative = computed(() => {
+  if (!draftSavedAt.value) return ''
+  const secs = Math.max(0, Math.round((_now.value - draftSavedAt.value.getTime()) / 1000))
+  if (secs < 60)   return `${secs}s ago`
+  if (secs < 3600) return `${Math.round(secs / 60)}m ago`
+  return `${Math.round(secs / 3600)}h ago`
+})
 </script>
+
+<style scoped>
+.customer-field :deep(.multiselect),
+.customer-field :deep(.multiselect__tags),
+.customer-field :deep(.multiselect__select) {
+  cursor: default;
+}
+</style>

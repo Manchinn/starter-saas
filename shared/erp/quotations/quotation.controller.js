@@ -4,11 +4,13 @@ const service = require('./quotation.service')
 module.exports = {
   async list(req, res) {
     try {
-      const { page, limit, search, status } = req.query
+      const { page, limit, search, status, dateFrom, dateTo } = req.query
       const orgId = req.user?.organizationId || req.user?.id
       const result = await service.list({
         page: +page || 1, limit: +limit || 20,
-        search: search || '', status: status || '', organizationId: orgId,
+        search: search || '', status: status || '',
+        dateFrom: dateFrom || '', dateTo: dateTo || '',
+        organizationId: orgId,
       })
       return ok(res, result)
     } catch (err) { return serverError(res) }
@@ -38,14 +40,15 @@ module.exports = {
 
   async updateStatus(req, res) {
     try {
-      const q = await service.updateStatus(req.params.id, req.body.status)
+      const q = await service.updateStatus(req.params.id, req.body.status, req.user?.id)
       return ok(res, { quotation: q }, 'Status updated')
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },
 
   async convertToOrder(req, res) {
     try {
-      const result = await service.convertToOrder(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const result = await service.convertToOrder(req.params.id, req.user?.id, orgId)
       return ok(res, result, 'Converted to sales order')
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },
