@@ -1046,7 +1046,7 @@ async function linesFromPackage(packageId) {
       saleItemId:    '',
       storeId:       '',
       hasProduct:    false,
-      productName:   pkg.code ? `${pkg.name} (${pkg.code})` : pkg.name,
+      productName:   pkg.name,
       quantity:      1,
       unitPrice:     parentPrice,
       taxRate:       Number(settings.tax?.rate) || 0,

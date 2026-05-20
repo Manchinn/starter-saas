@@ -214,7 +214,7 @@
                     <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
                     <td class="py-2.5 align-top text-[#637381] font-mono text-[11px]">{{ itemCode(item) || '—' }}</td>
                     <td class="py-2.5 align-top">
-                      <span class="font-semibold text-[#1C2434]">{{ item.productName }}</span>
+                      <span class="font-semibold text-[#1C2434]">{{ itemName(item) }}</span>
                     </td>
                     <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ item.quantity }}</td>
                     <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
@@ -437,6 +437,19 @@ function childrenOf(parentId) {
 function itemCode(item) {
   if (item.salePackageId) return item.salePackage?.code || ''
   return item.saleItem?.code || item.product?.sku || ''
+}
+
+// Older package rows persisted productName as "Name (CODE)" — strip the
+// trailing "(code)" so the ITEM column shows the bare name now that the
+// code lives in its own column.
+function itemName(item) {
+  if (item.salePackageId) {
+    const code = item.salePackage?.code
+    const name = item.productName || ''
+    if (code && name.endsWith(` (${code})`)) return name.slice(0, -(` (${code})`).length)
+    return name
+  }
+  return item.productName || ''
 }
 
 function onPrint() { window.print() }
