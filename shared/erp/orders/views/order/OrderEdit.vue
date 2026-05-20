@@ -52,12 +52,12 @@
                   </SearchSelect>
                 </div>
                 <button type="button" @click="openCustomerCreate"
-                  :title="`${t('erp.orders.newCustomer')} (Alt+N)`"
+                  :title="`${t('erp.orders.newCustomer')} (Alt+C)`"
                   class="px-3 py-2.5 text-[12px] font-semibold rounded-xl border border-primary-200
                          text-primary-600 bg-primary-50 hover:bg-primary-100 transition-colors flex-shrink-0 inline-flex items-center gap-1.5">
                   <PlusIcon class="w-3.5 h-3.5" />
                   {{ t('erp.orders.newCustomer') }}
-                  <kbd class="hidden lg:inline px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Alt+N</kbd>
+                  <kbd class="hidden lg:inline px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Alt+C</kbd>
                 </button>
               </div>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
@@ -841,7 +841,7 @@ async function saveCustomer() {
 //   Ctrl/⌘+S          Save Changes
 //   Ctrl/⌘+Shift+S    Save Draft (in-place)
 //   Ctrl/⌘+A  /  Alt+I   Open product picker (Add Item)
-//   Alt+N             New Customer slide-over
+//   Alt+C             New Customer slide-over
 //   Esc               Close active modal
 function onPageKeydown(e) {
   const ctrl  = e.ctrlKey || e.metaKey
@@ -860,7 +860,7 @@ function onPageKeydown(e) {
   else if (ctrl && key === 's')          { e.preventDefault(); save() }
   else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
   else if (alt  && key === 'i')          { e.preventDefault(); openBulkPicker() }
-  else if (alt  && key === 'n')          { e.preventDefault(); openCustomerCreate() }
+  else if (alt  && key === 'c')          { e.preventDefault(); openCustomerCreate() }
 }
 onMounted(() => document.addEventListener('keydown', onPageKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
