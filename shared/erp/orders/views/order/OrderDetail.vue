@@ -430,11 +430,13 @@ const topLevelItems = computed(() => (order.value?.items || []).filter(it => !it
 function childrenOf(parentId) {
   return (order.value?.items || []).filter(it => it.parentItemId === parentId)
 }
-// Code for the dedicated CODE column: package code for package headers,
-// product SKU otherwise.
+// Code for the dedicated CODE column. Order lines reference a SaleItem
+// (which carries the customer-facing code) or a SalePackage; the linked
+// Product is only populated for ad-hoc product lines, so its SKU is the
+// last-resort fallback.
 function itemCode(item) {
   if (item.salePackageId) return item.salePackage?.code || ''
-  return item.product?.sku || ''
+  return item.saleItem?.code || item.product?.sku || ''
 }
 
 function onPrint() { window.print() }

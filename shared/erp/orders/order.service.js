@@ -32,6 +32,7 @@ const getById = async (id) => {
       { model: User, as: 'salesperson', attributes: ['id', 'name', 'email'] },
       { model: SalesOrderItem, as: 'items', include: [
         { model: Product,     as: 'product',     attributes: ['id', 'name', 'sku'] },
+        { model: SaleItem,    as: 'saleItem',    attributes: ['id', 'code', 'name'] },
         { model: SalePackage, as: 'salePackage', attributes: ['id', 'code'] },
       ] },
     ],
