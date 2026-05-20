@@ -436,13 +436,13 @@
       <div class="flex items-center gap-2.5">
         <!-- Keyboard cheat sheet — mirrors OrderCreate. -->
         <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1" :title="t('common.saveChanges')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
-            <span>save</span>
-          </span>
           <span class="flex items-center gap-1" :title="t('erp.orders.saveDraft')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
+            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>draft</span>
+          </span>
+          <span class="flex items-center gap-1" :title="t('common.saveChanges')">
+            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
+            <span>save</span>
           </span>
           <span class="flex items-center gap-1" :title="t('erp.orders.addItem')">
             <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
@@ -460,7 +460,7 @@
           {{ t('erp.orders.discard') }}
         </button>
         <button @click="saveDraft" :disabled="!canSave || savingDraft || saving" type="button"
-          :title="!canSave ? t('erp.orders.fillRequiredFields') : `${t('erp.orders.saveDraft')} (Ctrl+Shift+S)`"
+          :title="!canSave ? t('erp.orders.fillRequiredFields') : `${t('erp.orders.saveDraft')} (Ctrl+S)`"
           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
                  bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 rounded-xl
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -469,7 +469,7 @@
           {{ savingDraft ? t('erp.common.saving') : t('erp.orders.saveDraft') }}
         </button>
         <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
-          :title="!canSave ? t('erp.orders.fillRequiredFields') : `${t('common.saveChanges')} (Ctrl+S)`"
+          :title="!canSave ? t('erp.orders.fillRequiredFields') : `${t('common.saveChanges')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -828,8 +828,8 @@ async function saveCustomer() {
 }
 
 // ── Keyboard shortcuts ──────────────────────────────────────────────────
-//   Ctrl/⌘+S          Save Changes
-//   Ctrl/⌘+Shift+S    Save Draft (in-place)
+//   Ctrl/⌘+S          Save Draft (in-place)
+//   Ctrl/⌘+Shift+S    Save Changes
 //   Ctrl/⌘+A  /  Alt+I   Open product picker (Add Item)
 //   Alt+C             New Customer slide-over
 //   Esc               Close active modal
@@ -846,8 +846,8 @@ function onPageKeydown(e) {
     return
   }
 
-  if      (ctrl && shift && key === 's') { e.preventDefault(); saveDraft() }
-  else if (ctrl && key === 's')          { e.preventDefault(); save() }
+  if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
+  else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
   else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
   else if (alt  && key === 'i')          { e.preventDefault(); openBulkPicker() }
   else if (alt  && key === 'c')          { e.preventDefault(); openCustomerCreate() }
