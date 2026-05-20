@@ -279,6 +279,26 @@ const columns = [
   `ALTER TABLE sales_order_items ADD COLUMN taxRate   REAL DEFAULT 0`,
   `ALTER TABLE sales_order_items ADD COLUMN taxAmount REAL DEFAULT 0`,
 
+  // ── Sales-Order parity for Quotations ───────────────────────────────────────
+  // Header-level extras: PO ref, payment terms, salesperson, addresses,
+  // order-level discount, and the linked-order pointer set on convert.
+  `ALTER TABLE quotations ADD COLUMN referenceNumber    TEXT`,
+  `ALTER TABLE quotations ADD COLUMN paymentTerms       TEXT`,
+  `ALTER TABLE quotations ADD COLUMN salespersonId      TEXT`,
+  `ALTER TABLE quotations ADD COLUMN shippingAddress    TEXT`,
+  `ALTER TABLE quotations ADD COLUMN billingAddress     TEXT`,
+  `ALTER TABLE quotations ADD COLUMN discountType       TEXT`,
+  `ALTER TABLE quotations ADD COLUMN discountValue      REAL DEFAULT 0`,
+  `ALTER TABLE quotations ADD COLUMN discountAmount     REAL DEFAULT 0`,
+  `ALTER TABLE quotations ADD COLUMN convertedToOrderId TEXT`,
+
+  // Line-item additions: package header / parent-child, store, per-line tax.
+  `ALTER TABLE quotation_items ADD COLUMN salePackageId TEXT`,
+  `ALTER TABLE quotation_items ADD COLUMN parentItemId  TEXT`,
+  `ALTER TABLE quotation_items ADD COLUMN storeId       TEXT`,
+  `ALTER TABLE quotation_items ADD COLUMN taxRate       REAL DEFAULT 0`,
+  `ALTER TABLE quotation_items ADD COLUMN taxAmount     REAL DEFAULT 0`,
+
   // ── Session tracking — RefreshToken device/IP metadata ──────────────────────
   `ALTER TABLE RefreshTokens ADD COLUMN userAgent   TEXT`,
   `ALTER TABLE RefreshTokens ADD COLUMN ip          TEXT`,
