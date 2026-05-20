@@ -246,18 +246,10 @@ const logoFileRef = ref(null)
 const logoSaving  = ref(false)
 const logoError   = ref('')
 
-// Logos are served from the API origin (e.g. http://localhost:3000/uploads/…),
-// not the Vue dev origin. Resolve relative `logoPath` against the API base URL
-// configured on the axios instance so the <img src> works in dev and prod.
-const apiOrigin = computed(() => {
-  const base = api.defaults?.baseURL || ''
-  try { return new URL(base, window.location.origin).origin } catch { return window.location.origin }
-})
-const logoSrc = computed(() => {
-  if (!form.logoPath) return ''
-  if (/^https?:\/\//i.test(form.logoPath)) return form.logoPath
-  return `${apiOrigin.value}${form.logoPath}`
-})
+// Logo paths returned by the API are relative (e.g. /uploads/logos/abc.png).
+// In dev the Vite proxy forwards /uploads → API server; in prod the API serves
+// both routes, so a same-origin relative path works without any rewriting.
+const logoSrc = computed(() => form.logoPath || '')
 
 const LOGO_ALLOWED = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
 const LOGO_MAX_BYTES = 2 * 1024 * 1024

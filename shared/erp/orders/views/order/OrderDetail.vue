@@ -402,7 +402,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
-import { fmtMoney } from '@/utils/fmt'
+import { fmtMoney, fmtDate } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
 
 const { t }    = useI18n()
@@ -429,17 +429,13 @@ const companyEmail   = computed(() => org.value.email    || '')
 const companyTaxId   = computed(() => org.value.taxId    || '')
 const companyWebsite = computed(() => org.value.website  || '')
 
-// Logos are served from the API origin, not the Vue dev origin — resolve any
-// relative path against the API base URL on the axios instance.
-const apiOrigin = computed(() => {
-  const base = (api.defaults && api.defaults.baseURL) || ''
-  try { return new URL(base, window.location.origin).origin } catch { return window.location.origin }
-})
+// Logo paths are relative (e.g. /uploads/logos/abc.png). Vite proxies /uploads
+// to the API server in dev; same-origin in prod. External URLs pass through.
 const companyLogoSrc = computed(() => {
   const p = org.value.logoPath
   if (!p) return ''
   if (/^https?:\/\//i.test(p)) return p
-  return `${apiOrigin.value}${p}`
+  return p
 })
 
 // Bill-to address: prefer the order's billingAddress; fall back to customer's address.
@@ -600,8 +596,6 @@ async function confirmDelete() {
     statusError.value = err.response?.data?.message || 'Delete failed'
   }
 }
-
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '' }
 
 // Payment-terms labels come from master-data so admins can rename them.
 // Fall back to the stored raw value if the lookup is empty or missing.
