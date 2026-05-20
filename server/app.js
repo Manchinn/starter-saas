@@ -1,4 +1,5 @@
 require('dotenv').config()
+const path = require('path')
 const express = require('express')
 const cors = require('cors')
 const config = require('./config/config')
@@ -13,9 +14,15 @@ const app = express()
 
 // Core middleware
 app.use(cors({ origin: config.clientUrl, credentials: true }))
-app.use(express.json())
+// Logos are uploaded as base64; the JSON body cap needs to be larger than a
+// typical PNG/JPEG (the upload service still rejects > 2 MB per file).
+app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true }))
 app.use(requestLogger)
+
+// Public static — org logos and similar customer-facing assets.
+// Anything that lands in server/uploads/logos/* is served at /uploads/logos/*.
+app.use('/uploads/logos', express.static(path.join(__dirname, 'uploads', 'logos')))
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -76,6 +76,8 @@ export default {
       docBillTo:               'Bill To',
       docShipTo:               'Ship To',
       docSameAsBilling:        'Same as billing address',
+      docPhoneAbbr:            'Tel:',
+      docTaxId:                'Tax ID:',
       docAuthorisedSignature:  'Authorised Signature',
       docCustomerSignature:    'Customer Signature',
       docFooterThanks:         'Thank you for your business.',

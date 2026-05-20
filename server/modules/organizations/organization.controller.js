@@ -48,6 +48,27 @@ module.exports = {
     }
   },
 
+  async uploadLogo(req, res) {
+    try {
+      const organization = await organizationService.uploadLogo(req.params.id, {
+        dataBase64:  req.body?.dataBase64,
+        contentType: req.body?.contentType,
+      })
+      return ok(res, { organization }, 'Logo updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async removeLogo(req, res) {
+    try {
+      const organization = await organizationService.removeLogo(req.params.id)
+      return ok(res, { organization }, 'Logo removed')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
   async assignModules(req, res) {
     try {
       const organization = await organizationService.assignModules(req.params.id, req.body.moduleIds || [])

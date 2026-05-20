@@ -1,5 +1,22 @@
+const fs = require('fs')
+const path = require('path')
+const crypto = require('crypto')
 const { User, Module, Role, Permission } = require('../../models')
 const { Op } = require('sequelize')
+
+// Logos live next to attachments so they share the uploads/ dir lifecycle.
+// Served publicly from /uploads/logos/* (see server/app.js).
+const LOGO_ROOT = path.join(__dirname, '..', '..', 'uploads', 'logos')
+const LOGO_MAX_BYTES = 2 * 1024 * 1024 // 2 MB
+const LOGO_ALLOWED_MIME = {
+  'image/png':  '.png',
+  'image/jpeg': '.jpg',
+  'image/jpg':  '.jpg',
+  'image/gif':  '.gif',
+  'image/webp': '.webp',
+  'image/svg+xml': '.svg',
+}
+const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) }
 
 const organizationIncludes = [
   { model: Module, as: 'modules', attributes: ['id', 'slug', 'name', 'icon', 'isActive'] },
@@ -67,10 +84,59 @@ const getById = async (id) => {
 const update = async (id, data) => {
   const organization = await User.findByPk(id)
   if (!organization) throw { status: 404, message: 'Organization not found' }
-  const allowed = ['name', 'role', 'isActive', 'defaultPage', 'parentId']
+  const allowed = [
+    'name', 'role', 'isActive', 'defaultPage', 'parentId',
+    // Org profile (used on customer-facing documents)
+    'companyName', 'address', 'phone', 'taxId', 'website',
+  ]
   const patch = Object.fromEntries(Object.entries(data).filter(([k]) => allowed.includes(k)))
   if ('parentId' in patch) patch.parentId = patch.parentId || null
   await organization.update(patch)
+  return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
+}
+
+// Logo upload — accepts a base64 string (with or without data-URL prefix).
+// Writes the file under server/uploads/logos/{id}{ext}, persists the relative
+// path on User.logoPath, and removes any previous logo file on disk so we
+// don't accumulate orphans.
+const uploadLogo = async (id, { dataBase64, contentType }) => {
+  const organization = await User.findByPk(id)
+  if (!organization) throw { status: 404, message: 'Organization not found' }
+  if (!dataBase64) throw { status: 400, message: 'Logo data is required' }
+  const ext = LOGO_ALLOWED_MIME[contentType]
+  if (!ext) throw { status: 400, message: `Unsupported logo type "${contentType}"` }
+
+  const cleaned = String(dataBase64).replace(/^data:[^;]+;base64,/, '')
+  const buf = Buffer.from(cleaned, 'base64')
+  if (buf.length > LOGO_MAX_BYTES) {
+    throw { status: 400, message: `Logo exceeds maximum size of ${LOGO_MAX_BYTES / 1024 / 1024} MB` }
+  }
+
+  ensureDir(LOGO_ROOT)
+  // Random suffix so the browser breaks its cache when the logo changes.
+  const filename = `${id}-${crypto.randomBytes(4).toString('hex')}${ext}`
+  const fullPath = path.join(LOGO_ROOT, filename)
+  fs.writeFileSync(fullPath, buf)
+
+  // Cleanup the old file so we don't accumulate orphans.
+  if (organization.logoPath) {
+    const old = path.join(LOGO_ROOT, path.basename(organization.logoPath))
+    try { if (fs.existsSync(old)) fs.unlinkSync(old) } catch (_) { /* ignore */ }
+  }
+
+  const publicPath = `/uploads/logos/${filename}`
+  await organization.update({ logoPath: publicPath })
+  return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
+}
+
+const removeLogo = async (id) => {
+  const organization = await User.findByPk(id)
+  if (!organization) throw { status: 404, message: 'Organization not found' }
+  if (organization.logoPath) {
+    const full = path.join(LOGO_ROOT, path.basename(organization.logoPath))
+    try { if (fs.existsSync(full)) fs.unlinkSync(full) } catch (_) { /* ignore */ }
+  }
+  await organization.update({ logoPath: null })
   return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
 }
 
@@ -185,4 +251,4 @@ const listAll = async () => {
   })
 }
 
-module.exports = { create, list, getById, update, remove, assignModules, assignRoles, getUserPermissions, getMyModules, getStaff, listAllStaff, listAll }
+module.exports = { create, list, getById, update, uploadLogo, removeLogo, remove, assignModules, assignRoles, getUserPermissions, getMyModules, getStaff, listAllStaff, listAll }

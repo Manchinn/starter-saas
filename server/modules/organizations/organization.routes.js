@@ -33,5 +33,7 @@ router.put('/:id', requirePermission('organizations.edit'), (req, res) => contro
 router.delete('/:id', requirePermission('organizations.delete'), (req, res) => controller.remove(req, res))
 router.put('/:id/modules', requirePermission('organizations.edit'), (req, res) => controller.assignModules(req, res))
 router.put('/:id/roles', requirePermission('organizations.edit'), (req, res) => controller.assignRoles(req, res))
+router.post('/:id/logo', requirePermission('organizations.edit'), (req, res) => controller.uploadLogo(req, res))
+router.delete('/:id/logo', requirePermission('organizations.edit'), (req, res) => controller.removeLogo(req, res))
 
 module.exports = router

@@ -48,6 +48,34 @@ const User = sequelize.define('User', {
     allowNull: true,
     comment: 'Parent organization ID — enables org hierarchy (sub-organizations).'
   },
+  // ── Organization profile (used only on top-level orgs; harmless on staff users) ──
+  companyName: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Display name on customer-facing documents (invoices, sales orders). Falls back to `name`.',
+  },
+  address: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  phone: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  taxId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    comment: 'Tax / VAT / business registration number printed on documents.',
+  },
+  website: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  logoPath: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Relative path under server/uploads/logos/ — served via /uploads/logos/*',
+  },
   emailVerifiedAt: {
     type: DataTypes.DATE,
     allowNull: true,

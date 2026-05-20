@@ -106,9 +106,23 @@
 
           <!-- Document header: company + title block -->
           <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0">
-              <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-              <p v-if="companyTagline" class="text-[12px] text-[#637381] mt-0.5">{{ companyTagline }}</p>
+            <div class="flex-1 min-w-0 flex items-start gap-4">
+              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
+                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
+              <div class="min-w-0">
+                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
+                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
+                  {{ companyAddress }}
+                </p>
+                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
+                  <p v-if="companyPhone">{{ t('erp.orders.docPhoneAbbr') }} {{ companyPhone }}</p>
+                  <p v-if="companyEmail">{{ companyEmail }}</p>
+                  <p v-if="companyWebsite">{{ companyWebsite }}</p>
+                  <p v-if="companyTaxId" class="tabular-nums">
+                    <span class="text-[#9BA7B0]">{{ t('erp.orders.docTaxId') }}</span> {{ companyTaxId }}
+                  </p>
+                </div>
+              </div>
             </div>
             <div class="text-right flex-shrink-0">
               <h2 class="text-[26px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
@@ -404,11 +418,29 @@ const statusError    = ref('')
 const converting     = ref('')
 const convertError   = ref('')
 
-// Use the org name from the session if available — otherwise fall back to a
-// neutral placeholder. Wire this to an organization-profile API later when one
-// exists; for now we just keep the document header looking complete.
-const companyName    = computed(() => auth.user?.organizationName || auth.user?.organization?.name || 'Your Company')
-const companyTagline = computed(() => auth.user?.organization?.tagline || '')
+// Company profile comes from /auth/me's `user.organization` — the top-level
+// org account that owns the current session. Admins keep these fields up to
+// date on /admin/organizations/:id/edit.
+const org = computed(() => auth.user?.organization || {})
+const companyName    = computed(() => org.value.companyName || org.value.name || 'Your Company')
+const companyAddress = computed(() => org.value.address  || '')
+const companyPhone   = computed(() => org.value.phone    || '')
+const companyEmail   = computed(() => org.value.email    || '')
+const companyTaxId   = computed(() => org.value.taxId    || '')
+const companyWebsite = computed(() => org.value.website  || '')
+
+// Logos are served from the API origin, not the Vue dev origin — resolve any
+// relative path against the API base URL on the axios instance.
+const apiOrigin = computed(() => {
+  const base = (api.defaults && api.defaults.baseURL) || ''
+  try { return new URL(base, window.location.origin).origin } catch { return window.location.origin }
+})
+const companyLogoSrc = computed(() => {
+  const p = org.value.logoPath
+  if (!p) return ''
+  if (/^https?:\/\//i.test(p)) return p
+  return `${apiOrigin.value}${p}`
+})
 
 // Bill-to address: prefer the order's billingAddress; fall back to customer's address.
 const billingAddressDisplay = computed(() => order.value?.billingAddress || order.value?.customer?.address || '')

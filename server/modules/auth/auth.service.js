@@ -86,7 +86,26 @@ const resolveSession = async (userId) => {
     permissions = [...slugSet]
   }
 
-  return { user, permissions }
+  // The user's "organization" is the top-level user record (the one with
+  // organizationId=null). For staff members organizationId already points
+  // there; for an org admin the user *is* the org. Surface its profile so the
+  // client can render company info on documents without an extra fetch.
+  const ORG_ATTRS = ['id', 'name', 'companyName', 'address', 'phone', 'email', 'taxId', 'website', 'logoPath']
+  const orgId = user.organizationId || user.id
+  const organization = orgId === user.id
+    ? pickOrgAttrs(user, ORG_ATTRS)
+    : pickOrgAttrs(await User.findByPk(orgId, { attributes: ORG_ATTRS }), ORG_ATTRS)
+
+  const userJson = user.toJSON()
+  userJson.organization = organization
+
+  return { user: userJson, permissions }
+}
+
+function pickOrgAttrs(row, attrs) {
+  if (!row) return null
+  const json = typeof row.toJSON === 'function' ? row.toJSON() : row
+  return Object.fromEntries(attrs.map(k => [k, json[k] ?? null]))
 }
 
 // ── Default role helper ──────────────────────────────────────────────────────

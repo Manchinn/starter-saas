@@ -76,6 +76,8 @@ export default {
       docBillTo:               'ออกบิลให้',
       docShipTo:               'จัดส่งให้',
       docSameAsBilling:        'ที่อยู่เดียวกับใบกำกับ',
+      docPhoneAbbr:            'โทร.',
+      docTaxId:                'เลขผู้เสียภาษี:',
       docAuthorisedSignature:  'ผู้มีอำนาจลงนาม',
       docCustomerSignature:    'ลูกค้าลงนาม',
       docFooterThanks:         'ขอบคุณที่ใช้บริการ',
