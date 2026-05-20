@@ -66,6 +66,8 @@ export default {
       discount:          'ส่วนลด',
       newCustomer:       'เพิ่มลูกค้าใหม่',
       discard:           'ยกเลิก',
+      saveDraft:         'บันทึกร่าง',
+      savedDraft:        'บันทึกร่างแล้ว',
       unsavedChanges:    'คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก',
       unsavedChangesHint:'ต้องการออกจากหน้านี้และละทิ้งการเปลี่ยนแปลงหรือไม่?',
       fillRequiredFields:'กรุณากรอกข้อมูลที่จำเป็นก่อน',

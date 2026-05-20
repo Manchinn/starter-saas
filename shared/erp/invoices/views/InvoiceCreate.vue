@@ -375,15 +375,23 @@
           <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.invoices.total') }}</p>
           <p class="text-2xl font-extrabold tabular-nums leading-none text-primary-600">{{ fmtMoney(grandTotal) }}</p>
         </div>
-        <span v-if="dirty" class="hidden sm:inline-flex items-center gap-1 text-[11px] text-amber-600">
+        <span v-if="draftSavedAt" class="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-600">
+          <CheckIcon class="w-3.5 h-3.5" />
+          {{ t('erp.invoices.savedDraft') }} · {{ savedAtRelative }}
+        </span>
+        <span v-else-if="dirty" class="hidden sm:inline-flex items-center gap-1 text-[11px] text-amber-600">
           <ExclamationTriangleIcon class="w-3.5 h-3.5" />
           {{ t('erp.invoices.unsavedChanges') }}
         </span>
       </div>
       <div class="flex items-center gap-2.5">
         <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1">
+          <span class="flex items-center gap-1" :title="t('erp.invoices.saveDraft')">
             <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
+            <span>draft</span>
+          </span>
+          <span class="flex items-center gap-1" :title="t('erp.invoices.create')">
+            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
             <span>save</span>
           </span>
           <span class="flex items-center gap-1">
@@ -395,8 +403,17 @@
           class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
           {{ t('erp.invoices.discard') }}
         </button>
-        <button @click="save" :disabled="!canSave || saving" type="button"
-          :title="!canSave ? t('erp.invoices.fillRequiredFields') : `${t('erp.invoices.create')} (Ctrl+S)`"
+        <button @click="saveDraft" :disabled="!canSave || savingDraft || saving" type="button"
+          :title="!canSave ? t('erp.invoices.fillRequiredFields') : `${t('erp.invoices.saveDraft')} (Ctrl+S)`"
+          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+                 bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 rounded-xl
+                 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <ArrowPathIcon v-if="savingDraft" class="w-4 h-4 animate-spin" />
+          <BookmarkSquareIcon v-else class="w-4 h-4" />
+          {{ savingDraft ? t('erp.common.saving') : t('erp.invoices.saveDraft') }}
+        </button>
+        <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
+          :title="!canSave ? t('erp.invoices.fillRequiredFields') : `${t('erp.invoices.create')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -503,7 +520,7 @@ import {
   PlusIcon, TrashIcon, XMarkIcon, CheckIcon, DocumentTextIcon,
   ArrowPathIcon, ClipboardDocumentListIcon, CalculatorIcon,
   ExclamationTriangleIcon, Bars3Icon, CubeIcon, ChevronDownIcon, ChevronRightIcon,
-  MapPinIcon,
+  MapPinIcon, BookmarkSquareIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
@@ -535,7 +552,13 @@ const staff        = ref([])
 const paymentTerms = ref([])
 const globalError  = ref('')
 const saving       = ref(false)
+const savingDraft  = ref(false)
+const draftSavedAt = ref(null)
 const errors       = ref({})
+
+// First successful Save Draft yields an invoice id; subsequent saves PUT to
+// that id instead of POSTing, so the page silently transitions to edit mode.
+const createdInvoiceId = ref('')
 
 const customerCreateOpen = ref(false)
 const newCustomer        = ref({ name: '', company: '', email: '', phone: '', address: '' })
@@ -690,15 +713,17 @@ async function saveCustomer() {
 
 function onPageKeydown(e) {
   const ctrl  = e.ctrlKey || e.metaKey
+  const shift = e.shiftKey
   const alt   = e.altKey
   const key   = e.key.toLowerCase()
   if (customerCreateOpen.value) {
     if (e.key === 'Escape') { e.preventDefault(); closeCustomerCreate() }
     return
   }
-  if      (ctrl && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 'a') { e.preventDefault(); openBulkPicker() }
-  else if (alt  && key === 'c') { e.preventDefault(); openCustomerCreate() }
+  if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
+  else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
+  else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
+  else if (alt  && key === 'c')          { e.preventDefault(); openCustomerCreate() }
 }
 onMounted(() => document.addEventListener('keydown', onPageKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
@@ -961,10 +986,11 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-async function save() {
+async function save({ redirect = true } = {}) {
   globalError.value = ''
   if (!validate()) return
-  saving.value = true
+  if (redirect) saving.value = true
+  else          savingDraft.value = true
   try {
     const payload = {
       ...form.value,
@@ -982,15 +1008,39 @@ async function save() {
         taxRate: Number(taxRate) || 0,
       })),
     }
-    const { data } = await api.post('/erp/invoices', payload)
+    let data
+    if (createdInvoiceId.value) {
+      ({ data } = await api.put(`/erp/invoices/${createdInvoiceId.value}`, payload))
+    } else {
+      ({ data } = await api.post('/erp/invoices', payload))
+      createdInvoiceId.value = data.data.invoice.id
+    }
     dirty.value = false
-    router.push(`/erp/invoices/${data.data.invoice.id}`)
+    if (redirect) {
+      router.push(`/erp/invoices/${data.data.invoice.id}`)
+    } else {
+      draftSavedAt.value = new Date()
+    }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to create invoice')
+    globalError.value = parseApiError(err, 'Failed to save invoice')
   } finally {
     saving.value = false
+    savingDraft.value = false
   }
 }
+
+function saveDraft() { save({ redirect: false }) }
+
+// "12s ago" / "2m ago" relative-time hint next to the saved indicator.
+const _now = ref(Date.now())
+onMounted(() => { const id = setInterval(() => { _now.value = Date.now() }, 15000); onUnmounted(() => clearInterval(id)) })
+const savedAtRelative = computed(() => {
+  if (!draftSavedAt.value) return ''
+  const secs = Math.max(0, Math.round((_now.value - draftSavedAt.value.getTime()) / 1000))
+  if (secs < 60)   return `${secs}s ago`
+  if (secs < 3600) return `${Math.round(secs / 60)}m ago`
+  return `${Math.round(secs / 3600)}h ago`
+})
 
 async function discard() {
   if (dirty.value) {

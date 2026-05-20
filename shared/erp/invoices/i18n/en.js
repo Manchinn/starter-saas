@@ -66,6 +66,8 @@ export default {
       discount:          'Discount',
       newCustomer:       'New Customer',
       discard:           'Discard',
+      saveDraft:         'Save Draft',
+      savedDraft:        'Draft saved',
       unsavedChanges:    'You have unsaved changes',
       unsavedChangesHint:'Leave this page and discard your changes?',
       fillRequiredFields:'Fill in the required fields first',
