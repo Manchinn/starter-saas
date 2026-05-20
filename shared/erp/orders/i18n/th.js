@@ -43,6 +43,7 @@ export default {
       discard:      'ยกเลิก',
       updateStatus: 'อัปเดตสถานะ',
       deleteOrder:  'ลบใบสั่ง',
+      colCode:      'รหัส',
       colItem:      'รายการ',
       colQty:       'จำนวน',
       colUnitPrice: 'ราคาต่อหน่วย',

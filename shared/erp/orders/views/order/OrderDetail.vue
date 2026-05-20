@@ -200,6 +200,7 @@
               <thead>
                 <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
                   <th class="py-2.5 text-left w-8">#</th>
+                  <th class="py-2.5 text-left w-28">{{ t('erp.orders.colCode') }}</th>
                   <th class="py-2.5 text-left">{{ t('erp.orders.colItem') }}</th>
                   <th class="py-2.5 text-right w-16">{{ t('erp.orders.colQty') }}</th>
                   <th class="py-2.5 text-right w-24">{{ t('erp.orders.colUnitPrice') }}</th>
@@ -211,9 +212,9 @@
                 <template v-for="(item, idx) in topLevelItems" :key="item.id">
                   <tr class="border-b border-[#F1F5F9]">
                     <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
+                    <td class="py-2.5 align-top text-[#637381] font-mono text-[11px]">{{ itemCode(item) || '—' }}</td>
                     <td class="py-2.5 align-top">
                       <span class="font-semibold text-[#1C2434]">{{ item.productName }}</span>
-                      <span v-if="item.product?.sku" class="ml-1.5 text-[10px] text-[#9BA7B0]">({{ item.product.sku }})</span>
                     </td>
                     <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ item.quantity }}</td>
                     <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
@@ -226,17 +227,17 @@
                   <tr v-for="child in childrenOf(item.id)" :key="child.id"
                     class="border-b border-[#F1F5F9] text-[11px]">
                     <td></td>
+                    <td class="py-1.5 text-[#9BA7B0] font-mono text-[10px]">{{ itemCode(child) || '—' }}</td>
                     <td colspan="5" class="py-1.5 pl-6 text-[#637381]">
                       <span class="text-[#CBD5E1] mr-1.5">↳</span>
                       {{ child.productName }}
                       <span class="text-[10px] font-semibold text-[#9BA7B0] tabular-nums ml-2">× {{ child.quantity }}</span>
-                      <span v-if="child.product?.sku" class="text-[10px] text-[#9BA7B0] ml-1.5">({{ child.product.sku }})</span>
                     </td>
                   </tr>
                 </template>
                 <!-- Empty state -->
                 <tr v-if="!topLevelItems.length">
-                  <td colspan="6" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
+                  <td colspan="7" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
                     {{ t('erp.common.noItems') }}
                   </td>
                 </tr>
@@ -428,6 +429,12 @@ const billingAddressDisplay = computed(() => order.value?.billingAddress || orde
 const topLevelItems = computed(() => (order.value?.items || []).filter(it => !it.parentItemId))
 function childrenOf(parentId) {
   return (order.value?.items || []).filter(it => it.parentItemId === parentId)
+}
+// Code for the dedicated CODE column: package code for package headers,
+// product SKU otherwise.
+function itemCode(item) {
+  if (item.salePackageId) return item.salePackage?.code || ''
+  return item.product?.sku || ''
 }
 
 function onPrint() { window.print() }

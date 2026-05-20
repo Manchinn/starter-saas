@@ -1,4 +1,4 @@
-const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, Store, StoreStock, StockMovement, User, sequelize } = require('../../../server/models')
+const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, SalePackage, Store, StoreStock, StockMovement, User, sequelize } = require('../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../server/utils/fmt')
 
@@ -30,7 +30,10 @@ const getById = async (id) => {
     include: [
       { model: Customer, as: 'customer' },
       { model: User, as: 'salesperson', attributes: ['id', 'name', 'email'] },
-      { model: SalesOrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'sku'] }] },
+      { model: SalesOrderItem, as: 'items', include: [
+        { model: Product,     as: 'product',     attributes: ['id', 'name', 'sku'] },
+        { model: SalePackage, as: 'salePackage', attributes: ['id', 'code'] },
+      ] },
     ],
     // Insert order keeps package headers immediately followed by their children
     // (the service writes them in that sequence).

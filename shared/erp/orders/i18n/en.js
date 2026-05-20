@@ -43,6 +43,7 @@ export default {
       discard:      'Discard',
       updateStatus: 'Update Order Status',
       deleteOrder:  'Delete Order',
+      colCode:      'Code',
       colItem:      'Item',
       colQty:       'Qty',
       colUnitPrice: 'Unit Price',
