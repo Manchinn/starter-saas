@@ -41,6 +41,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 
@@ -89,7 +90,7 @@ const columns = [
     header: () => t('erp.bills.colBillNumber'),
     cell: info => h(RouterLink, { to: `/erp/purchasing/bills/${info.row.original.id}`, class: 'font-mono text-xs text-primary-600 hover:underline' }, () => info.getValue()),
   }),
-  columnHelper.accessor('billDate', { header: () => t('erp.bills.colDate'), cell: info => info.getValue() || '—' }),
+  columnHelper.accessor('billDate', { header: () => t('erp.bills.colDate'), cell: info => fmtDate(info.getValue()) || '—' }),
   columnHelper.accessor('vendor.name', { header: () => t('erp.bills.colVendor'), cell: info => info.getValue() || '—' }),
   columnHelper.accessor('vendorInvoiceNo', { header: () => t('erp.bills.colVendorInvoice'), cell: info => info.getValue() || '—' }),
   columnHelper.accessor('total', {

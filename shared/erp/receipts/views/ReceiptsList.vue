@@ -142,7 +142,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
-import { fmtMoney } from '@/utils/fmt'
+import { fmtMoney, fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 
@@ -232,7 +232,7 @@ const columns = [
   }),
   columnHelper.accessor('receiptDate', {
     header: () => t('erp.receipts.colDate'),
-    cell: info => h('span', { class: 'text-xs' }, info.getValue()),
+    cell: info => h('span', { class: 'text-xs' }, fmtDate(info.getValue())),
   }),
   columnHelper.accessor('paymentMethod', {
     header: () => t('erp.receipts.colMethod'),

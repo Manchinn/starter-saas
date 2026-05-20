@@ -128,6 +128,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 
@@ -159,7 +160,7 @@ const columns = [
   }),
   ch.accessor('date', {
     header: () => t('erp.goodReceive.colDate'),
-    cell: info => h('span', { class: 'text-[#637381] text-xs' }, info.getValue()),
+    cell: info => h('span', { class: 'text-[#637381] text-xs' }, fmtDate(info.getValue())),
   }),
   ch.accessor('store', {
     header: () => t('erp.goodReceive.colStore'),

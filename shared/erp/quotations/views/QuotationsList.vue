@@ -131,6 +131,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 
@@ -230,11 +231,11 @@ const columns = [
   }),
   columnHelper.accessor('quotationDate', {
     header: () => t('erp.quotations.colDate'),
-    cell: info => h('span', { class: 'text-xs' }, info.getValue()),
+    cell: info => h('span', { class: 'text-xs' }, fmtDate(info.getValue())),
   }),
   columnHelper.accessor('validUntil', {
     header: () => t('erp.quotations.colValidUntil'),
-    cell: info => h('span', { class: 'text-xs' }, info.getValue() || '—'),
+    cell: info => h('span', { class: 'text-xs' }, fmtDate(info.getValue()) || '—'),
   }),
   columnHelper.accessor('total', {
     header: () => t('erp.quotations.colTotal'),
