@@ -16,6 +16,7 @@ export default {
     close: 'ปิด',
     delete: 'ลบ',
     edit: 'แก้ไข',
+    print: 'พิมพ์',
     actions: 'การดำเนินการ',
     create: 'สร้าง',
     search: 'ค้นหา',

@@ -68,6 +68,21 @@ export default {
       unsavedChanges:    'คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก',
       unsavedChangesHint:'ต้องการออกจากหน้านี้และละทิ้งการเปลี่ยนแปลงหรือไม่?',
       fillRequiredFields:'กรุณากรอกข้อมูลที่จำเป็นก่อน',
+
+      // ── Document view ──────────────────────────────────────
+      documentTitle:           'ใบสั่งขาย',
+      docDate:                 'วันที่',
+      docPO:                   'เลขที่ PO',
+      docBillTo:               'ออกบิลให้',
+      docShipTo:               'จัดส่งให้',
+      docSameAsBilling:        'ที่อยู่เดียวกับใบกำกับ',
+      docAuthorisedSignature:  'ผู้มีอำนาจลงนาม',
+      docCustomerSignature:    'ลูกค้าลงนาม',
+      docFooterThanks:         'ขอบคุณที่ใช้บริการ',
+      printDocument:           'พิมพ์เอกสารนี้',
+      nextAction:              'การดำเนินการต่อไป',
+      nextActionHint:          'เลื่อนสถานะใบสั่งไปยังขั้นถัดไป',
+      convertActions:          'สร้าง',
     },
 
     orderItems: {

@@ -68,6 +68,21 @@ export default {
       unsavedChanges:    'You have unsaved changes',
       unsavedChangesHint:'Leave this page and discard your changes?',
       fillRequiredFields:'Fill in the required fields first',
+
+      // ── Document view ──────────────────────────────────────
+      documentTitle:           'Sales Order',
+      docDate:                 'Date',
+      docPO:                   'PO #',
+      docBillTo:               'Bill To',
+      docShipTo:               'Ship To',
+      docSameAsBilling:        'Same as billing address',
+      docAuthorisedSignature:  'Authorised Signature',
+      docCustomerSignature:    'Customer Signature',
+      docFooterThanks:         'Thank you for your business.',
+      printDocument:           'Print this document',
+      nextAction:              'Next Action',
+      nextActionHint:          'Move this order forward in the workflow.',
+      convertActions:          'Create',
     },
 
     orderItems: {
