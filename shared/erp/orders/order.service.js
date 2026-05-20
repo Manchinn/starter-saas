@@ -481,12 +481,19 @@ const createDeliveryOrder = async (id, userId, organizationId) => {
 
   let createdId
   await sequelize.transaction(async (t) => {
+    const shippingAddr = order.shippingAddress || order.customer?.address || null
     const doc = await DeliveryOrder.create({
       refNo,
       date: today,
       orderId: order.id,
       customerId: order.customerId || null,
-      address: order.customer?.address || null,
+      // Carry across the SO header context.
+      referenceNumber: order.referenceNumber || null,
+      paymentTerms:    order.paymentTerms    || null,
+      salespersonId:   order.salespersonId   || null,
+      shippingAddress: shippingAddr,
+      billingAddress:  order.billingAddress  || null,
+      address:         shippingAddr,
       notes: `Auto-created from Sales Order ${order.orderNumber}`,
       organizationId: organizationId || null,
       createdBy: userId || null,
@@ -507,6 +514,8 @@ const createDeliveryOrder = async (id, userId, organizationId) => {
       await DeliveryOrderItem.create({
         deliveryOrderId: doc.id,
         productId:       item.productId || null,
+        saleItemId:      item.saleItemId || null,
+        storeId:         item.storeId   || null,
         productName:     item.productName,
         qty,
         notes:           null,

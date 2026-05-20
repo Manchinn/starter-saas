@@ -38,6 +38,12 @@ export const routes = [
     meta: { requiresAuth: true, title: 'New Delivery Order' },
   },
   {
+    path: '/erp/delivery-orders/:id/edit',
+    name: 'erp-delivery-orders-edit',
+    component: () => import('./views/delivery-order/DeliveryOrderEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Delivery Order' },
+  },
+  {
     path: '/erp/delivery-orders/:id',
     name: 'erp-delivery-orders-detail',
     component: () => import('./views/delivery-order/DeliveryOrderDetail.vue'),

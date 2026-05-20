@@ -299,6 +299,24 @@ const columns = [
   `ALTER TABLE quotation_items ADD COLUMN taxRate       REAL DEFAULT 0`,
   `ALTER TABLE quotation_items ADD COLUMN taxAmount     REAL DEFAULT 0`,
 
+  // ── Sales-Order parity for Delivery Orders ──────────────────────────────────
+  // Header extras: PO ref, payment terms, salesperson, billing + shipping
+  // addresses (the legacy `address` column stays as shipping fallback).
+  `ALTER TABLE DeliveryOrders ADD COLUMN referenceNumber TEXT`,
+  `ALTER TABLE DeliveryOrders ADD COLUMN paymentTerms    TEXT`,
+  `ALTER TABLE DeliveryOrders ADD COLUMN salespersonId   TEXT`,
+  `ALTER TABLE DeliveryOrders ADD COLUMN shippingAddress TEXT`,
+  `ALTER TABLE DeliveryOrders ADD COLUMN billingAddress  TEXT`,
+
+  // DO items: source-tracking and store assignment.
+  `ALTER TABLE DeliveryOrderItems ADD COLUMN saleItemId    TEXT`,
+  `ALTER TABLE DeliveryOrderItems ADD COLUMN salePackageId TEXT`,
+  `ALTER TABLE DeliveryOrderItems ADD COLUMN storeId       TEXT`,
+
+  // Backfill legacy `address` → new `shippingAddress` for existing DOs.
+  // Idempotent — only touches rows where shippingAddress is NULL.
+  `UPDATE DeliveryOrders SET shippingAddress = address WHERE shippingAddress IS NULL AND address IS NOT NULL`,
+
   // ── Session tracking — RefreshToken device/IP metadata ──────────────────────
   `ALTER TABLE RefreshTokens ADD COLUMN userAgent   TEXT`,
   `ALTER TABLE RefreshTokens ADD COLUMN ip          TEXT`,

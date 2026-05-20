@@ -8,7 +8,17 @@ const DeliveryOrder = sequelize.define('DeliveryOrder', {
   deliveryDate:   { type: DataTypes.DATEONLY, allowNull: true },
   orderId:        { type: DataTypes.UUID, allowNull: true },
   customerId:     { type: DataTypes.UUID, allowNull: true },
+
+  // Legacy: kept for old rows; new code reads shippingAddress and falls back to this.
   address:        { type: DataTypes.TEXT, allowNull: true },
+
+  // Sales-order parity
+  referenceNumber: { type: DataTypes.STRING, allowNull: true },
+  paymentTerms:    { type: DataTypes.STRING(20), allowNull: true },
+  salespersonId:   { type: DataTypes.UUID, allowNull: true },
+  shippingAddress: { type: DataTypes.TEXT, allowNull: true },
+  billingAddress:  { type: DataTypes.TEXT, allowNull: true },
+
   notes:          { type: DataTypes.TEXT, allowNull: true },
   status:         { type: DataTypes.ENUM('draft', 'confirmed', 'shipped', 'delivered', 'cancelled'), defaultValue: 'draft' },
   organizationId: { type: DataTypes.UUID, allowNull: true },

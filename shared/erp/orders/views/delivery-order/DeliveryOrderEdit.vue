@@ -2,21 +2,23 @@
   <AppLayout>
     <div class="space-y-5">
 
-      <PageHeader :title="t('erp.deliveryOrders.new')" back-to="/erp/delivery-orders"
+      <PageHeader :title="loading ? t('erp.deliveryOrders.editOrder') : (doc?.refNo || t('erp.deliveryOrders.editOrder'))"
+        :back-to="`/erp/delivery-orders/${route.params.id}`"
         :breadcrumb="[
           { label: t('erp.deliveryOrders.title'), to: '/erp/delivery-orders' },
-          { label: t('common.create') },
+          { label: doc?.refNo || '…', to: `/erp/delivery-orders/${route.params.id}` },
+          { label: t('common.edit') },
         ]">
         <template #badge>
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/erp/delivery-orders"
+            :cancel-to="`/erp/delivery-orders/${route.params.id}`"
             :cancel-label="t('common.cancel')"
             :saving="saving"
-            :saving-label="t('erp.common.creating')"
-            :save-label="t('erp.deliveryOrders.create')"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('common.saveChanges')"
             :disabled="!canSave"
             :disabled-hint="t('erp.deliveryOrders.fillRequiredFields')"
             @save="save"
@@ -24,13 +26,17 @@
         </template>
       </PageHeader>
 
-      <div class="space-y-5">
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
 
-        <!-- Customer & Delivery Info -->
+      <ErrorBanner v-else-if="loadError" :message="loadError" />
+
+      <div v-else class="space-y-5">
+
         <FormCard :title="t('erp.deliveryOrders.info')" :icon="TruckIcon" icon-color="primary" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
-            <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.deliveryOrders.customer')" required />
               <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
@@ -41,7 +47,6 @@
               <CustomerChip :customer="selectedCustomer" />
             </div>
 
-            <!-- Reference / PO # -->
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.referenceNumber')" />
               <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
@@ -49,7 +54,6 @@
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
             </div>
 
-            <!-- Date -->
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
               <DateInput v-model="form.date"
@@ -59,7 +63,6 @@
               <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
             </div>
 
-            <!-- Delivery Date -->
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.deliveryDate')" />
               <DateInput v-model="form.deliveryDate"
@@ -67,13 +70,11 @@
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
             </div>
 
-            <!-- Reference Sales Order -->
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.referenceSO')" />
-              <SearchSelect v-model="form.orderId" :options="orders" label-key="orderNumber" placeholder="— None —" @change="onOrderChange" />
+              <SearchSelect v-model="form.orderId" :options="orders" label-key="orderNumber" placeholder="— None —" />
             </div>
 
-            <!-- Payment terms -->
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.paymentTerms')" />
               <select v-model="form.paymentTerms"
@@ -84,7 +85,6 @@
               </select>
             </div>
 
-            <!-- Salesperson -->
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.salesperson')" />
               <SearchSelect v-model="form.salespersonId" :options="staff" placeholder="— Salesperson —">
@@ -96,7 +96,6 @@
           </div>
         </FormCard>
 
-        <!-- Addresses -->
         <FormCard :title="t('erp.deliveryOrders.addresses')" :icon="MapPinIcon" icon-color="primary" :padded="false">
           <template #actions>
             <button type="button" @click="syncAddressesFromCustomer"
@@ -112,10 +111,9 @@
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.shippingAddress')" />
               <textarea v-model="form.shippingAddress" rows="3"
-                placeholder="Ship to address…"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+                       transition-all resize-none" />
             </div>
             <div>
               <div class="flex items-center justify-between">
@@ -127,37 +125,24 @@
               </div>
               <textarea v-model="form.billingAddress" rows="3"
                 :disabled="billingSameAsShipping"
-                placeholder="Bill to address…"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]
-                       disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+                       transition-all resize-none disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
             </div>
           </div>
         </FormCard>
 
-        <!-- Line Items -->
         <FormCard :title="t('erp.deliveryOrders.lineItems')" :icon="ClipboardDocumentListIcon" icon-color="green"
           :subtitle="form.items.length ? `${form.items.length} item${form.items.length !== 1 ? 's' : ''}` : ''"
           :padded="false">
           <template #actions>
-            <div class="flex items-center gap-2">
-              <button v-if="form.orderId" @click="loadFromOrder" type="button"
-                class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
-                       text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors">
-                <ArrowDownTrayIcon class="w-3.5 h-3.5" />
-                {{ t('erp.deliveryOrders.loadFromSO') }}
-              </button>
-              <button @click="openBulkPicker" type="button"
-                :title="`${t('erp.deliveryOrders.addItem')} (Ctrl+A)`"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
-                       text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
-                       rounded-xl transition-colors">
-                <PlusIcon class="w-3.5 h-3.5" />
-                {{ t('erp.deliveryOrders.addItem') }}
-                <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+A</kbd>
-              </button>
-            </div>
+            <button @click="openBulkPicker" type="button"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
+                     text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
+                     rounded-xl transition-colors">
+              <PlusIcon class="w-3.5 h-3.5" />
+              {{ t('erp.deliveryOrders.addItem') }}
+            </button>
           </template>
 
           <EmptyState v-if="!form.items.length"
@@ -243,16 +228,6 @@
               </div>
             </div>
 
-            <div class="grid items-center gap-3 px-5 py-3.5 bg-[#F7F9FC] border-t border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 6rem 3fr 2rem">
-              <div class="col-span-4 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">
-                {{ t('erp.deliveryOrders.totalItems') }}
-              </div>
-              <div class="text-[13px] font-bold text-[#1C2434] tabular-nums text-right">{{ form.items.length }}</div>
-              <div></div>
-              <div></div>
-            </div>
-
             <p v-if="errors.items" class="px-5 py-2.5 text-[11px] text-red-600 bg-[#FEE2E2] border-t border-[#FECACA]">
               {{ errors.items }}
             </p>
@@ -273,24 +248,19 @@
 
         <ErrorBanner :message="globalError" />
 
-        <!-- Notes + Summary -->
         <FormCard :title="t('erp.deliveryOrders.deliverySummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             <div class="flex flex-col text-left">
               <FieldLabel :text="t('erp.common.notes')" />
-              <textarea v-model="form.notes" placeholder="Handling instructions or remarks…"
+              <textarea v-model="form.notes"
                 class="flex-1 w-full min-h-[8rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+                       transition-all resize-none" />
             </div>
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
                 <dt class="text-[#637381]">{{ t('erp.deliveryOrders.customer') }}</dt>
                 <dd class="font-semibold text-[#1C2434] truncate ml-3">{{ selectedCustomer?.name || '—' }}</dd>
-              </div>
-              <div class="flex items-center justify-between text-[13px]">
-                <dt class="text-[#637381]">{{ t('erp.deliveryOrders.deliveryDate') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtDate(form.deliveryDate) || '—' }}</dd>
               </div>
               <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
                 <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.deliveryOrders.totalItems') }}</dt>
@@ -303,8 +273,7 @@
       </div>
     </div>
 
-    <!-- Sticky save bar -->
-    <div class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+    <div v-if="!loading && !loadError" class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
                 flex items-center justify-between gap-3">
       <div class="flex items-center gap-4">
         <div>
@@ -317,33 +286,21 @@
         </span>
       </div>
       <div class="flex items-center gap-2.5">
-        <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1" :title="t('erp.deliveryOrders.create')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
-            <span>save</span>
-          </span>
-          <span class="flex items-center gap-1" :title="t('erp.deliveryOrders.addItem')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
-            <span>item</span>
-          </span>
-        </div>
         <button @click="discard" type="button"
           class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
           {{ t('erp.deliveryOrders.discard') }}
         </button>
         <button @click="save" :disabled="!canSave || saving" type="button"
-          :title="!canSave ? t('erp.deliveryOrders.fillRequiredFields') : `${t('erp.deliveryOrders.create')} (Ctrl+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />
-          {{ saving ? t('erp.common.creating') : t('erp.deliveryOrders.create') }}
+          {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
         </button>
       </div>
     </div>
 
-    <!-- Confirm dialog -->
     <Teleport to="body">
       <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
         <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -373,11 +330,10 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
   PlusIcon, TrashIcon, CheckIcon,
-  ArrowPathIcon, ArrowDownTrayIcon,
-  TruckIcon, ClipboardDocumentListIcon, CalculatorIcon,
+  ArrowPathIcon, TruckIcon, ClipboardDocumentListIcon, CalculatorIcon,
   ExclamationTriangleIcon, Bars3Icon, MapPinIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -393,11 +349,12 @@ import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
-import { fmtDate } from '@/utils/fmt'
 
 const { t }    = useI18n()
+const route    = useRoute()
 const router   = useRouter()
 
+const doc          = ref(null)
 const customers    = ref([])
 const orders       = ref([])
 const saleItems    = ref([])
@@ -405,23 +362,23 @@ const salePackages = ref([])
 const stores       = ref([])
 const staff        = ref([])
 const paymentTerms = ref([])
+const loading      = ref(true)
+const loadError    = ref('')
 const saving       = ref(false)
 const globalError  = ref('')
 const errors       = ref({})
+const billingSameAsShipping = ref(false)
 
-const today = new Date().toISOString().slice(0, 10)
-const form  = ref({
-  customerId: '', date: today, deliveryDate: '', orderId: '',
+const form = ref({
+  customerId: '', date: '', deliveryDate: '', orderId: '',
   referenceNumber: '', paymentTerms: '', salespersonId: '',
   shippingAddress: '', billingAddress: '',
   notes: '', items: [],
 })
-const billingSameAsShipping = ref(true)
 
 const dirty = ref(false)
 let dirtyArmed = false
 watch(form, () => { if (dirtyArmed) dirty.value = true }, { deep: true })
-onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
 
 function onBeforeUnload(e) {
   if (!dirty.value) return
@@ -472,8 +429,17 @@ const groupedItemOptions = computed(() => {
   return groups
 })
 
+let _localKeyCounter = 0
+function newKey() {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `k${Date.now()}-${++_localKeyCounter}`
+}
+
 onMounted(async () => {
-  const [cRes, oRes, siRes, spRes, stRes, staffRes, ptRes] = await Promise.allSettled([
+  const id = route.params.id
+  const [docRes, cRes, oRes, siRes, spRes, stRes, staffRes, ptRes] = await Promise.allSettled([
+    api.get(`/erp/delivery-orders/${id}`),
     api.get('/erp/customers',     { params: { limit: 200 } }),
     api.get('/erp/orders',        { params: { limit: 500, status: 'confirmed' } }),
     api.get('/erp/sale-items',    { params: { limit: 500, status: 'active' } }),
@@ -489,9 +455,53 @@ onMounted(async () => {
   if (stRes.status    === 'fulfilled') stores.value       = stRes.value.data.data.stores   || []
   if (staffRes.status === 'fulfilled') staff.value        = staffRes.value.data.data.staff || []
   if (ptRes.status    === 'fulfilled') paymentTerms.value = ptRes.value.data.data.values   || []
+
+  if (docRes.status !== 'fulfilled') {
+    loadError.value = parseApiError(docRes.reason, 'Failed to load delivery order')
+    loading.value = false
+    return
+  }
+
+  const d = docRes.value.data.data.deliveryOrder
+  if (d.status !== 'draft') {
+    router.replace(`/erp/delivery-orders/${id}`)
+    return
+  }
+  doc.value = d
+
+  billingSameAsShipping.value = !!d.shippingAddress && d.shippingAddress === d.billingAddress
+
+  form.value = {
+    customerId:      d.customerId      || '',
+    date:            d.date            || '',
+    deliveryDate:    d.deliveryDate    || '',
+    orderId:         d.orderId         || '',
+    referenceNumber: d.referenceNumber || '',
+    paymentTerms:    d.paymentTerms    || '',
+    salespersonId:   d.salespersonId   || '',
+    shippingAddress: d.shippingAddress || d.address || '',
+    billingAddress:  d.billingAddress  || '',
+    notes:           d.notes           || '',
+    items: (d.items || []).map(it => {
+      const si = saleItems.value.find(s => s.id === it.saleItemId)
+      const hasProduct = !!(it.productId || si?.productId)
+      return {
+        key:         newKey(),
+        saleItemId:  it.saleItemId || '',
+        productId:   it.productId  || '',
+        storeId:     it.storeId    || '',
+        hasProduct,
+        productName: it.productName || '',
+        qty:         Number(it.qty) || 0,
+        notes:       it.notes || '',
+      }
+    }),
+  }
+  loading.value = false
+  await nextTick()
+  dirtyArmed = true
 })
 
-// Auto-populate addresses from the selected customer if shipping is empty.
 watch(() => form.value.customerId, (id) => {
   const c = customers.value.find(x => x.id === id)
   if (!c) return
@@ -500,7 +510,7 @@ watch(() => form.value.customerId, (id) => {
 
 watch(billingSameAsShipping, (on) => {
   if (on) form.value.billingAddress = form.value.shippingAddress
-}, { immediate: true })
+})
 watch(() => form.value.shippingAddress, (v) => {
   if (billingSameAsShipping.value) form.value.billingAddress = v
 })
@@ -512,63 +522,10 @@ function syncAddressesFromCustomer() {
   if (billingSameAsShipping.value) form.value.billingAddress = c.address
 }
 
-// When a Sales Order is picked, default the customer if not already set.
-function onOrderChange() {
-  const id = form.value.orderId
-  if (!id) return
-  const o = orders.value.find(x => x.id === id)
-  if (!o) return
-  if (!form.value.customerId && o.customerId) form.value.customerId = o.customerId
-}
-
-// Pull all items from the picked Sales Order, expanding packages into separate
-// lines. Effective qty = childQty × parentQty so the DO ships actual pieces.
-async function loadFromOrder() {
-  if (!form.value.orderId) return
-  try {
-    const { data } = await api.get(`/erp/orders/${form.value.orderId}`)
-    const order = data.data.order
-    const newLines = []
-    const items = order.items || []
-    const itemsById = new Map(items.map(i => [i.id, i]))
-    for (const it of items) {
-      // Skip package headers — children become the DO lines.
-      if (it.salePackageId && !it.parentItemId) continue
-      let qty = Number(it.quantity) || 0
-      if (it.parentItemId) {
-        const parent = itemsById.get(it.parentItemId)
-        qty *= Number(parent?.quantity) || 1
-      }
-      newLines.push({
-        key:         newKey(),
-        saleItemId:  it.saleItemId || '',
-        productId:   it.productId  || '',
-        storeId:     it.storeId    || '',
-        hasProduct:  !!it.productId || !!it.saleItem?.productId,
-        productName: it.productName,
-        qty,
-        notes:       '',
-      })
-    }
-    if (!newLines.length) return
-    form.value.items = newLines
-  } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to load items from sales order')
-  }
-}
-
-let _localKeyCounter = 0
-function newKey() {
-  return (typeof crypto !== 'undefined' && crypto.randomUUID)
-    ? crypto.randomUUID()
-    : `k${Date.now()}-${++_localKeyCounter}`
-}
-
 function removeLine(idx) {
   form.value.items.splice(idx, 1)
 }
 
-// ── Drag-and-drop reorder ────────────────────────────────────────────────
 const dragFromIdx = ref(null)
 const dragOverIdx = ref(null)
 function onDragStart(e, idx) {
@@ -598,7 +555,6 @@ function onDragEnd() {
   dragOverIdx.value = null
 }
 
-// ── Picker / bulk-add ───────────────────────────────────────────────────
 const bulkPickerRef = ref(null)
 function openBulkPicker() { bulkPickerRef.value?.open() }
 
@@ -712,7 +668,7 @@ async function save() {
   if (!validate()) return
   saving.value = true
   try {
-    const { data } = await api.post('/erp/delivery-orders', {
+    await api.put(`/erp/delivery-orders/${route.params.id}`, {
       ...form.value,
       orderId:      form.value.orderId      || null,
       deliveryDate: form.value.deliveryDate || null,
@@ -724,9 +680,9 @@ async function save() {
       })),
     })
     dirty.value = false
-    router.push(`/erp/delivery-orders/${data.data.deliveryOrder.id}`)
+    router.push(`/erp/delivery-orders/${route.params.id}`)
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to create delivery order')
+    globalError.value = parseApiError(err, 'Failed to update delivery order')
   } finally {
     saving.value = false
   }
@@ -741,6 +697,6 @@ async function discard() {
     })
     if (!ok) return
   }
-  router.push('/erp/delivery-orders')
+  router.push(`/erp/delivery-orders/${route.params.id}`)
 }
 </script>
