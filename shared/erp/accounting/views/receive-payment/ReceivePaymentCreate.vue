@@ -1,8 +1,7 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
+    <div class="space-y-5">
 
-      <!-- Header -->
       <PageHeader title="Receive Payment" back-to="/erp/billing/receive-payments"
         :breadcrumb="[
           { label: 'Receive Payments', to: '/erp/billing/receive-payments' },
@@ -18,6 +17,8 @@
             :saving="saving"
             saving-label="Creating…"
             save-label="Create Payment"
+            :disabled="!canSave"
+            disabled-hint="Fill in the required fields first"
             @save="save"
           />
         </template>
@@ -25,81 +26,73 @@
 
       <div class="space-y-5">
 
-        <!-- Section 1: Payment Info -->
-        <FormCard title="Payment Information" :icon="BanknotesIcon" icon-color="green">
-          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+        <!-- Customer & Payment Info -->
+        <FormCard title="Payment Information" :icon="BanknotesIcon" icon-color="green" :padded="false">
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
             <!-- Customer -->
-            <div class="col-span-2 lg:col-span-1">
+            <div class="lg:col-span-2">
               <FieldLabel text="Customer" required />
               <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
-              <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
+              <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
+              <CustomerChip :customer="selectedCustomer" />
+            </div>
+
+            <!-- Reference -->
+            <div>
+              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
+                Reference <span class="text-[#9BA7B0] normal-case font-normal text-[10px]">(cheque #, transfer ref…)</span>
+              </label>
+              <input v-model="form.reference" type="text" placeholder="Optional reference number"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
             </div>
 
             <!-- Date -->
             <div>
               <FieldLabel text="Date" required />
               <DateInput v-model="form.date"
-                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
+                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-              <p v-if="errors.date" class="mt-1 text-xs text-red-500">{{ errors.date }}</p>
+                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
             </div>
 
             <!-- Payment Method -->
             <div>
               <FieldLabel text="Payment Method" required />
               <SearchSelect v-model="form.paymentMethod" :options="paymentMethods" track-by="name" label-key="name" placeholder="— Select —" :invalid="!!errors.paymentMethod" />
-              <p v-if="errors.paymentMethod" class="mt-1 text-xs text-red-500">{{ errors.paymentMethod }}</p>
+              <p v-if="errors.paymentMethod" class="mt-1 text-[11px] text-red-500">{{ errors.paymentMethod }}</p>
             </div>
 
-            <!-- Reference (custom label with secondary hint - kept inline since the hint isn't required asterisk) -->
-            <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                Reference <span class="text-[#9BA7B0] normal-case font-normal text-[10px]">(cheque #, transfer ref…)</span>
-              </label>
-              <input v-model="form.reference" type="text" placeholder="Optional reference number"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-            </div>
+            <!-- spacer to push notes to its own row on lg -->
+            <div></div>
 
             <!-- Notes -->
-            <div class="col-span-2">
+            <div class="lg:col-span-3">
               <FieldLabel text="Notes" />
               <textarea v-model="form.notes" rows="2" placeholder="Remarks…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-colors resize-none placeholder-[#CBD5E1]" />
+                       transition-all resize-none placeholder:text-[#9BA7B0]" />
             </div>
 
           </div>
         </FormCard>
 
-        <!-- Section 2: Select Invoices -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <ClipboardDocumentListIcon class="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <h2 class="text-sm font-semibold text-[#1C2434]">Outstanding Invoices</h2>
-              <p v-if="form.invoiceIds.length" class="text-[11px] text-[#9BA7B0]">
-                {{ form.invoiceIds.length }} selected
-              </p>
-            </div>
-          </div>
+        <!-- Outstanding Invoices -->
+        <FormCard title="Outstanding Invoices" :icon="ClipboardDocumentListIcon" icon-color="blue"
+          :subtitle="form.invoiceIds.length ? `${form.invoiceIds.length} selected` : ''"
+          :padded="false">
 
           <!-- No customer -->
-          <div v-if="!form.customerId" class="flex flex-col items-center justify-center py-14 text-center">
-            <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
-              <UserIcon class="w-7 h-7 text-[#CBD5E1]" />
-            </div>
-            <p class="text-sm font-semibold text-[#637381]">Select a customer first</p>
-            <p class="text-xs text-[#9BA7B0] mt-1">Outstanding invoices will appear here</p>
-          </div>
+          <EmptyState v-if="!form.customerId"
+            :icon="UserIcon"
+            title="Select a customer first"
+            subtitle="Outstanding invoices will appear here" />
 
           <!-- Loading -->
           <div v-else-if="loadingInvoices" class="flex items-center justify-center py-14">
@@ -107,104 +100,164 @@
           </div>
 
           <!-- No invoices -->
-          <div v-else-if="!availableInvoices.length" class="flex flex-col items-center justify-center py-14 text-center">
-            <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
-              <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
-            </div>
-            <p class="text-sm font-semibold text-[#637381]">No outstanding invoices</p>
-            <p class="text-xs text-[#9BA7B0] mt-1">This customer has no unpaid invoices</p>
-            <p v-if="errors.invoiceIds" class="mt-3 text-xs text-red-500">{{ errors.invoiceIds }}</p>
-          </div>
+          <EmptyState v-else-if="!availableInvoices.length"
+            :icon="ClipboardDocumentListIcon"
+            title="No outstanding invoices"
+            subtitle="This customer has no unpaid invoices"
+            :error-message="errors.invoiceIds" />
 
           <!-- Invoice table -->
           <div v-else>
-            <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
-                        text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider"
-              style="grid-template-columns: 2rem 1fr 6rem 6rem 7rem 5rem">
+            <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]"
+              style="grid-template-columns: 2rem 1fr 7rem 7rem 8rem 5.5rem">
               <div class="flex items-center justify-center">
                 <input type="checkbox" :checked="allSelected" @change="toggleAll"
                   class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
               </div>
-              <div>Invoice #</div>
-              <div>Date</div>
-              <div>Due Date</div>
-              <div class="text-right">Total</div>
-              <div>Status</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Invoice #</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Date</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Due Date</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">Total</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Status</div>
             </div>
 
             <div class="divide-y divide-[#E2E8F0]">
               <div v-for="inv in availableInvoices" :key="inv.id"
                 @click="toggleInvoice(inv.id)"
-                :class="['grid items-center gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-[#F7F9FC]',
-                         form.invoiceIds.includes(inv.id) ? 'bg-primary-50/40' : '']"
-                style="grid-template-columns: 2rem 1fr 6rem 6rem 7rem 5rem">
+                :class="['grid items-center gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-[#F7F9FC] border-l-2',
+                         form.invoiceIds.includes(inv.id) ? 'bg-primary-50/40 border-l-primary-400' : 'border-l-transparent']"
+                style="grid-template-columns: 2rem 1fr 7rem 7rem 8rem 5.5rem">
                 <div class="flex items-center justify-center">
                   <input type="checkbox" :checked="form.invoiceIds.includes(inv.id)"
                     @click.stop="toggleInvoice(inv.id)"
                     class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
                 </div>
-                <span class="font-mono text-sm font-medium text-[#1C2434]">{{ inv.invoiceNumber }}</span>
-                <span class="text-xs text-[#637381]">{{ inv.invoiceDate }}</span>
-                <span class="text-xs text-[#637381]">{{ inv.dueDate || '—' }}</span>
-                <span class="text-sm font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(inv.total) }}</span>
+                <span class="font-mono text-[13px] font-medium text-[#1C2434]">{{ inv.invoiceNumber }}</span>
+                <span class="text-[12px] text-[#637381]">{{ inv.invoiceDate }}</span>
+                <span class="text-[12px] text-[#637381]">{{ inv.dueDate || '—' }}</span>
+                <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(inv.total) }}</span>
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize
-                             bg-blue-50 text-blue-700">{{ inv.status }}</span>
+                             bg-blue-50 text-blue-700 w-fit">{{ inv.status }}</span>
               </div>
             </div>
 
-            <p v-if="errors.invoiceIds" class="px-5 py-2 text-xs text-red-500 bg-red-50 border-t border-red-100">
+            <!-- Footer total -->
+            <div class="grid items-center gap-3 px-5 py-3.5 bg-[#F7F9FC] border-t border-[#E2E8F0]"
+              style="grid-template-columns: 2rem 1fr 7rem 7rem 8rem 5.5rem">
+              <div class="col-span-4 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">
+                Selected total
+              </div>
+              <div class="text-[13px] font-bold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(grandTotal) }}</div>
+              <div></div>
+            </div>
+
+            <p v-if="errors.invoiceIds" class="px-5 py-2.5 text-[11px] text-red-600 bg-[#FEE2E2] border-t border-[#FECACA]">
               {{ errors.invoiceIds }}
             </p>
           </div>
-        </div>
+        </FormCard>
 
-        <!-- Global error -->
         <ErrorBanner :message="globalError" />
 
         <!-- Summary -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
-            <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
-            <h2 class="text-sm font-semibold text-[#1C2434]">Summary</h2>
+        <FormCard title="Summary" :icon="CalculatorIcon" icon-color="slate" :padded="false">
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <div class="flex flex-col text-left">
+              <FieldLabel text="Customer" />
+              <p class="text-[13px] font-semibold text-[#1C2434] truncate">
+                {{ selectedCustomer?.name || '—' }}
+                <span v-if="selectedCustomer?.company" class="text-[#9BA7B0] font-normal"> · {{ selectedCustomer.company }}</span>
+              </p>
+            </div>
+            <dl class="w-full space-y-2.5">
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">Invoices selected</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ form.invoiceIds.length }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">Payment method</dt>
+                <dd class="font-semibold text-[#1C2434]">{{ form.paymentMethod || '—' }}</dd>
+              </div>
+              <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
+                <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Total payment</dt>
+                <dd class="text-base font-bold text-green-600 tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
+              </div>
+            </dl>
           </div>
-          <div class="px-6 py-4 grid grid-cols-3 gap-6">
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Customer</span>
-              <span class="text-sm font-semibold text-[#1C2434]">
-                {{ customers.find(c => c.id === form.customerId)?.name || '—' }}
-              </span>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Invoices</span>
-              <span class="text-sm font-semibold text-[#1C2434]">{{ form.invoiceIds.length }}</span>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Method</span>
-              <span class="text-sm font-semibold text-[#1C2434]">{{ form.paymentMethod || '—' }}</span>
-            </div>
-          </div>
-          <DocFooterBar
-            total-label="Total Payment"
-            :total="fmtMoney(grandTotal)" total-color="green"
-            discard-to="/erp/billing/receive-payments"
-            discard-label="Discard"
-            :saving="saving"
-            :saving-label="'Creating…'"
-            :save-label="'Create Payment'"
-            @save="save"
-          />
-        </div>
+        </FormCard>
 
       </div>
     </div>
+
+    <!-- Sticky save bar -->
+    <div class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+                flex items-center justify-between gap-3">
+      <div class="flex items-center gap-4">
+        <div>
+          <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">Total Payment</p>
+          <p class="text-2xl font-extrabold tabular-nums leading-none text-green-600">{{ fmtMoney(grandTotal) }}</p>
+        </div>
+        <span v-if="dirty" class="hidden sm:inline-flex items-center gap-1 text-[11px] text-amber-600">
+          <ExclamationTriangleIcon class="w-3.5 h-3.5" />
+          You have unsaved changes
+        </span>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
+          <span class="flex items-center gap-1" title="Create Payment">
+            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
+            <span>save</span>
+          </span>
+        </div>
+        <button @click="discard" type="button"
+          class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
+          Discard
+        </button>
+        <button @click="save" :disabled="!canSave || saving" type="button"
+          :title="!canSave ? 'Fill in the required fields first' : 'Create Payment (Ctrl+S)'"
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
+                 bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
+          <CheckIcon v-else class="w-4 h-4" />
+          {{ saving ? 'Creating…' : 'Create Payment' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Confirm dialog (Discard guard) -->
+    <Teleport to="body">
+      <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
+        <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div class="px-5 py-4 flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <ExclamationTriangleIcon class="w-5 h-5 text-amber-600" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-[#1C2434]">You have unsaved changes</p>
+              <p class="mt-1 text-[12px] text-[#637381] leading-snug">Leave this page and discard your changes?</p>
+            </div>
+          </div>
+          <div class="px-5 py-3 bg-[#F7F9FC] flex items-center justify-end gap-2">
+            <button type="button" @click="confirmAnswer(false)"
+              class="px-4 py-2 text-sm font-medium text-[#637381] hover:text-[#1C2434]">Cancel</button>
+            <button type="button" @click="confirmAnswer(true)"
+              class="px-4 py-2 text-sm font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 shadow-sm">
+              Discard
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
   CheckIcon, BanknotesIcon, ArrowPathIcon, ClipboardDocumentListIcon, CalculatorIcon, UserIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
@@ -215,7 +268,8 @@ import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
-import DocFooterBar from '@/components/form/DocFooterBar.vue'
+import CustomerChip from '@/components/form/CustomerChip.vue'
+import EmptyState from '@/components/form/EmptyState.vue'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -238,6 +292,42 @@ const form  = ref({
   notes:         '',
   invoiceIds:    [],
 })
+
+// Dirty tracking — arm the watcher after the initial defaults settle so
+// they don't immediately mark the form as dirty.
+const dirty = ref(false)
+let dirtyArmed = false
+watch(form, () => { if (dirtyArmed) dirty.value = true }, { deep: true })
+onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
+
+function onBeforeUnload(e) {
+  if (!dirty.value) return
+  e.preventDefault()
+  e.returnValue = 'You have unsaved changes'
+}
+onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
+onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
+
+// Discard / unsaved-changes confirm modal
+const confirmOpen = ref(false)
+let confirmResolver = null
+function confirmAsync() {
+  confirmOpen.value = true
+  return new Promise(resolve => { confirmResolver = resolve })
+}
+function confirmAnswer(ok) {
+  confirmOpen.value = false
+  if (confirmResolver) { confirmResolver(ok); confirmResolver = null }
+}
+
+onBeforeRouteLeave(async () => {
+  if (!dirty.value) return true
+  return await confirmAsync()
+})
+
+const selectedCustomer = computed(() =>
+  form.value.customerId ? customers.value.find(c => c.id === form.value.customerId) : null
+)
 
 onMounted(async () => {
   const [custRes, pmRes] = await Promise.all([
@@ -285,6 +375,10 @@ const grandTotal = computed(() =>
     .reduce((s, inv) => s + Number(inv.total), 0)
 )
 
+const canSave = computed(() =>
+  !!form.value.customerId && !!form.value.date && !!form.value.paymentMethod && form.value.invoiceIds.length > 0
+)
+
 function validate() {
   const e = {}
   if (!form.value.customerId)         e.customerId    = 'Customer is required'
@@ -294,6 +388,14 @@ function validate() {
   errors.value = e
   return Object.keys(e).length === 0
 }
+
+// Ctrl/⌘+S → save (no Save-Draft here; receive-payments has no draft PUT yet)
+function onPageKeydown(e) {
+  const ctrl = e.ctrlKey || e.metaKey
+  if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
+}
+onMounted(() => document.addEventListener('keydown', onPageKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function save() {
   globalError.value = ''
@@ -308,11 +410,20 @@ async function save() {
       notes:         form.value.notes     || undefined,
       invoiceIds:    form.value.invoiceIds,
     })
+    dirty.value = false
     router.push(`/erp/billing/receive-payments/${data.data.receivePayment.id}`)
   } catch (err) {
     globalError.value = parseApiError(err, 'Failed to create payment')
   } finally {
     saving.value = false
   }
+}
+
+async function discard() {
+  if (dirty.value) {
+    const ok = await confirmAsync()
+    if (!ok) return
+  }
+  router.push('/erp/billing/receive-payments')
 }
 </script>
