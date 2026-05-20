@@ -209,24 +209,7 @@
               </thead>
               <tbody>
                 <template v-for="(item, idx) in topLevelItems" :key="item.id">
-                  <!-- Package parent: priced row + its children below -->
-                  <tr v-if="item.salePackageId" class="border-b border-[#F1F5F9]">
-                    <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
-                    <td class="py-2.5 align-top">
-                      <span class="inline-flex items-center gap-1.5 font-bold text-primary-700">
-                        <CubeIcon class="w-3.5 h-3.5" />
-                        {{ item.productName }}
-                      </span>
-                      <span class="ml-1.5 text-[10px] font-normal text-[#9BA7B0]">· {{ t('erp.orders.salePackage') }}</span>
-                    </td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ item.quantity }}</td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ Number(item.taxRate || 0) }}%</td>
-                    <td class="py-2.5 align-top text-right font-bold text-[#1C2434] tabular-nums">
-                      {{ fmtMoney((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)) }}
-                    </td>
-                  </tr>
-                  <tr v-else class="border-b border-[#F1F5F9]">
+                  <tr class="border-b border-[#F1F5F9]">
                     <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
                     <td class="py-2.5 align-top">
                       <span class="font-semibold text-[#1C2434]">{{ item.productName }}</span>
@@ -398,7 +381,6 @@ import {
   ArrowLeftIcon, ChevronRightIcon, DocumentTextIcon,
   CheckIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
   ArrowPathIcon, ExclamationCircleIcon, TruckIcon, PrinterIcon,
-  CubeIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
