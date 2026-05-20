@@ -317,6 +317,26 @@ const columns = [
   // Idempotent — only touches rows where shippingAddress is NULL.
   `UPDATE DeliveryOrders SET shippingAddress = address WHERE shippingAddress IS NULL AND address IS NOT NULL`,
 
+  // ── Sales-Order parity for Invoices ─────────────────────────────────────────
+  // Header extras: PO ref, payment terms, salesperson, addresses, discount.
+  `ALTER TABLE Invoices ADD COLUMN referenceNumber TEXT`,
+  `ALTER TABLE Invoices ADD COLUMN paymentTerms    TEXT`,
+  `ALTER TABLE Invoices ADD COLUMN salespersonId   TEXT`,
+  `ALTER TABLE Invoices ADD COLUMN shippingAddress TEXT`,
+  `ALTER TABLE Invoices ADD COLUMN billingAddress  TEXT`,
+  `ALTER TABLE Invoices ADD COLUMN discountType    TEXT`,
+  `ALTER TABLE Invoices ADD COLUMN discountValue   REAL DEFAULT 0`,
+  `ALTER TABLE Invoices ADD COLUMN discountAmount  REAL DEFAULT 0`,
+
+  // Invoice items: SO-style provenance + package parent/child + per-line tax.
+  `ALTER TABLE invoice_items ADD COLUMN saleItemId    TEXT`,
+  `ALTER TABLE invoice_items ADD COLUMN salePackageId TEXT`,
+  `ALTER TABLE invoice_items ADD COLUMN parentItemId  TEXT`,
+  `ALTER TABLE invoice_items ADD COLUMN productId     TEXT`,
+  `ALTER TABLE invoice_items ADD COLUMN storeId       TEXT`,
+  `ALTER TABLE invoice_items ADD COLUMN taxRate       REAL DEFAULT 0`,
+  `ALTER TABLE invoice_items ADD COLUMN taxAmount     REAL DEFAULT 0`,
+
   // ── Session tracking — RefreshToken device/IP metadata ──────────────────────
   `ALTER TABLE RefreshTokens ADD COLUMN userAgent   TEXT`,
   `ALTER TABLE RefreshTokens ADD COLUMN ip          TEXT`,

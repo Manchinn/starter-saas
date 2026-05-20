@@ -4,9 +4,14 @@ const service = require('./invoice.service')
 module.exports = {
   async list(req, res) {
     try {
-      const { page, limit, search, status } = req.query
+      const { page, limit, search, status, dateFrom, dateTo } = req.query
       const orgId = req.user?.organizationId || req.user?.id
-      const result = await service.list({ page: +page || 1, limit: +limit || 20, search: search || '', status: status || '', organizationId: orgId })
+      const result = await service.list({
+        page: +page || 1, limit: +limit || 20,
+        search: search || '', status: status || '',
+        dateFrom: dateFrom || '', dateTo: dateTo || '',
+        organizationId: orgId,
+      })
       return ok(res, result)
     } catch (err) {
       return serverError(res)

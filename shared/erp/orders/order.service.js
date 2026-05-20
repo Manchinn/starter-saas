@@ -539,24 +539,50 @@ const createInvoice = async (id, userId, organizationId) => {
   })
   if (existing) throw { status: 400, message: `Invoice ${existing.invoiceNumber} already exists for this sales order. Cancel it first to create a new one.` }
 
+  // Preserve the SO's per-line tax and package parent/child structure on the
+  // invoice. Package children inherit qty/price/tax from the SO (children carry
+  // 0; the parent is the priced row), and the invoice keeps them in tree order
+  // so `parentKey` resolves to the new parent's id.
+  const topLevel = (order.items || []).filter(it => !it.parentItemId)
+  const childrenByParent = new Map()
+  for (const it of (order.items || []).filter(it => it.parentItemId)) {
+    const arr = childrenByParent.get(it.parentItemId) || []
+    arr.push(it)
+    childrenByParent.set(it.parentItemId, arr)
+  }
+  const ordered = []
+  for (const parent of topLevel) {
+    ordered.push(parent)
+    for (const child of (childrenByParent.get(parent.id) || [])) ordered.push(child)
+  }
+
   const invoiceSvc = require('../invoices/invoice.service')
   const invoice = await invoiceSvc.create({
-    customerId:  order.customerId,
-    orderId:     order.id,
-    invoiceDate: new Date(),
-    notes:       `Auto-created from Sales Order ${order.orderNumber}`,
-    // Invoice prices live on package headers (priced as a single unit) and on
-    // standalone items — package children carry no price and are skipped.
-    items: order.items
-      .filter(i => !i.parentItemId)
-      .map(i => ({
-        productName: i.productName,
-        quantity:    i.quantity,
-        unitPrice:   parseFloat(i.unitPrice) || 0,
-      })),
-    taxRate: parseFloat(order.subtotal) > 0
-      ? toFixed((parseFloat(order.tax) / parseFloat(order.subtotal)) * 100, 2)
-      : 0,
+    customerId:      order.customerId,
+    orderId:         order.id,
+    invoiceDate:     new Date(),
+    notes:           `Auto-created from Sales Order ${order.orderNumber}`,
+    currency:        order.currency,
+    exchangeRate:    order.exchangeRate,
+    referenceNumber: order.referenceNumber,
+    paymentTerms:    order.paymentTerms,
+    salespersonId:   order.salespersonId,
+    shippingAddress: order.shippingAddress,
+    billingAddress:  order.billingAddress,
+    discountType:    order.discountType,
+    discountValue:   Number(order.discountValue) || 0,
+    items: ordered.map(it => ({
+      key:           it.id,
+      parentKey:     it.parentItemId || '',
+      salePackageId: it.salePackageId || null,
+      saleItemId:    it.saleItemId    || null,
+      productId:     it.productId     || null,
+      storeId:       it.storeId       || null,
+      productName:   it.productName,
+      quantity:      Number(it.quantity)  || 1,
+      unitPrice:     Number(it.unitPrice) || 0,
+      taxRate:       Number(it.taxRate)   || 0,
+    })),
     userId,
     organizationId,
   })

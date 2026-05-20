@@ -37,4 +37,7 @@ models.Quotation.belongsTo(models.User, { foreignKey: 'salespersonId', as: 'sale
 // ── DeliveryOrder ↔ core User (salesperson) ──────────────────────────────────
 models.DeliveryOrder.belongsTo(models.User, { foreignKey: 'salespersonId', as: 'salesperson' })
 
+// ── Invoice ↔ core User (salesperson) ────────────────────────────────────────
+models.Invoice.belongsTo(models.User, { foreignKey: 'salespersonId', as: 'salesperson' })
+
 module.exports = models

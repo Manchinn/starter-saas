@@ -85,12 +85,16 @@ const postInvoice = async (invoice, userId) => {
   const ar      = await accounts.getByRole('AR',         orgId)
   const revenue = await accounts.getByRole('REVENUE',    orgId)
   const rate     = Number(invoice.exchangeRate) || 1
-  const totalDoc    = Number(invoice.total    || 0)
-  const subtotalDoc = Number(invoice.subtotal || 0)
-  const taxDoc      = Number(invoice.tax      || 0)
+  const totalDoc    = Number(invoice.total          || 0)
+  const subtotalDoc = Number(invoice.subtotal       || 0)
+  const taxDoc      = Number(invoice.tax            || 0)
+  const discountDoc = Number(invoice.discountAmount || 0)
   if (!totalDoc) throw { status: 400, message: 'Invoice total is zero — cannot post journal' }
+  // Net revenue = gross subtotal minus the order-level discount, so AR (debit)
+  // = revenue + tax (credit) keeps the journal balanced when a discount applies.
+  const netSubtotalDoc = subtotalDoc - discountDoc
   const total    = toBase(totalDoc, rate)
-  const subtotal = toBase(subtotalDoc, rate)
+  const subtotal = toBase(netSubtotalDoc, rate)
   const tax      = toBase(taxDoc, rate)
   const fx       = fxContext(totalDoc, invoice.currency, rate)
 

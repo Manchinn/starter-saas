@@ -1,17 +1,33 @@
-const { Invoice, InvoiceItem, Customer, Order, sequelize } = require('../../../server/models')
+const {
+  Invoice, InvoiceItem,
+  Customer, Order, SaleItem, SalePackage, SalePackageItem, Product, Store, User,
+  sequelize,
+} = require('../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../server/utils/fmt')
+
+const itemIncludes = [
+  { model: SaleItem,    as: 'saleItem',    attributes: ['id', 'name', 'code'] },
+  { model: SalePackage, as: 'salePackage', attributes: ['id', 'name', 'code'] },
+  { model: Product,     as: 'product',     attributes: ['id', 'name', 'sku'] },
+  { model: Store,       as: 'store',       attributes: ['id', 'name', 'code'] },
+]
 
 const generateInvoiceNumber = async () => {
   const count = await Invoice.count()
   return `INV-${String(count + 1).padStart(5, '0')}`
 }
 
-const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
+const list = async ({ page = 1, limit = 20, search = '', status = '', dateFrom = '', dateTo = '', organizationId }) => {
   const offset = (page - 1) * limit
   const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (search) where.invoiceNumber = { [Op.like]: `%${search}%` }
   if (status) where.status = status
+  if (dateFrom || dateTo) {
+    where.invoiceDate = {}
+    if (dateFrom) where.invoiceDate[Op.gte] = dateFrom
+    if (dateTo)   where.invoiceDate[Op.lte] = dateTo
+  }
 
   const { count, rows } = await Invoice.findAndCountAll({
     where,
@@ -29,8 +45,10 @@ const getById = async (id) => {
     include: [
       { model: Customer, as: 'customer' },
       { model: Order,    as: 'order',    attributes: ['id', 'orderNumber'] },
-      { model: InvoiceItem, as: 'items' },
+      { model: User,     as: 'salesperson', attributes: ['id', 'name', 'email'] },
+      { model: InvoiceItem, as: 'items', include: itemIncludes },
     ],
+    order: [[{ model: InvoiceItem, as: 'items' }, 'createdAt', 'ASC']],
   })
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
 
@@ -47,15 +65,90 @@ const getById = async (id) => {
   return json
 }
 
-const create = async ({ customerId, orderId, deliveryOrderId, invoiceDate, dueDate, notes, items = [], taxRate = 0, currency, exchangeRate, userId, organizationId }) => {
+// Per-line tax + order-level discount, mirrors order.service.computeTotals.
+const computeTotals = (items, { discountType, discountValue } = {}) => {
+  const lines = items.map((i) => {
+    const qty   = Number(i.quantity)  || 0
+    const price = Number(i.unitPrice) || 0
+    const rate  = Number(i.taxRate)   || 0
+    const lineSubtotal = qty * price
+    const taxAmount    = toFixed(lineSubtotal * (rate / 100), 2)
+    return {
+      ...i,
+      taxRate: rate,
+      taxAmount,
+      total: toFixed(lineSubtotal + taxAmount, 2),
+      lineSubtotal: toFixed(lineSubtotal, 2),
+    }
+  })
+  const subtotal = lines.reduce((s, l) => s + Number(l.lineSubtotal), 0)
+  const tax      = lines.reduce((s, l) => s + Number(l.taxAmount), 0)
+  const grossTotal = subtotal + tax
+
+  let discountAmount = 0
+  if (discountType === 'percent')   discountAmount = grossTotal * (Number(discountValue) || 0) / 100
+  else if (discountType === 'fixed') discountAmount = Math.min(Number(discountValue) || 0, grossTotal)
+  discountAmount = toFixed(discountAmount, 2)
+
+  return {
+    subtotal: toFixed(subtotal, 2),
+    tax:      toFixed(tax, 2),
+    discountAmount,
+    total:    toFixed(grossTotal - Number(discountAmount), 2),
+    lines,
+  }
+}
+
+// Persist `lines` to `invoice_items` resolving parentKey → parentItemId.
+// Items must be supplied in tree-order (parent before its children).
+const persistInvoiceItems = async ({ invoiceId, lines, organizationId, t }) => {
+  const keyToId = new Map()
+  for (const item of lines) {
+    const parentItemId = item.parentKey ? keyToId.get(item.parentKey) || null : null
+    const row = await InvoiceItem.create(
+      {
+        invoiceId,
+        saleItemId:    item.saleItemId    || null,
+        salePackageId: item.salePackageId || null,
+        productId:     item.productId     || null,
+        parentItemId,
+        storeId:       item.storeId       || null,
+        productName:   item.productName   || 'Item',
+        description:   item.description   || null,
+        quantity:      Number(item.quantity)  || 1,
+        unitPrice:     Number(item.unitPrice) || 0,
+        taxRate:       Number(item.taxRate)   || 0,
+        taxAmount:     Number(item.taxAmount) || 0,
+        total:         Number(item.total)     || 0,
+        organizationId: organizationId || null,
+      },
+      { transaction: t }
+    )
+    if (item.key) keyToId.set(item.key, row.id)
+  }
+}
+
+const create = async ({
+  customerId, orderId, deliveryOrderId, invoiceDate, dueDate, notes, items = [],
+  currency, exchangeRate,
+  referenceNumber, paymentTerms, salespersonId, shippingAddress, billingAddress,
+  discountType, discountValue,
+  // Legacy: invoices used to take a single taxRate; if present and items lack
+  // per-line tax, apply it uniformly so old callers keep working.
+  taxRate,
+  userId, organizationId,
+}) => {
   if (!items.length) throw { status: 400, message: 'Invoice must have at least one item' }
   await require('../accounting/services/tax-period.service').assertOpen(invoiceDate || new Date(), organizationId)
 
   const invoiceNumber = await generateInvoiceNumber()
-  const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
-  const tax   = toFixed(subtotal * (taxRate / 100), 2)
-  const total = toFixed(subtotal + tax, 2)
 
+  // Backfill per-line taxRate from legacy single-taxRate when items omit it.
+  const itemsWithTax = items.map(i => ({
+    ...i,
+    taxRate: i.taxRate != null ? Number(i.taxRate) : Number(taxRate || 0),
+  }))
+  const { subtotal, tax, total, discountAmount, lines } = computeTotals(itemsWithTax, { discountType, discountValue })
   const fx = await require('../settings/currency.service').getRateOn(currency, invoiceDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
@@ -70,11 +163,17 @@ const create = async ({ customerId, orderId, deliveryOrderId, invoiceDate, dueDa
         currency:        currency || null,
         exchangeRate:    resolvedRate,
         invoiceDate:     invoiceDate || new Date(),
-        dueDate:     dueDate     || null,
+        dueDate:         dueDate     || null,
         notes,
-        subtotal,
-        tax,
-        total,
+        subtotal, tax, total,
+        referenceNumber: referenceNumber || null,
+        paymentTerms:    paymentTerms    || null,
+        salespersonId:   salespersonId   || null,
+        shippingAddress: shippingAddress || null,
+        billingAddress:  billingAddress  || null,
+        discountType:    discountType    || null,
+        discountValue:   Number(discountValue) || 0,
+        discountAmount,
         organizationId: organizationId || null,
         createdBy: userId || null, modifiedBy: userId || null,
       },
@@ -82,60 +181,78 @@ const create = async ({ customerId, orderId, deliveryOrderId, invoiceDate, dueDa
     )
     createdId = invoice.id
 
-    for (const item of items) {
-      await InvoiceItem.create(
-        {
-          invoiceId:      invoice.id,
-          organizationId: organizationId || null,
-          productName: item.productName || 'Item',
-          description: item.description || null,
-          quantity:    item.quantity,
-          unitPrice:   item.unitPrice,
-          total:       toFixed(item.quantity * item.unitPrice, 2),
-        },
-        { transaction: t }
-      )
-    }
+    await persistInvoiceItems({ invoiceId: invoice.id, lines, organizationId, t })
   })
 
   return getById(createdId)
 }
 
-const update = async (id, { customerId, orderId, invoiceDate, dueDate, notes, taxRate, items }, userId) => {
+const update = async (id, payload, userId) => {
+  const {
+    customerId, orderId, invoiceDate, dueDate, notes, items, taxRate,
+    currency, exchangeRate,
+    referenceNumber, paymentTerms, salespersonId, shippingAddress, billingAddress,
+    discountType, discountValue,
+  } = payload || {}
+
   const invoice = await Invoice.findByPk(id)
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
   if (invoice.status !== 'draft') throw { status: 400, message: 'Only draft invoices can be edited' }
   await require('../accounting/services/tax-period.service').assertOpen(invoiceDate || invoice.invoiceDate, invoice.organizationId)
 
+  const headerExtras = {}
+  if (currency !== undefined) headerExtras.currency = currency || null
+  if (currency !== undefined || exchangeRate !== undefined) {
+    const fx = await require('../settings/currency.service').getRateOn(currency, invoiceDate || invoice.invoiceDate, invoice.organizationId)
+    headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
+  }
+  if (referenceNumber !== undefined) headerExtras.referenceNumber = referenceNumber || null
+  if (paymentTerms    !== undefined) headerExtras.paymentTerms    = paymentTerms    || null
+  if (salespersonId   !== undefined) headerExtras.salespersonId   = salespersonId   || null
+  if (shippingAddress !== undefined) headerExtras.shippingAddress = shippingAddress || null
+  if (billingAddress  !== undefined) headerExtras.billingAddress  = billingAddress  || null
+
   await sequelize.transaction(async (t) => {
     if (items) {
       await InvoiceItem.destroy({ where: { invoiceId: id }, transaction: t })
 
-      const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
-      const rate  = taxRate !== undefined ? taxRate : 0
-      const tax   = toFixed(subtotal * (rate / 100), 2)
-      const total = toFixed(subtotal + tax, 2)
+      const itemsWithTax = items.map(i => ({
+        ...i,
+        taxRate: i.taxRate != null ? Number(i.taxRate) : Number(taxRate || 0),
+      }))
+      const dType  = discountType  !== undefined ? (discountType  || null) : invoice.discountType
+      const dValue = discountValue !== undefined ? (Number(discountValue) || 0) : Number(invoice.discountValue) || 0
+      const { subtotal, tax, total, discountAmount, lines } = computeTotals(itemsWithTax, { discountType: dType, discountValue: dValue })
 
-      await invoice.update(
-        { customerId: customerId || null, orderId: orderId || null, invoiceDate, dueDate, notes, subtotal, tax, total, modifiedBy: userId || null },
-        { transaction: t }
-      )
+      await invoice.update({
+        customerId: customerId || null,
+        orderId: orderId || null,
+        invoiceDate, dueDate, notes,
+        subtotal, tax, total,
+        discountType: dType, discountValue: dValue, discountAmount,
+        ...headerExtras, modifiedBy: userId || null,
+      }, { transaction: t })
 
-      for (const item of items) {
-        await InvoiceItem.create(
-          {
-            invoiceId:   id,
-            productName: item.productName || 'Item',
-            description: item.description || null,
-            quantity:    item.quantity,
-            unitPrice:   item.unitPrice,
-            total:       toFixed(item.quantity * item.unitPrice, 2),
-          },
-          { transaction: t }
-        )
-      }
+      await persistInvoiceItems({ invoiceId: id, lines, organizationId: invoice.organizationId, t })
     } else {
-      await invoice.update({ customerId: customerId || null, orderId: orderId || null, invoiceDate, dueDate, notes, modifiedBy: userId || null }, { transaction: t })
+      if (discountType !== undefined || discountValue !== undefined) {
+        const dType  = discountType  !== undefined ? (discountType  || null) : invoice.discountType
+        const dValue = discountValue !== undefined ? (Number(discountValue) || 0) : Number(invoice.discountValue) || 0
+        const sub = Number(invoice.subtotal) || 0
+        const tx  = Number(invoice.tax) || 0
+        let amt = 0
+        if (dType === 'percent')      amt = (sub + tx) * dValue / 100
+        else if (dType === 'fixed')   amt = Math.min(dValue, sub + tx)
+        headerExtras.discountType   = dType
+        headerExtras.discountValue  = dValue
+        headerExtras.discountAmount = toFixed(amt, 2)
+        headerExtras.total          = toFixed(sub + tx - amt, 2)
+      }
+      await invoice.update({
+        customerId: customerId || null, orderId: orderId || null,
+        invoiceDate, dueDate, notes,
+        ...headerExtras, modifiedBy: userId || null,
+      }, { transaction: t })
     }
   })
 

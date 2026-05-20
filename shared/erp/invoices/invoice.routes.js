@@ -10,7 +10,6 @@ router.use(authenticate)
 
 const itemsValidation = [
   body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
-  body('items.*.productName').notEmpty().withMessage('Item name is required'),
   body('items.*.quantity').isFloat({ min: 0.001 }).withMessage('Item quantity must be greater than 0'),
   body('items.*.unitPrice').isFloat({ min: 0 }).withMessage('Item unit price must be a positive number'),
   validate,

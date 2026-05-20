@@ -1,19 +1,12 @@
 <template>
   <AppLayout>
-    <LoadingSpinner v-if="loading" />
+    <div class="space-y-5">
 
-    <div v-else-if="loadError" class="bg-white rounded-2xl border border-red-200 p-8 text-center">
-      <ExclamationCircleIcon class="w-10 h-10 text-red-400 mx-auto mb-3" />
-      <p class="text-sm text-red-600 font-semibold mb-1">{{ loadError }}</p>
-      <RouterLink to="/erp/invoices" class="text-xs text-primary-500 hover:underline">{{ t('common.backToList') }}</RouterLink>
-    </div>
-
-    <div v-else class="space-y-6">
-
-      <PageHeader :title="`${t('common.edit')} · ${invoiceNumber}`" :back-to="`/erp/invoices/${invoiceId}`"
+      <PageHeader :title="loading ? t('erp.invoices.editInvoice') : (invoice?.invoiceNumber || t('erp.invoices.editInvoice'))"
+        :back-to="`/erp/invoices/${route.params.id}`"
         :breadcrumb="[
           { label: t('erp.invoices.title'), to: '/erp/invoices' },
-          { label: invoiceNumber, to: `/erp/invoices/${invoiceId}` },
+          { label: invoice?.invoiceNumber || '…', to: `/erp/invoices/${route.params.id}` },
           { label: t('common.edit') },
         ]">
         <template #badge>
@@ -21,44 +14,60 @@
         </template>
         <template #actions>
           <HeaderSaveActions
-            :cancel-to="`/erp/invoices/${invoiceId}`"
+            :cancel-to="`/erp/invoices/${route.params.id}`"
             :cancel-label="t('common.cancel')"
             :saving="saving"
             :saving-label="t('erp.common.saving')"
-            :save-label="t('common.save')"
+            :save-label="t('common.saveChanges')"
+            :disabled="!canSave"
+            :disabled-hint="t('erp.invoices.fillRequiredFields')"
             @save="save"
           />
         </template>
       </PageHeader>
 
-      <div class="space-y-5">
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
 
-        <!-- Section 1: Invoice Info -->
-        <FormCard :title="t('erp.invoices.info')" :icon="DocumentTextIcon" icon-color="primary">
-          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+      <ErrorBanner v-else-if="loadError" :message="loadError" />
 
-            <div class="col-span-2 lg:col-span-1">
+      <div v-else class="space-y-5">
+
+        <FormCard :title="t('erp.invoices.info')" :icon="DocumentTextIcon" icon-color="primary" :padded="false">
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
+
+            <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.common.customer')" required />
               <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
-              <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
+              <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
+              <CustomerChip :customer="selectedCustomer" />
+            </div>
+
+            <div>
+              <FieldLabel :text="t('erp.invoices.referenceNumber')" />
+              <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
             </div>
 
             <div>
               <FieldLabel :text="t('erp.invoices.invoiceDate')" required />
               <DateInput v-model="form.invoiceDate"
-                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
+                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.invoiceDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-              <p v-if="errors.invoiceDate" class="mt-1 text-xs text-red-500">{{ errors.invoiceDate }}</p>
+                         errors.invoiceDate ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+              <p v-if="errors.invoiceDate" class="mt-1 text-[11px] text-red-500">{{ errors.invoiceDate }}</p>
             </div>
 
             <div>
               <FieldLabel :text="t('erp.invoices.dueDate')" />
-              <DateInput v-model="form.dueDate" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
+              <DateInput v-model="form.dueDate"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
             </div>
 
             <div>
@@ -67,41 +76,76 @@
             </div>
 
             <div>
-              <FieldLabel :text="t('erp.invoices.taxRate')" />
-              <div class="relative">
-                <input v-model.number="form.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
-                  class="w-full pl-3.5 pr-10 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#9BA7B0] font-medium">%</span>
-              </div>
-            </div>
-
-            <div>
               <FieldLabel :text="t('erp.common.currency')" />
               <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.invoiceDate" />
             </div>
 
-            <div class="col-span-2">
-              <FieldLabel :text="t('erp.common.notes')" />
-              <textarea v-model="form.notes" rows="2" placeholder="Internal notes or payment terms…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-colors resize-none placeholder-[#CBD5E1]" />
+            <div>
+              <FieldLabel :text="t('erp.invoices.paymentTerms')" />
+              <select v-model="form.paymentTerms"
+                class="w-full px-3 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434] bg-white
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
+                <option value="">—</option>
+                <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
+              </select>
+            </div>
+
+            <div>
+              <FieldLabel :text="t('erp.invoices.salesperson')" />
+              <SearchSelect v-model="form.salespersonId" :options="staff" placeholder="— Salesperson —">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.email" class="text-[#9BA7B0]"> · {{ option.email }}</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}</template>
+              </SearchSelect>
             </div>
 
           </div>
         </FormCard>
 
-        <!-- Section 2: Line Items -->
-        <FormCard :title="t('erp.common.items')" :icon="ClipboardDocumentListIcon" icon-color="green"
-          :subtitle="form.items.length ? `${form.items.length} item${form.items.length !== 1 ? 's' : ''}` : ''"
-          :padded="false">
+        <FormCard :title="t('erp.invoices.addresses')" :icon="MapPinIcon" icon-color="primary" :padded="false">
           <template #actions>
-            <button @click="addLine" type="button"
-              class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary-500
-                     bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors">
+            <button type="button" @click="syncAddressesFromCustomer"
+              :disabled="!selectedCustomer?.address"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold rounded-xl
+                     text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
+                     transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <ArrowPathIcon class="w-3.5 h-3.5" />
+              {{ t('erp.invoices.useCustomerAddress') }}
+            </button>
+          </template>
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <FieldLabel :text="t('erp.invoices.shippingAddress')" />
+              <textarea v-model="form.shippingAddress" rows="3"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-all resize-none" />
+            </div>
+            <div>
+              <div class="flex items-center justify-between">
+                <FieldLabel :text="t('erp.invoices.billingAddress')" />
+                <label class="flex items-center gap-1.5 text-[11px] text-[#637381] cursor-pointer select-none">
+                  <input type="checkbox" v-model="billingSameAsShipping" class="rounded" />
+                  {{ t('erp.invoices.sameAsShipping') }}
+                </label>
+              </div>
+              <textarea v-model="form.billingAddress" rows="3"
+                :disabled="billingSameAsShipping"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-all resize-none disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+            </div>
+          </div>
+        </FormCard>
+
+        <FormCard :title="t('erp.invoices.lineItems')" :icon="ClipboardDocumentListIcon" icon-color="green"
+          :subtitle="itemsSubtitle" :padded="false">
+          <template #actions>
+            <button @click="openBulkPicker" type="button"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
+                     text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
+                     rounded-xl transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
-              {{ t('erp.common.addItem') }}
+              {{ t('erp.invoices.addItem') }}
             </button>
           </template>
 
@@ -109,237 +153,705 @@
             :icon="ClipboardDocumentListIcon"
             :title="t('erp.common.noItems')"
             :subtitle="t('erp.invoices.noItemsHint')"
-            :action-label="t('erp.common.addFirstItem')"
+            :action-label="t('erp.invoices.addFirstItem')"
             :error-message="errors.items"
-            @action="addLine" />
+            @action="openBulkPicker" />
 
           <div v-else>
-            <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
-                        text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider"
-              style="grid-template-columns: 1.8rem 3fr 4fr 5rem 7rem 5.5rem 2rem">
-              <div class="text-center">#</div>
-              <div>{{ t('erp.invoices.colItem') }}</div>
-              <div>{{ t('erp.invoices.colDescription') }}</div>
-              <div class="text-right">{{ t('erp.common.qty') }}</div>
-              <div class="text-right">{{ t('erp.invoices.colUnitPrice') }}</div>
-              <div class="text-right">{{ t('erp.invoices.colAmount') }}</div>
+            <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]"
+              style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem">
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-center">#</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.invoices.saleItem') }}</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.invoices.store') }}</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.invoices.description') }}</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.common.qty') }}</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.invoices.colUnitPrice') }}</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.invoices.tax') }} %</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.invoices.tax') }}</div>
+              <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.invoices.colAmount') }}</div>
               <div></div>
             </div>
 
             <div class="divide-y divide-[#E2E8F0]">
-              <div v-for="(line, idx) in form.items" :key="idx"
-                class="group grid items-center gap-3 px-5 py-3 hover:bg-[#F7F9FC] transition-colors"
-                style="grid-template-columns: 1.8rem 3fr 4fr 5rem 7rem 5.5rem 2rem">
+              <div v-for="(line, idx) in form.items" :key="line.key || idx"
+                v-show="isRowVisible(line)"
+                :data-line-key="line.key"
+                class="grid items-center gap-3 px-5 py-3 transition-colors group border-l-2"
+                :class="[
+                  line.isPackage ? 'bg-primary-50/40 border-l-primary-400'
+                    : (line.parentKey ? 'bg-[#F7F9FC]/60 hover:bg-[#F1F5F9] border-l-primary-200' : 'border-l-transparent hover:bg-[#F7F9FC]'),
+                ]"
+                style="grid-template-columns: 1.8rem 2.5fr 1.4fr 2fr 4.5rem 6rem 4.5rem 5.5rem 5.5rem 2rem">
 
-                <div class="text-xs font-semibold text-[#CBD5E1] text-center">{{ idx + 1 }}</div>
-
-                <input v-model="line.productName" type="text" placeholder="Item name…"
-                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-colors placeholder-[#CBD5E1]" />
-
-                <input v-model="line.description" type="text" placeholder="Optional description…"
-                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm text-[#637381]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-colors placeholder-[#CBD5E1]" />
-
-                <input v-model.number="line.quantity" type="number" min="0.001" step="0.001"
-                  class="w-full px-2 py-2 border border-[#E2E8F0] text-sm text-right text-[#1C2434] tabular-nums
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-
-                <input v-model.number="line.unitPrice" type="number" min="0" step="0.01" placeholder="0.00"
-                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm text-right text-[#1C2434] tabular-nums
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-colors placeholder-[#CBD5E1]" />
-
-                <div class="text-sm font-semibold text-[#374151] tabular-nums text-right pr-1">
-                  {{ fmtMoney((line.quantity || 0) * (line.unitPrice || 0)) }}
+                <div class="text-[12px] font-semibold text-center select-none text-[#CBD5E1]">
+                  <span>{{ line.parentKey ? '↳' : (idx + 1) }}</span>
                 </div>
 
+                <div v-if="line.isPackage" class="flex items-center gap-1.5 text-[13px] font-semibold text-primary-700">
+                  <button type="button" @click="toggleCollapse(line.key)"
+                    class="flex items-center justify-center w-5 h-5 rounded hover:bg-primary-100 text-primary-600 flex-shrink-0">
+                    <ChevronRightIcon v-if="isCollapsed(line.key)" class="w-3.5 h-3.5" />
+                    <ChevronDownIcon  v-else                       class="w-3.5 h-3.5" />
+                  </button>
+                  <CubeIcon class="w-4 h-4 flex-shrink-0" />
+                  <span class="truncate">{{ line.productName }}</span>
+                  <span class="text-[11px] font-normal text-[#9BA7B0]">· {{ t('erp.invoices.salePackage') }}</span>
+                </div>
+                <div v-else-if="line.parentKey" class="text-[12px] text-[#9BA7B0] truncate pl-2">
+                  {{ t('erp.invoices.packageItem') }}
+                </div>
+                <SearchSelectPopup
+                  v-else
+                  v-model="line.saleItemId"
+                  :options="groupedItemOptions"
+                  group-values="items"
+                  group-label="label"
+                  placeholder="— Item —"
+                  search-placeholder="Search by code or name…"
+                  @change="onPickerChange(line, idx)"
+                />
+
+                <div>
+                  <SearchSelect v-if="!line.isPackage && line.hasProduct" v-model="line.storeId" :options="stores" placeholder="— Store —" />
+                  <div v-else class="flex items-center justify-center h-9">
+                    <span class="text-[12px] text-[#CBD5E1]">—</span>
+                  </div>
+                </div>
+
+                <div v-if="line.parentKey" class="flex items-center gap-2 pl-5 text-[13px] text-[#374151] truncate">
+                  <span class="truncate">{{ line.productName }}</span>
+                  <span class="text-[11px] font-semibold text-[#9BA7B0] tabular-nums flex-shrink-0">× {{ line.quantity }}</span>
+                </div>
+                <div v-else-if="line.isPackage" class="text-[12px] text-[#637381] italic">
+                  {{ childrenOf(line.key).length }} item{{ childrenOf(line.key).length !== 1 ? 's' : '' }}
+                </div>
+                <input v-else v-model="line.productName" type="text" placeholder="Description…"
+                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                         transition-all placeholder:text-[#CBD5E1]" />
+
+                <template v-if="line.parentKey">
+                  <div></div><div></div><div></div><div></div><div></div>
+                </template>
+                <template v-else>
+                  <input v-model.number="line.quantity" type="number" min="0.001" step="0.001"
+                    class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+
+                  <input v-model.number="line.unitPrice" type="number" min="0" step="0.01" placeholder="0.00"
+                    class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
+
+                  <input v-model.number="line.taxRate" type="number" min="0" max="100" step="0.01" placeholder="0"
+                    class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
+                           text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
+                           focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
+
+                  <div class="text-[13px] text-[#637381] tabular-nums text-right">
+                    {{ fmtMoney(lineTax(line)) }}
+                  </div>
+
+                  <div class="text-[13px] tabular-nums text-right"
+                    :class="line.isPackage ? 'font-bold text-primary-700' : 'font-semibold text-[#1C2434]'">
+                    {{ fmtMoney((line.quantity || 0) * (line.unitPrice || 0)) }}
+                  </div>
+                </template>
+
                 <button @click="removeLine(idx)" type="button"
-                  class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg flex items-center justify-center
-                         text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0">
+                  class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
+                         text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-colors
+                         opacity-0 group-hover:opacity-100">
                   <TrashIcon class="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            <div class="grid items-center gap-3 px-5 py-3.5 bg-[#F7F9FC] border-t border-[#E2E8F0]"
-              style="grid-template-columns: 1.8rem 3fr 4fr 5rem 7rem 5.5rem 2rem">
-              <div class="col-span-5 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">{{ t('erp.invoices.subtotal') }}</div>
-              <div class="text-sm font-bold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(subtotal) }}</div>
-              <div></div>
-            </div>
-
-            <p v-if="errors.items" class="px-5 py-2 text-xs text-red-500 bg-red-50 border-t border-red-100">
+            <p v-if="errors.items" class="px-5 py-2.5 text-[11px] text-red-600 bg-[#FEE2E2] border-t border-[#FECACA]">
               {{ errors.items }}
             </p>
           </div>
+
+          <SearchSelectPopup
+            ref="bulkPickerRef"
+            :model-value="''"
+            :options="groupedItemOptions"
+            group-values="items"
+            group-label="label"
+            multiple
+            hide-trigger
+            search-placeholder="Search by code or name…"
+            @submit="onBulkAdd"
+          />
         </FormCard>
 
         <ErrorBanner :message="globalError" />
 
-        <!-- Summary + Actions -->
         <FormCard :title="t('erp.invoices.invoiceSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
-          <div class="px-6 py-4 grid grid-cols-3 gap-6">
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.items') }}</span>
-              <span class="text-sm font-semibold text-[#1C2434]">{{ form.items.length }}</span>
+          <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <div class="flex flex-col text-left">
+              <FieldLabel :text="t('erp.common.notes')" />
+              <textarea v-model="form.notes"
+                class="flex-1 w-full min-h-[10rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-all resize-none" />
             </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.invoices.subtotal') }}</span>
-              <span class="text-sm font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</span>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.invoices.taxPct') }} ({{ form.taxRate || 0 }}%)</span>
-              <span class="text-sm font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</span>
-            </div>
+            <dl class="w-full space-y-2.5">
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.invoices.subtotal') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(subtotal) }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-[13px]">
+                <dt class="text-[#637381]">{{ t('erp.invoices.tax') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(taxAmount) }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-[13px] gap-3">
+                <dt class="text-[#637381] flex-shrink-0">{{ t('erp.invoices.discount') }}</dt>
+                <div class="flex items-center gap-1.5">
+                  <select v-model="form.discountType"
+                    class="px-2 py-1.5 border border-[#E2E8F0] text-[12px] bg-white
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400">
+                    <option value="">—</option>
+                    <option value="percent">%</option>
+                    <option value="fixed">{{ form.currency || '฿' }}</option>
+                  </select>
+                  <input v-model.number="form.discountValue" type="number" min="0" step="0.01" placeholder="0"
+                    :disabled="!form.discountType"
+                    class="w-20 px-2 py-1.5 border border-[#E2E8F0] text-[12px] text-right tabular-nums
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                           disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+                  <span class="text-[13px] font-semibold text-red-600 tabular-nums w-20 text-right">−{{ fmtMoney(discountAmount) }}</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
+                <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.invoices.total') }}</dt>
+                <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
+              </div>
+            </dl>
           </div>
-
-          <DocFooterBar
-            :total-label="t('erp.invoices.total')"
-            :total="fmtMoney(grandTotal)"
-            :discard-to="`/erp/invoices/${invoiceId}`"
-            :discard-label="t('common.cancel')"
-            :saving="saving"
-            :saving-label="t('erp.common.saving')"
-            :save-label="t('common.save')"
-            @save="save"
-          />
         </FormCard>
 
       </div>
     </div>
+
+    <div v-if="!loading && !loadError" class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+                flex items-center justify-between gap-3">
+      <div class="flex items-center gap-4">
+        <div>
+          <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.invoices.total') }}</p>
+          <p class="text-2xl font-extrabold tabular-nums leading-none text-primary-600">{{ fmtMoney(grandTotal) }}</p>
+        </div>
+        <span v-if="dirty" class="hidden sm:inline-flex items-center gap-1 text-[11px] text-amber-600">
+          <ExclamationTriangleIcon class="w-3.5 h-3.5" />
+          {{ t('erp.invoices.unsavedChanges') }}
+        </span>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button @click="discard" type="button"
+          class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
+          {{ t('erp.invoices.discard') }}
+        </button>
+        <button @click="save" :disabled="!canSave || saving" type="button"
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
+                 bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
+          <CheckIcon v-else class="w-4 h-4" />
+          {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
+        </button>
+      </div>
+    </div>
+
+    <Teleport to="body">
+      <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
+        <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div class="px-5 py-4 flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <ExclamationTriangleIcon class="w-5 h-5 text-amber-600" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-[#1C2434]">{{ confirmTitle }}</p>
+              <p v-if="confirmMessage" class="mt-1 text-[12px] text-[#637381] leading-snug">{{ confirmMessage }}</p>
+            </div>
+          </div>
+          <div class="px-5 py-3 bg-[#F7F9FC] flex items-center justify-end gap-2">
+            <button type="button" @click="confirmAnswer(false)"
+              class="px-4 py-2 text-sm font-medium text-[#637381] hover:text-[#1C2434]">{{ t('common.cancel') }}</button>
+            <button type="button" @click="confirmAnswer(true)"
+              class="px-4 py-2 text-sm font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 shadow-sm">
+              {{ confirmOkLabel }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
-  PlusIcon, TrashIcon, CheckIcon, ExclamationCircleIcon, DocumentTextIcon,
+  PlusIcon, TrashIcon, CheckIcon, DocumentTextIcon,
   ArrowPathIcon, ClipboardDocumentListIcon, CalculatorIcon,
+  ExclamationTriangleIcon, CubeIcon, ChevronDownIcon, ChevronRightIcon,
+  MapPinIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
-import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
-import DocFooterBar from '@/components/form/DocFooterBar.vue'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
+import { useSettingsStore } from '@/stores/settings'
 
-const { t } = useI18n()
-const route       = useRoute()
-const router      = useRouter()
-const invoiceId   = route.params.id
-const customers   = ref([])
-const orders      = ref([])
-const loading     = ref(true)
-const loadError   = ref('')
-const saving      = ref(false)
-const globalError = ref('')
-const errors      = ref({})
-const invoiceNumber = ref('')
+const { t }    = useI18n()
+const route    = useRoute()
+const router   = useRouter()
+const settings = useSettingsStore()
+
+const invoice      = ref(null)
+const customers    = ref([])
+const orders       = ref([])
+const saleItems    = ref([])
+const salePackages = ref([])
+const stores       = ref([])
+const staff        = ref([])
+const paymentTerms = ref([])
+const loading      = ref(true)
+const loadError    = ref('')
+const saving       = ref(false)
+const globalError  = ref('')
+const errors       = ref({})
+const billingSameAsShipping = ref(false)
 
 const form = ref({
-  customerId:   '',
-  orderId:      '',
-  invoiceDate:  '',
-  dueDate:      '',
-  taxRate:      0,
-  currency:     '',
-  exchangeRate: 1,
-  notes:        '',
-  items:        [],
+  customerId: '', orderId: '', invoiceDate: '', dueDate: '',
+  currency: '', exchangeRate: 1, notes: '', items: [],
+  referenceNumber: '', paymentTerms: '', salespersonId: '',
+  shippingAddress: '', billingAddress: '',
+  discountType: '', discountValue: 0,
 })
+
+const dirty = ref(false)
+let dirtyArmed = false
+watch(form, () => { if (dirtyArmed) dirty.value = true }, { deep: true })
+
+function onBeforeUnload(e) {
+  if (!dirty.value) return
+  e.preventDefault()
+  e.returnValue = t('erp.invoices.unsavedChanges')
+}
+onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
+onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
+
+const confirmOpen     = ref(false)
+const confirmTitle    = ref('')
+const confirmMessage  = ref('')
+const confirmOkLabel  = ref('OK')
+let confirmResolver   = null
+function confirmAsync({ title, message, okLabel } = {}) {
+  confirmTitle.value   = title   || ''
+  confirmMessage.value = message || ''
+  confirmOkLabel.value = okLabel || 'OK'
+  confirmOpen.value    = true
+  return new Promise(resolve => { confirmResolver = resolve })
+}
+function confirmAnswer(ok) {
+  confirmOpen.value = false
+  if (confirmResolver) { confirmResolver(ok); confirmResolver = null }
+}
+
+onBeforeRouteLeave(async () => {
+  if (!dirty.value) return true
+  return await confirmAsync({
+    title:   t('erp.invoices.unsavedChanges'),
+    message: t('erp.invoices.unsavedChangesHint'),
+    okLabel: t('erp.invoices.discard'),
+  })
+})
+
+const selectedCustomer = computed(() =>
+  form.value.customerId ? customers.value.find(c => c.id === form.value.customerId) : null
+)
+
+const groupedItemOptions = computed(() => {
+  const groups = [{ label: t('erp.invoices.saleItems'), items: saleItems.value }]
+  if (salePackages.value.length) {
+    groups.push({
+      label: t('erp.invoices.salePackages'),
+      items: salePackages.value.map(p => ({ ...p, name: `📦 ${p.name}` })),
+    })
+  }
+  return groups
+})
+
+let _localKeyCounter = 0
+function newKey() {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `k${Date.now()}-${++_localKeyCounter}`
+}
 
 onMounted(async () => {
-  try {
-    const [invoiceRes, customersRes, ordersRes] = await Promise.all([
-      api.get(`/erp/invoices/${invoiceId}`),
-      api.get('/erp/customers', { params: { limit: 200 } }),
-      api.get('/erp/orders',    { params: { limit: 500, status: 'confirmed' } }),
-    ])
-    const inv = invoiceRes.data.data.invoice
-    if (inv.status !== 'draft') {
-      loadError.value = t('erp.invoices.onlyDraftEditable') || 'Only draft invoices can be edited'
-      return
-    }
-    invoiceNumber.value = inv.invoiceNumber
-    const sub = Number(inv.subtotal) || 0
-    const tax = Number(inv.tax) || 0
-    const taxRate = sub > 0 ? toFixed((tax / sub) * 100, 2) : 0
-    form.value = {
-      customerId:   inv.customerId   || '',
-      orderId:      inv.orderId      || '',
-      invoiceDate:  inv.invoiceDate  || '',
-      dueDate:      inv.dueDate      || '',
-      taxRate,
-      currency:     inv.currency     || '',
-      exchangeRate: Number(inv.exchangeRate) || 1,
-      notes:        inv.notes        || '',
-      items:        (inv.items || []).map(i => ({
-        productName: i.productName || '',
-        description: i.description || '',
-        quantity:    Number(i.quantity)  || 0,
-        unitPrice:   Number(i.unitPrice) || 0,
-      })),
-    }
-    customers.value = customersRes.data.data.customers || []
-    orders.value    = ordersRes.data.data.orders || []
-  } catch (err) {
-    loadError.value = err.response?.data?.message || err.message || 'Failed to load invoice'
-  } finally {
+  const id = route.params.id
+  const [invRes, cRes, oRes, siRes, spRes, stRes, staffRes, ptRes] = await Promise.allSettled([
+    api.get(`/erp/invoices/${id}`),
+    api.get('/erp/customers',     { params: { limit: 200 } }),
+    api.get('/erp/orders',        { params: { limit: 500, status: 'confirmed' } }),
+    api.get('/erp/sale-items',    { params: { limit: 500, status: 'active' } }),
+    api.get('/erp/sale-packages', { params: { limit: 200, status: 'active' } }),
+    api.get('/erp/stores',        { params: { limit: 200 } }),
+    api.get('/organizations/staff'),
+    api.get('/erp/master-data/payment-terms'),
+  ])
+  if (cRes.status     === 'fulfilled') customers.value    = cRes.value.data.data.customers || []
+  if (oRes.status     === 'fulfilled') orders.value       = oRes.value.data.data.orders    || []
+  if (siRes.status    === 'fulfilled') saleItems.value    = siRes.value.data.data.items    || []
+  if (spRes.status    === 'fulfilled') salePackages.value = spRes.value.data.data.items    || []
+  if (stRes.status    === 'fulfilled') stores.value       = stRes.value.data.data.stores   || []
+  if (staffRes.status === 'fulfilled') staff.value        = staffRes.value.data.data.staff || []
+  if (ptRes.status    === 'fulfilled') paymentTerms.value = ptRes.value.data.data.values   || []
+
+  if (invRes.status !== 'fulfilled') {
+    loadError.value = parseApiError(invRes.reason, 'Failed to load invoice')
     loading.value = false
+    return
   }
+
+  const inv = invRes.value.data.data.invoice
+  if (inv.status !== 'draft') {
+    router.replace(`/erp/invoices/${id}`)
+    return
+  }
+  invoice.value = inv
+
+  const idToKey = new Map()
+  for (const it of inv.items || []) idToKey.set(it.id, newKey())
+
+  billingSameAsShipping.value = !!inv.shippingAddress && inv.shippingAddress === inv.billingAddress
+
+  form.value = {
+    customerId:    inv.customerId    || '',
+    orderId:       inv.orderId       || '',
+    invoiceDate:   inv.invoiceDate   || '',
+    dueDate:       inv.dueDate       || '',
+    currency:      inv.currency      || '',
+    exchangeRate:  inv.exchangeRate != null ? Number(inv.exchangeRate) : 1,
+    notes:         inv.notes         || '',
+    referenceNumber: inv.referenceNumber || '',
+    paymentTerms:    inv.paymentTerms    || '',
+    salespersonId:   inv.salespersonId   || '',
+    shippingAddress: inv.shippingAddress || '',
+    billingAddress:  inv.billingAddress  || '',
+    discountType:    inv.discountType    || '',
+    discountValue:   Number(inv.discountValue) || 0,
+    items: (inv.items || []).map(it => {
+      const si = saleItems.value.find(s => s.id === it.saleItemId)
+      const hasProduct = !!(it.productId || si?.productId)
+      const isPackage = !!it.salePackageId && !it.parentItemId
+      return {
+        key:           idToKey.get(it.id),
+        parentKey:     it.parentItemId ? (idToKey.get(it.parentItemId) || '') : '',
+        isPackage,
+        salePackageId: it.salePackageId || '',
+        saleItemId:    it.saleItemId    || '',
+        productId:     it.productId     || '',
+        storeId:       it.storeId       || '',
+        hasProduct:    isPackage ? false : hasProduct,
+        productName:   it.productName || '',
+        quantity:      Number(it.quantity) || 1,
+        unitPrice:     it.unitPrice != null ? Number(it.unitPrice) : 0,
+        taxRate:       it.taxRate   != null ? Number(it.taxRate)   : 0,
+      }
+    }),
+  }
+  loading.value = false
+  await nextTick()
+  dirtyArmed = true
 })
 
-function addLine() {
-  form.value.items.push({ productName: '', description: '', quantity: 1, unitPrice: 0 })
+watch(() => form.value.customerId, (id) => {
+  const c = customers.value.find(x => x.id === id)
+  if (!c) return
+  if (!form.value.shippingAddress && c.address) form.value.shippingAddress = c.address
+})
+
+watch(billingSameAsShipping, (on) => {
+  if (on) form.value.billingAddress = form.value.shippingAddress
+})
+watch(() => form.value.shippingAddress, (v) => {
+  if (billingSameAsShipping.value) form.value.billingAddress = v
+})
+
+function syncAddressesFromCustomer() {
+  const c = selectedCustomer.value
+  if (!c?.address) return
+  form.value.shippingAddress = c.address
+  if (billingSameAsShipping.value) form.value.billingAddress = c.address
+}
+
+function defaultTaxRate() {
+  for (let i = form.value.items.length - 1; i >= 0; i--) {
+    if (form.value.items[i].isPackage) continue
+    return Number(form.value.items[i].taxRate) || 0
+  }
+  return Number(settings.tax?.rate) || 0
 }
 
 function removeLine(idx) {
-  form.value.items.splice(idx, 1)
+  const line = form.value.items[idx]
+  if (line.isPackage) {
+    form.value.items = form.value.items.filter(it => it.key !== line.key && it.parentKey !== line.key)
+  } else {
+    form.value.items.splice(idx, 1)
+  }
 }
 
-const subtotal   = computed(() => form.value.items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0))
-const taxAmount  = computed(() => toFixed(subtotal.value * ((form.value.taxRate || 0) / 100), 2))
-const grandTotal = computed(() => subtotal.value + taxAmount.value)
+function childrenOf(parentKey) {
+  return form.value.items.filter(it => it.parentKey === parentKey)
+}
+
+const collapsedPackages = ref(new Set())
+function isCollapsed(key) { return collapsedPackages.value.has(key) }
+function toggleCollapse(key) {
+  const next = new Set(collapsedPackages.value)
+  if (next.has(key)) next.delete(key); else next.add(key)
+  collapsedPackages.value = next
+}
+function isRowVisible(line) { return !(line.parentKey && isCollapsed(line.parentKey)) }
+
+const bulkPickerRef = ref(null)
+function openBulkPicker() { bulkPickerRef.value?.open() }
+
+function getBestPricing(si, customerGroupId) {
+  const pricings = si.pricings || []
+  if (!pricings.length) return null
+  if (customerGroupId) {
+    const match = pricings.find(p => p.customerGroupId === customerGroupId)
+    if (match) return match
+  }
+  return pricings.find(p => !p.customerGroupId) || pricings[0]
+}
+
+function applyPricing(line) {
+  if (!line.saleItemId) return
+  const si = saleItems.value.find(s => s.id === line.saleItemId)
+  if (!si) return
+  const customer = customers.value.find(c => c.id === form.value.customerId)
+  const pricing = getBestPricing(si, customer?.customerGroupId)
+  if (pricing) line.unitPrice = Number(pricing.unitPrice)
+}
+
+function makeLineFromSaleItem(si) {
+  const customer = customers.value.find(c => c.id === form.value.customerId)
+  const pricing  = getBestPricing(si, customer?.customerGroupId)
+  return {
+    key: newKey(), parentKey: '',
+    isPackage: false, salePackageId: '',
+    saleItemId: si.id, productId: si.productId || '',
+    storeId: '', hasProduct: !!si.productId,
+    productName: si.name, quantity: 1,
+    unitPrice: pricing ? Number(pricing.unitPrice) : 0,
+    taxRate: defaultTaxRate(),
+  }
+}
+
+async function linesFromPackage(packageId) {
+  try {
+    const { data } = await api.get(`/erp/sale-packages/${packageId}`)
+    const pkg = data.data.package
+    const customer = customers.value.find(c => c.id === form.value.customerId)
+    const parentKey = newKey()
+    let parentPrice = 0
+    const children = (pkg.packageItems || []).map(pi => {
+      const si = pi.saleItem || saleItems.value.find(s => s.id === pi.saleItemId) || {}
+      let resolved = pi.unitPrice != null ? Number(pi.unitPrice) : 0
+      if (!resolved) {
+        const pricing = si ? getBestPricing(si, customer?.customerGroupId) : null
+        if (pricing) resolved = Number(pricing.unitPrice)
+      }
+      const childQty = Number(pi.quantity) || 1
+      parentPrice += childQty * resolved
+      return {
+        key: newKey(), parentKey,
+        isPackage: false, salePackageId: '',
+        saleItemId: pi.saleItemId, productId: si.productId || '',
+        storeId: '', hasProduct: !!si.productId,
+        productName: si.name || 'Item',
+        quantity: childQty, unitPrice: 0, taxRate: 0,
+      }
+    })
+    const parent = {
+      key: parentKey, parentKey: '',
+      isPackage: true, salePackageId: pkg.id,
+      saleItemId: '', productId: '', storeId: '',
+      hasProduct: false, productName: pkg.name,
+      quantity: 1, unitPrice: parentPrice,
+      taxRate: Number(settings.tax?.rate) || 0,
+    }
+    return [parent, ...children]
+  } catch {
+    return []
+  }
+}
+
+async function onPickerChange(line, idx) {
+  const id = line.saleItemId
+  if (!id) return
+  if (saleItems.value.some(s => s.id === id)) {
+    const si = saleItems.value.find(s => s.id === id)
+    if (si) {
+      line.productName = si.name
+      line.productId   = si.productId || ''
+      line.hasProduct  = !!si.productId
+      if (!line.hasProduct) line.storeId = ''
+      applyPricing(line)
+    }
+    return
+  }
+  if (salePackages.value.some(p => p.id === id)) {
+    const lines = await linesFromPackage(id)
+    if (lines.length) form.value.items.splice(idx, 1, ...lines)
+    else              form.value.items.splice(idx, 1)
+  }
+}
+
+async function onBulkAdd(objects) {
+  const newLines = []
+  for (const obj of objects) {
+    if (saleItems.value.some(s => s.id === obj.id)) {
+      newLines.push(makeLineFromSaleItem(obj))
+    } else if (salePackages.value.some(p => p.id === obj.id)) {
+      const lines = await linesFromPackage(obj.id)
+      newLines.push(...lines)
+    }
+  }
+  if (!newLines.length) return
+  form.value.items.push(...newLines)
+  await nextTick()
+}
+
+watch(() => form.value.customerId, () => {
+  for (const line of form.value.items) applyPricing(line)
+})
+
+function lineTax(line) {
+  if (line.parentKey) return 0
+  return (line.quantity || 0) * (line.unitPrice || 0) * ((line.taxRate || 0) / 100)
+}
+const itemsSubtitle = computed(() => {
+  const standalone = form.value.items.filter(i => !i.parentKey && !i.isPackage).length
+  const packages   = form.value.items.filter(i =>  i.isPackage).length
+  if (!standalone && !packages) return 'No items yet'
+  const parts = []
+  if (standalone) parts.push(`${standalone} item${standalone !== 1 ? 's' : ''}`)
+  if (packages)   parts.push(`${packages} package${packages !== 1 ? 's' : ''}`)
+  return parts.join(' · ')
+})
+const subtotal   = computed(() => form.value.items.reduce((s, i) => i.parentKey ? s : s + (i.quantity || 0) * (i.unitPrice || 0), 0))
+const taxAmount  = computed(() => toFixed(form.value.items.reduce((s, i) => s + lineTax(i), 0), 2))
+const discountAmount = computed(() => {
+  const gross = subtotal.value + Number(taxAmount.value)
+  const v = Number(form.value.discountValue) || 0
+  if (form.value.discountType === 'percent') return toFixed(gross * v / 100, 2)
+  if (form.value.discountType === 'fixed')   return toFixed(Math.min(v, gross), 2)
+  return 0
+})
+const grandTotal = computed(() => subtotal.value + Number(taxAmount.value) - Number(discountAmount.value))
+
+const canSave = computed(() => {
+  if (!form.value.customerId || !form.value.invoiceDate) return false
+  if (!form.value.items.filter(i => !i.parentKey).length) return false
+  for (const item of form.value.items) {
+    if (item.isPackage) {
+      if (!item.quantity || item.quantity <= 0) return false
+      continue
+    }
+    if (!item.productName?.trim()) return false
+    if (!item.quantity || item.quantity <= 0) return false
+  }
+  return true
+})
 
 function validate() {
   const e = {}
   if (!form.value.customerId)  e.customerId  = t('erp.invoices.customerRequired')
   if (!form.value.invoiceDate) e.invoiceDate = t('erp.invoices.dateRequired')
-  if (!form.value.items.length) e.items = t('erp.invoices.itemsRequired')
+  const pricedCount = form.value.items.filter(i => !i.parentKey).length
+  if (!pricedCount) e.items = t('erp.invoices.itemsRequired')
   for (const item of form.value.items) {
-    if (!item.productName?.trim()) { e.items = 'All items need a name'; break }
+    if (item.isPackage) {
+      if (!item.quantity || item.quantity <= 0) { e.items = 'Package quantity must be greater than 0'; break }
+      continue
+    }
+    if (!item.productName?.trim())        { e.items = 'All items need a name'; break }
     if (!item.quantity || item.quantity <= 0) { e.items = t('erp.invoices.itemQtyInvalid'); break }
   }
   errors.value = e
   return Object.keys(e).length === 0
 }
 
+function onPageKeydown(e) {
+  const ctrl  = e.ctrlKey || e.metaKey
+  const key   = e.key.toLowerCase()
+  if (ctrl && key === 's') { e.preventDefault(); save() }
+  else if (ctrl && key === 'a') { e.preventDefault(); openBulkPicker() }
+}
+onMounted(() => document.addEventListener('keydown', onPageKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+
 async function save() {
   globalError.value = ''
   if (!validate()) return
   saving.value = true
   try {
-    const payload = { ...form.value, orderId: form.value.orderId || null }
-    await api.put(`/erp/invoices/${invoiceId}`, payload)
-    router.push(`/erp/invoices/${invoiceId}`)
+    const payload = {
+      ...form.value,
+      orderId:       form.value.orderId      || null,
+      dueDate:       form.value.dueDate      || null,
+      discountType:  form.value.discountType || null,
+      discountValue: Number(form.value.discountValue) || 0,
+      items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, productId, storeId, productName, quantity, unitPrice, taxRate }) => ({
+        key, parentKey: parentKey || '',
+        salePackageId: salePackageId || null,
+        saleItemId:    saleItemId    || null,
+        productId:     productId     || null,
+        storeId:       storeId       || null,
+        productName, quantity, unitPrice,
+        taxRate: Number(taxRate) || 0,
+      })),
+    }
+    await api.put(`/erp/invoices/${route.params.id}`, payload)
+    dirty.value = false
+    router.push(`/erp/invoices/${route.params.id}`)
   } catch (err) {
     globalError.value = parseApiError(err, 'Failed to update invoice')
   } finally {
     saving.value = false
   }
+}
+
+async function discard() {
+  if (dirty.value) {
+    const ok = await confirmAsync({
+      title:   t('erp.invoices.unsavedChanges'),
+      message: t('erp.invoices.unsavedChangesHint'),
+      okLabel: t('erp.invoices.discard'),
+    })
+    if (!ok) return
+  }
+  router.push(`/erp/invoices/${route.params.id}`)
 }
 </script>
