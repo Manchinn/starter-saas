@@ -35,18 +35,19 @@
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.orders.customer')" required />
               <div class="flex gap-2 items-start">
-                <div class="flex-1 min-w-0">
+                <div ref="customerFieldRef" class="flex-1 min-w-0">
                   <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                     <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                   </SearchSelect>
                 </div>
                 <button type="button" @click="openCustomerCreate"
-                  :title="t('erp.orders.newCustomer')"
+                  :title="`${t('erp.orders.newCustomer')} (Alt+N)`"
                   class="px-3 py-2.5 text-[12px] font-semibold rounded-xl border border-primary-200
-                         text-primary-600 bg-primary-50 hover:bg-primary-100 transition-colors flex-shrink-0 inline-flex items-center gap-1">
+                         text-primary-600 bg-primary-50 hover:bg-primary-100 transition-colors flex-shrink-0 inline-flex items-center gap-1.5">
                   <PlusIcon class="w-3.5 h-3.5" />
                   {{ t('erp.orders.newCustomer') }}
+                  <kbd class="hidden lg:inline px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Alt+N</kbd>
                 </button>
               </div>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
@@ -155,11 +156,13 @@
           :padded="false">
           <template #actions>
             <button @click="openBulkPicker" type="button"
+              :title="`${t('erp.orders.addItem')} (Ctrl+A)`"
               class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
                      text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
                      rounded-xl transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.orders.addItem') }}
+              <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+A</kbd>
             </button>
           </template>
 
@@ -186,6 +189,7 @@
             <div class="divide-y divide-[#E2E8F0]">
               <div v-for="(line, idx) in form.items" :key="line.key || idx"
                 v-show="isRowVisible(line)"
+                :data-line-key="line.key"
                 class="grid items-center gap-3 px-5 py-3 transition-colors group border-l-2"
                 :class="[
                   line.isPackage ? 'bg-primary-50/40 border-l-primary-400'
@@ -292,6 +296,7 @@
                 <!-- Duplicate-item indicator (after amount, before delete) -->
                 <div v-if="!line.parentKey" class="flex items-center justify-center relative" data-dup-popover>
                   <button v-if="isDuplicate(line)" type="button"
+                    tabindex="-1"
                     @click="toggleDupPopover(line)"
                     :aria-label="t('erp.orders.duplicateItemWarning')"
                     class="flex items-center justify-center w-5 h-5 rounded hover:bg-amber-100 text-amber-500 transition-colors">
@@ -421,7 +426,23 @@
         </span>
       </div>
       <div class="flex items-center gap-2.5">
-        <span class="hidden md:inline text-[11px] text-[#9BA7B0]">
+        <!-- Keyboard cheat sheet — visible on wider screens so users discover
+             the shortcuts without having to dig through tooltips. -->
+        <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
+          <span class="flex items-center gap-1" :title="t('erp.orders.createOrder')">
+            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
+            <span>save</span>
+          </span>
+          <span class="flex items-center gap-1" :title="t('erp.orders.saveDraft')">
+            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
+            <span>draft</span>
+          </span>
+          <span class="flex items-center gap-1" :title="t('erp.orders.addItem')">
+            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
+            <span>item</span>
+          </span>
+        </div>
+        <span class="lg:hidden md:inline text-[11px] text-[#9BA7B0]">
           <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl</kbd>
           +
           <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">S</kbd>
@@ -432,7 +453,7 @@
           {{ t('erp.orders.discard') }}
         </button>
         <button @click="saveDraft" :disabled="!canSave || savingDraft || saving" type="button"
-          :title="!canSave ? t('erp.orders.fillRequiredFields') : ''"
+          :title="!canSave ? t('erp.orders.fillRequiredFields') : `${t('erp.orders.saveDraft')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
                  bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 rounded-xl
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -441,7 +462,7 @@
           {{ savingDraft ? t('erp.common.saving') : t('erp.orders.saveDraft') }}
         </button>
         <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
-          :title="!canSave ? t('erp.orders.fillRequiredFields') : ''"
+          :title="!canSave ? t('erp.orders.fillRequiredFields') : `${t('erp.orders.createOrder')} (Ctrl+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -542,7 +563,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, RouterLink, onBeforeRouteLeave } from 'vue-router'
 import {
@@ -588,6 +609,10 @@ const newCustomer        = ref({ name: '', company: '', email: '', phone: '', ad
 const newCustomerError   = ref('')
 const newCustomerSaving  = ref(false)
 const newCustomerNameRef = ref(null)
+
+// Wraps the customer SearchSelect so we can drop initial focus onto its
+// internal `.multiselect__tags` for keyboard-first users.
+const customerFieldRef = ref(null)
 
 // Loaded on mount from /erp/master-data/payment-terms — admins can rename or
 // add terms in /erp/settings/master-data without touching this file.
@@ -671,6 +696,18 @@ const groupedItemOptions = computed(() => {
   return groups
 })
 
+// Land focus on the Customer field once vue-multiselect has rendered so the
+// first Tab/typed character starts shaping the order without a mouse click.
+// The root `.multiselect` carries tabindex=0 — `.multiselect__tags` is just a
+// styled div and ignores focus() — and `.multiselect__input` is the search box
+// that appears when the dropdown is active.
+onMounted(() => {
+  setTimeout(() => {
+    const root = customerFieldRef.value?.querySelector('.multiselect')
+    root?.focus()
+  }, 100)
+})
+
 onMounted(async () => {
   const [customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes, paymentTermsRes] = await Promise.allSettled([
     api.get('/erp/customers',     { params: { limit: 200 } }),
@@ -744,11 +781,32 @@ async function saveCustomer() {
 }
 
 // ── Keyboard shortcuts ──────────────────────────────────────────────────
+// The page is meant to be drivable without a mouse: Tab walks the form,
+// and these shortcuts cover the actions that aren't natural Tab stops.
+//
+//   Ctrl/⌘+S          Create Order
+//   Ctrl/⌘+Shift+S    Save as Draft
+//   Ctrl/⌘+A  /  Alt+I   Open product picker (Add Item)
+//   Alt+N             New Customer slide-over
+//   Esc               Close active modal
 function onPageKeydown(e) {
-  const ctrl = e.ctrlKey || e.metaKey
-  if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
-  else if (ctrl && e.key.toLowerCase() === 'k') { e.preventDefault(); openBulkPicker() }
-  else if (e.key === 'Escape' && customerCreateOpen.value) { closeCustomerCreate() }
+  const ctrl  = e.ctrlKey || e.metaKey
+  const shift = e.shiftKey
+  const alt   = e.altKey
+  const key   = e.key.toLowerCase()
+
+  // Customer slide-over swallows all shortcuts except Esc so typing inside
+  // it can't accidentally trigger Save/Add-item from the underlying page.
+  if (customerCreateOpen.value) {
+    if (e.key === 'Escape') { e.preventDefault(); closeCustomerCreate() }
+    return
+  }
+
+  if      (ctrl && shift && key === 's') { e.preventDefault(); saveDraft() }
+  else if (ctrl && key === 's')          { e.preventDefault(); save() }
+  else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
+  else if (alt  && key === 'i')          { e.preventDefault(); openBulkPicker() }
+  else if (alt  && key === 'n')          { e.preventDefault(); openCustomerCreate() }
 }
 onMounted(() => document.addEventListener('keydown', onPageKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
@@ -970,7 +1028,18 @@ async function onBulkAdd(objects) {
       newLines.push(...lines)
     }
   }
-  if (newLines.length) form.value.items.push(...newLines)
+  if (!newLines.length) return
+  form.value.items.push(...newLines)
+  // Park focus on the new row so a keyboard-only user lands on something
+  // actionable instead of the body. Prefer the first priced line (skip
+  // package-child placeholders) since that's where qty/price live.
+  await nextTick()
+  const firstPriced = newLines.find(l => !l.parentKey)
+  if (!firstPriced) return
+  const row = document.querySelector(`[data-line-key="${firstPriced.key}"]`)
+  const qty = row?.querySelector('input[type="number"]')
+  qty?.focus()
+  qty?.select?.()
 }
 
 function getBestPricing(si, customerGroupId) {
