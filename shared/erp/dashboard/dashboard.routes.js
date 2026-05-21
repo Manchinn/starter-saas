@@ -9,4 +9,4 @@ router.use(authenticate)
 
 router.get('/stats', requirePermission('erp.products.list'), (req, res) => controller.stats(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/dashboard', router }

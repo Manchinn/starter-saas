@@ -1,4 +1,4 @@
-const svc = require('./delivery-order.service')
+const svc = require('../services/delivery-order.service')
 
 const list = async (req, res, next) => {
   try {

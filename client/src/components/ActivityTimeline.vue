@@ -43,6 +43,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowPathIcon } from '@heroicons/vue/24/outline'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 
 const props = defineProps({
   refType: { type: String, required: true },
@@ -79,7 +80,7 @@ function fmtRelative(iso) {
   if (diff < 3600)     return `${Math.floor(diff / 60)} min ago`
   if (diff < 86400)    return `${Math.floor(diff / 3600)} hr ago`
   if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`
-  return d.toLocaleDateString()
+  return fmtDate(d)
 }
 
 function summarize(s) {

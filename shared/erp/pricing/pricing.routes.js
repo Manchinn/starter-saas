@@ -29,4 +29,4 @@ router.put('/:id', requirePermission('erp.pricing.manage'), [
 
 router.delete('/:id', requirePermission('erp.pricing.manage'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/pricing', router }

@@ -11,4 +11,4 @@ router.post('/seed',            (req, res) => controller.seed(req, res))
 router.post('/seed-sequences', (req, res) => controller.seedSequences(req, res))
 router.post('/reset',          (req, res) => controller.reset(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/settings/demo-data', router }

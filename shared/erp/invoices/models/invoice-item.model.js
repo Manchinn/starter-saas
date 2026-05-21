@@ -11,6 +11,11 @@ const InvoiceItem = sequelize.define('InvoiceItem', {
   productId:     { type: DataTypes.UUID, allowNull: true },
   storeId:       { type: DataTypes.UUID, allowNull: true },
   productName: { type: DataTypes.STRING, allowNull: false },
+  // Snapshot of the source code (SaleItem.code / SalePackage.code / Product.sku)
+  // captured at line-creation. Keeps the printed doc stable even if the source
+  // entity is later renamed or deleted, and survives legacy items where the
+  // ID associations weren't populated.
+  itemCode:    { type: DataTypes.STRING, allowNull: true },
   description: { type: DataTypes.STRING, allowNull: true },
   quantity:    { type: DataTypes.DECIMAL(10, 3), allowNull: false, defaultValue: 1 },
   unitPrice:   { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },

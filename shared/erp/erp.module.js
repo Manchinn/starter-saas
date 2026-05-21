@@ -1,51 +1,18 @@
+const fs = require('fs')
+const path = require('path')
 const defineModule = require('../../server/core/module')
-const quotationRouter       = require('./quotations/quotation.routes')
-const customerRouter        = require('./customers/routes/customer.routes')
-const customerGroupRouter   = require('./customers/routes/customer-group.routes')
-const productRouter         = require('./products/product.routes')
-const orderRouter           = require('./orders/order.routes')
-const deliveryOrderRouter   = require('./orders/delivery-order.routes')
-const pricingRouter         = require('./pricing/pricing.routes')
-const productCategoryRouter = require('./products/product-category.routes')
-const storeRouter           = require('./inventory/store.routes')
-const uomRouter             = require('./inventory/uom.routes')
-const goodReceiveRouter     = require('./stock/good-receive/good-receive.routes')
-const stockAdjustRouter     = require('./stock/stock-adjust/stock-adjust.routes')
-const stockMovementRouter   = require('./stock/stock-movement/stock-movement.routes')
-const stockRequestRouter    = require('./stock/stock-request/stock-request.routes')
-const stockCountRouter      = require('./stock/stock-count/stock-count.routes')
-const dashboardRouter       = require('./dashboard/dashboard.routes')
-const uomConversionRouter   = require('./inventory/uom-conversion.routes')
-const vendorRouter          = require('./vendors/vendor.routes')
-const stockReturnRouter     = require('./stock/stock-return/stock-return.routes')
-const stockBalanceRouter    = require('./stock/stock-balance/stock-balance.routes')
-const sequenceRouter        = require('./settings/sequence.routes')
-const generalSettingsRouter = require('./settings/general.routes')
-const demoDataRouter        = require('./settings/demo-data.routes')
-const masterDataRouter      = require('./settings/master-data.routes')
-const stockIssueRouter      = require('./stock/stock-issue/stock-issue.routes')
-const invoiceRouter         = require('./invoices/invoice.routes')
-const receiptRouter         = require('./receipts/receipt.routes')
-const saleItemRouter        = require('./sale/sale-item.routes')
-const employeeRouter           = require('./hrms/employee.routes')
-const departmentRouter         = require('./hrms/department.routes')
-const chartOfAccountRouter        = require('./accounting/routes/chart-of-account.routes')
-const billingNoteRouter           = require('./accounting/routes/billing-note.routes')
-const fiscalYearRouter            = require('./accounting/routes/fiscal-year.routes')
-const debitNoteRouter             = require('./accounting/routes/debit-note.routes')
-const creditNoteRouter            = require('./accounting/routes/credit-note.routes')
-const receivePaymentRouter        = require('./accounting/routes/receive-payment.routes')
-const journalRouter               = require('./accounting/routes/journal.routes')
-const purchaseRequisitionRouter   = require('./purchasing/routes/purchase-requisition.routes')
-const purchaseOrderRouter         = require('./purchasing/routes/purchase-order.routes')
-const arAgingRouter               = require('./accounting/routes/ar-aging.routes')
-const salePackageRouter           = require('./sale/sale-package.routes')
-const vendorBillRouter            = require('./accounting/routes/vendor-bill.routes')
-const approvalThresholdRouter     = require('./settings/approval-threshold.routes')
-const attachmentRouter            = require('./attachments/attachment.routes')
-const auditLogRouter              = require('./audit/audit.routes')
-const currencyRouter              = require('./settings/currency.routes')
-const taxPeriodRouter             = require('./accounting/routes/tax-period.routes')
+
+const API_PREFIX = '/api/erp'
+
+const findRouteFiles = (dir) => {
+  const out = []
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) out.push(...findRouteFiles(full))
+    else if (entry.isFile() && entry.name.endsWith('.routes.js')) out.push(full)
+  }
+  return out
+}
 
 module.exports = defineModule({
   slug: 'erp',
@@ -79,54 +46,20 @@ module.exports = defineModule({
     'erp.currencies.list', 'erp.currencies.edit',
     'erp.tax-periods.list', 'erp.tax-periods.edit',
   ],
-  meta: { mountPath: '/api/erp' },
+  meta: { mountPath: API_PREFIX },
   register(app) {
-    app.use('/api/erp/quotations',        quotationRouter)
-    app.use('/api/erp/dashboard',        dashboardRouter)
-    app.use('/api/erp/customers',        customerRouter)
-    app.use('/api/erp/customer-groups',  customerGroupRouter)
-    app.use('/api/erp/item-master',      productRouter)
-    app.use('/api/erp/orders',           orderRouter)
-    app.use('/api/erp/delivery-orders',  deliveryOrderRouter)
-    app.use('/api/erp/pricing',          pricingRouter)
-    app.use('/api/erp/product-categories', productCategoryRouter)
-    app.use('/api/erp/stores',           storeRouter)
-    app.use('/api/erp/uom',              uomRouter)
-    app.use('/api/erp/good-receive',     goodReceiveRouter)
-    app.use('/api/erp/stock-adjust',     stockAdjustRouter)
-    app.use('/api/erp/stock-movements',  stockMovementRouter)
-    app.use('/api/erp/stock-request',    stockRequestRouter)
-    app.use('/api/erp/stock-count',      stockCountRouter)
-    app.use('/api/erp/uom-conversion',   uomConversionRouter)
-    app.use('/api/erp/vendors',          vendorRouter)
-    app.use('/api/erp/stock-return',     stockReturnRouter)
-    app.use('/api/erp/stock-balance',    stockBalanceRouter)
-    app.use('/api/erp/sequences',        sequenceRouter)
-    app.use('/api/erp/settings/general',    generalSettingsRouter)
-    app.use('/api/erp/settings/demo-data', demoDataRouter)
-    app.use('/api/erp/master-data',        masterDataRouter)
-    app.use('/api/erp/stock-issue',      stockIssueRouter)
-    app.use('/api/erp/invoices',         invoiceRouter)
-    app.use('/api/erp/receipts',         receiptRouter)
-    app.use('/api/erp/sale-items',       saleItemRouter)
-    app.use('/api/erp/hrms/employees',   employeeRouter)
-    app.use('/api/erp/hrms/departments', departmentRouter)
-    app.use('/api/erp/accounting/chart-of-accounts', chartOfAccountRouter)
-    app.use('/api/erp/accounting/fiscal-years',       fiscalYearRouter)
-    app.use('/api/erp/billing/billing-notes',        billingNoteRouter)
-    app.use('/api/erp/billing/debit-notes',          debitNoteRouter)
-    app.use('/api/erp/billing/credit-notes',         creditNoteRouter)
-    app.use('/api/erp/billing/receive-payments',     receivePaymentRouter)
-    app.use('/api/erp/accounting/journals',          journalRouter)
-    app.use('/api/erp/purchasing/requisitions',      purchaseRequisitionRouter)
-    app.use('/api/erp/purchasing/orders',            purchaseOrderRouter)
-    app.use('/api/erp/accounting/ar-aging',          arAgingRouter)
-    app.use('/api/erp/sale-packages',               salePackageRouter)
-    app.use('/api/erp/purchasing/bills',            vendorBillRouter)
-    app.use('/api/erp/settings/approval-thresholds', approvalThresholdRouter)
-    app.use('/api/erp/attachments',                  attachmentRouter)
-    app.use('/api/erp/audit-log',                    auditLogRouter)
-    app.use('/api/erp/settings/currencies',          currencyRouter)
-    app.use('/api/erp/accounting/tax-periods',       taxPeriodRouter)
+    const seen = new Map()
+    for (const file of findRouteFiles(__dirname)) {
+      const mod = require(file)
+      const { mountPath, router } = mod || {}
+      if (!mountPath || typeof router !== 'function') {
+        throw new Error(`ERP route file ${path.relative(__dirname, file)} must export { mountPath, router }`)
+      }
+      if (seen.has(mountPath)) {
+        throw new Error(`ERP mount path conflict at ${mountPath}: ${seen.get(mountPath)} vs ${path.relative(__dirname, file)}`)
+      }
+      seen.set(mountPath, path.relative(__dirname, file))
+      app.use(`${API_PREFIX}${mountPath}`, router)
+    }
   },
 })

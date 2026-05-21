@@ -26,4 +26,4 @@ router.put('/:id',          requirePermission('erp.receipts.edit'),   (req, res)
 router.patch('/:id/status', requirePermission('erp.receipts.edit'),   statusValidation, (req, res) => controller.updateStatus(req, res))
 router.delete('/:id',       requirePermission('erp.receipts.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/receipts', router }

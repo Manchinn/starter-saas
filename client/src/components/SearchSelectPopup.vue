@@ -46,6 +46,8 @@
                 @keydown.enter.prevent="onEnter"
                 @keydown.down.prevent="moveSel(1)"
                 @keydown.up.prevent="moveSel(-1)"
+                @keydown.left="onLeftRight('left', $event)"
+                @keydown.right="onLeftRight('right', $event)"
               />
               <button type="button" class="p-1 rounded text-[#9BA7B0] hover:text-[#1C2434] hover:bg-[#F7F9FC] transition-colors"
                 @click="close" aria-label="Close">
@@ -105,7 +107,21 @@
               </span>
               <span class="hidden sm:flex items-center gap-3 text-[11px] text-[#9BA7B0]">
                 <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">↑↓</kbd></span>
-                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">{{ multiple ? 'Space' : 'Enter' }}</kbd></span>
+                <template v-if="multiple">
+                  <span class="flex items-center gap-1">
+                    <kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">←</kbd>
+                    <span>uncheck</span>
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">→</kbd>
+                    <span>check</span>
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Enter</kbd>
+                    <span>add</span>
+                  </span>
+                </template>
+                <span v-else><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Enter</kbd></span>
                 <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Esc</kbd></span>
               </span>
               <button v-if="multiple" type="button"
@@ -227,6 +243,24 @@ function toggleChecked(option) {
   checked.value = next
 }
 
+function setChecked(option, value) {
+  const id = String(option?.[props.trackBy])
+  const next = new Set(checked.value)
+  if (value) next.add(id)
+  else       next.delete(id)
+  checked.value = next
+}
+
+// Multi mode: ← unchecks the highlighted row, → checks it. In single mode
+// the arrows are left alone so they still move the caret in the search field.
+function onLeftRight(direction, e) {
+  if (!props.multiple || !open.value) return
+  const row = flat.value[selIdx.value]
+  if (row?.kind !== 'option') return
+  e.preventDefault()
+  setChecked(row.option, direction === 'right')
+}
+
 function openModal() {
   open.value = true
   search.value = ''
@@ -335,6 +369,13 @@ function onKeydown(e) {
   if (!open.value) return
   if (e.key === 'Escape') close()
   if (e.key === ' ') onSpace(e)
+  // If focus isn't in the search input (e.g. user tabbed out), still let
+  // ←/→ check/uncheck the highlighted row in multi mode.
+  if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && props.multiple) {
+    const tag = (e.target?.tagName || '').toLowerCase()
+    if (tag === 'input' || tag === 'textarea') return
+    onLeftRight(e.key === 'ArrowRight' ? 'right' : 'left', e)
+  }
 }
 if (typeof window !== 'undefined') window.addEventListener('keydown', onKeydown)
 onUnmounted(() => {

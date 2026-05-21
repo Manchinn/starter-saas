@@ -504,9 +504,9 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await Promise.all([
-      InvoiceItem.create({ invoiceId: inv1.id, productName: 'Wireless Mouse',      quantity: 3, unitPrice: 29.99, total: 89.97,  organizationId: orgId }, { transaction: t }),
-      InvoiceItem.create({ invoiceId: inv1.id, productName: 'Mechanical Keyboard', quantity: 2, unitPrice: 89.99, total: 179.98, organizationId: orgId }, { transaction: t }),
-      InvoiceItem.create({ invoiceId: inv1.id, productName: 'A4 Paper Ream',       quantity: 5, unitPrice: 5.99,  total: 29.95,  organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv1.id, saleItemId: siMouse.id,    itemCode: siMouse.code,    productName: 'Wireless Mouse',      quantity: 3, unitPrice: 29.99, total: 89.97,  organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv1.id, saleItemId: siKeyboard.id, itemCode: siKeyboard.code, productName: 'Mechanical Keyboard', quantity: 2, unitPrice: 89.99, total: 179.98, organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv1.id, saleItemId: siPaper.id,    itemCode: siPaper.code,    productName: 'A4 Paper Ream',       quantity: 5, unitPrice: 5.99,  total: 29.95,  organizationId: orgId }, { transaction: t }),
     ])
 
     const inv2 = await Invoice.create(
@@ -517,7 +517,7 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await InvoiceItem.create(
-      { invoiceId: inv2.id, productName: 'USB-C Hub', quantity: 1, unitPrice: 49.99, total: 49.99, organizationId: orgId },
+      { invoiceId: inv2.id, saleItemId: siHub.id, itemCode: siHub.code, productName: 'USB-C Hub', quantity: 1, unitPrice: 49.99, total: 49.99, organizationId: orgId },
       { transaction: t },
     )
 
@@ -529,8 +529,8 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await Promise.all([
-      InvoiceItem.create({ invoiceId: inv3.id, productName: 'Mechanical Keyboard', quantity: 2, unitPrice: 89.99, total: 179.98, organizationId: orgId }, { transaction: t }),
-      InvoiceItem.create({ invoiceId: inv3.id, productName: 'USB-C Hub',           quantity: 2, unitPrice: 49.99, total: 99.98,  organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv3.id, saleItemId: siKeyboard.id, itemCode: siKeyboard.code, productName: 'Mechanical Keyboard', quantity: 2, unitPrice: 89.99, total: 179.98, organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv3.id, saleItemId: siHub.id,      itemCode: siHub.code,      productName: 'USB-C Hub',           quantity: 2, unitPrice: 49.99, total: 99.98,  organizationId: orgId }, { transaction: t }),
     ])
 
     const inv4 = await Invoice.create(
@@ -541,8 +541,8 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await Promise.all([
-      InvoiceItem.create({ invoiceId: inv4.id, productName: 'Wireless Mouse',      quantity: 3, unitPrice: 29.99, total: 89.97, organizationId: orgId }, { transaction: t }),
-      InvoiceItem.create({ invoiceId: inv4.id, productName: 'Mechanical Keyboard', quantity: 1, unitPrice: 89.99, total: 89.99, organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv4.id, saleItemId: siMouse.id,    itemCode: siMouse.code,    productName: 'Wireless Mouse',      quantity: 3, unitPrice: 29.99, total: 89.97, organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv4.id, saleItemId: siKeyboard.id, itemCode: siKeyboard.code, productName: 'Mechanical Keyboard', quantity: 1, unitPrice: 89.99, total: 89.99, organizationId: orgId }, { transaction: t }),
     ])
 
     const inv5 = await Invoice.create(
@@ -553,8 +553,8 @@ async function seedDemo(userId, orgId) {
       { transaction: t },
     )
     await Promise.all([
-      InvoiceItem.create({ invoiceId: inv5.id, productName: 'Wireless Mouse', quantity: 3, unitPrice: 29.99, total: 89.97, organizationId: orgId }, { transaction: t }),
-      InvoiceItem.create({ invoiceId: inv5.id, productName: 'A4 Paper Ream',  quantity: 15, unitPrice: 5.99, total: 89.85, organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv5.id, saleItemId: siMouse.id, itemCode: siMouse.code, productName: 'Wireless Mouse', quantity: 3, unitPrice: 29.99, total: 89.97, organizationId: orgId }, { transaction: t }),
+      InvoiceItem.create({ invoiceId: inv5.id, saleItemId: siPaper.id, itemCode: siPaper.code, productName: 'A4 Paper Ream',  quantity: 15, unitPrice: 5.99, total: 89.85, organizationId: orgId }, { transaction: t }),
     ])
 
     // ── Receipts ──────────────────────────────────────────────────────────────

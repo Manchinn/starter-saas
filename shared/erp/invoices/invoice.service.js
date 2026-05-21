@@ -105,6 +105,25 @@ const persistInvoiceItems = async ({ invoiceId, lines, organizationId, t }) => {
   const keyToId = new Map()
   for (const item of lines) {
     const parentItemId = item.parentKey ? keyToId.get(item.parentKey) || null : null
+
+    // Snapshot the code from whichever source the line came from so the printed
+    // doc keeps showing it even if the source is later deleted/renamed. Prefer
+    // the explicit `itemCode` from the client; fall back to looking it up.
+    let itemCode = item.itemCode != null ? String(item.itemCode) : ''
+    if (!itemCode) {
+      if (item.salePackageId) {
+        const pkg = await SalePackage.findByPk(item.salePackageId, { attributes: ['code'], transaction: t })
+        itemCode = pkg?.code || ''
+      } else if (item.saleItemId) {
+        const si = await SaleItem.findByPk(item.saleItemId, { attributes: ['code'], transaction: t })
+        itemCode = si?.code || ''
+      }
+      if (!itemCode && item.productId) {
+        const p = await Product.findByPk(item.productId, { attributes: ['sku'], transaction: t })
+        itemCode = p?.sku || ''
+      }
+    }
+
     const row = await InvoiceItem.create(
       {
         invoiceId,
@@ -114,6 +133,7 @@ const persistInvoiceItems = async ({ invoiceId, lines, organizationId, t }) => {
         parentItemId,
         storeId:       item.storeId       || null,
         productName:   item.productName   || 'Item',
+        itemCode:      itemCode           || null,
         description:   item.description   || null,
         quantity:      Number(item.quantity)  || 1,
         unitPrice:     Number(item.unitPrice) || 0,

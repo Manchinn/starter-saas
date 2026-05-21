@@ -217,6 +217,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 
 const auth   = useAuthStore()
 const router = useRouter()
@@ -321,6 +322,6 @@ function formatRelative(d) {
   if (mins < 60) return t('dashboard.minAgo', { n: mins })
   if (hours < 24) return t('dashboard.hourAgo', { n: hours })
   if (days < 7)   return t('dashboard.dayAgo', { n: days })
-  return date.toLocaleDateString(locale.value === 'th' ? 'th-TH' : undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  return fmtDate(date)
 }
 </script>

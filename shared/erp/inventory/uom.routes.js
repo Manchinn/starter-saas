@@ -22,4 +22,4 @@ router.post('/',      requirePermission('erp.uom.edit'),   validation, (req, res
 router.put('/:id',    requirePermission('erp.uom.edit'),   validation, (req, res) => controller.update(req, res))
 router.delete('/:id', requirePermission('erp.uom.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/uom', router }

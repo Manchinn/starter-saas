@@ -22,4 +22,4 @@ router.put('/:id', [
 
 router.delete('/:id', (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/hrms/departments', router }

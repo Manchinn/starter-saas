@@ -41,4 +41,4 @@ router.delete('/:id', wrap(async (req, res) => {
   res.json({ message: 'Deleted' })
 }))
 
-module.exports = router
+module.exports = { mountPath: '/vendors', router }

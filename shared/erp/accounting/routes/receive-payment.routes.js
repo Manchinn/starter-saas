@@ -24,4 +24,4 @@ router.post('/:id/confirm',       requirePermission('erp.accounting.edit'),   co
 router.post('/:id/cancel',        requirePermission('erp.accounting.edit'),   controller.cancel)
 router.delete('/:id',             requirePermission('erp.accounting.delete'), controller.remove)
 
-module.exports = router
+module.exports = { mountPath: '/billing/receive-payments', router }

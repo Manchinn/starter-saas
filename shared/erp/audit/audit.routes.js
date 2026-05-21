@@ -8,4 +8,4 @@ router.use(authenticate)
 
 router.get('/', requirePermission('erp.audit.list'), controller.list)
 
-module.exports = router
+module.exports = { mountPath: '/audit-log', router }

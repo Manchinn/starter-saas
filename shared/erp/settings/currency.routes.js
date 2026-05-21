@@ -15,4 +15,4 @@ router.get('/rates/all',          requirePermission('erp.currencies.list'), c.li
 router.post('/rates',             requirePermission('erp.currencies.edit'), c.createRate)
 router.delete('/rates/:id',       requirePermission('erp.currencies.edit'), c.removeRate)
 
-module.exports = router
+module.exports = { mountPath: '/settings/currencies', router }

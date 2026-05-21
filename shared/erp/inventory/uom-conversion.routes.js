@@ -30,4 +30,4 @@ router.delete('/:id', requirePermission('erp.uom.delete'), wrap(async (req, res)
   res.json({ message: 'Deleted' })
 }))
 
-module.exports = router
+module.exports = { mountPath: '/uom-conversion', router }

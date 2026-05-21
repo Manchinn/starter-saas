@@ -11,8 +11,9 @@ router.get('/stores-lookup', requirePermission('erp.stock.list'), (req, res) => 
 router.get('/',              requirePermission('erp.stock.list'),   (req, res) => controller.list(req, res))
 router.get('/:id',           requirePermission('erp.stock.list'),   (req, res) => controller.getById(req, res))
 router.post('/',             requirePermission('erp.stock.edit'),   (req, res) => controller.create(req, res))
+router.put('/:id',           requirePermission('erp.stock.edit'),   (req, res) => controller.update(req, res))
 router.post('/:id/confirm',  requirePermission('erp.stock.edit'),   (req, res) => controller.confirm(req, res))
 router.post('/:id/create-bill', requirePermission('erp.bills.edit'), (req, res) => controller.createBill(req, res))
 router.delete('/:id',        requirePermission('erp.stock.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/good-receive', router }

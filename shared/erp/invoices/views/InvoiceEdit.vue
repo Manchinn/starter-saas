@@ -597,6 +597,7 @@ onMounted(async () => {
         storeId:       it.storeId       || '',
         hasProduct:    isPackage ? false : hasProduct,
         productName:   it.productName || '',
+        itemCode:      it.itemCode || it.saleItem?.code || it.salePackage?.code || it.product?.sku || '',
         quantity:      Number(it.quantity) || 1,
         unitPrice:     it.unitPrice != null ? Number(it.unitPrice) : 0,
         taxRate:       it.taxRate   != null ? Number(it.taxRate)   : 0,
@@ -688,7 +689,9 @@ function makeLineFromSaleItem(si) {
     isPackage: false, salePackageId: '',
     saleItemId: si.id, productId: si.productId || '',
     storeId: '', hasProduct: !!si.productId,
-    productName: si.name, quantity: 1,
+    productName: si.name,
+    itemCode:    si.code || '',
+    quantity: 1,
     unitPrice: pricing ? Number(pricing.unitPrice) : 0,
     taxRate: defaultTaxRate(),
   }
@@ -716,6 +719,7 @@ async function linesFromPackage(packageId) {
         saleItemId: pi.saleItemId, productId: si.productId || '',
         storeId: '', hasProduct: !!si.productId,
         productName: si.name || 'Item',
+        itemCode:    si.code || '',
         quantity: childQty, unitPrice: 0, taxRate: 0,
       }
     })
@@ -724,6 +728,7 @@ async function linesFromPackage(packageId) {
       isPackage: true, salePackageId: pkg.id,
       saleItemId: '', productId: '', storeId: '',
       hasProduct: false, productName: pkg.name,
+      itemCode:    pkg.code || '',
       quantity: 1, unitPrice: parentPrice,
       taxRate: Number(settings.tax?.rate) || 0,
     }
@@ -741,6 +746,7 @@ async function onPickerChange(line, idx) {
     if (si) {
       line.productName = si.name
       line.productId   = si.productId || ''
+      line.itemCode    = si.code || ''
       line.hasProduct  = !!si.productId
       if (!line.hasProduct) line.storeId = ''
       applyPricing(line)
@@ -852,13 +858,13 @@ async function save({ redirect = true } = {}) {
       dueDate:       form.value.dueDate      || null,
       discountType:  form.value.discountType || null,
       discountValue: Number(form.value.discountValue) || 0,
-      items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, productId, storeId, productName, quantity, unitPrice, taxRate }) => ({
+      items: form.value.items.map(({ key, parentKey, salePackageId, saleItemId, productId, storeId, productName, itemCode, quantity, unitPrice, taxRate }) => ({
         key, parentKey: parentKey || '',
         salePackageId: salePackageId || null,
         saleItemId:    saleItemId    || null,
         productId:     productId     || null,
         storeId:       storeId       || null,
-        productName, quantity, unitPrice,
+        productName, itemCode: itemCode || null, quantity, unitPrice,
         taxRate: Number(taxRate) || 0,
       })),
     }

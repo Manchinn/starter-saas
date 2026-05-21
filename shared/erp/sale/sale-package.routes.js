@@ -36,4 +36,4 @@ router.put('/:id', requirePermission('erp.sale-packages.manage'), [
 
 router.delete('/:id', requirePermission('erp.sale-packages.manage'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/sale-packages', router }

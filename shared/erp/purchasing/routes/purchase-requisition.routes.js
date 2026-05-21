@@ -19,9 +19,11 @@ router.get('/:id/orders',     requirePermission('erp.purchasing.list'),   contro
 router.get('/:id',             requirePermission('erp.purchasing.list'),   controller.getById)
 router.post('/',               requirePermission('erp.purchasing.edit'),
   [body('date').notEmpty().withMessage('Date is required'), ...itemRules], validate, controller.create)
+router.put('/:id',             requirePermission('erp.purchasing.edit'),
+  [body('date').notEmpty().withMessage('Date is required'), ...itemRules], validate, controller.update)
 router.post('/:id/approve',    requirePermission('erp.purchasing.edit'),   controller.approve)
 router.post('/:id/reject',     requirePermission('erp.purchasing.edit'),   controller.reject)
 router.post('/:id/create-order', requirePermission('erp.purchasing.edit'), controller.createOrder)
 router.delete('/:id',          requirePermission('erp.purchasing.delete'), controller.remove)
 
-module.exports = router
+module.exports = { mountPath: '/purchasing/requisitions', router }

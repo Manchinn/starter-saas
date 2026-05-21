@@ -1,6 +1,6 @@
-const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, SalePackage, Store, StoreStock, StockMovement, User, sequelize } = require('../../../server/models')
+const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, SalePackage, Store, StoreStock, StockMovement, User, sequelize } = require('../../../../server/models')
 const { Op } = require('sequelize')
-const { toFixed } = require('../../../server/utils/fmt')
+const { toFixed } = require('../../../../server/utils/fmt')
 
 const generateOrderNumber = async () => {
   const count = await Order.count()
@@ -43,7 +43,7 @@ const getById = async (id) => {
   if (!order) throw { status: 404, message: 'Order not found' }
 
   // Surface linked targets so the UI can disable conversion buttons
-  const { DeliveryOrder, Invoice } = require('../../../server/models')
+  const { DeliveryOrder, Invoice } = require('../../../../server/models')
   const [linkedDO, linkedInv] = await Promise.all([
     DeliveryOrder.findOne({ where: { orderId: id, dataFlag: { [Op.ne]: 2 } }, attributes: ['id', 'refNo', 'status'] }),
     Invoice.findOne({       where: { orderId: id, dataFlag: { [Op.ne]: 2 } }, attributes: ['id', 'invoiceNumber', 'status'] }),
@@ -129,7 +129,7 @@ const create = async ({
 
   const orderNumber = await generateOrderNumber()
   const { subtotal, tax, total, discountAmount, lines } = computeTotals(items, { discountType, discountValue })
-  const fx = await require('../settings/currency.service').getRateOn(currency, orderDate, organizationId)
+  const fx = await require('../../settings/currency.service').getRateOn(currency, orderDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
@@ -189,7 +189,7 @@ const updateStatus = async (id, status, userId) => {
     // Cut stock when moving to confirmed
     if (status === 'confirmed' && ['draft', 'cancelled'].includes(oldStatus)) {
       const storeIds = [...new Set(order.items.map(i => i.storeId).filter(Boolean))]
-      const { checkStoreLock } = require('../stock/stock-count/stock-count.service')
+      const { checkStoreLock } = require('../../stock/stock-count/stock-count.service')
       await checkStoreLock(storeIds)
       for (const item of order.items) {
         if (isPackageHeader(item)) continue
@@ -235,7 +235,7 @@ const updateStatus = async (id, status, userId) => {
     // Return stock when cancelled (if was previously confirmed/shipped/delivered)
     if (status === 'cancelled' && ['confirmed', 'shipped', 'delivered'].includes(oldStatus)) {
       const storeIds = [...new Set(order.items.map(i => i.storeId).filter(Boolean))]
-      const { checkStoreLock } = require('../stock/stock-count/stock-count.service')
+      const { checkStoreLock } = require('../../stock/stock-count/stock-count.service')
       await checkStoreLock(storeIds)
       for (const item of order.items) {
         if (isPackageHeader(item)) continue
@@ -281,7 +281,7 @@ const updateStatus = async (id, status, userId) => {
     await order.update({ status }, { transaction: t })
   })
 
-  require('../audit/audit.service').log({
+  require('../../audit/audit.service').log({
     userId,
     action: `order.${status}`,
     entityType: 'Order',
@@ -307,7 +307,7 @@ const update = async (id, payload, userId) => {
   const headerExtras = {}
   if (currency !== undefined) headerExtras.currency = currency || null
   if (currency !== undefined || exchangeRate !== undefined) {
-    const fx = await require('../settings/currency.service').getRateOn(currency, orderDate || order.orderDate, order.organizationId)
+    const fx = await require('../../settings/currency.service').getRateOn(currency, orderDate || order.orderDate, order.organizationId)
     headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   }
   // Optional header-only fields — only overwrite the column when the client
@@ -467,14 +467,14 @@ const createDeliveryOrder = async (id, userId, organizationId) => {
   if (!['confirmed', 'shipped', 'delivered'].includes(order.status)) {
     throw { status: 400, message: 'Only confirmed orders can generate a delivery order' }
   }
-  const { DeliveryOrder, DeliveryOrderItem } = require('../../../server/models')
+  const { DeliveryOrder, DeliveryOrderItem } = require('../../../../server/models')
 
   const existing = await DeliveryOrder.findOne({
     where: { orderId: order.id, dataFlag: { [Op.ne]: 2 } },
     attributes: ['id', 'refNo'],
   })
   if (existing) throw { status: 400, message: `Delivery order ${existing.refNo} already exists for this sales order. Cancel it first to create a new one.` }
-  const { getNext } = require('../settings/sequence.service')
+  const { getNext } = require('../../settings/sequence.service')
 
   const refNo = await getNext('DO', userId)
   const today = new Date().toISOString().slice(0, 10)
@@ -532,7 +532,7 @@ const createInvoice = async (id, userId, organizationId) => {
   if (!['confirmed', 'shipped', 'delivered'].includes(order.status)) {
     throw { status: 400, message: 'Only confirmed orders can generate an invoice' }
   }
-  const { Invoice } = require('../../../server/models')
+  const { Invoice } = require('../../../../server/models')
   const existing = await Invoice.findOne({
     where: { orderId: order.id, dataFlag: { [Op.ne]: 2 } },
     attributes: ['id', 'invoiceNumber'],
@@ -556,7 +556,7 @@ const createInvoice = async (id, userId, organizationId) => {
     for (const child of (childrenByParent.get(parent.id) || [])) ordered.push(child)
   }
 
-  const invoiceSvc = require('../invoices/invoice.service')
+  const invoiceSvc = require('../../invoices/invoice.service')
   const invoice = await invoiceSvc.create({
     customerId:      order.customerId,
     orderId:         order.id,
@@ -579,6 +579,10 @@ const createInvoice = async (id, userId, organizationId) => {
       productId:     it.productId     || null,
       storeId:       it.storeId       || null,
       productName:   it.productName,
+      // Snapshot the code so the invoice keeps showing it even if the source is
+      // later deleted/renamed. Prefer the stored item snapshot, fall back to
+      // the loaded associations.
+      itemCode:      it.itemCode || it.saleItem?.code || it.salePackage?.code || it.product?.sku || null,
       quantity:      Number(it.quantity)  || 1,
       unitPrice:     Number(it.unitPrice) || 0,
       taxRate:       Number(it.taxRate)   || 0,

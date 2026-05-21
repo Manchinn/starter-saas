@@ -81,6 +81,7 @@ import { ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ProfileTabs from './ProfileTabs.vue'
 import api from '@/api'
+import { fmtDateTime } from '@/utils/fmt'
 
 const { t, locale } = useI18n()
 
@@ -103,11 +104,7 @@ function authHeaders() {
 
 function formatDate(d) {
   if (!d) return t('profile.never')
-  try {
-    return new Date(d).toLocaleString(locale.value === 'th' ? 'th-TH' : undefined, {
-      dateStyle: 'medium', timeStyle: 'short',
-    })
-  } catch { return d }
+  return fmtDateTime(d)
 }
 
 async function load() {

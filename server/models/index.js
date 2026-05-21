@@ -26,7 +26,7 @@ const models = {
 require('./coreAssociations')(models)
 
 // ── Cross-domain associations (HRMS ↔ core User) ─────────────────────────────
-require('../../shared/erp/hrms/models/hrmsAssociations')(models)
+require('../../shared/erp/hrms/models/hrms.association')(models)
 
 // ── Sales order ↔ core User (salesperson) ────────────────────────────────────
 models.Order.belongsTo(models.User, { foreignKey: 'salespersonId', as: 'salesperson' })

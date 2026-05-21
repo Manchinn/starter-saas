@@ -49,6 +49,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 
@@ -109,11 +110,11 @@ const columns = [
   }),
   columnHelper.accessor('date', {
     header: () => t('erp.deliveryOrders.colDate'),
-    cell: info => h('span', { class: 'text-xs' }, info.getValue()),
+    cell: info => h('span', { class: 'text-xs' }, fmtDate(info.getValue())),
   }),
   columnHelper.accessor('deliveryDate', {
     header: () => t('erp.deliveryOrders.colDeliveryDate'),
-    cell: info => h('span', { class: 'text-xs text-[#637381]' }, info.getValue() || '—'),
+    cell: info => h('span', { class: 'text-xs text-[#637381]' }, fmtDate(info.getValue()) || '—'),
   }),
   columnHelper.accessor('status', {
     header: () => t('common.status'),

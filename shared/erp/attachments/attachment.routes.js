@@ -13,4 +13,4 @@ router.post('/',          controller.create)
 router.get('/:id/download', controller.download)
 router.delete('/:id',     controller.remove)
 
-module.exports = router
+module.exports = { mountPath: '/attachments', router }

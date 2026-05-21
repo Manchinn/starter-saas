@@ -21,4 +21,4 @@ router.post('/',      requirePermission('erp.stores.edit'),   validation, (req, 
 router.put('/:id',    requirePermission('erp.stores.edit'),   validation, (req, res) => controller.update(req, res))
 router.delete('/:id', requirePermission('erp.stores.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/stores', router }

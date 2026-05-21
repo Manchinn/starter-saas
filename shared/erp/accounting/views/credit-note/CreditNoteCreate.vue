@@ -117,7 +117,7 @@
             </div>
             <div class="flex flex-col gap-0.5">
               <span class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.common.date') }}</span>
-              <span class="text-sm font-semibold text-[#1C2434]">{{ form.date || '—' }}</span>
+              <span class="text-sm font-semibold text-[#1C2434]">{{ fmtDate(form.date) || '—' }}</span>
             </div>
           </div>
           <DocFooterBar
@@ -155,6 +155,7 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import DocFooterBar from '@/components/form/DocFooterBar.vue'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
 

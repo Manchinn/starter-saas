@@ -25,4 +25,4 @@ router.post('/:id/post',       requirePermission('erp.accounting.edit'),   contr
 router.post('/:id/void',       requirePermission('erp.accounting.edit'),   controller.voidJournal)
 router.delete('/:id',          requirePermission('erp.accounting.delete'), controller.remove)
 
-module.exports = router
+module.exports = { mountPath: '/accounting/journals', router }

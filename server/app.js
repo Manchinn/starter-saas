@@ -21,8 +21,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(requestLogger)
 
 // Public static — org logos and similar customer-facing assets.
-// Anything that lands in server/uploads/logos/* is served at /uploads/logos/*.
-app.use('/uploads/logos', express.static(path.join(__dirname, 'uploads', 'logos')))
+app.use('/uploads/logos', express.static(path.join(__dirname, '..', 'uploads', 'logos')))
 
 // Health check
 app.get('/api/health', (req, res) => {

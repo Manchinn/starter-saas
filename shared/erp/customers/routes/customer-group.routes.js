@@ -22,4 +22,4 @@ router.post('/',     requirePermission('erp.customer-groups.edit'),   validation
 router.put('/:id',   requirePermission('erp.customer-groups.edit'),   validation, (req, res) => controller.update(req, res))
 router.delete('/:id',requirePermission('erp.customer-groups.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/customer-groups', router }

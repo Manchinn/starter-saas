@@ -15,4 +15,4 @@ router.post('/:id/close',   requirePermission('erp.tax-periods.edit'), c.close)
 router.post('/:id/reopen',  requirePermission('erp.tax-periods.edit'), c.reopen)
 router.delete('/:id',       requirePermission('erp.tax-periods.edit'), c.remove)
 
-module.exports = router
+module.exports = { mountPath: '/accounting/tax-periods', router }

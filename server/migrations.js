@@ -337,6 +337,43 @@ const columns = [
   `ALTER TABLE invoice_items ADD COLUMN taxRate       REAL DEFAULT 0`,
   `ALTER TABLE invoice_items ADD COLUMN taxAmount     REAL DEFAULT 0`,
 
+  // Frozen item-code snapshot so the printed invoice keeps showing the code
+  // even if the source SaleItem/SalePackage/Product is later renamed or deleted.
+  `ALTER TABLE invoice_items ADD COLUMN itemCode      TEXT`,
+
+  // Backfill itemCode for legacy rows: prefer SaleItem.code, then
+  // SalePackage.code, then Product.sku. Only touches rows where itemCode is NULL.
+  `UPDATE invoice_items
+     SET itemCode = (
+       SELECT code FROM sale_items WHERE sale_items.id = invoice_items.saleItemId
+     )
+     WHERE itemCode IS NULL AND saleItemId IS NOT NULL`,
+  `UPDATE invoice_items
+     SET itemCode = (
+       SELECT code FROM SalePackages WHERE SalePackages.id = invoice_items.salePackageId
+     )
+     WHERE itemCode IS NULL AND salePackageId IS NOT NULL`,
+  `UPDATE invoice_items
+     SET itemCode = (
+       SELECT sku FROM Products WHERE Products.id = invoice_items.productId
+     )
+     WHERE itemCode IS NULL AND productId IS NOT NULL`,
+
+  // Legacy seed rows have no saleItemId / salePackageId / productId — only
+  // productName. Match by name within the same organization so the printed
+  // code column doesn't fall back to "—" for older demo invoices.
+  `UPDATE invoice_items
+     SET itemCode = (
+       SELECT code FROM sale_items
+       WHERE sale_items.name = invoice_items.productName
+         AND COALESCE(sale_items.organizationId, '') = COALESCE(invoice_items.organizationId, '')
+       LIMIT 1
+     )
+     WHERE itemCode IS NULL
+       AND saleItemId    IS NULL
+       AND salePackageId IS NULL
+       AND productId     IS NULL`,
+
   // ── Session tracking — RefreshToken device/IP metadata ──────────────────────
   `ALTER TABLE RefreshTokens ADD COLUMN userAgent   TEXT`,
   `ALTER TABLE RefreshTokens ADD COLUMN ip          TEXT`,

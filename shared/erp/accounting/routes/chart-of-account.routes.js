@@ -24,4 +24,4 @@ router.post('/',     requirePermission('erp.accounting.edit'),   validation, (re
 router.put('/:id',   requirePermission('erp.accounting.edit'),   validation, (req, res) => controller.update(req, res))
 router.delete('/:id',requirePermission('erp.accounting.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/accounting/chart-of-accounts', router }

@@ -22,4 +22,4 @@ router.post('/',      validation, (req, res) => controller.create(req, res))
 router.put('/:id',    validation, (req, res) => controller.update(req, res))
 router.delete('/:id', (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/item-master', router }

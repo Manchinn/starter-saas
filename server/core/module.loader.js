@@ -18,9 +18,7 @@ const loadAll = async (app) => {
   })
 
   for (const modulePath of files) {
-    const mod = require(modulePath)
-    // Support both plain-object modules (defineModule) and legacy class modules
-    const instance = typeof mod === 'function' ? new mod() : mod
+    const instance = require(modulePath)
 
     loaded.set(instance.slug, instance)
 

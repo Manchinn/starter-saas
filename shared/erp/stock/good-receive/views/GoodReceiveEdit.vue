@@ -2,21 +2,23 @@
   <AppLayout>
     <div class="space-y-5">
 
-      <PageHeader :title="t('erp.goodReceive.new')" back-to="/erp/good-receive"
+      <PageHeader :title="pageLoading ? t('erp.goodReceive.edit') : (refNo || t('erp.goodReceive.edit'))"
+        :back-to="`/erp/good-receive/${route.params.id}`"
         :breadcrumb="[
           { label: t('erp.goodReceive.title'), to: '/erp/good-receive' },
-          { label: t('common.create') },
+          { label: refNo || '…', to: `/erp/good-receive/${route.params.id}` },
+          { label: t('common.edit') },
         ]">
         <template #badge>
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/erp/good-receive"
+            :cancel-to="`/erp/good-receive/${route.params.id}`"
             :cancel-label="t('common.cancel')"
             :saving="saving"
-            :saving-label="t('erp.common.creating')"
-            :save-label="t('erp.goodReceive.new')"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('common.saveChanges')"
             :disabled="!canSave"
             :disabled-hint="t('erp.goodReceive.fillRequiredFields')"
             @save="save"
@@ -24,7 +26,15 @@
         </template>
       </PageHeader>
 
-      <div class="space-y-5">
+      <!-- Loading -->
+      <div v-if="pageLoading" class="flex items-center justify-center py-20">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+
+      <!-- Load error -->
+      <ErrorBanner v-else-if="loadError" :message="loadError" />
+
+      <div v-else class="space-y-5">
 
         <!-- Header -->
         <FormCard :title="t('erp.goodReceive.header')" :icon="TruckIcon" icon-color="primary" :padded="false">
@@ -331,8 +341,9 @@
     </div>
 
     <!-- Sticky save bar -->
-    <div class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
-                flex items-center justify-between gap-3">
+    <div v-if="!pageLoading && !loadError"
+      class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+             flex items-center justify-between gap-3">
       <div class="flex items-center gap-4">
         <div>
           <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('erp.goodReceive.netAmount') }}</p>
@@ -355,7 +366,7 @@
             <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>draft</span>
           </span>
-          <span class="flex items-center gap-1" :title="t('erp.goodReceive.new')">
+          <span class="flex items-center gap-1" :title="t('common.saveChanges')">
             <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
             <span>save</span>
           </span>
@@ -378,18 +389,17 @@
           {{ savingDraft ? t('erp.common.saving') : t('erp.goodReceive.saveDraft') }}
         </button>
         <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
-          :title="!canSave ? t('erp.goodReceive.fillRequiredFields') : `${t('erp.goodReceive.new')} (Ctrl+Shift+S)`"
+          :title="!canSave ? t('erp.goodReceive.fillRequiredFields') : `${t('common.saveChanges')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />
-          {{ saving ? t('erp.common.creating') : t('erp.goodReceive.new') }}
+          {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
         </button>
       </div>
     </div>
 
-    <!-- Confirm dialog (replaces window.confirm) -->
     <Teleport to="body">
       <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
         <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -419,7 +429,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
   PlusIcon, TrashIcon, CheckIcon, ArrowPathIcon, ExclamationTriangleIcon,
   TruckIcon, ClipboardDocumentListIcon, CalculatorIcon, BookmarkSquareIcon,
@@ -439,13 +449,14 @@ import { fmtMoney, fmtRate, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
-const router   = useRouter()
+const route  = useRoute()
+const router = useRouter()
 const products = ref([])
 const stores   = ref([])
 const uoms     = ref([])
 const convMap  = ref({})
 const form     = ref({
-  date: new Date().toISOString().slice(0, 10),
+  date: '',
   storeId: '', supplier: '', notes: '',
   docType: 'invoice',
   invoiceNo: '', invoiceDate: '', deliveryNo: '',
@@ -458,17 +469,15 @@ const globalError = ref('')
 const saving      = ref(false)
 const savingDraft = ref(false)
 const draftSavedAt = ref(null)
+const pageLoading = ref(true)
+const loadError   = ref('')
+const refNo       = ref('')
 
-// First successful Save Draft yields a GR id; subsequent saves PUT to that id
-// instead of POSTing, so the page silently transitions to edit mode.
-const createdGrId = ref('')
-
-// Dirty tracking arms after the initial form hydrate so default values don't
-// trip the "unsaved changes" warning on first render.
+// Dirty tracking arms after the initial hydrate so loading existing data
+// doesn't flag the form as dirty.
 const dirty = ref(false)
 let dirtyArmed = false
 watch([form, items], () => { if (dirtyArmed) dirty.value = true }, { deep: true })
-onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
 
 function onBeforeUnload(e) {
   if (!dirty.value) return
@@ -478,7 +487,6 @@ function onBeforeUnload(e) {
 onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
 onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
 
-// Custom confirm dialog — replaces window.confirm so the look matches SO.
 const confirmOpen    = ref(false)
 const confirmTitle   = ref('')
 const confirmMessage = ref('')
@@ -507,15 +515,17 @@ onBeforeRouteLeave(async () => {
 
 onMounted(async () => {
   try {
-    const [prodRes, storeRes, uomRes, convRes] = await Promise.all([
+    const [prodRes, storeRes, uomRes, convRes, grRes] = await Promise.all([
       api.get('/erp/item-master', { params: { limit: 200 } }),
       api.get('/erp/good-receive/stores-lookup'),
       api.get('/erp/uom'),
       api.get('/erp/uom-conversion'),
+      api.get(`/erp/good-receive/${route.params.id}`),
     ])
     products.value = prodRes.data.data.products
     stores.value   = storeRes.data.data.stores
     uoms.value     = uomRes.data.data.uoms
+
     const map = {}
     for (const c of convRes.data.data.conversions) {
       map[c.fromUomId] = {
@@ -524,8 +534,47 @@ onMounted(async () => {
       }
     }
     convMap.value = map
-  } catch (err) {
-    console.error('Failed to load lookups:', err.message)
+
+    const gr = grRes.data.data.goodReceive
+    // Confirmed GRs can't be edited — bounce back to the detail view rather
+    // than render a form the server will reject.
+    if (gr.status !== 'draft') {
+      router.push(`/erp/good-receive/${route.params.id}`)
+      return
+    }
+    refNo.value = gr.refNo || ''
+    form.value = {
+      date:            gr.date || '',
+      storeId:         gr.storeId || '',
+      supplier:        gr.supplier || '',
+      notes:           gr.notes || '',
+      docType:         gr.docType || 'invoice',
+      invoiceNo:       gr.invoiceNo || '',
+      invoiceDate:     gr.invoiceDate || '',
+      deliveryNo:      gr.deliveryNo || '',
+      invoiceDiscount: Number(gr.invoiceDiscount) || 0,
+    }
+    items.value = (gr.items || []).map(i => ({
+      productId:    i.productId,
+      qty:          Number(i.qty),
+      qtyUomId:     i.qtyUomId || '',
+      freeQty:      Number(i.freeQty) || 0,
+      freeQtyUomId: i.freeQtyUomId || '',
+      batchId:      i.batchId || '',
+      expiryDate:   i.expiryDate || '',
+      cost:         Number(i.cost) || 0,
+      discountPct:  Number(i.discountPct) || 0,
+      discount:     Number(i.discount) || 0,
+      netAmount:    Number(i.netAmount) || 0,
+      wac:          Number(i.wac) || 0,
+      comments:     i.comments || '',
+    }))
+  } catch {
+    loadError.value = t('erp.goodReceive.notFound')
+  } finally {
+    pageLoading.value = false
+    // Arm dirty tracking AFTER hydration so the initial load doesn't flag dirty
+    setTimeout(() => { dirtyArmed = true }, 0)
   }
 })
 
@@ -609,8 +658,8 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-// Keyboard shortcuts — Ctrl+S draft, Ctrl+Shift+S save+redirect, Ctrl+A add line.
 function onPageKeydown(e) {
+  if (pageLoading.value || loadError.value) return
   const ctrl  = e.ctrlKey || e.metaKey
   const shift = e.shiftKey
   const key   = e.key.toLowerCase()
@@ -656,16 +705,10 @@ async function save({ redirect = true } = {}) {
         comments:     i.comments     || null,
       })),
     }
-    let data
-    if (createdGrId.value) {
-      ({ data } = await api.put(`/erp/good-receive/${createdGrId.value}`, payload))
-    } else {
-      ({ data } = await api.post('/erp/good-receive', payload))
-      createdGrId.value = data.data.goodReceive.id
-    }
+    await api.put(`/erp/good-receive/${route.params.id}`, payload)
     dirty.value = false
     if (redirect) {
-      router.push(`/erp/good-receive/${data.data.goodReceive.id}`)
+      router.push(`/erp/good-receive/${route.params.id}`)
     } else {
       draftSavedAt.value = new Date()
     }
@@ -699,6 +742,6 @@ async function discard() {
     })
     if (!ok) return
   }
-  router.push('/erp/good-receive')
+  router.push(`/erp/good-receive/${route.params.id}`)
 }
 </script>

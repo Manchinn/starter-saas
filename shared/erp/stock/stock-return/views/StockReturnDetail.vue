@@ -23,7 +23,7 @@
         <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-4">
           <div class="grid grid-cols-5 gap-6 text-sm">
             <div><p class="text-[#637381] mb-1">{{ t('erp.common.refNo') }}</p><p class="font-mono font-semibold text-[#1C2434]">{{ sr.refNo }}</p></div>
-            <div><p class="text-[#637381] mb-1">{{ t('erp.common.date') }}</p><p class="font-medium text-[#1C2434]">{{ sr.date }}</p></div>
+            <div><p class="text-[#637381] mb-1">{{ t('erp.common.date') }}</p><p class="font-medium text-[#1C2434]">{{ fmtDate(sr.date) }}</p></div>
             <div><p class="text-[#637381] mb-1">{{ t('erp.common.store') }}</p><p class="font-medium text-[#1C2434]">{{ sr.store?.name || '—' }}</p></div>
             <div v-if="sr.type === 'customer_return'">
               <p class="text-[#637381] mb-1">{{ t('erp.stockReturn.customer') }}</p>
@@ -111,6 +111,7 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 import { fmtMoney } from '@/utils/fmt'
 
 const { t } = useI18n()

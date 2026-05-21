@@ -32,6 +32,15 @@ module.exports = {
     }
   },
 
+  async update(req, res) {
+    try {
+      const gr = await service.update(req.params.id, { ...req.body, userId: req.user?.id })
+      return ok(res, { goodReceive: gr }, 'Good Receive updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
   async confirm(req, res) {
     try {
       const gr = await service.confirm(req.params.id)

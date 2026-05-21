@@ -20,7 +20,7 @@
         <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6">
           <div class="grid grid-cols-5 gap-6 text-sm">
             <div><p class="text-[#637381] mb-1">{{ t('erp.common.refNo') }}</p><p class="font-mono font-semibold text-[#1C2434]">{{ adj.refNo }}</p></div>
-            <div><p class="text-[#637381] mb-1">{{ t('erp.common.date') }}</p><p class="font-medium text-[#1C2434]">{{ adj.date }}</p></div>
+            <div><p class="text-[#637381] mb-1">{{ t('erp.common.date') }}</p><p class="font-medium text-[#1C2434]">{{ fmtDate(adj.date) }}</p></div>
             <div><p class="text-[#637381] mb-1">{{ t('erp.common.store') }}</p><p class="font-medium text-[#1C2434]">{{ adj.store?.name || '—' }}</p></div>
             <div><p class="text-[#637381] mb-1">{{ t('erp.stockAdjust.reason') }}</p><p class="font-medium text-[#1C2434]">{{ adj.reason || '—' }}</p></div>
             <div><p class="text-[#637381] mb-1">{{ t('erp.common.notes') }}</p><p class="text-[#374151]">{{ adj.notes || '—' }}</p></div>
@@ -83,6 +83,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 const route = useRoute()

@@ -14,4 +14,4 @@ router.patch('/:id/status',  requirePermission('erp.quotations.edit'),   (req, r
 router.post('/:id/convert',  requirePermission('erp.quotations.edit'),   (req, res) => controller.convertToOrder(req, res))
 router.delete('/:id',        requirePermission('erp.quotations.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/quotations', router }

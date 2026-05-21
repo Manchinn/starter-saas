@@ -200,6 +200,78 @@ const remove = async (id) => {
   await gr.destroy()
 }
 
+// Edit a draft GR. Header + items both replaced atomically; mirrors create()'s
+// recompute step so wac/netAmount/stockQty stay in sync with the new inputs.
+const update = async (id, { date, supplier, storeId, notes, docType, invoiceNo, invoiceDate, deliveryNo, invoiceDiscount, invoiceNetAmount, items = [], userId }) => {
+  const gr = await GoodReceive.findByPk(id)
+  if (!gr) throw { status: 404, message: 'Good Receive not found' }
+  if (gr.status === 'confirmed') throw { status: 400, message: 'Cannot edit a confirmed Good Receive' }
+  if (!date)    throw { status: 400, message: 'Date is required' }
+  if (!storeId) throw { status: 400, message: 'Store is required' }
+  if (!items.length) throw { status: 400, message: 'At least one item is required' }
+
+  const type = docType || gr.docType || 'invoice'
+  if (type === 'invoice'  && !invoiceNo?.trim())  throw { status: 400, message: 'Invoice Number is required' }
+  if (type === 'delivery' && !deliveryNo?.trim()) throw { status: 400, message: 'Delivery Number is required' }
+
+  const store = await Store.findByPk(storeId)
+  if (!store) throw { status: 400, message: 'Store not found' }
+
+  const t = await sequelize.transaction()
+  try {
+    await gr.update({
+      date, supplier, storeId, notes,
+      docType:          type,
+      invoiceNo:        type === 'invoice'  ? (invoiceNo  || null) : null,
+      invoiceDate:      type === 'invoice'  ? (invoiceDate || null) : null,
+      deliveryNo:       type === 'delivery' ? (deliveryNo  || null) : null,
+      invoiceDiscount:  type === 'invoice'  ? (parseFloat(invoiceDiscount)  || 0) : 0,
+      invoiceNetAmount: type === 'invoice'  ? (parseFloat(invoiceNetAmount) || 0) : 0,
+      modifiedBy: userId || null,
+    }, { transaction: t })
+
+    // Replace items wholesale — simpler than diffing, safe because draft items
+    // haven't yet posted any stock movements.
+    await GoodReceiveItem.destroy({ where: { goodReceiveId: gr.id }, transaction: t })
+
+    for (const item of items) {
+      if (!item.productId)              throw { status: 400, message: 'Product is required on all items' }
+      if (!item.qty || item.qty <= 0)   throw { status: 400, message: 'Quantity must be greater than 0' }
+
+      const wac       = calcWac(item.qty, item.cost, item.freeQty)
+      const netAmount = calcNetAmount(item.qty, item.cost, item.discountPct, item.discount)
+      const convertedQty     = await toStockQty(item.qty,     item.qtyUomId)
+      const convertedFreeQty = await toStockQty(item.freeQty, item.freeQtyUomId)
+      const stockQty         = toFixed(parseFloat(convertedQty) + parseFloat(convertedFreeQty), 4)
+
+      await GoodReceiveItem.create({
+        goodReceiveId:  gr.id,
+        organizationId: gr.organizationId,
+        productId:     item.productId,
+        qty:           item.qty,
+        qtyUomId:      item.qtyUomId     || null,
+        freeQty:       item.freeQty      || 0,
+        freeQtyUomId:  item.freeQtyUomId || null,
+        batchId:       item.batchId      || null,
+        expiryDate:    item.expiryDate   || null,
+        cost:          item.cost         || 0,
+        discount:      item.discount     || 0,
+        discountPct:   item.discountPct  || 0,
+        netAmount,
+        wac,
+        stockQty,
+        comments:      item.comments     || null,
+      }, { transaction: t })
+    }
+
+    await t.commit()
+    return getById(id)
+  } catch (err) {
+    await t.rollback()
+    throw err
+  }
+}
+
 const createBill = async (id, userId, organizationId) => {
   const gr = await getById(id)
   if (gr.status !== 'confirmed') {
@@ -239,4 +311,4 @@ const createBill = async (id, userId, organizationId) => {
   return { id: bill.id }
 }
 
-module.exports = { list, getById, create, confirm, remove, createBill }
+module.exports = { list, getById, create, update, confirm, remove, createBill }

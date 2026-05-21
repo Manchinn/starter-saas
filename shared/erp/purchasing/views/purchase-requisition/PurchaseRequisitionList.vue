@@ -85,6 +85,7 @@ import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
+import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -150,7 +151,7 @@ const columns = [
   }),
   columnHelper.accessor('date', {
     header: () => t('erp.purchasing.colDate'),
-    cell: info => h('span', { class: 'text-sm text-[#374151]' }, info.getValue()),
+    cell: info => h('span', { class: 'text-sm text-[#374151]' }, fmtDate(info.getValue())),
   }),
   columnHelper.accessor('requestedBy', {
     header: () => t('erp.purchasing.colRequestedBy'),

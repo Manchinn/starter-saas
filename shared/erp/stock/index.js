@@ -28,6 +28,12 @@ export const routes = [
     component: () => import('./good-receive/views/GoodReceiveDetail.vue'),
     meta: { requiresAuth: true, title: 'Goods Receive Detail' },
   },
+  {
+    path: '/erp/good-receive/:id/edit',
+    name: 'erp-good-receive-edit',
+    component: () => import('./good-receive/views/GoodReceiveEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Goods Receive' },
+  },
   // Stock Adjust
   {
     path: '/erp/stock-adjust',

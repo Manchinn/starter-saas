@@ -194,11 +194,11 @@
                 </div>
                 <div>
                   <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ $t('org.colJoined') }}</dt>
-                  <dd class="mt-1.5 text-sm text-[#374151]">{{ fmtDateLong(viewOrganization.createdAt) }}</dd>
+                  <dd class="mt-1.5 text-sm text-[#374151]">{{ fmtDateTime(viewOrganization.createdAt) }}</dd>
                 </div>
                 <div>
                   <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ $t('org.colLastLogin') }}</dt>
-                  <dd class="mt-1.5 text-sm text-[#374151]">{{ viewOrganization.lastLoginAt ? fmtDateLong(viewOrganization.lastLoginAt) : $t('common.never') }}</dd>
+                  <dd class="mt-1.5 text-sm text-[#374151]">{{ viewOrganization.lastLoginAt ? fmtDateTime(viewOrganization.lastLoginAt) : $t('common.never') }}</dd>
                 </div>
               </dl>
 
@@ -268,6 +268,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
+import { fmtDate, fmtDateTime } from '@/utils/fmt'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -366,8 +367,6 @@ function systemRoleBadge(role) {
   return role === 'admin' ? 'badge-purple' : 'badge-blue'
 }
 
-function fmtDate(d)     { return new Date(d).toLocaleDateString() }
-function fmtDateLong(d) { return new Date(d).toLocaleString() }
 </script>
 
 <style scoped>

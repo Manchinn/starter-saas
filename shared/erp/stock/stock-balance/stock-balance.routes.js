@@ -10,4 +10,4 @@ router.get('/lookups',              requirePermission('erp.stock.list'), (req, r
 router.get('/product/:productId',  requirePermission('erp.stock.list'), (req, res) => controller.getProductSummary(req, res))
 router.get('/',                    requirePermission('erp.stock.list'), (req, res) => controller.list(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/stock-balance', router }

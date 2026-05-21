@@ -4,9 +4,9 @@ const crypto = require('crypto')
 const { User, Module, Role, Permission } = require('../../models')
 const { Op } = require('sequelize')
 
-// Logos live next to attachments so they share the uploads/ dir lifecycle.
+// Logos live in the root uploads/ dir alongside attachments.
 // Served publicly from /uploads/logos/* (see server/app.js).
-const LOGO_ROOT = path.join(__dirname, '..', '..', 'uploads', 'logos')
+const LOGO_ROOT = path.join(__dirname, '..', '..', '..', 'uploads', 'logos')
 const LOGO_MAX_BYTES = 2 * 1024 * 1024 // 2 MB
 const LOGO_ALLOWED_MIME = {
   'image/png':  '.png',

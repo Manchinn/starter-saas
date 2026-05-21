@@ -14,4 +14,4 @@ router.post('/',              requirePermission('erp.stock.edit'),   (req, res) 
 router.post('/:id/confirm',   requirePermission('erp.stock.edit'),   (req, res) => controller.confirm(req, res))
 router.delete('/:id',         requirePermission('erp.stock.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/stock-return', router }

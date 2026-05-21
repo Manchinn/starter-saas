@@ -132,7 +132,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
-import { fmtMoney } from '@/utils/fmt'
+import { fmtMoney, fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 
@@ -207,13 +207,13 @@ const columns = [
   }),
   columnHelper.accessor('invoiceDate', {
     header: () => t('erp.invoices.colDate'),
-    cell: info => h('span', { class: 'text-xs' }, info.getValue()),
+    cell: info => h('span', { class: 'text-xs' }, fmtDate(info.getValue())),
   }),
   columnHelper.accessor('dueDate', {
     header: () => t('erp.invoices.colDueDate'),
     cell: info => {
       const inv = info.row.original
-      return h('span', { class: `text-xs ${isOverdue(inv) ? 'text-red-500 font-medium' : 'text-[#637381]'}` }, info.getValue() || '—')
+      return h('span', { class: `text-xs ${isOverdue(inv) ? 'text-red-500 font-medium' : 'text-[#637381]'}` }, fmtDate(info.getValue()) || '—')
     },
   }),
   columnHelper.accessor('total', {

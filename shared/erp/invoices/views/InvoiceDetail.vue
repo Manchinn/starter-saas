@@ -433,6 +433,9 @@ function childrenOf(parentId) {
   return (invoice.value?.items || []).filter(it => it.parentItemId === parentId)
 }
 function itemCode(item) {
+  // Prefer the snapshot stored on the row (set at create time), then fall back
+  // to the live associations for older items that pre-date the snapshot column.
+  if (item.itemCode) return item.itemCode
   if (item.salePackageId) return item.salePackage?.code || ''
   return item.saleItem?.code || item.product?.sku || ''
 }

@@ -27,23 +27,78 @@ function getCalendar() {
 
 const BE_OFFSET = 543
 
-/**
- * Format a CE date string for display using the configured calendar system and date format.
- * @param {string} ceStr  ISO date string e.g. "2025-05-18"
- * @returns {string}  formatted e.g. "18/05/2568" (BE) or "18/05/2025" (CE)
- */
-export function fmtDate(ceStr) {
-  if (!ceStr) return ''
-  const parts = ceStr.split('-')
-  if (parts.length < 3 || isNaN(Number(parts[0]))) return ceStr
-  const cal = getCalendar()
-  let year = Number(parts[0])
-  if (cal.system === 'BE') year += BE_OFFSET
-  const fmt = cal.dateFormat || 'dd/mm/yyyy'
+// Split an input that may be:
+//   - a "yyyy-mm-dd" date string
+//   - a full ISO datetime "yyyy-mm-ddTHH:MM:SS(.SSS)Z"
+//   - a Date object
+// into { y, m, d } numbers in the local timezone. Returns null when the input
+// can't be parsed.
+function partsOf(value) {
+  if (value == null || value === '') return null
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return null
+    return { y: value.getFullYear(), m: value.getMonth() + 1, d: value.getDate() }
+  }
+  const str = String(value)
+  // Plain date — keep it timezone-independent so a "2025-05-18" doesn't drift
+  // to the previous day for UTC- locales.
+  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str)
+  if (dateMatch) {
+    return { y: +dateMatch[1], m: +dateMatch[2], d: +dateMatch[3] }
+  }
+  // Anything more elaborate — let Date parse it, then read local parts.
+  const dt = new Date(str)
+  if (isNaN(dt.getTime())) return null
+  return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() }
+}
+
+function applyFormat(parts, fmt) {
   return fmt
-    .replace('dd',   parts[2].padStart(2, '0'))
-    .replace('mm',   parts[1].padStart(2, '0'))
-    .replace('yyyy', String(year))
+    .replace('dd',   String(parts.d).padStart(2, '0'))
+    .replace('mm',   String(parts.m).padStart(2, '0'))
+    .replace('yyyy', String(parts.y))
+}
+
+/**
+ * Format a date for display using the configured calendar system and date
+ * format. Accepts a date-only string, a full ISO datetime, or a Date object.
+ *
+ * @param {string|Date} value
+ * @returns {string} formatted e.g. "18/05/2568" (BE) or "18/05/2025" (CE);
+ *                   empty string for falsy/unparseable input.
+ */
+export function fmtDate(value) {
+  const parts = partsOf(value)
+  if (!parts) return ''
+  const cal = getCalendar()
+  if (cal.system === 'BE') parts.y += BE_OFFSET
+  return applyFormat(parts, cal.dateFormat || 'dd/mm/yyyy')
+}
+
+/**
+ * Like fmtDate but appends the local time as HH:MM (24-hour). Use for
+ * "createdAt" / activity timestamps where the time-of-day matters.
+ *
+ * @param {string|Date} value
+ * @param {object} [opts]
+ * @param {boolean} [opts.seconds=false] include :SS in the time part
+ */
+export function fmtDateTime(value, { seconds = false } = {}) {
+  const parts = partsOf(value)
+  if (!parts) return ''
+  const cal = getCalendar()
+  const year = cal.system === 'BE' ? parts.y + BE_OFFSET : parts.y
+  const datePart = applyFormat({ ...parts, y: year }, cal.dateFormat || 'dd/mm/yyyy')
+
+  let dt
+  if (value instanceof Date) dt = value
+  else                       dt = new Date(value)
+  if (!dt || isNaN(dt.getTime())) return datePart
+
+  const hh = String(dt.getHours()).padStart(2, '0')
+  const mm = String(dt.getMinutes()).padStart(2, '0')
+  const ss = String(dt.getSeconds()).padStart(2, '0')
+  return seconds ? `${datePart} ${hh}:${mm}:${ss}` : `${datePart} ${hh}:${mm}`
 }
 
 /**

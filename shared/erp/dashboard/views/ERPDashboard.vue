@@ -579,7 +579,7 @@
                   <span class="text-sm font-semibold tabular-nums text-[#637381]">{{ m.stockAfter ?? '—' }}</span>
                 </td>
                 <td class="px-6 py-3.5 text-right text-xs text-[#9BA7B0] whitespace-nowrap">
-                  {{ fmtDate(m.createdAt) }}
+                  {{ fmtDateTime(m.createdAt) }}
                 </td>
               </tr>
             </tbody>
@@ -682,6 +682,7 @@ import {
   ArrowTrendingUpIcon, BanknotesIcon, DocumentChartBarIcon,
 } from '@heroicons/vue/24/outline'
 import api from '@/api'
+import { fmtDate, fmtDateTime } from '@/utils/fmt'
 
 const { t } = useI18n()
 const auth    = useAuthStore()
@@ -711,9 +712,7 @@ const greeting = computed(() => {
   return t('erp.dashboard.greetEvening')
 })
 
-const todayLabel = new Date().toLocaleDateString(undefined, {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-})
+const todayLabel = fmtDate(new Date())
 
 const totalPending = computed(() =>
   (stats.value.pending?.goodReceives         ?? 0)
@@ -759,12 +758,9 @@ function fmtCurrency(n) {
   return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function fmtDate(d) {
-  return new Date(d).toLocaleString(undefined, {
-    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
-}
-
+// `fmtDate` is imported from @/utils/fmt — the recent-invoice row uses time
+// info too, so call sites that previously used fmtDate(...) should switch to
+// fmtDateTime where the time matters.
 function invoiceStatusClass(status) {
   if (status === 'paid')      return 'bg-green-50 text-green-700'
   if (status === 'sent')      return 'bg-blue-50 text-blue-700'

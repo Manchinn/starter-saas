@@ -22,4 +22,4 @@ router.post('/',      requirePermission('erp.products.edit'),   validation, (req
 router.put('/:id',    requirePermission('erp.products.edit'),   validation, (req, res) => controller.update(req, res))
 router.delete('/:id', requirePermission('erp.products.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/product-categories', router }

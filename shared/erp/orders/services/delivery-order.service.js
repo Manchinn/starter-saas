@@ -1,10 +1,10 @@
 const {
   DeliveryOrder, DeliveryOrderItem,
   Customer, Order, Product, SaleItem, SalePackage, SalePackageItem, Store, User,
-} = require('../../../server/models')
+} = require('../../../../server/models')
 const { Op } = require('sequelize')
-const sequelize = require('../../../server/config/database')
-const { getNext } = require('../settings/sequence.service')
+const sequelize = require('../../../../server/config/database')
+const { getNext } = require('../../settings/sequence.service')
 
 const customerAttrs = ['id', 'name', 'company', 'email', 'phone', 'address']
 const orderAttrs    = ['id', 'orderNumber', 'orderDate', 'status']
@@ -57,7 +57,7 @@ const getById = async (id) => {
   })
   if (!doc) throw { status: 404, message: 'Delivery Order not found' }
 
-  const { Invoice } = require('../../../server/models')
+  const { Invoice } = require('../../../../server/models')
   const linkedInv = await Invoice.findOne({
     where: { deliveryOrderId: id, dataFlag: { [Op.ne]: 2 } },
     attributes: ['id', 'invoiceNumber', 'status'],
@@ -237,7 +237,7 @@ async function transition(id, userId, from, to, errorMsg) {
   if (!doc) throw { status: 404, message: 'Delivery Order not found' }
   if (doc.status !== from) throw { status: 400, message: errorMsg }
   await doc.update({ status: to, modifiedBy: userId || null })
-  require('../audit/audit.service').log({ userId, action: `delivery-order.${to}`, entityType: 'DeliveryOrder', entityId: id, summary: { from, to, refNo: doc.refNo } })
+  require('../../audit/audit.service').log({ userId, action: `delivery-order.${to}`, entityType: 'DeliveryOrder', entityId: id, summary: { from, to, refNo: doc.refNo } })
   return getById(id)
 }
 
@@ -251,7 +251,7 @@ const cancel = async (id, userId) => {
   if (!TRANSITIONS[doc.status]?.includes('cancelled')) throw { status: 400, message: 'Cannot cancel a delivered or already cancelled order' }
   const previous = doc.status
   await doc.update({ status: 'cancelled', modifiedBy: userId || null })
-  require('../audit/audit.service').log({ userId, action: 'delivery-order.cancelled', entityType: 'DeliveryOrder', entityId: id, summary: { from: previous, to: 'cancelled', refNo: doc.refNo } })
+  require('../../audit/audit.service').log({ userId, action: 'delivery-order.cancelled', entityType: 'DeliveryOrder', entityId: id, summary: { from: previous, to: 'cancelled', refNo: doc.refNo } })
   return getById(id)
 }
 
@@ -268,7 +268,7 @@ const createInvoice = async (id, userId, organizationId) => {
     throw { status: 400, message: 'Only shipped or delivered orders can be invoiced' }
   }
 
-  const { Invoice, SalesOrderItem } = require('../../../server/models')
+  const { Invoice, SalesOrderItem } = require('../../../../server/models')
   const existing = await Invoice.findOne({
     where: { deliveryOrderId: doc.id, dataFlag: { [Op.ne]: 2 } },
     attributes: ['id', 'invoiceNumber'],
@@ -286,7 +286,7 @@ const createInvoice = async (id, userId, organizationId) => {
     }
   }
 
-  const invoiceSvc = require('../invoices/invoice.service')
+  const invoiceSvc = require('../../invoices/invoice.service')
   const invoice = await invoiceSvc.create({
     customerId:      doc.customerId,
     orderId:         doc.orderId || null,

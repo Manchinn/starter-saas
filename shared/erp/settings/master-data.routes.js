@@ -184,4 +184,4 @@ router.get('/:slug', requirePermission('erp.stock.list'), async (req, res, next)
   } catch (err) { next(err) }
 })
 
-module.exports = router
+module.exports = { mountPath: '/master-data', router }

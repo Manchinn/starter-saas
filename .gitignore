@@ -5,6 +5,7 @@ dist/
 server/data/
 server/logs/
 /logs/
+/uploads/
 *.log
 *.log.gz
 .DS_Store

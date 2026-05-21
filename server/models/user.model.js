@@ -74,7 +74,7 @@ const User = sequelize.define('User', {
   logoPath: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: 'Relative path under server/uploads/logos/ — served via /uploads/logos/*',
+    comment: 'Relative path under uploads/logos/ — served via /uploads/logos/*',
   },
   emailVerifiedAt: {
     type: DataTypes.DATE,

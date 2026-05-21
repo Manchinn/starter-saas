@@ -287,7 +287,7 @@ const convertToOrder = async (id, userId, organizationId) => {
     for (const child of (childrenByParent.get(parent.id) || [])) ordered.push(child)
   }
 
-  const orderSvc = require('../orders/order.service')
+  const orderSvc = require('../orders/services/order.service')
   const orderResult = await orderSvc.create({
     customerId:      q.customerId,
     orderDate:       q.quotationDate,

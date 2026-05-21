@@ -21,4 +21,4 @@ router.put('/:id',        requirePermission('erp.accounting.edit'),   controller
 router.post('/:id/close', requirePermission('erp.accounting.edit'),   controller.close)
 router.delete('/:id',     requirePermission('erp.accounting.delete'), controller.remove)
 
-module.exports = router
+module.exports = { mountPath: '/accounting/fiscal-years', router }

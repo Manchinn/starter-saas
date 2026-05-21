@@ -8,4 +8,4 @@ router.use(authenticate)
 
 router.get('/', requirePermission('erp.accounting.list'), controller.getReport)
 
-module.exports = router
+module.exports = { mountPath: '/accounting/ar-aging', router }

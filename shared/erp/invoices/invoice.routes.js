@@ -28,4 +28,4 @@ router.patch('/:id/status',    requirePermission('erp.invoices.edit'),   statusV
 router.post('/:id/create-receipt', requirePermission('erp.receipts.edit'), (req, res) => controller.createReceipt(req, res))
 router.delete('/:id',          requirePermission('erp.invoices.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/invoices', router }

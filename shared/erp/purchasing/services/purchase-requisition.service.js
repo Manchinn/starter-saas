@@ -80,6 +80,54 @@ const create = async ({ date, requestedBy, department, vendorId, notes, items = 
   }
 }
 
+// Edit a draft requisition. Header + items both replaced atomically; mirrors
+// create()'s validation so the saved doc stays consistent.
+const update = async (id, { date, requestedBy, department, vendorId, notes, items = [], currency, exchangeRate, userId }) => {
+  const req = await PurchaseRequisition.findByPk(id)
+  if (!req)                   throw { status: 404, message: 'Purchase Requisition not found' }
+  if (req.status !== 'draft') throw { status: 400, message: 'Only draft requisitions can be edited' }
+  if (!date)         throw { status: 400, message: 'Date is required' }
+  if (!items.length) throw { status: 400, message: 'At least one item is required' }
+
+  const headerExtras = {}
+  if (currency !== undefined) headerExtras.currency = currency || null
+  if (currency !== undefined || exchangeRate !== undefined) {
+    const fx = await require('../../settings/currency.service').getRateOn(currency, date, req.organizationId)
+    headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
+  }
+
+  const t = await sequelize.transaction()
+  try {
+    await req.update({
+      date,
+      requestedBy: requestedBy || null,
+      department:  department  || null,
+      vendorId:    vendorId    || null,
+      notes:       notes       || null,
+      ...headerExtras,
+      modifiedBy:  userId || null,
+    }, { transaction: t })
+
+    // Replace items wholesale — drafts have no downstream side effects.
+    await PurchaseRequisitionItem.destroy({ where: { requisitionId: req.id }, transaction: t })
+    for (const item of items) {
+      if (!item.productId && !item.description) throw { status: 400, message: 'Each item needs a product or description' }
+      if (!item.qty || Number(item.qty) <= 0)   throw { status: 400, message: 'Quantity must be greater than 0' }
+      await PurchaseRequisitionItem.create(
+        { requisitionId: req.id, productId: item.productId || null, description: item.description || null,
+          qty: item.qty, unitPrice: item.unitPrice || null, notes: item.notes || null,
+          organizationId: req.organizationId },
+        { transaction: t },
+      )
+    }
+    await t.commit()
+    return getById(id)
+  } catch (err) {
+    await t.rollback()
+    throw err
+  }
+}
+
 const approve = async (id, userId) => {
   const req = await PurchaseRequisition.findByPk(id)
   if (!req)                       throw { status: 404, message: 'Purchase Requisition not found' }
@@ -223,4 +271,4 @@ const generateReorder = async ({ userId, organizationId }) => {
   return { created, message: `Created ${created.length} requisition${created.length !== 1 ? 's' : ''} covering ${candidates.length} low-stock product${candidates.length !== 1 ? 's' : ''}.` }
 }
 
-module.exports = { list, getById, create, approve, reject, remove, listOrders, createOrder, generateReorder }
+module.exports = { list, getById, create, update, approve, reject, remove, listOrders, createOrder, generateReorder }

@@ -15,7 +15,7 @@ const ALLOWED_MIME = new Set([
   'text/csv', 'text/plain',
 ])
 
-const STORAGE_ROOT = path.join(__dirname, '..', '..', '..', 'server', 'uploads', 'attachments')
+const STORAGE_ROOT = path.join(__dirname, '..', '..', '..', 'uploads', 'attachments')
 
 const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) }
 

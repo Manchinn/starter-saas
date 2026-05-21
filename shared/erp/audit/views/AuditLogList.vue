@@ -48,7 +48,7 @@
               <td colspan="5" class="py-8 text-center text-[#9BA7B0]">{{ t('erp.audit.noLogs') }}</td>
             </tr>
             <tr v-for="l in logs" :key="l.id" class="hover:bg-[#F7F9FC]">
-              <td class="px-4 py-2 text-xs text-[#637381] tabular-nums">{{ fmtDate(l.createdAt) }}</td>
+              <td class="px-4 py-2 text-xs text-[#637381] tabular-nums">{{ fmtDateTime(l.createdAt) }}</td>
               <td class="px-4 py-2 text-xs">{{ l.userEmail || '—' }}</td>
               <td class="px-4 py-2">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono bg-[#F1F5F9] text-[#374151]">{{ l.action }}</span>
@@ -87,6 +87,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
+import { fmtDateTime } from '@/utils/fmt'
 
 const { t } = useI18n()
 
@@ -110,7 +111,6 @@ const filterDateFrom   = ref('')
 const filterDateTo     = ref('')
 let searchTimer = null
 
-const fmtDate = (s) => s ? new Date(s).toLocaleString() : ''
 const summarize = (s) => {
   try { return Object.entries(s).map(([k, v]) => `${k}=${v}`).join(' · ') }
   catch { return JSON.stringify(s) }

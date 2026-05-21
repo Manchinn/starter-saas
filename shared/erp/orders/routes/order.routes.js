@@ -1,9 +1,9 @@
 const { Router } = require('express')
 const { body } = require('express-validator')
-const controller = require('./order.controller')
-const { authenticate } = require('../../../server/middleware/auth')
-const { requirePermission } = require('../../../server/middleware/permission')
-const { validate } = require('../../../server/middleware/validate')
+const controller = require('../controllers/order.controller')
+const { authenticate } = require('../../../../server/middleware/auth')
+const { requirePermission } = require('../../../../server/middleware/permission')
+const { validate } = require('../../../../server/middleware/validate')
 
 const router = Router()
 
@@ -34,4 +34,4 @@ router.post('/:id/create-delivery-order', requirePermission('erp.orders.edit'), 
 router.post('/:id/create-invoice',        requirePermission('erp.invoices.edit'), (req, res) => controller.createInvoice(req, res))
 router.delete('/:id',      requirePermission('erp.orders.delete'), (req, res) => controller.remove(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/orders', router }

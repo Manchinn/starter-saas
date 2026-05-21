@@ -26,4 +26,4 @@ router.post('/:id/cancel',    requirePermission('erp.purchasing.edit'),   contro
 router.post('/:id/create-good-receive', requirePermission('erp.stock.edit'), controller.createGoodReceive)
 router.delete('/:id',         requirePermission('erp.purchasing.delete'), controller.remove)
 
-module.exports = router
+module.exports = { mountPath: '/purchasing/orders', router }

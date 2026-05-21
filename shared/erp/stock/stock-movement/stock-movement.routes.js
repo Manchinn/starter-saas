@@ -8,4 +8,4 @@ router.use(authenticate)
 
 router.get('/', requirePermission('erp.stock.list'), (req, res) => controller.list(req, res))
 
-module.exports = router
+module.exports = { mountPath: '/stock-movements', router }

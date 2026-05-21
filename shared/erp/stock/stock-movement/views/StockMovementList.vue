@@ -122,6 +122,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
+import { fmtDateTime } from '@/utils/fmt'
 
 const { t } = useI18n()
 
@@ -162,14 +163,12 @@ const TYPE_BADGE = {
   sale:         'bg-red-50 text-red-700',
 }
 const typeBadge = (type) => TYPE_BADGE[type] || 'bg-[#F1F5F9] text-[#637381]'
-const formatDate = (d) => new Date(d).toLocaleString()
-
 const ch = createColumnHelper()
 
 const columns = [
   ch.accessor('createdAt', {
     header: () => t('erp.stockMovement.colDate'),
-    cell: info => h('span', { class: 'text-[#637381] text-xs whitespace-nowrap' }, formatDate(info.getValue())),
+    cell: info => h('span', { class: 'text-[#637381] text-xs whitespace-nowrap' }, fmtDateTime(info.getValue())),
   }),
   ch.accessor('product', {
     header: () => t('erp.stockMovement.colProduct'),

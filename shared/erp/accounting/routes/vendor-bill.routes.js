@@ -21,4 +21,4 @@ router.patch('/:id/status',    requirePermission('erp.bills.edit'),
   controller.updateStatus)
 router.delete('/:id',          requirePermission('erp.bills.delete'), controller.remove)
 
-module.exports = router
+module.exports = { mountPath: '/purchasing/bills', router }

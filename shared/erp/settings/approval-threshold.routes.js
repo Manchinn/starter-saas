@@ -21,4 +21,4 @@ router.post('/',         requirePermission('erp.thresholds.edit'),   writeRules,
 router.put('/:id',       requirePermission('erp.thresholds.edit'),   writeRules, controller.update)
 router.delete('/:id',    requirePermission('erp.thresholds.edit'),   controller.remove)
 
-module.exports = router
+module.exports = { mountPath: '/settings/approval-thresholds', router }
