@@ -29,6 +29,17 @@ const create = async (req, res, next) => {
   }
 }
 
+const update = async (req, res, next) => {
+  try {
+    const userId = req.user?.id
+    const bill = await svc.update(req.params.id, { ...req.body, userId })
+    res.json({ data: { bill } })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message })
+    next(err)
+  }
+}
+
 const updateStatus = async (req, res, next) => {
   try {
     res.json({ data: { bill: await svc.updateStatus(req.params.id, req.body.status, req.user?.id, req.user) } })
@@ -48,4 +59,4 @@ const remove = async (req, res, next) => {
   }
 }
 
-module.exports = { list, getById, create, updateStatus, remove }
+module.exports = { list, getById, create, update, updateStatus, remove }

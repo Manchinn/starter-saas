@@ -89,6 +89,59 @@ const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceN
   return getById(createdId)
 }
 
+// Edit a draft bill. Header + items both replaced atomically and totals are
+// recomputed from the new lines; mirrors create()'s validation so the saved
+// doc stays consistent. Editing a posted bill would invalidate the auto-
+// journals downstream, so we block anything other than draft.
+const update = async (id, { vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceNo, billDate, dueDate, notes, items = [], taxRate = 0, currency, exchangeRate, userId }) => {
+  const bill = await VendorBill.findByPk(id)
+  if (!bill)                     throw { status: 404, message: 'Vendor Bill not found' }
+  if (bill.status !== 'draft')   throw { status: 400, message: 'Only draft bills can be edited' }
+  if (!items.length)             throw { status: 400, message: 'Bill must have at least one item' }
+  await require('./tax-period.service').assertOpen(billDate || bill.billDate, bill.organizationId)
+
+  const subtotal = items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.unitPrice || 0), 0)
+  const tax      = toFixed(subtotal * (Number(taxRate) / 100), 2)
+  const total    = toFixed(subtotal + tax, 2)
+
+  const headerExtras = {}
+  if (currency !== undefined) headerExtras.currency = currency || null
+  if (currency !== undefined || exchangeRate !== undefined) {
+    const fx = await require('../../settings/currency.service').getRateOn(currency, billDate, bill.organizationId)
+    headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
+  }
+
+  await sequelize.transaction(async (t) => {
+    await bill.update({
+      vendorId:        vendorId        || null,
+      purchaseOrderId: purchaseOrderId || null,
+      goodReceiveId:   goodReceiveId   || null,
+      vendorInvoiceNo: vendorInvoiceNo || null,
+      billDate:        billDate || bill.billDate,
+      dueDate:         dueDate  || null,
+      notes:           notes    || null,
+      subtotal, tax, total,
+      ...headerExtras,
+      modifiedBy:      userId   || null,
+    }, { transaction: t })
+
+    // Replace items wholesale — drafts have no downstream side effects.
+    await VendorBillItem.destroy({ where: { billId: bill.id }, transaction: t })
+    for (const item of items) {
+      await VendorBillItem.create({
+        billId:       bill.id,
+        productId:    item.productId || null,
+        description:  item.description || 'Item',
+        quantity:     item.quantity,
+        unitPrice:    item.unitPrice,
+        total:        toFixed(Number(item.quantity || 0) * Number(item.unitPrice || 0), 2),
+        organizationId: bill.organizationId,
+      }, { transaction: t })
+    }
+  })
+  return getById(id)
+}
+
 const updateStatus = async (id, status, userId, user) => {
   const bill = await VendorBill.findByPk(id)
   if (!bill) throw { status: 404, message: 'Vendor Bill not found' }
@@ -144,4 +197,4 @@ const remove = async (id) => {
   await bill.destroy()
 }
 
-module.exports = { list, getById, create, updateStatus, remove }
+module.exports = { list, getById, create, update, updateStatus, remove }

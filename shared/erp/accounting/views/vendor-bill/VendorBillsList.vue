@@ -6,6 +6,10 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.bills.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} record{{ total !== 1 ? 's' : '' }}</p>
         </div>
+        <RouterLink v-can="'erp.bills.edit'" to="/erp/purchasing/bills/create" class="btn-primary">
+          <PlusIcon class="w-4 h-4" />
+          {{ t('erp.bills.new') }}
+        </RouterLink>
       </div>
 
       <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
@@ -35,7 +39,7 @@
 import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { DocumentTextIcon, EyeIcon } from '@heroicons/vue/24/outline'
+import { DocumentTextIcon, EyeIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'

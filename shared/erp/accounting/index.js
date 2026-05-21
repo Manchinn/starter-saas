@@ -178,10 +178,22 @@ export const routes = [
     meta: { requiresAuth: true, title: 'Vendor Bills' },
   },
   {
+    path: '/erp/purchasing/bills/create',
+    name: 'erp-purchasing-bills-create',
+    component: () => import('./views/vendor-bill/VendorBillCreate.vue'),
+    meta: { requiresAuth: true, title: 'New Vendor Bill' },
+  },
+  {
     path: '/erp/purchasing/bills/:id',
     name: 'erp-purchasing-bills-detail',
     component: () => import('./views/vendor-bill/VendorBillDetail.vue'),
     meta: { requiresAuth: true, title: 'Vendor Bill Detail' },
+  },
+  {
+    path: '/erp/purchasing/bills/:id/edit',
+    name: 'erp-purchasing-bills-edit',
+    component: () => import('./views/vendor-bill/VendorBillEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Vendor Bill' },
   },
 ]
 
