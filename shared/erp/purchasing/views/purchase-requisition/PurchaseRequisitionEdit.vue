@@ -2,21 +2,23 @@
   <AppLayout>
     <div class="space-y-5">
 
-      <PageHeader :title="t('erp.purchasing.new')" back-to="/erp/purchasing/requisitions"
+      <PageHeader :title="loading ? t('erp.purchasing.edit') : (req?.refNo || t('erp.purchasing.edit'))"
+        :back-to="`/erp/purchasing/requisitions/${route.params.id}`"
         :breadcrumb="[
           { label: t('erp.purchasing.title'), to: '/erp/purchasing/requisitions' },
-          { label: t('common.create') },
+          { label: req?.refNo || '…', to: `/erp/purchasing/requisitions/${route.params.id}` },
+          { label: t('common.edit') },
         ]">
         <template #badge>
           <StatusPill :label="t('erp.purchasing.statusDraft')" />
         </template>
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/erp/purchasing/requisitions"
+            :cancel-to="`/erp/purchasing/requisitions/${route.params.id}`"
             :cancel-label="t('common.cancel')"
             :saving="saving"
-            :saving-label="t('erp.common.creating')"
-            :save-label="t('erp.purchasing.create')"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('common.saveChanges')"
             :disabled="!canSave"
             :disabled-hint="t('erp.purchasing.fillRequiredFields')"
             @save="save"
@@ -24,17 +26,25 @@
         </template>
       </PageHeader>
 
-      <div class="space-y-5">
+      <!-- Loading -->
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+
+      <!-- Not found / not draft -->
+      <ErrorBanner v-else-if="loadError" :message="loadError" />
+
+      <div v-else class="space-y-5">
 
         <!-- Requisition Info -->
         <FormCard :title="t('erp.purchasing.requisitionInfo')" :icon="ClipboardDocumentListIcon" icon-color="primary" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
-            <!-- Vendor (spans two cols, with inline create button) -->
+            <!-- Vendor -->
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.purchasing.vendor')" />
               <div class="flex gap-2 items-start">
-                <div ref="vendorFieldRef" class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0 vendor-field">
                   <SearchSelect v-model="form.vendorId" :options="vendors" :placeholder="`— ${t('erp.purchasing.noVendor')} —`">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> · {{ option.code }}</span></template>
                     <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> · {{ option.code }}</span></template>
@@ -139,7 +149,6 @@
                 @drop="onDrop(idx)"
                 @dragleave="onDragLeave(idx)">
 
-                <!-- Drag handle -->
                 <div draggable="true"
                   @dragstart="onDragStart($event, idx)"
                   @dragend="onDragEnd"
@@ -151,7 +160,6 @@
                   <span class="group-hover:hidden">{{ idx + 1 }}</span>
                 </div>
 
-                <!-- Product picker -->
                 <SearchSelectPopup
                   v-model="line.productId"
                   :options="products"
@@ -160,30 +168,25 @@
                   @change="onProductChange(line)"
                 />
 
-                <!-- Description -->
                 <input v-model="line.description" type="text" :placeholder="t('erp.purchasing.descriptionPh')"
                   class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                          transition-all placeholder:text-[#CBD5E1]" />
 
-                <!-- Qty -->
                 <input v-model.number="line.qty" type="number" min="0.0001" step="any"
                   class="w-full px-2 py-2 border border-[#E2E8F0] text-[13px] text-right
                          text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
                          focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
 
-                <!-- Unit price -->
                 <input v-model.number="line.unitPrice" type="number" min="0" step="any" placeholder="0.00"
                   class="w-full px-2.5 py-2 border border-[#E2E8F0] text-[13px] text-right
                          text-[#1C2434] tabular-nums focus:outline-none focus:ring-2
                          focus:ring-primary-500/20 focus:border-primary-400 transition-all placeholder:text-[#CBD5E1]" />
 
-                <!-- Estimated -->
                 <div class="text-[13px] font-semibold text-[#1C2434] tabular-nums text-right">
                   {{ lineEstimate(line) }}
                 </div>
 
-                <!-- Duplicate-item indicator -->
                 <div class="flex items-center justify-center relative" data-dup-popover>
                   <button v-if="isDuplicate(line)" type="button"
                     tabindex="-1"
@@ -212,7 +215,6 @@
               </div>
             </div>
 
-            <!-- Subtotal footer -->
             <div class="grid items-center gap-3 px-5 py-3.5 bg-[#F7F9FC] border-t border-[#E2E8F0]"
               style="grid-template-columns: 1.8rem 2.6fr 2.4fr 5rem 7rem 6rem 1.5rem 2rem">
               <div class="col-span-5 text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider text-right">
@@ -228,7 +230,6 @@
             </p>
           </div>
 
-          <!-- Bulk-add popup (hidden trigger; opened by the Add Item button + empty state + Ctrl+A) -->
           <SearchSelectPopup
             ref="bulkPickerRef"
             :model-value="''"
@@ -273,7 +274,7 @@
     </div>
 
     <!-- Sticky save bar -->
-    <div class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+    <div v-if="!loading && !loadError" class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
                 flex items-center justify-between gap-3">
       <div class="flex items-center gap-4">
         <div>
@@ -295,7 +296,7 @@
             <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>draft</span>
           </span>
-          <span class="flex items-center gap-1" :title="t('erp.purchasing.create')">
+          <span class="flex items-center gap-1" :title="t('common.saveChanges')">
             <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
             <span>save</span>
           </span>
@@ -318,13 +319,13 @@
           {{ savingDraft ? t('erp.common.saving') : t('erp.purchasing.saveDraft') }}
         </button>
         <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
-          :title="!canSave ? t('erp.purchasing.fillRequiredFields') : `${t('erp.purchasing.create')} (Ctrl+Shift+S)`"
+          :title="!canSave ? t('erp.purchasing.fillRequiredFields') : `${t('common.saveChanges')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />
-          {{ saving ? t('erp.common.creating') : t('erp.purchasing.create') }}
+          {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
         </button>
       </div>
     </div>
@@ -368,34 +369,34 @@
           </div>
           <div class="flex-1 px-6 py-5 space-y-4">
             <div>
-              <FieldLabel :text="t('erp.vendors.name') || 'Name'" required />
+              <FieldLabel :text="t('erp.vendors.name')" required />
               <input v-model="newVendor.name" type="text" placeholder="Vendor name"
                 ref="newVendorNameRef"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
             </div>
             <div>
-              <FieldLabel :text="t('erp.vendors.code') || 'Code'" />
+              <FieldLabel :text="t('erp.vendors.code')" />
               <input v-model="newVendor.code" type="text"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <FieldLabel :text="t('erp.vendors.email') || 'Email'" />
+                <FieldLabel :text="t('erp.vendors.email')" />
                 <input v-model="newVendor.email" type="email"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
               </div>
               <div>
-                <FieldLabel :text="t('erp.vendors.phone') || 'Phone'" />
+                <FieldLabel :text="t('erp.vendors.phone')" />
                 <input v-model="newVendor.phone" type="text"
                   class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
               </div>
             </div>
             <div>
-              <FieldLabel :text="t('erp.vendors.address') || 'Address'" />
+              <FieldLabel :text="t('erp.vendors.address')" />
               <textarea v-model="newVendor.address" rows="3"
                 class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 resize-none" />
@@ -420,8 +421,8 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
   PlusIcon, TrashIcon, XMarkIcon,
   CheckIcon, ArrowPathIcon, ExclamationTriangleIcon,
@@ -445,34 +446,30 @@ import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
 
-const { t }  = useI18n()
-const router = useRouter()
+const { t }     = useI18n()
+const route     = useRoute()
+const router    = useRouter()
 
-const today = new Date().toISOString().slice(0, 10)
-const form = ref({
-  date: today,
-  requestedBy: '', department: '', vendorId: '', notes: '',
-  currency: '', exchangeRate: 1,
-  items: [],
-})
-const vendors      = ref([])
-const products     = ref([])
-const saving       = ref(false)
-const savingDraft  = ref(false)
+const req         = ref(null)
+const vendors     = ref([])
+const products    = ref([])
+const loading     = ref(true)
+const loadError   = ref('')
+const saving      = ref(false)
+const savingDraft = ref(false)
 const draftSavedAt = ref(null)
-const globalError  = ref('')
-const errors       = ref({})
+const globalError = ref('')
+const errors      = ref({})
 
-// Once a draft has been saved-without-redirect we have a PR id, so subsequent
-// saves PUT instead of POST and the page silently switches to edit mode.
-const createdId = ref('')
+const form = ref({
+  date: '', requestedBy: '', department: '', vendorId: '', notes: '',
+  currency: '', exchangeRate: 1, items: [],
+})
 
-// Dirty tracking arms after the first render so default values don't trip
-// the unsaved-changes guard.
+// Dirty tracking arms after load so the parse doesn't trip it.
 const dirty = ref(false)
 let dirtyArmed = false
 watch(form, () => { if (dirtyArmed) dirty.value = true }, { deep: true })
-onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
 
 function onBeforeUnload(e) {
   if (!dirty.value) return
@@ -482,7 +479,7 @@ function onBeforeUnload(e) {
 onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
 onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
 
-// ── Custom confirm modal (replaces window.confirm) ──────────────────────
+// ── Custom confirm modal ────────────────────────────────────────────────
 const confirmOpen    = ref(false)
 const confirmTitle   = ref('')
 const confirmMessage = ref('')
@@ -512,28 +509,6 @@ onBeforeRouteLeave(async () => {
 const selectedVendor = computed(() =>
   form.value.vendorId ? vendors.value.find(v => v.id === form.value.vendorId) : null
 )
-
-const vendorFieldRef = ref(null)
-onMounted(() => {
-  setTimeout(() => {
-    const root = vendorFieldRef.value?.querySelector('.multiselect')
-    root?.focus()
-  }, 100)
-})
-
-onMounted(async () => {
-  const [vRes, pRes] = await Promise.allSettled([
-    api.get('/erp/vendors',     { params: { limit: 500 } }),
-    api.get('/erp/item-master', { params: { limit: 500 } }),
-  ])
-  if (vRes.status === 'fulfilled') vendors.value  = vRes.value.data.data.vendors  || []
-  if (pRes.status === 'fulfilled') {
-    const list = pRes.value.data.data.products || []
-    // SearchSelectPopup uses code/name fields — surface sku as code for the
-    // monospace prefix column it renders.
-    products.value = list.map(p => ({ ...p, code: p.sku }))
-  }
-})
 
 // ── Inline vendor create ───────────────────────────────────────────────
 const vendorCreateOpen = ref(false)
@@ -571,6 +546,54 @@ async function saveVendor() {
   }
 }
 
+// ── Load ───────────────────────────────────────────────────────────────
+onMounted(async () => {
+  const id = route.params.id
+  const [reqRes, vRes, pRes] = await Promise.allSettled([
+    api.get(`/erp/purchasing/requisitions/${id}`),
+    api.get('/erp/vendors',     { params: { limit: 500 } }),
+    api.get('/erp/item-master', { params: { limit: 500 } }),
+  ])
+  if (vRes.status === 'fulfilled') vendors.value  = vRes.value.data.data.vendors  || []
+  if (pRes.status === 'fulfilled') {
+    const list = pRes.value.data.data.products || []
+    products.value = list.map(p => ({ ...p, code: p.sku }))
+  }
+
+  if (reqRes.status !== 'fulfilled') {
+    loadError.value = parseApiError(reqRes.reason, 'Failed to load requisition')
+    loading.value = false
+    return
+  }
+
+  const r = reqRes.value.data.data.requisition
+  if (r.status !== 'draft') {
+    router.replace(`/erp/purchasing/requisitions/${id}`)
+    return
+  }
+  req.value = r
+  form.value = {
+    date:         r.date         || '',
+    requestedBy:  r.requestedBy  || '',
+    department:   r.department   || '',
+    vendorId:     r.vendorId     || '',
+    notes:        r.notes        || '',
+    currency:     r.currency     || '',
+    exchangeRate: r.exchangeRate != null ? Number(r.exchangeRate) : 1,
+    items: (r.items || []).map(it => ({
+      key:         newKey(),
+      productId:   it.productId || '',
+      description: it.description || '',
+      qty:         Number(it.qty) || 1,
+      unitPrice:   it.unitPrice != null ? Number(it.unitPrice) : null,
+      notes:       it.notes || '',
+    })),
+  }
+  loading.value = false
+  await nextTick()
+  dirtyArmed = true
+})
+
 // ── Items ──────────────────────────────────────────────────────────────
 let _localKeyCounter = 0
 function newKey() {
@@ -601,17 +624,13 @@ function onProductChange(line) {
   }
 }
 
-// ── Bulk-add popup wiring ──────────────────────────────────────────────
 const bulkPickerRef = ref(null)
 function openBulkPicker() { bulkPickerRef.value?.open() }
-
 async function onBulkAdd(objects) {
   if (!objects?.length) return
   const newLines = objects.map(makeLineFromProduct)
   form.value.items.push(...newLines)
   await nextTick()
-  // Land focus on the first new row's qty input so a keyboard-only user can
-  // immediately tweak the quantity instead of hunting with the mouse.
   const first = newLines[0]
   if (!first) return
   const row = document.querySelector(`[data-line-key="${first.key}"]`)
@@ -620,7 +639,7 @@ async function onBulkAdd(objects) {
   qty?.select?.()
 }
 
-// ── Duplicate-product indicator ────────────────────────────────────────
+// ── Duplicate indicator ────────────────────────────────────────────────
 const openDupKey = ref('')
 function toggleDupPopover(line) {
   openDupKey.value = openDupKey.value === line.key ? '' : line.key
@@ -648,7 +667,7 @@ function isDuplicate(line) {
   return !!line.productId && duplicateProductIds.value.has(line.productId)
 }
 
-// ── Drag-and-drop reorder ──────────────────────────────────────────────
+// ── Drag-and-drop ──────────────────────────────────────────────────────
 const dragFromIdx = ref(null)
 const dragOverIdx = ref(null)
 function onDragStart(e, idx) {
@@ -688,9 +707,9 @@ const itemsSubtitle = computed(() =>
     ? `${form.value.items.length} ${form.value.items.length !== 1 ? t('erp.purchasing.itemsCount') : t('erp.purchasing.itemCount')}`
     : ''
 )
-const totalQty = computed(() => form.value.items.reduce((s, i) => s + (Number(i.qty) || 0), 0))
+const totalQty          = computed(() => form.value.items.reduce((s, i) => s + (Number(i.qty) || 0), 0))
 const estimatedTotalRaw = computed(() => form.value.items.reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.unitPrice) || 0), 0))
-const estimatedTotal = computed(() => estimatedTotalRaw.value === 0 ? '—' : fmtMoney(estimatedTotalRaw.value))
+const estimatedTotal    = computed(() => estimatedTotalRaw.value === 0 ? '—' : fmtMoney(estimatedTotalRaw.value))
 
 const canSave = computed(() => {
   if (!form.value.date) return false
@@ -717,12 +736,6 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-// ── Keyboard shortcuts ─────────────────────────────────────────────────
-//   Ctrl/⌘+S          Save Draft
-//   Ctrl/⌘+Shift+S    Create
-//   Ctrl/⌘+A          Open product picker (Add Item)
-//   Alt+V             New Vendor slide-over
-//   Esc               Close active modal
 function onPageKeydown(e) {
   const ctrl  = e.ctrlKey || e.metaKey
   const shift = e.shiftKey
@@ -744,6 +757,8 @@ function onPageKeydown(e) {
 onMounted(() => document.addEventListener('keydown', onPageKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
+// `redirect` controls whether we navigate back to the detail page after save.
+// Save Changes → redirect; Save Draft → stay on edit page with "saved" indicator.
 async function save({ redirect = true } = {}) {
   globalError.value = ''
   if (!validate()) return
@@ -766,21 +781,15 @@ async function save({ redirect = true } = {}) {
         notes:       notes || null,
       })),
     }
-    let data
-    if (createdId.value) {
-      ({ data } = await api.put(`/erp/purchasing/requisitions/${createdId.value}`, payload))
-    } else {
-      ({ data } = await api.post('/erp/purchasing/requisitions', payload))
-      createdId.value = data.data.requisition.id
-    }
+    await api.put(`/erp/purchasing/requisitions/${route.params.id}`, payload)
     dirty.value = false
     if (redirect) {
-      router.push(`/erp/purchasing/requisitions/${data.data.requisition.id}`)
+      router.push(`/erp/purchasing/requisitions/${route.params.id}`)
     } else {
       draftSavedAt.value = new Date()
     }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to save')
+    globalError.value = parseApiError(err, 'Failed to update requisition')
   } finally {
     saving.value = false
     savingDraft.value = false
@@ -788,17 +797,6 @@ async function save({ redirect = true } = {}) {
 }
 
 function saveDraft() { save({ redirect: false }) }
-
-// "12s ago" / "2m ago" relative-time hint next to the saved indicator.
-const _now = ref(Date.now())
-onMounted(() => { const id = setInterval(() => { _now.value = Date.now() }, 15000); onUnmounted(() => clearInterval(id)) })
-const savedAtRelative = computed(() => {
-  if (!draftSavedAt.value) return ''
-  const secs = Math.max(0, Math.round((_now.value - draftSavedAt.value.getTime()) / 1000))
-  if (secs < 60)   return `${secs}s ago`
-  if (secs < 3600) return `${Math.round(secs / 60)}m ago`
-  return `${Math.round(secs / 3600)}h ago`
-})
 
 async function discard() {
   if (dirty.value) {
@@ -809,6 +807,24 @@ async function discard() {
     })
     if (!ok) return
   }
-  router.push('/erp/purchasing/requisitions')
+  router.push(`/erp/purchasing/requisitions/${route.params.id}`)
 }
+
+const _now = ref(Date.now())
+onMounted(() => { const id = setInterval(() => { _now.value = Date.now() }, 15000); onUnmounted(() => clearInterval(id)) })
+const savedAtRelative = computed(() => {
+  if (!draftSavedAt.value) return ''
+  const secs = Math.max(0, Math.round((_now.value - draftSavedAt.value.getTime()) / 1000))
+  if (secs < 60)   return `${secs}s ago`
+  if (secs < 3600) return `${Math.round(secs / 60)}m ago`
+  return `${Math.round(secs / 3600)}h ago`
+})
 </script>
+
+<style scoped>
+.vendor-field :deep(.multiselect),
+.vendor-field :deep(.multiselect__tags),
+.vendor-field :deep(.multiselect__select) {
+  cursor: default;
+}
+</style>
