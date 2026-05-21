@@ -25,6 +25,17 @@ const create = async (req, res, next) => {
   } catch (err) { next(err) }
 }
 
+const update = async (req, res, next) => {
+  try {
+    const userId = req.user?.id
+    const doc = await svc.update(req.params.id, { ...req.body, userId })
+    res.json({ data: { order: doc } })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message })
+    next(err)
+  }
+}
+
 const confirm = async (req, res, next) => {
   try {
     const doc = await svc.confirm(req.params.id, req.user?.id, req.user)
@@ -67,4 +78,4 @@ const createGoodReceive = async (req, res, next) => {
   }
 }
 
-module.exports = { list, getById, create, confirm, receive, cancel, remove, createGoodReceive }
+module.exports = { list, getById, create, update, confirm, receive, cancel, remove, createGoodReceive }

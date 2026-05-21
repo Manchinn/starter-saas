@@ -20,6 +20,12 @@ export const routes = [
     meta: { requiresAuth: true, title: 'Purchase Order Detail' },
   },
   {
+    path: '/erp/purchasing/orders/:id/edit',
+    name: 'erp-purchasing-orders-edit',
+    component: () => import('./views/purchase-order/PurchaseOrderEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Purchase Order' },
+  },
+  {
     path: '/erp/purchasing/requisitions',
     name: 'erp-purchasing-requisitions',
     component: () => import('./views/purchase-requisition/PurchaseRequisitionList.vue'),
@@ -36,6 +42,12 @@ export const routes = [
     name: 'erp-purchasing-requisitions-detail',
     component: () => import('./views/purchase-requisition/PurchaseRequisitionDetail.vue'),
     meta: { requiresAuth: true, title: 'Purchase Requisition Detail' },
+  },
+  {
+    path: '/erp/purchasing/requisitions/:id/edit',
+    name: 'erp-purchasing-requisitions-edit',
+    component: () => import('./views/purchase-requisition/PurchaseRequisitionEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Purchase Requisition' },
   },
 ]
 

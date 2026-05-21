@@ -94,6 +94,62 @@ const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, item
   }
 }
 
+// Edit a draft purchase order. Header + items both replaced atomically;
+// mirrors create()'s validation so the saved doc stays consistent. Editing
+// a confirmed/received PO would invalidate downstream Good Receives, so we
+// block it.
+const update = async (id, { date, deliveryDate, vendorId, requisitionId, notes, items = [], currency, exchangeRate, userId }) => {
+  const po = await PurchaseOrder.findByPk(id)
+  if (!po)                   throw { status: 404, message: 'Purchase Order not found' }
+  if (po.status !== 'draft') throw { status: 400, message: 'Only draft orders can be edited' }
+  if (!date)         throw { status: 400, message: 'Date is required' }
+  if (!vendorId)     throw { status: 400, message: 'Vendor is required' }
+  if (!items.length) throw { status: 400, message: 'At least one item is required' }
+
+  const vendor = await Vendor.findByPk(vendorId)
+  if (!vendor) throw { status: 400, message: 'Vendor not found' }
+
+  const headerExtras = {}
+  if (currency !== undefined) headerExtras.currency = currency || null
+  if (currency !== undefined || exchangeRate !== undefined) {
+    const fx = await require('../../settings/currency.service').getRateOn(currency, date, po.organizationId)
+    headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
+  }
+
+  const t = await sequelize.transaction()
+  try {
+    await po.update({
+      date,
+      deliveryDate:  deliveryDate  || null,
+      vendorId,
+      requisitionId: requisitionId || null,
+      notes:         notes         || null,
+      ...headerExtras,
+      modifiedBy:    userId || null,
+    }, { transaction: t })
+
+    // Replace items wholesale — drafts have no downstream side effects.
+    await PurchaseOrderItem.destroy({ where: { purchaseOrderId: po.id }, transaction: t })
+    for (const item of items) {
+      if (!item.productId && !item.description) throw { status: 400, message: 'Each item needs a product or description' }
+      if (!item.qty || Number(item.qty) <= 0)   throw { status: 400, message: 'Quantity must be greater than 0' }
+      if (Number(item.unitPrice) < 0)            throw { status: 400, message: 'Unit price cannot be negative' }
+      await PurchaseOrderItem.create(
+        { purchaseOrderId: po.id, productId: item.productId || null,
+          description: item.description || null, qty: item.qty,
+          unitPrice: item.unitPrice ?? 0, notes: item.notes || null,
+          organizationId: po.organizationId },
+        { transaction: t },
+      )
+    }
+    await t.commit()
+    return getById(id)
+  } catch (err) {
+    await t.rollback()
+    throw err
+  }
+}
+
 const confirm = async (id, userId, user) => {
   const po = await PurchaseOrder.findByPk(id, {
     include: [{ model: PurchaseOrderItem, as: 'items' }],
@@ -187,4 +243,4 @@ const createGoodReceive = async (id, userId, organizationId, { storeId } = {}) =
   return { id: gr.id }
 }
 
-module.exports = { list, getById, create, confirm, receive, cancel, remove, createGoodReceive }
+module.exports = { list, getById, create, update, confirm, receive, cancel, remove, createGoodReceive }

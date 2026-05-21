@@ -19,6 +19,7 @@ const createRules = [
 router.get('/',               requirePermission('erp.purchasing.list'),   controller.list)
 router.get('/:id',            requirePermission('erp.purchasing.list'),   controller.getById)
 router.post('/',              requirePermission('erp.purchasing.edit'),   createRules, validate, controller.create)
+router.put('/:id',            requirePermission('erp.purchasing.edit'),   createRules, validate, controller.update)
 router.post('/:id/confirm',   requirePermission('erp.purchasing.edit'),   controller.confirm)
 router.post('/:id/receive',   requirePermission('erp.purchasing.edit'),   controller.receive)
 router.post('/:id/cancel',    requirePermission('erp.purchasing.edit'),   controller.cancel)

@@ -2,21 +2,23 @@
   <AppLayout>
     <div class="space-y-5">
 
-      <PageHeader :title="t('erp.po.new')" back-to="/erp/purchasing/orders"
+      <PageHeader :title="loading ? t('erp.po.edit') : (po?.refNo || t('erp.po.edit'))"
+        :back-to="`/erp/purchasing/orders/${route.params.id}`"
         :breadcrumb="[
           { label: t('erp.po.title'), to: '/erp/purchasing/orders' },
-          { label: t('common.create') },
+          { label: po?.refNo || '…', to: `/erp/purchasing/orders/${route.params.id}` },
+          { label: t('common.edit') },
         ]">
         <template #badge>
           <StatusPill :label="t('erp.po.statusDraft')" />
         </template>
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/erp/purchasing/orders"
+            :cancel-to="`/erp/purchasing/orders/${route.params.id}`"
             :cancel-label="t('common.cancel')"
             :saving="saving"
-            :saving-label="t('erp.common.creating')"
-            :save-label="t('erp.po.create')"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('common.saveChanges')"
             :disabled="!canSave"
             :disabled-hint="t('erp.po.fillRequiredFields')"
             @save="save"
@@ -24,19 +26,13 @@
         </template>
       </PageHeader>
 
-      <!-- PR source banner -->
-      <div v-if="fromPR"
-        class="flex items-center gap-3 px-4 py-3 bg-primary-50 border border-primary-200 rounded-xl text-sm">
-        <ClipboardDocumentCheckIcon class="w-4 h-4 text-primary-500 flex-shrink-0" />
-        <span class="text-primary-700">
-          Imported from requisition
-          <RouterLink :to="`/erp/purchasing/requisitions/${fromPR.id}`"
-            class="font-semibold underline hover:text-primary-900">{{ fromPR.refNo }}</RouterLink>
-          — review and adjust before saving.
-        </span>
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
 
-      <div class="space-y-5">
+      <ErrorBanner v-else-if="loadError" :message="loadError" />
+
+      <div v-else class="space-y-5">
 
         <!-- Order Info -->
         <FormCard :title="t('erp.po.orderInfo')" :icon="DocumentTextIcon" icon-color="primary" :padded="false">
@@ -46,7 +42,7 @@
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.po.vendor')" required />
               <div class="flex gap-2 items-start">
-                <div ref="vendorFieldRef" class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0 vendor-field">
                   <SearchSelect v-model="form.vendorId" :options="vendors" :invalid="!!errors.vendorId"
                     :placeholder="`— ${t('erp.po.selectVendor')} —`">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> · {{ option.code }}</span></template>
@@ -281,7 +277,7 @@
     </div>
 
     <!-- Sticky save bar -->
-    <div class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
+    <div v-if="!loading && !loadError" class="sticky bottom-0 -mx-6 mt-6 px-6 py-3.5 bg-white/95 backdrop-blur border-t border-[#E2E8F0] shadow-[0_-4px_12px_rgba(15,23,42,0.05)] z-20
                 flex items-center justify-between gap-3">
       <div class="flex items-center gap-4">
         <div>
@@ -303,7 +299,7 @@
             <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>draft</span>
           </span>
-          <span class="flex items-center gap-1" :title="t('erp.po.create')">
+          <span class="flex items-center gap-1" :title="t('common.saveChanges')">
             <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
             <span>save</span>
           </span>
@@ -326,13 +322,13 @@
           {{ savingDraft ? t('erp.common.saving') : t('erp.po.saveDraft') }}
         </button>
         <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
-          :title="!canSave ? t('erp.po.fillRequiredFields') : `${t('erp.po.create')} (Ctrl+Shift+S)`"
+          :title="!canSave ? t('erp.po.fillRequiredFields') : `${t('common.saveChanges')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
                  bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />
-          {{ saving ? t('erp.common.creating') : t('erp.po.create') }}
+          {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
         </button>
       </div>
     </div>
@@ -428,14 +424,13 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { useRouter, useRoute, RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
   PlusIcon, TrashIcon, XMarkIcon,
   CheckIcon, ArrowPathIcon,
   DocumentTextIcon, ClipboardDocumentListIcon, CalculatorIcon,
-  ClipboardDocumentCheckIcon, ExclamationTriangleIcon,
-  BookmarkSquareIcon, Bars3Icon,
+  ExclamationTriangleIcon, BookmarkSquareIcon, Bars3Icon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
@@ -454,36 +449,31 @@ import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
 
-const { t }  = useI18n()
-const router = useRouter()
-const route  = useRoute()
+const { t }   = useI18n()
+const route   = useRoute()
+const router  = useRouter()
 
-const today = new Date().toISOString().slice(0, 10)
-const form = ref({
-  date: today, deliveryDate: '', vendorId: '', requisitionId: '',
-  currency: '', exchangeRate: 1, notes: '',
-  items: [],
-})
+const po           = ref(null)
 const vendors      = ref([])
 const products     = ref([])
 const requisitions = ref([])
-const fromPR       = ref(null)
+const loading      = ref(true)
+const loadError    = ref('')
 const saving       = ref(false)
 const savingDraft  = ref(false)
 const draftSavedAt = ref(null)
 const globalError  = ref('')
 const errors       = ref({})
 
-// Once a draft has been saved-without-redirect we have a PO id, so subsequent
-// saves PUT instead of POST and the page silently switches to edit mode.
-const createdId = ref('')
+const form = ref({
+  date: '', deliveryDate: '', vendorId: '', requisitionId: '',
+  currency: '', exchangeRate: 1, notes: '', items: [],
+})
 
-// Dirty tracking arms after the first render so default values don't trip
-// the unsaved-changes guard.
+// Dirty tracking arms after load so the parse doesn't trip it.
 const dirty = ref(false)
 let dirtyArmed = false
 watch(form, () => { if (dirtyArmed) dirty.value = true }, { deep: true })
-onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
 
 function onBeforeUnload(e) {
   if (!dirty.value) return
@@ -493,7 +483,7 @@ function onBeforeUnload(e) {
 onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
 onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
 
-// ── Custom confirm modal (replaces window.confirm) ──────────────────────
+// ── Custom confirm modal ────────────────────────────────────────────────
 const confirmOpen    = ref(false)
 const confirmTitle   = ref('')
 const confirmMessage = ref('')
@@ -523,47 +513,6 @@ onBeforeRouteLeave(async () => {
 const selectedVendor = computed(() =>
   form.value.vendorId ? vendors.value.find(v => v.id === form.value.vendorId) : null
 )
-
-const vendorFieldRef = ref(null)
-onMounted(() => {
-  setTimeout(() => {
-    const root = vendorFieldRef.value?.querySelector('.multiselect')
-    root?.focus()
-  }, 100)
-})
-
-onMounted(async () => {
-  const [vRes, pRes, rRes] = await Promise.allSettled([
-    api.get('/erp/vendors',                  { params: { limit: 500 } }),
-    api.get('/erp/item-master',              { params: { limit: 500 } }),
-    api.get('/erp/purchasing/requisitions',  { params: { limit: 200, status: 'approved' } }),
-  ])
-  if (vRes.status === 'fulfilled') vendors.value      = vRes.value.data.data.vendors      || []
-  if (pRes.status === 'fulfilled') {
-    const list = pRes.value.data.data.products || []
-    products.value = list.map(p => ({ ...p, code: p.sku }))
-  }
-  if (rRes.status === 'fulfilled') requisitions.value = rRes.value.data.data.requisitions || []
-
-  // Pre-fill from an approved PR if ?from=:id was supplied.
-  if (route.query.from) {
-    try {
-      const { data } = await api.get(`/erp/purchasing/requisitions/${route.query.from}`)
-      const pr = data.data.requisition
-      fromPR.value            = pr
-      form.value.requisitionId = pr.id
-      if (pr.vendorId) form.value.vendorId = pr.vendorId
-      form.value.items = (pr.items || []).map(i => ({
-        key:         newKey(),
-        productId:   i.productId   || '',
-        description: i.description || (i.product?.name ? i.product.name : ''),
-        qty:         Number(i.qty) || 1,
-        unitPrice:   i.unitPrice != null ? Number(i.unitPrice) : 0,
-        notes:       i.notes || '',
-      }))
-    } catch { /* silent — user can fill manually */ }
-  }
-})
 
 // ── Inline vendor create ───────────────────────────────────────────────
 const vendorCreateOpen = ref(false)
@@ -600,6 +549,56 @@ async function saveVendor() {
     newVendorSaving.value = false
   }
 }
+
+// ── Load ───────────────────────────────────────────────────────────────
+onMounted(async () => {
+  const id = route.params.id
+  const [poRes, vRes, pRes, rRes] = await Promise.allSettled([
+    api.get(`/erp/purchasing/orders/${id}`),
+    api.get('/erp/vendors',                  { params: { limit: 500 } }),
+    api.get('/erp/item-master',              { params: { limit: 500 } }),
+    api.get('/erp/purchasing/requisitions',  { params: { limit: 200, status: 'approved' } }),
+  ])
+  if (vRes.status === 'fulfilled') vendors.value      = vRes.value.data.data.vendors      || []
+  if (pRes.status === 'fulfilled') {
+    const list = pRes.value.data.data.products || []
+    products.value = list.map(p => ({ ...p, code: p.sku }))
+  }
+  if (rRes.status === 'fulfilled') requisitions.value = rRes.value.data.data.requisitions || []
+
+  if (poRes.status !== 'fulfilled') {
+    loadError.value = parseApiError(poRes.reason, 'Failed to load purchase order')
+    loading.value = false
+    return
+  }
+
+  const o = poRes.value.data.data.order
+  if (o.status !== 'draft') {
+    router.replace(`/erp/purchasing/orders/${id}`)
+    return
+  }
+  po.value = o
+  form.value = {
+    date:          o.date          || '',
+    deliveryDate:  o.deliveryDate  || '',
+    vendorId:      o.vendorId      || '',
+    requisitionId: o.requisitionId || '',
+    currency:      o.currency      || '',
+    exchangeRate:  o.exchangeRate != null ? Number(o.exchangeRate) : 1,
+    notes:         o.notes         || '',
+    items: (o.items || []).map(it => ({
+      key:         newKey(),
+      productId:   it.productId || '',
+      description: it.description || '',
+      qty:         Number(it.qty) || 1,
+      unitPrice:   it.unitPrice != null ? Number(it.unitPrice) : 0,
+      notes:       it.notes || '',
+    })),
+  }
+  loading.value = false
+  await nextTick()
+  dirtyArmed = true
+})
 
 // ── Items ──────────────────────────────────────────────────────────────
 let _localKeyCounter = 0
@@ -787,21 +786,15 @@ async function save({ redirect = true } = {}) {
         notes:       notes || null,
       })),
     }
-    let data
-    if (createdId.value) {
-      ({ data } = await api.put(`/erp/purchasing/orders/${createdId.value}`, payload))
-    } else {
-      ({ data } = await api.post('/erp/purchasing/orders', payload))
-      createdId.value = data.data.order.id
-    }
+    await api.put(`/erp/purchasing/orders/${route.params.id}`, payload)
     dirty.value = false
     if (redirect) {
-      router.push(`/erp/purchasing/orders/${data.data.order.id}`)
+      router.push(`/erp/purchasing/orders/${route.params.id}`)
     } else {
       draftSavedAt.value = new Date()
     }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to save')
+    globalError.value = parseApiError(err, 'Failed to update purchase order')
   } finally {
     saving.value = false
     savingDraft.value = false
@@ -809,16 +802,6 @@ async function save({ redirect = true } = {}) {
 }
 
 function saveDraft() { save({ redirect: false }) }
-
-const _now = ref(Date.now())
-onMounted(() => { const id = setInterval(() => { _now.value = Date.now() }, 15000); onUnmounted(() => clearInterval(id)) })
-const savedAtRelative = computed(() => {
-  if (!draftSavedAt.value) return ''
-  const secs = Math.max(0, Math.round((_now.value - draftSavedAt.value.getTime()) / 1000))
-  if (secs < 60)   return `${secs}s ago`
-  if (secs < 3600) return `${Math.round(secs / 60)}m ago`
-  return `${Math.round(secs / 3600)}h ago`
-})
 
 async function discard() {
   if (dirty.value) {
@@ -829,6 +812,24 @@ async function discard() {
     })
     if (!ok) return
   }
-  router.push('/erp/purchasing/orders')
+  router.push(`/erp/purchasing/orders/${route.params.id}`)
 }
+
+const _now = ref(Date.now())
+onMounted(() => { const id = setInterval(() => { _now.value = Date.now() }, 15000); onUnmounted(() => clearInterval(id)) })
+const savedAtRelative = computed(() => {
+  if (!draftSavedAt.value) return ''
+  const secs = Math.max(0, Math.round((_now.value - draftSavedAt.value.getTime()) / 1000))
+  if (secs < 60)   return `${secs}s ago`
+  if (secs < 3600) return `${Math.round(secs / 60)}m ago`
+  return `${Math.round(secs / 3600)}h ago`
+})
 </script>
+
+<style scoped>
+.vendor-field :deep(.multiselect),
+.vendor-field :deep(.multiselect__tags),
+.vendor-field :deep(.multiselect__select) {
+  cursor: default;
+}
+</style>
