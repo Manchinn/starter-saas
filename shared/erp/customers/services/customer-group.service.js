@@ -1,4 +1,4 @@
-const { CustomerGroup } = require('../../../server/models')
+const { CustomerGroup } = require('../../../../server/models')
 const { Op } = require('sequelize')
 
 const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '', organizationId }) => {
@@ -32,7 +32,7 @@ const getById = async (id) => {
 const create = async ({ name, code, autoCode, description, status = 'active', activeFrom, activeTo, userId, organizationId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   if (autoCode) {
-    const seqSvc = require('../settings/sequence.service')
+    const seqSvc = require('../../settings/sequence.service')
     code = await seqSvc.getNext('CGP', userId)
   } else if (code?.trim()) {
     const existing = await CustomerGroup.findOne({ where: { code: code.trim(), organizationId: organizationId || null } })

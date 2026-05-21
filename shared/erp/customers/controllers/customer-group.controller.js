@@ -1,5 +1,5 @@
-const { ok, created, fail, serverError } = require('../../../server/core/response')
-const service = require('./customer-group.service')
+const { ok, created, fail, serverError } = require('../../../../server/core/response')
+const service = require('../services/customer-group.service')
 
 module.exports = {
   async list(req, res) {
