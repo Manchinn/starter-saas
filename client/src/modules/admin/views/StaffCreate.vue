@@ -38,21 +38,35 @@
             <section class="space-y-4">
               <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">{{ t('staff.sectionIdentity') }}</p>
 
-              <div>
-                <label class="label">{{ t('staff.fullName') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-                <input v-model="form.name" type="text" class="input" :placeholder="t('staff.fullNamePh')" />
-              </div>
+              <FormField
+                v-model="form.name"
+                name="name"
+                :label="t('staff.fullName')"
+                :placeholder="t('staff.fullNamePh')"
+                required
+                :errors="fieldErrors"
+              />
 
-              <div>
-                <label class="label">{{ t('staff.emailUser') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-                <input v-model="form.email" type="email" class="input" :placeholder="t('staff.emailPh')" />
-              </div>
+              <FormField
+                v-model="form.email"
+                name="email"
+                type="email"
+                :label="t('staff.emailUser')"
+                :placeholder="t('staff.emailPh')"
+                required
+                :errors="fieldErrors"
+              />
 
-              <div>
-                <label class="label">{{ t('auth.password') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-                <input v-model="form.password" type="password" class="input" :placeholder="t('staff.passwordPh')" />
-                <p class="mt-1 text-[11.5px] text-[#9BA7B0]">{{ t('staff.passwordHint') }}</p>
-              </div>
+              <FormField
+                v-model="form.password"
+                name="password"
+                type="password"
+                :label="t('auth.password')"
+                :placeholder="t('staff.passwordPh')"
+                required
+                :hint="t('staff.passwordHint')"
+                :errors="fieldErrors"
+              />
             </section>
 
             <!-- Right column — access -->
@@ -61,7 +75,8 @@
 
               <div v-if="!organizationId">
                 <label class="label">{{ t('staff.orgLabel') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-                <SearchSelect v-model="form.organizationId" :options="organizations" :allow-empty="false" :placeholder="t('staff.orgPh')" />
+                <SearchSelect v-model="form.organizationId" :options="organizations" :allow-empty="false" :placeholder="t('staff.orgPh')" :invalid="!!errorOf('organizationId')" />
+                <FieldError name="organizationId" :errors="fieldErrors" />
               </div>
               <div v-else>
                 <label class="label">{{ t('staff.orgLabel') }}</label>
@@ -70,7 +85,8 @@
 
               <div>
                 <label class="label">{{ t('staff.roleLabel') }}</label>
-                <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" />
+                <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" :invalid="!!errorOf('role')" />
+                <FieldError name="role" :errors="fieldErrors" />
               </div>
 
               <div>
@@ -97,6 +113,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import { ArrowLeftIcon, UserPlusIcon } from '@heroicons/vue/24/outline'
 import api from '@/api'
 
@@ -117,6 +136,7 @@ const STATUS_OPTIONS = computed(() => [
 const organizations = ref([])
 const error         = ref('')
 const saving        = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({
   name:           '',
@@ -140,18 +160,19 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
-  if (!form.value.name.trim())      { error.value = t('staff.nameRequired'); return }
-  if (!form.value.email.trim())     { error.value = t('staff.emailRequired'); return }
-  if (!form.value.organizationId)   { error.value = t('staff.orgRequired'); return }
-  if (!form.value.password)         { error.value = t('staff.passwordRequired'); return }
-  if (form.value.password.length < 8) { error.value = t('staff.passwordMinLength'); return }
+  resetErrors()
+  if (!form.value.organizationId) {
+    error.value = t('staff.orgRequired')
+    return
+  }
 
   saving.value = true
   try {
     await api.post('/organizations', form.value)
     router.back()
   } catch (err) {
-    error.value = err.response?.data?.message || t('staff.creationFailed')
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('staff.creationFailed')
   } finally {
     saving.value = false
   }

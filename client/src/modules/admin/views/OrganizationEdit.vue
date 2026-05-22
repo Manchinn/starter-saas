@@ -26,33 +26,35 @@
           </div>
           <div class="px-6 py-5 space-y-5">
 
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('org.name') }} <span class="text-red-500">*</span>
-              </label>
-              <input v-model="form.name" type="text" :placeholder="t('org.namePlaceholder')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+            <FormField
+              v-model="form.name"
+              name="name"
+              :label="t('org.name')"
+              :placeholder="t('org.namePlaceholder')"
+              required
+              :errors="fieldErrors"
+            />
 
             <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('org.systemRole') }}
-              </label>
-              <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" />
+              <label class="label">{{ t('org.systemRole') }}</label>
+              <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" :invalid="!!errorOf('role')" />
+              <FieldError name="role" :errors="fieldErrors" />
             </div>
 
-            <div v-if="form.role === 'user'">
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('org.defaultPage') }}
-              </label>
-              <input v-model="form.defaultPage" type="text" :placeholder="t('org.defaultPagePlaceholder')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              <p class="text-xs text-[#9BA7B0] mt-1.5">{{ t('org.defaultPageHint') }}</p>
-            </div>
+            <FormField
+              v-if="form.role === 'user'"
+              v-model="form.defaultPage"
+              name="defaultPage"
+              :label="t('org.defaultPage')"
+              :placeholder="t('org.defaultPagePlaceholder')"
+              :hint="t('org.defaultPageHint')"
+              :errors="fieldErrors"
+            />
 
             <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('org.parentOrg') }}</label>
-              <SearchSelect v-model="form.parentId" :options="parentOrgOptions" :placeholder="t('org.noParent')" />
+              <label class="label">{{ t('org.parentOrg') }}</label>
+              <SearchSelect v-model="form.parentId" :options="parentOrgOptions" :placeholder="t('org.noParent')" :invalid="!!errorOf('parentId')" />
+              <FieldError name="parentId" :errors="fieldErrors" />
             </div>
 
             <div class="flex items-center gap-2.5">
@@ -73,9 +75,7 @@
 
             <!-- Logo column -->
             <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('org.logo') }}
-              </label>
+              <label class="label">{{ t('org.logo') }}</label>
               <div class="w-[160px] h-[160px] rounded-2xl border border-dashed border-[#E2E8F0] bg-[#F7F9FC]
                           flex items-center justify-center overflow-hidden">
                 <img v-if="form.logoPath" :src="logoSrc" :alt="form.companyName || form.name"
@@ -103,44 +103,41 @@
 
             <!-- Profile fields -->
             <div class="space-y-4">
+              <FormField
+                v-model="form.companyName"
+                name="companyName"
+                :label="t('org.companyName')"
+                :placeholder="t('org.companyNamePh')"
+                :hint="t('org.companyNameHint')"
+                :errors="fieldErrors"
+              />
               <div>
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                  {{ t('org.companyName') }}
-                </label>
-                <input v-model="form.companyName" type="text" :placeholder="t('org.companyNamePh')"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('org.companyNameHint') }}</p>
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                  {{ t('org.companyAddress') }}
-                </label>
-                <textarea v-model="form.address" rows="3" :placeholder="t('org.companyAddressPh')"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none" />
+                <label class="label">{{ t('org.companyAddress') }}</label>
+                <textarea v-model="form.address" rows="3" :placeholder="t('org.companyAddressPh')" class="input resize-none" />
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                    {{ t('org.companyPhone') }}
-                  </label>
-                  <input v-model="form.phone" type="text" :placeholder="t('org.companyPhonePh')"
-                    class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                </div>
-                <div>
-                  <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                    {{ t('org.companyTaxId') }}
-                  </label>
-                  <input v-model="form.taxId" type="text" :placeholder="t('org.companyTaxIdPh')"
-                    class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                </div>
+                <FormField
+                  v-model="form.phone"
+                  name="phone"
+                  :label="t('org.companyPhone')"
+                  :placeholder="t('org.companyPhonePh')"
+                  :errors="fieldErrors"
+                />
+                <FormField
+                  v-model="form.taxId"
+                  name="taxId"
+                  :label="t('org.companyTaxId')"
+                  :placeholder="t('org.companyTaxIdPh')"
+                  :errors="fieldErrors"
+                />
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                  {{ t('org.companyWebsite') }}
-                </label>
-                <input v-model="form.website" type="text" :placeholder="t('org.companyWebsitePh')"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              </div>
+              <FormField
+                v-model="form.website"
+                name="website"
+                :label="t('org.companyWebsite')"
+                :placeholder="t('org.companyWebsitePh')"
+                :errors="fieldErrors"
+              />
             </div>
 
           </div>
@@ -217,6 +214,9 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon, ArrowUpTrayIcon, ArrowPathIcon, PhotoIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 
 const route  = useRoute()
@@ -234,21 +234,17 @@ const error    = ref('')
 const allRoles = ref([])
 const allOrgs  = ref([])
 const children = ref([])
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = reactive({
   id: null, name: '', email: '', role: 'user', isActive: true, defaultPage: '', parentId: '', roleIds: [],
-  // Company profile (for printable documents)
   companyName: '', address: '', phone: '', taxId: '', website: '', logoPath: '',
 })
 
-// ── Logo upload state ────────────────────────────────────────────────────
 const logoFileRef = ref(null)
 const logoSaving  = ref(false)
 const logoError   = ref('')
 
-// Logo paths returned by the API are relative (e.g. /uploads/logos/abc.png).
-// In dev the Vite proxy forwards /uploads → API server; in prod the API serves
-// both routes, so a same-origin relative path works without any rewriting.
 const logoSrc = computed(() => form.logoPath || '')
 
 const LOGO_ALLOWED = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
@@ -265,7 +261,6 @@ function fileToBase64(file) {
 
 async function onLogoSelected(e) {
   const file = e.target?.files?.[0]
-  // Reset the input so picking the same file twice still fires `change`.
   if (e.target) e.target.value = ''
   if (!file) return
   logoError.value = ''
@@ -327,7 +322,6 @@ onMounted(async () => {
       defaultPage: u.defaultPage || '',
       parentId:    u.parentId    || '',
       roleIds:     (u.roles || []).map(r => r.id),
-      // Company profile
       companyName: u.companyName || '',
       address:     u.address     || '',
       phone:       u.phone       || '',
@@ -344,6 +338,7 @@ onMounted(async () => {
 
 async function save() {
   error.value  = ''
+  resetErrors()
   saving.value = true
   try {
     await api.put(`/organizations/${form.id}`, {
@@ -352,7 +347,6 @@ async function save() {
       isActive:    form.isActive,
       defaultPage: form.defaultPage || null,
       parentId:    form.parentId    || null,
-      // Company profile
       companyName: form.companyName?.trim() || null,
       address:     form.address?.trim()     || null,
       phone:       form.phone?.trim()       || null,
@@ -362,10 +356,8 @@ async function save() {
     await api.put(`/organizations/${form.id}/roles`, { roleIds: form.roleIds })
     router.push('/admin/organizations')
   } catch (err) {
-    const d = err.response?.data
-    error.value = d?.errors?.length
-      ? d.errors.map(e => e.message).join(', ')
-      : (d?.message || t('org.saveFailed'))
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('org.saveFailed')
   } finally {
     saving.value = false
   }

@@ -22,9 +22,14 @@
             </label>
             <input v-model="email" type="email" required autocomplete="email"
               :placeholder="t('auth.emailPh')"
-              class="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                     placeholder-[#CBD5E1] shadow-xs
-                     focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition" />
+              :class="[
+                'w-full px-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                'placeholder-[#CBD5E1] shadow-xs focus:outline-none focus:ring-2 focus:border-primary-400 transition',
+                errorOf('email')
+                  ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                  : 'border-[#E2E8F0] focus:ring-primary-500/20',
+              ]" />
+            <FieldError name="email" :errors="fieldErrors" />
           </div>
 
           <div v-if="error" class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl">
@@ -63,21 +68,26 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/api'
+import { useFieldErrors } from '@/composables/useFieldErrors'
+import FieldError from '@/components/form/FieldError.vue'
 
 const { t } = useI18n()
 const email   = ref('')
 const loading = ref(false)
 const error   = ref('')
 const sent    = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 async function submit() {
   error.value = ''
+  resetErrors()
   loading.value = true
   try {
     await api.post('/auth/forgot-password', { email: email.value })
     sent.value = true
   } catch (err) {
-    error.value = err.response?.data?.message || t('auth.forgotFailed')
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('auth.forgotFailed')
   } finally {
     loading.value = false
   }

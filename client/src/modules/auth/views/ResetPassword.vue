@@ -22,9 +22,14 @@
             </label>
             <input v-model="newPassword" type="password" required minlength="8" autocomplete="new-password"
               :placeholder="t('auth.passwordMinPh')"
-              class="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                     placeholder-[#CBD5E1] shadow-xs
-                     focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition" />
+              :class="[
+                'w-full px-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                'placeholder-[#CBD5E1] shadow-xs focus:outline-none focus:ring-2 focus:border-primary-400 transition',
+                errorOf('newPassword')
+                  ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                  : 'border-[#E2E8F0] focus:ring-primary-500/20',
+              ]" />
+            <FieldError name="newPassword" :errors="fieldErrors" />
           </div>
 
           <div>
@@ -33,9 +38,14 @@
             </label>
             <input v-model="confirm" type="password" required minlength="8" autocomplete="new-password"
               :placeholder="t('auth.repeatPh')"
-              class="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                     placeholder-[#CBD5E1] shadow-xs
-                     focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition" />
+              :class="[
+                'w-full px-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                'placeholder-[#CBD5E1] shadow-xs focus:outline-none focus:ring-2 focus:border-primary-400 transition',
+                confirmError
+                  ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                  : 'border-[#E2E8F0] focus:ring-primary-500/20',
+              ]" />
+            <FieldError :error="confirmError" />
           </div>
 
           <div v-if="error" class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl">
@@ -69,6 +79,8 @@ import { ref, computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/api'
+import { useFieldErrors } from '@/composables/useFieldErrors'
+import FieldError from '@/components/form/FieldError.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -77,13 +89,17 @@ const confirm     = ref('')
 const loading     = ref(false)
 const error       = ref('')
 const done        = ref(false)
+const confirmError = ref('')
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const canSubmit = computed(() => newPassword.value.length >= 8 && newPassword.value === confirm.value)
 
 async function submit() {
   error.value = ''
+  confirmError.value = ''
+  resetErrors()
   if (newPassword.value !== confirm.value) {
-    error.value = t('auth.passwordsNoMatch')
+    confirmError.value = t('auth.passwordsNoMatch')
     return
   }
   loading.value = true
@@ -91,7 +107,8 @@ async function submit() {
     await api.post('/auth/reset-password', { token: route.params.token, newPassword: newPassword.value })
     done.value = true
   } catch (err) {
-    error.value = err.response?.data?.message || t('auth.resetFailed')
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('auth.resetFailed')
   } finally {
     loading.value = false
   }

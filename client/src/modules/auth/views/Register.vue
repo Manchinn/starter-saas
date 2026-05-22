@@ -2,46 +2,45 @@
   <AuthLayout :subtitle="t('auth.registerSubtitle')">
     <form @submit.prevent="handleRegister" class="space-y-4">
 
-      <div>
-        <label class="label">{{ t('auth.fullName') }}</label>
-        <input
-          v-model="form.name"
-          type="text"
-          required
-          autocomplete="name"
-          class="input-lg"
-          :placeholder="t('auth.fullNamePh')"
-        />
-      </div>
+      <FormField
+        v-model="form.name"
+        name="name"
+        :label="t('auth.fullName')"
+        autocomplete="name"
+        required
+        :placeholder="t('auth.fullNamePh')"
+        :errors="fieldErrors"
+        input-class="input-lg"
+      />
 
-      <div>
-        <label class="label">{{ t('auth.email') }}</label>
-        <input
-          v-model="form.email"
-          type="email"
-          required
-          autocomplete="email"
-          class="input-lg"
-          :placeholder="t('auth.emailPh')"
-        />
-      </div>
+      <FormField
+        v-model="form.email"
+        name="email"
+        type="email"
+        :label="t('auth.email')"
+        autocomplete="email"
+        required
+        :placeholder="t('auth.emailPh')"
+        :errors="fieldErrors"
+        input-class="input-lg"
+      />
 
-      <div>
-        <label class="label">{{ t('auth.password') }}</label>
-        <input
-          v-model="form.password"
-          type="password"
-          required
-          minlength="8"
-          autocomplete="new-password"
-          class="input-lg"
-          :placeholder="t('auth.passwordMinPh')"
-        />
-      </div>
+      <FormField
+        v-model="form.password"
+        name="password"
+        type="password"
+        :label="t('auth.password')"
+        autocomplete="new-password"
+        required
+        minlength="8"
+        :placeholder="t('auth.passwordMinPh')"
+        :errors="fieldErrors"
+        input-class="input-lg"
+      />
 
-      <div v-if="errors.length"
-           class="px-4 py-3 bg-[#FEE2E2] border border-[#FECACA] text-[#B91C1C] text-sm rounded-xl space-y-1">
-        <p v-for="e in errors" :key="e">{{ e }}</p>
+      <div v-if="formError"
+           class="px-4 py-3 bg-[#FEE2E2] border border-[#FECACA] text-[#B91C1C] text-sm rounded-xl">
+        {{ formError }}
       </div>
 
       <button
@@ -67,28 +66,28 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useFieldErrors } from '@/composables/useFieldErrors'
+import FormField from '@/components/form/FormField.vue'
 
 const auth   = useAuthStore()
 const router = useRouter()
 const { t }  = useI18n()
 
-const form    = ref({ name: '', email: '', password: '' })
-const loading = ref(false)
-const errors  = ref([])
+const form      = ref({ name: '', email: '', password: '' })
+const loading   = ref(false)
+const formError = ref('')
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
 
 async function handleRegister() {
-  errors.value  = []
+  formError.value = ''
+  resetErrors()
   loading.value = true
   try {
     await auth.register(form.value.name, form.value.email, form.value.password)
     router.push('/dashboard')
   } catch (err) {
-    const data = err.response?.data
-    if (data?.errors) {
-      errors.value = data.errors.map((e) => e.message)
-    } else {
-      errors.value = [data?.message || t('auth.registrationFailed')]
-    }
+    const had = setFromError(err)
+    if (!had) formError.value = err.response?.data?.message || t('auth.registrationFailed')
   } finally {
     loading.value = false
   }

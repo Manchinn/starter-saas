@@ -180,12 +180,17 @@
                   required
                   autocomplete="email"
                   :placeholder="t('auth.emailPh')"
-                  class="w-full pl-10 pr-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                         placeholder-[#CBD5E1] shadow-xs
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         hover:border-[#C7D2E0] transition-all duration-150"
+                  :class="[
+                    'w-full pl-10 pr-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                    'placeholder-[#CBD5E1] shadow-xs',
+                    'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
+                    errorOf('email')
+                      ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                      : 'border-[#E2E8F0] focus:ring-primary-500/20',
+                  ]"
                 />
               </div>
+              <FieldError name="email" :errors="fieldErrors" />
             </div>
 
             <!-- Password -->
@@ -213,10 +218,14 @@
                   required
                   autocomplete="current-password"
                   :placeholder="t('auth.passwordPh')"
-                  class="w-full pl-10 pr-11 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                         placeholder-[#CBD5E1] shadow-xs
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         hover:border-[#C7D2E0] transition-all duration-150"
+                  :class="[
+                    'w-full pl-10 pr-11 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                    'placeholder-[#CBD5E1] shadow-xs',
+                    'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
+                    errorOf('password')
+                      ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                      : 'border-[#E2E8F0] focus:ring-primary-500/20',
+                  ]"
                 />
                 <button type="button" @click="showPassword = !showPassword" tabindex="-1"
                   class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors p-0.5">
@@ -232,6 +241,7 @@
                   </svg>
                 </button>
               </div>
+              <FieldError name="password" :errors="fieldErrors" />
             </div>
 
             <!-- Remember me -->
@@ -316,6 +326,8 @@ import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { useFieldErrors } from '@/composables/useFieldErrors'
+import FieldError from '@/components/form/FieldError.vue'
 
 const auth   = useAuthStore()
 const router = useRouter()
@@ -326,6 +338,7 @@ const remember     = ref(true)
 const loading      = ref(false)
 const error        = ref('')
 const showPassword = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const features = computed(() => [
   t('auth.feature1'),
@@ -346,7 +359,8 @@ onMounted(() => {
 })
 
 async function handleLogin() {
-  error.value   = ''
+  error.value = ''
+  resetErrors()
   loading.value = true
   try {
     await auth.login(form.value.email, form.value.password, remember.value)
@@ -357,7 +371,10 @@ async function handleLogin() {
     }
     router.push(auth.user?.defaultPage || '/dashboard')
   } catch (err) {
-    error.value = err.response?.data?.message || t('auth.loginFailed')
+    const hadFieldErrors = setFromError(err)
+    if (!hadFieldErrors) {
+      error.value = err.response?.data?.message || t('auth.loginFailed')
+    }
   } finally {
     loading.value = false
   }

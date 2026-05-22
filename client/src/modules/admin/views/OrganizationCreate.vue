@@ -22,35 +22,35 @@
 
           <div class="grid grid-cols-2 gap-5">
 
-            <!-- Name -->
-            <div class="col-span-2">
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ $t('org.name') }} <span class="text-red-500">*</span>
-              </label>
-              <input v-model="form.name" type="text" :placeholder="$t('org.namePlaceholder')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+            <FormField
+              v-model="form.name"
+              name="name"
+              :label="$t('org.name')"
+              :placeholder="$t('org.namePlaceholder')"
+              required
+              :errors="fieldErrors"
+              wrapper-class="col-span-2"
+            />
 
-            <!-- Email -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ $t('org.email') }} <span class="text-red-500">*</span>
-              </label>
-              <input v-model="form.email" type="email" :placeholder="$t('org.emailPlaceholder')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+            <FormField
+              v-model="form.email"
+              name="email"
+              type="email"
+              :label="$t('org.email')"
+              :placeholder="$t('org.emailPlaceholder')"
+              required
+              :errors="fieldErrors"
+            />
 
-            <!-- Password -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ $t('org.password') }} <span class="text-red-500">*</span>
-              </label>
-              <input v-model="form.password" type="password" :placeholder="$t('org.passwordPlaceholder')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+            <FormField
+              v-model="form.password"
+              name="password"
+              type="password"
+              :label="$t('org.password')"
+              :placeholder="$t('org.passwordPlaceholder')"
+              required
+              :errors="fieldErrors"
+            />
 
           </div>
         </div>
@@ -65,24 +65,28 @@
 
           <!-- Parent Organization -->
           <div>
-            <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ $t('org.parentOrg') }}</label>
-            <SearchSelect v-model="form.parentId" :options="allOrgs" :placeholder="$t('org.noParent')" />
+            <label class="label">{{ $t('org.parentOrg') }}</label>
+            <SearchSelect v-model="form.parentId" :options="allOrgs" :placeholder="$t('org.noParent')" :invalid="!!errorOf('parentId')" />
+            <FieldError name="parentId" :errors="fieldErrors" />
           </div>
 
           <!-- System Role -->
           <div>
-            <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ $t('org.systemRole') }}</label>
-            <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" />
+            <label class="label">{{ $t('org.systemRole') }}</label>
+            <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" :invalid="!!errorOf('role')" />
+            <FieldError name="role" :errors="fieldErrors" />
           </div>
 
           <!-- Default Page (user role only) -->
-          <div v-if="form.role === 'user'">
-            <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ $t('org.defaultPage') }}</label>
-            <input v-model="form.defaultPage" type="text" :placeholder="$t('org.defaultPagePlaceholder')"
-              class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            <p class="text-xs text-[#9BA7B0] mt-1.5">{{ $t('org.defaultPageHint') }}</p>
-          </div>
+          <FormField
+            v-if="form.role === 'user'"
+            v-model="form.defaultPage"
+            name="defaultPage"
+            :label="$t('org.defaultPage')"
+            :placeholder="$t('org.defaultPagePlaceholder')"
+            :hint="$t('org.defaultPageHint')"
+            :errors="fieldErrors"
+          />
 
         </div>
       </div>
@@ -142,6 +146,9 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 
 const router = useRouter()
@@ -156,6 +163,7 @@ const allRoles = ref([])
 const allOrgs  = ref([])
 const error    = ref('')
 const saving   = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = reactive({
   name:        '',
@@ -178,6 +186,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   saving.value = true
   try {
     await api.post('/organizations', {
@@ -191,10 +200,8 @@ async function save() {
     })
     router.push('/admin/organizations')
   } catch (err) {
-    const d = err.response?.data
-    error.value = d?.errors?.length
-      ? d.errors.map((e) => e.message).join(', ')
-      : (d?.message || 'Failed to create organization')
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || 'Failed to create organization'
   } finally {
     saving.value = false
   }

@@ -29,45 +29,33 @@
           <div class="px-6 py-5 space-y-5">
             <div class="grid grid-cols-2 gap-5">
 
-              <!-- Name -->
+              <FormField
+                v-model="form.name"
+                name="name"
+                :label="t('common.name')"
+                :errors="fieldErrors"
+                wrapper-class="col-span-2"
+              />
+
               <div class="col-span-2">
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                  {{ t('common.name') }}
-                </label>
-                <input v-model="form.name" type="text"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                <label class="label">{{ t('common.description') }}</label>
+                <textarea v-model="form.description" rows="3" class="input resize-none" />
               </div>
 
-              <!-- Description -->
-              <div class="col-span-2">
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                  {{ t('common.description') }}
-                </label>
-                <textarea v-model="form.description" rows="3"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm resize-none
-                         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              </div>
+              <FormField
+                v-model="form.icon"
+                name="icon"
+                :label="t('common.icon')"
+                :errors="fieldErrors"
+              />
 
-              <!-- Icon -->
-              <div>
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                  {{ t('common.icon') }}
-                </label>
-                <input v-model="form.icon" type="text"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              </div>
-
-              <!-- Order -->
-              <div>
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                  {{ t('common.order') }}
-                </label>
-                <input v-model.number="form.order" type="number"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              </div>
+              <FormField
+                v-model.number="form.order"
+                name="order"
+                type="number"
+                :label="t('common.order')"
+                :errors="fieldErrors"
+              />
 
             </div>
           </div>
@@ -105,6 +93,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import FormField from '@/components/form/FormField.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import { useModulesStore } from '@/stores/modules'
 
 const route = useRoute()
@@ -115,6 +105,7 @@ const modulesStore = useModulesStore()
 const loading = ref(true)
 const saving  = ref(false)
 const error   = ref('')
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
 
 const form = reactive({
   name:        '',
@@ -134,12 +125,14 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   saving.value = true
   try {
     await modulesStore.update(form.id, form)
     router.push('/admin/modules')
   } catch (err) {
-    error.value = err.response?.data?.message || t('mods.saveFailed')
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('mods.saveFailed')
   } finally {
     saving.value = false
   }

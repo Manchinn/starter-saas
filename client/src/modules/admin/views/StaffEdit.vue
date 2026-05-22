@@ -27,10 +27,14 @@
         </div>
 
         <div class="p-6 space-y-4">
-          <div>
-            <label class="label">{{ t('staff.fullName') }} <span class="text-red-500">{{ t('common.required') }}</span></label>
-            <input v-model="form.name" type="text" class="input" :placeholder="t('staff.fullNamePh')" />
-          </div>
+          <FormField
+            v-model="form.name"
+            name="name"
+            :label="t('staff.fullName')"
+            :placeholder="t('staff.fullNamePh')"
+            required
+            :errors="fieldErrors"
+          />
 
           <div>
             <label class="label">
@@ -48,7 +52,8 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="label">{{ t('staff.roleLabel') }}</label>
-              <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" />
+              <SearchSelect v-model="form.role" :options="ROLE_OPTIONS" :allow-empty="false" :invalid="!!errorOf('role')" />
+              <FieldError name="role" :errors="fieldErrors" />
             </div>
             <div>
               <label class="label">{{ t('staff.statusLabel') }}</label>
@@ -80,6 +85,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import { ArrowLeftIcon, UserIcon } from '@heroicons/vue/24/outline'
 import api from '@/api'
 
@@ -100,6 +108,7 @@ const STATUS_OPTIONS = computed(() => [
 const loading = ref(true)
 const error   = ref('')
 const saving  = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({ id: '', name: '', email: '', role: 'user', isActive: true })
 
@@ -117,13 +126,14 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
-  if (!form.value.name.trim()) { error.value = t('staff.nameRequired'); return }
+  resetErrors()
   saving.value = true
   try {
     await api.put(`/organizations/${id}`, form.value)
     router.back()
   } catch (err) {
-    error.value = err.response?.data?.message || t('staff.updateFailed')
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('staff.updateFailed')
   } finally {
     saving.value = false
   }

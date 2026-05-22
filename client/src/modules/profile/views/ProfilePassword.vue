@@ -13,22 +13,34 @@
         </div>
 
         <form @submit.prevent="submit" class="space-y-4">
-          <div>
-            <label class="label">{{ t('profile.currentPassword') }}</label>
-            <input v-model="form.current" type="password" class="input" autocomplete="current-password"
-                   :placeholder="t('profile.passwordPh')" />
-          </div>
-          <div>
-            <label class="label">{{ t('profile.newPassword') }}</label>
-            <input v-model="form.next" type="password" class="input" autocomplete="new-password"
-                   :placeholder="t('profile.passwordPh')" />
-            <p class="text-[12px] text-[#9BA7B0] mt-1.5">{{ t('profile.minChars') }}</p>
-          </div>
-          <div>
-            <label class="label">{{ t('profile.confirmPassword') }}</label>
-            <input v-model="form.confirm" type="password" class="input" autocomplete="new-password"
-                   :placeholder="t('profile.passwordPh')" />
-          </div>
+          <FormField
+            v-model="form.current"
+            name="currentPassword"
+            type="password"
+            :label="t('profile.currentPassword')"
+            autocomplete="current-password"
+            :placeholder="t('profile.passwordPh')"
+            :errors="fieldErrors"
+          />
+          <FormField
+            v-model="form.next"
+            name="newPassword"
+            type="password"
+            :label="t('profile.newPassword')"
+            autocomplete="new-password"
+            :placeholder="t('profile.passwordPh')"
+            :hint="t('profile.minChars')"
+            :errors="fieldErrors"
+          />
+          <FormField
+            v-model="form.confirm"
+            name="confirm"
+            type="password"
+            :label="t('profile.confirmPassword')"
+            autocomplete="new-password"
+            :placeholder="t('profile.passwordPh')"
+            :errors="confirmFieldErrors"
+          />
 
           <div v-if="error" class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg">
             {{ error }}
@@ -49,10 +61,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ProfileTabs from './ProfileTabs.vue'
+import FormField from '@/components/form/FormField.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
@@ -62,19 +76,25 @@ const form = ref({ current: '', next: '', confirm: '' })
 const saving  = ref(false)
 const error   = ref('')
 const success = ref('')
+const confirmMismatch = ref('')
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+
+const confirmFieldErrors = computed(() => ({ confirm: confirmMismatch.value }))
 
 async function submit() {
   error.value = ''
   success.value = ''
-  if (form.value.next.length < 8) { error.value = t('profile.minChars'); return }
-  if (form.value.next !== form.value.confirm) { error.value = t('profile.passwordMismatch'); return }
+  confirmMismatch.value = ''
+  resetErrors()
+  if (form.value.next !== form.value.confirm) { confirmMismatch.value = t('profile.passwordMismatch'); return }
   saving.value = true
   try {
     await auth.changePassword(form.value.current, form.value.next)
     form.value = { current: '', next: '', confirm: '' }
     success.value = t('profile.passwordChanged')
   } catch (err) {
-    error.value = err.response?.data?.message || t('profile.passwordFailed')
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('profile.passwordFailed')
   } finally {
     saving.value = false
   }

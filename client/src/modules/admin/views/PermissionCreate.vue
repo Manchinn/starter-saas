@@ -21,46 +21,43 @@
         <div class="px-6 py-5 space-y-5">
           <div class="grid grid-cols-2 gap-5">
 
-            <!-- Name -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('perms.colName') }} <span class="text-red-500">*</span>
-              </label>
-              <input v-model="form.name" type="text"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+            <FormField
+              v-model="form.name"
+              name="name"
+              :label="t('perms.colName')"
+              required
+              :errors="fieldErrors"
+            />
 
-            <!-- Slug -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('common.slug') }} <span class="text-red-500">*</span>
+            <FormField
+              v-model="form.slug"
+              name="slug"
+              :label="t('common.slug')"
+              :placeholder="t('perms.slugPh')"
+              required
+              :errors="fieldErrors"
+              input-class="font-mono"
+            >
+              <template #label>
+                {{ t('common.slug') }}
                 <span class="text-[#9BA7B0] font-normal normal-case ml-1">{{ t('perms.slugHint') }}</span>
-              </label>
-              <input v-model="form.slug" type="text" :placeholder="t('perms.slugPh')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm font-mono
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+              </template>
+            </FormField>
 
-            <!-- Group -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('perms.groupLabel') }}
-              </label>
-              <input v-model="form.group" type="text" :placeholder="t('perms.groupPh')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+            <FormField
+              v-model="form.group"
+              name="group"
+              :label="t('perms.groupLabel')"
+              :placeholder="t('perms.groupPh')"
+              :errors="fieldErrors"
+            />
 
-            <!-- Description -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('common.description') }}
-              </label>
-              <input v-model="form.description" type="text"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+            <FormField
+              v-model="form.description"
+              name="description"
+              :label="t('common.description')"
+              :errors="fieldErrors"
+            />
 
           </div>
         </div>
@@ -96,6 +93,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import FormField from '@/components/form/FormField.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import { usePermissionsStore } from '@/stores/permissions'
 
 const router = useRouter()
@@ -104,6 +103,7 @@ const permissionsStore = usePermissionsStore()
 
 const error  = ref('')
 const saving = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
 
 const form = reactive({
   name:        '',
@@ -114,15 +114,14 @@ const form = reactive({
 
 async function save() {
   error.value = ''
+  resetErrors()
   saving.value = true
   try {
     await permissionsStore.create(form)
     router.push('/admin/permissions')
   } catch (err) {
-    const d = err.response?.data
-    error.value = d?.errors?.length
-      ? d.errors.map((e) => e.message).join(', ')
-      : (d?.message || t('perms.saveFailed'))
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('perms.saveFailed')
   } finally {
     saving.value = false
   }

@@ -162,12 +162,17 @@
                   required
                   autocomplete="organization"
                   :placeholder="t('auth.orgNamePh')"
-                  class="w-full pl-10 pr-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                         placeholder-[#CBD5E1] shadow-xs
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         hover:border-[#C7D2E0] transition-all duration-150"
+                  :class="[
+                    'w-full pl-10 pr-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                    'placeholder-[#CBD5E1] shadow-xs',
+                    'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
+                    errorOf('name')
+                      ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                      : 'border-[#E2E8F0] focus:ring-primary-500/20',
+                  ]"
                 />
               </div>
+              <FieldError name="name" :errors="fieldErrors" />
             </div>
 
             <!-- Email -->
@@ -189,12 +194,17 @@
                   required
                   autocomplete="email"
                   :placeholder="t('auth.adminEmailPh')"
-                  class="w-full pl-10 pr-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                         placeholder-[#CBD5E1] shadow-xs
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         hover:border-[#C7D2E0] transition-all duration-150"
+                  :class="[
+                    'w-full pl-10 pr-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                    'placeholder-[#CBD5E1] shadow-xs',
+                    'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
+                    errorOf('email')
+                      ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                      : 'border-[#E2E8F0] focus:ring-primary-500/20',
+                  ]"
                 />
               </div>
+              <FieldError name="email" :errors="fieldErrors" />
             </div>
 
             <!-- Password -->
@@ -216,10 +226,14 @@
                   required
                   autocomplete="new-password"
                   :placeholder="t('auth.passwordMinPh')"
-                  class="w-full pl-10 pr-11 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                         placeholder-[#CBD5E1] shadow-xs
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         hover:border-[#C7D2E0] transition-all duration-150"
+                  :class="[
+                    'w-full pl-10 pr-11 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                    'placeholder-[#CBD5E1] shadow-xs',
+                    'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
+                    errorOf('password')
+                      ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                      : 'border-[#E2E8F0] focus:ring-primary-500/20',
+                  ]"
                 />
                 <button type="button" @click="showPassword = !showPassword" tabindex="-1"
                   class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors p-0.5">
@@ -235,6 +249,7 @@
                   </svg>
                 </button>
               </div>
+              <FieldError name="password" :errors="fieldErrors" />
             </div>
 
             <!-- Confirm Password -->
@@ -256,12 +271,17 @@
                   required
                   autocomplete="new-password"
                   :placeholder="t('auth.repeatPh')"
-                  class="w-full pl-10 pr-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A]
-                         placeholder-[#CBD5E1] shadow-xs
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         hover:border-[#C7D2E0] transition-all duration-150"
+                  :class="[
+                    'w-full pl-10 pr-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                    'placeholder-[#CBD5E1] shadow-xs',
+                    'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
+                    confirmMismatch
+                      ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
+                      : 'border-[#E2E8F0] focus:ring-primary-500/20',
+                  ]"
                 />
               </div>
+              <FieldError :error="confirmMismatch ? t('auth.passwordsNoMatch') : ''" />
             </div>
 
             <!-- Setup options -->
@@ -376,6 +396,8 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { resetInstallCache } from '@/router'
 import api from '@/api'
+import { useFieldErrors } from '@/composables/useFieldErrors'
+import FieldError from '@/components/form/FieldError.vue'
 
 const auth   = useAuthStore()
 const router = useRouter()
@@ -388,6 +410,8 @@ const errors       = ref([])
 const showPassword = ref(false)
 const seedSequences = ref(false)
 const seedDemo      = ref(false)
+const confirmMismatch = ref(false)
+const { fieldErrors, setFromError, reset: resetFieldErrors, errorOf } = useFieldErrors()
 
 const setupItems = computed(() => [
   'Administrator account with full access',
@@ -404,8 +428,10 @@ const steps = computed(() => [
 
 async function handleInstall() {
   errors.value = []
+  confirmMismatch.value = false
+  resetFieldErrors()
   if (form.value.password !== form.value.confirmPassword) {
-    errors.value = [t('auth.passwordsNoMatch')]
+    confirmMismatch.value = true
     return
   }
   loading.value = true
@@ -423,12 +449,8 @@ async function handleInstall() {
     resetInstallCache()
     router.push('/dashboard')
   } catch (err) {
-    const data = err.response?.data
-    if (data?.errors?.length) {
-      errors.value = data.errors.map((e) => e.message)
-    } else {
-      errors.value = [data?.message || t('auth.installationFailed')]
-    }
+    const had = setFromError(err)
+    if (!had) errors.value = [err.response?.data?.message || t('auth.installationFailed')]
   } finally {
     loading.value = false
     loadingPhase.value = ''
