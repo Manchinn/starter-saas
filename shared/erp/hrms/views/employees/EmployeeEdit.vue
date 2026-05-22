@@ -242,8 +242,8 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.firstName.trim()) { setField('firstName', 'First name is required'); return }
-  if (!form.value.lastName.trim())  { setField('lastName',  'Last name is required'); return }
+  if (!form.value.firstName.trim()) { setField('firstName', t('common.errors.required', { field: t('erp.employees.firstName') })); return }
+  if (!form.value.lastName.trim())  { setField('lastName',  t('common.errors.required', { field: t('erp.employees.lastName') })); return }
 
   saving.value = true
   try {

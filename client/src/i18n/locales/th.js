@@ -58,6 +58,12 @@ export default {
     to: 'ถึง:',
     discard: 'ยกเลิก',
     tryAdjustingFilters: 'ลองปรับตัวกรอง',
+
+    errors: {
+      required:          'กรุณาระบุ{field}',
+      minLength:         '{field}ต้องมีอย่างน้อย {n} ตัวอักษร',
+      mustBeGreaterThan: '{field}ต้องมากกว่า {min}',
+    },
   },
 
   // ── Sidebar navigation labels ──────────────────────────────────────────────

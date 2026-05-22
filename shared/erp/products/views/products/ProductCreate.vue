@@ -286,7 +286,7 @@ function removeVendor(id) {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { setField('name', 'Name is required'); return }
+  if (!form.value.name.trim()) { setField('name', t('common.errors.required', { field: t('erp.products.name') })); return }
   saving.value = true
   try {
     const payload = {

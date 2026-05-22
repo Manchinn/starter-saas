@@ -204,8 +204,8 @@ const zeroVarianceCount     = computed(() => items.value.filter((i) => variance(
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.date)    { setField('date',    'Date is required'); return }
-  if (!form.value.storeId) { setField('storeId', 'Store is required'); return }
+  if (!form.value.date)    { setField('date',    t('common.errors.required', { field: t('erp.common.date') })); return }
+  if (!form.value.storeId) { setField('storeId', t('common.errors.required', { field: t('erp.common.store') })); return }
   if (!items.value.length) { error.value = 'Load products before saving'; return }
 
   saving.value = true

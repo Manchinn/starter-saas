@@ -230,13 +230,13 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.firstName.trim()) { setField('firstName', 'First name is required'); return }
-  if (!form.value.lastName.trim())  { setField('lastName',  'Last name is required'); return }
+  if (!form.value.firstName.trim()) { setField('firstName', t('common.errors.required', { field: t('erp.employees.firstName') })); return }
+  if (!form.value.lastName.trim())  { setField('lastName',  t('common.errors.required', { field: t('erp.employees.lastName') })); return }
 
   if (createAccount.value) {
-    if (!form.value.email.trim())  { setField('email',    'Email is required'); return }
-    if (!form.value.password)      { setField('password', 'Password is required'); return }
-    if (form.value.password.length < 8) { setField('password', 'Password must be at least 8 characters'); return }
+    if (!form.value.email.trim())  { setField('email',    t('common.errors.required', { field: t('erp.employees.emailUsername') })); return }
+    if (!form.value.password)      { setField('password', t('common.errors.required', { field: t('erp.employees.password') })); return }
+    if (form.value.password.length < 8) { setField('password', t('common.errors.minLength', { field: t('erp.employees.password'), n: 8 })); return }
   }
 
   saving.value = true

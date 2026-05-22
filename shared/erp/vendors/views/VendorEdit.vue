@@ -156,7 +156,7 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { setField('name', 'Name is required'); return }
+  if (!form.value.name.trim()) { setField('name', t('common.errors.required', { field: t('erp.vendors.name') })); return }
   saving.value = true
   try {
     await api.put(`/erp/vendors/${route.params.id}`, form.value)

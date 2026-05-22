@@ -127,9 +127,9 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.fromUomId)                  { setField('fromUomId', 'From UOM is required'); return }
-  if (!form.toUomId)                    { setField('toUomId',   'To UOM is required'); return }
-  if (!form.factor || form.factor <= 0) { setField('factor',    'Factor must be greater than 0'); return }
+  if (!form.fromUomId)                  { setField('fromUomId', t('common.errors.required', { field: t('erp.uomConversion.fromUom') })); return }
+  if (!form.toUomId)                    { setField('toUomId',   t('common.errors.required', { field: t('erp.uomConversion.toUom') })); return }
+  if (!form.factor || form.factor <= 0) { setField('factor',    t('common.errors.mustBeGreaterThan', { field: t('erp.uomConversion.factor'), min: 0 })); return }
   saving.value = true
   try {
     await api.post('/erp/uom-conversion', { ...form })

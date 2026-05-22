@@ -511,8 +511,8 @@ function onDocClickClosePopover(e) {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.date)    { setField('date',    'Date is required'); return }
-  if (!form.value.storeId) { setField('storeId', 'Store is required'); return }
+  if (!form.value.date)    { setField('date',    t('common.errors.required', { field: t('erp.common.date') })); return }
+  if (!form.value.storeId) { setField('storeId', t('common.errors.required', { field: t('erp.common.store') })); return }
   if (!items.value.length) { error.value = 'Add at least one item'; return }
   if (items.value.find(i => !i.productId || !i.qty || i.qty <= 0)) {
     error.value = 'All items must have a product and quantity > 0'; return

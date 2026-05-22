@@ -152,7 +152,7 @@ async function forceGenerate() {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { setField('name', 'Department name is required'); return }
+  if (!form.value.name.trim()) { setField('name', t('common.errors.required', { field: t('erp.departments.name') })); return }
 
   saving.value = true
   try {

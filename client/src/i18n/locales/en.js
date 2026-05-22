@@ -58,6 +58,12 @@ export default {
     to: 'To:',
     discard: 'Discard',
     tryAdjustingFilters: 'Try adjusting your filters',
+
+    errors: {
+      required:          '{field} is required',
+      minLength:         '{field} must be at least {n} characters',
+      mustBeGreaterThan: '{field} must be greater than {min}',
+    },
   },
 
   // ── Sidebar navigation labels ──────────────────────────────────────────────

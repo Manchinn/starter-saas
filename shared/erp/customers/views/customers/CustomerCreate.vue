@@ -117,7 +117,7 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { setField('name', t('erp.customers.nameRequired') || 'Name is required'); return }
+  if (!form.value.name.trim()) { setField('name', t('common.errors.required', { field: t('erp.customers.name') })); return }
   saving.value = true
   try {
     const payload = { ...form.value, customerGroupId: form.value.customerGroupId || null }
