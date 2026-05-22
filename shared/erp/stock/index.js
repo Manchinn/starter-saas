@@ -117,6 +117,12 @@ export const routes = [
     component: () => import('./stock-request/views/StockRequestDetail.vue'),
     meta: { requiresAuth: true, title: 'Stock Transfer Detail' },
   },
+  {
+    path: '/erp/stock-request/:id/edit',
+    name: 'erp-stock-request-edit',
+    component: () => import('./stock-request/views/StockRequestEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Stock Transfer' },
+  },
   // Stock Return
   {
     path: '/erp/stock-return',

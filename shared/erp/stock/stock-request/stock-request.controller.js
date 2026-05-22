@@ -32,6 +32,16 @@ module.exports = {
     }
   },
 
+  async update(req, res) {
+    try {
+      const orgId = req.user?.organizationId || req.user?.id
+      const request = await service.update(req.params.id, { ...req.body, userId: req.user?.id, organizationId: orgId })
+      return ok(res, { request }, 'Stock Transfer updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
   async confirm(req, res) {
     try {
       const request = await service.confirm(req.params.id)

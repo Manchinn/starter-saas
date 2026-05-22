@@ -2,40 +2,53 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.stockTransfer.new')" back-to="/erp/stock-request"
+      <PageHeader :title="t('erp.stockTransfer.edit')" :back-to="`/erp/stock-request/${route.params.id}`"
         :breadcrumb="[
           { label: t('erp.stockTransfer.title'), to: '/erp/stock-request' },
-          { label: t('erp.stockTransfer.new') },
+          { label: form.refNo || '…', to: `/erp/stock-request/${route.params.id}` },
+          { label: t('common.edit') },
         ]">
         <template #badge>
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/erp/stock-request"
+            :cancel-to="`/erp/stock-request/${route.params.id}`"
             :cancel-label="t('common.cancel')"
             :saving="saving"
             :saving-label="t('erp.common.saving')"
-            :save-label="t('erp.common.saveDraft')"
+            :save-label="t('common.save')"
             @save="save"
           />
         </template>
       </PageHeader>
 
-      <div class="space-y-5">
+      <!-- Loading -->
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+
+      <!-- Not found / not editable -->
+      <div v-else-if="loadError"
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl">
+        <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <span>{{ loadError }}
+          <RouterLink to="/erp/stock-request" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
+        </span>
+      </div>
+
+      <div v-else class="space-y-5">
 
         <!-- Section 1: Transfer Info -->
         <FormCard :title="t('erp.stockTransfer.transferInfo')" :icon="ArrowsRightLeftIcon" icon-color="purple">
           <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
-            <!-- Date -->
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
               <DateInput v-model="form.date" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
                        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
             </div>
 
-            <!-- Notes -->
             <div>
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                 {{ t('erp.common.notes') }}
@@ -46,7 +59,6 @@
                        transition-colors placeholder-[#CBD5E1]" />
             </div>
 
-            <!-- From Store -->
             <div>
               <FieldLabel :text="t('erp.stockTransfer.fromStore')" required />
               <SearchSelect v-model="form.fromStoreId" :options="fromStoreOptions" :placeholder="t('erp.common.selectStore')">
@@ -55,7 +67,6 @@
               </SearchSelect>
             </div>
 
-            <!-- To Store -->
             <div>
               <FieldLabel :text="t('erp.stockTransfer.toStore')" required />
               <SearchSelect v-model="form.toStoreId" :options="toStoreOptions" :placeholder="t('erp.common.selectStore')">
@@ -64,7 +75,6 @@
               </SearchSelect>
             </div>
 
-            <!-- Route arrow indicator -->
             <div v-if="form.fromStoreId && form.toStoreId" class="col-span-2">
               <div class="flex items-center gap-3 px-4 py-3 bg-violet-50 rounded-xl border border-violet-100">
                 <BuildingStorefrontIcon class="w-4 h-4 text-violet-500 flex-shrink-0" />
@@ -110,7 +120,6 @@
             </button>
           </div>
 
-          <!-- No from-store selected -->
           <div v-if="!form.fromStoreId" class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
               <BuildingStorefrontIcon class="w-7 h-7 text-[#CBD5E1]" />
@@ -118,13 +127,11 @@
             <p class="text-sm font-semibold text-[#637381]">{{ t('erp.stockTransfer.selectStorePh') }}</p>
           </div>
 
-          <!-- Loading -->
           <div v-else-if="loadingStoreProducts" class="flex items-center justify-center py-16 text-[#9BA7B0] gap-2">
             <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
             <span class="text-sm">{{ t('erp.stockTransfer.loadingProducts') }}</span>
           </div>
 
-          <!-- No stock -->
           <div v-else-if="!storeProducts.length" class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
               <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
@@ -133,7 +140,6 @@
           </div>
 
           <div v-else>
-            <!-- Empty state -->
             <div v-if="!items.length" class="flex flex-col items-center justify-center py-16 text-center">
               <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
                 <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
@@ -149,7 +155,6 @@
             </div>
 
             <div v-else>
-              <!-- Header row -->
               <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
                           text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider"
                 style="grid-template-columns: 2.5fr 7rem 8rem 2fr 4.5rem">
@@ -166,7 +171,6 @@
                   :class="item.qty > availableStock(item.productId) ? 'bg-red-50 hover:bg-red-50/80' : 'hover:bg-[#F7F9FC]'"
                   style="grid-template-columns: 2.5fr 7rem 8rem 2fr 4.5rem">
 
-                  <!-- Product label -->
                   <div class="min-w-0 flex items-center gap-2">
                     <span class="font-mono text-[11px] text-[#9BA7B0] tabular-nums w-5 text-right flex-shrink-0">{{ i + 1 }}</span>
                     <div class="min-w-0">
@@ -196,7 +200,6 @@
                            focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                            transition-colors placeholder-[#CBD5E1]" />
 
-                  <!-- Row actions -->
                   <div class="flex items-center justify-end gap-1">
                     <div class="relative" data-dup-popover>
                       <button v-if="isDuplicate(item)" type="button"
@@ -236,7 +239,6 @@
             </div>
           </div>
 
-          <!-- Hidden bulk-add popup -->
           <SearchSelectPopup
             ref="pickerRef"
             :model-value="''"
@@ -305,7 +307,7 @@
                   <span>dup</span>
                 </span>
               </div>
-              <RouterLink to="/erp/stock-request"
+              <RouterLink :to="`/erp/stock-request/${route.params.id}`"
                 class="px-5 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
                 {{ t('common.cancel') }}
               </RouterLink>
@@ -315,7 +317,7 @@
                        disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
                 <CheckIcon v-else class="w-4 h-4" />
-                {{ saving ? t('erp.common.saving') : t('erp.common.saveDraft') }}
+                {{ saving ? t('erp.common.saving') : t('common.save') }}
               </button>
             </div>
           </div>
@@ -328,7 +330,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, TrashIcon, CheckIcon, ArrowPathIcon,
@@ -346,33 +348,81 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import api from '@/api'
 
-const { t } = useI18n()
+const { t }                = useI18n()
+const route                = useRoute()
 const router               = useRouter()
+
 const stores               = ref([])
 const storeProducts        = ref([])
 const loadingStoreProducts = ref(false)
-const form  = ref({ date: new Date().toISOString().slice(0, 10), fromStoreId: '', toStoreId: '', notes: '' })
+
+const form  = ref({ refNo: '', date: '', fromStoreId: '', toStoreId: '', notes: '' })
+const items = ref([])
+const error = ref('')
+const saving = ref(false)
+const loading = ref(true)
+const loadError = ref('')
+const pickerRef = ref(null)
 
 const fromStoreOptions = computed(() => stores.value.filter(s => s.id !== form.value.toStoreId))
 const toStoreOptions   = computed(() => stores.value.filter(s => s.id !== form.value.fromStoreId))
-const items  = ref([])
-const error  = ref('')
-const saving = ref(false)
-const pickerRef = ref(null)
 
 let rowKeySeq = 0
 const newKey = () => `r${++rowKeySeq}`
 
+let initialFromStoreId = ''
+let skipNextStoreWatch = false
+
 onMounted(async () => {
   try {
-    const { data } = await api.get('/erp/stock-request/stores-lookup')
-    stores.value = data.data.stores
+    const [storesRes, reqRes] = await Promise.all([
+      api.get('/erp/stock-request/stores-lookup'),
+      api.get(`/erp/stock-request/${route.params.id}`),
+    ])
+    stores.value = storesRes.data.data.stores
+
+    const req = reqRes.data.data.request
+    if (!req) { loadError.value = 'Stock Transfer not found'; return }
+    if (req.status !== 'draft') {
+      loadError.value = 'Only draft transfers can be edited. This one is already ' + req.status + '.'
+      return
+    }
+
+    form.value = {
+      refNo:       req.refNo,
+      date:        req.date,
+      fromStoreId: req.fromStoreId,
+      toStoreId:   req.toStoreId,
+      notes:       req.notes || '',
+    }
+    initialFromStoreId = req.fromStoreId
+    skipNextStoreWatch = true
+
+    if (initialFromStoreId) {
+      loadingStoreProducts.value = true
+      try {
+        const { data } = await api.get('/erp/stock-request/store-products', { params: { storeId: initialFromStoreId } })
+        storeProducts.value = data.data.products
+      } finally {
+        loadingStoreProducts.value = false
+      }
+    }
+
+    items.value = (req.items || []).map(i => ({
+      key:       newKey(),
+      productId: i.productId,
+      qty:       Number(i.qty),
+      notes:     i.notes || '',
+    }))
   } catch (err) {
-    console.error('Failed to load stores:', err.message)
+    loadError.value = err.response?.data?.message || 'Failed to load transfer'
+  } finally {
+    loading.value = false
   }
 })
 
 watch(() => form.value.fromStoreId, async (storeId) => {
+  if (skipNextStoreWatch) { skipNextStoreWatch = false; return }
   items.value = []
   storeProducts.value = []
   if (!storeId) return
@@ -464,12 +514,14 @@ async function save() {
   if (overStock) { error.value = 'Quantity exceeds available stock for one or more items'; return }
   saving.value = true
   try {
-    const payload = {
-      ...form.value,
-      items: items.value.map(i => ({ productId: i.productId, qty: i.qty, notes: i.notes })),
-    }
-    const { data } = await api.post('/erp/stock-request', payload)
-    router.push(`/erp/stock-request/${data.data.request.id}`)
+    await api.put(`/erp/stock-request/${route.params.id}`, {
+      date:        form.value.date,
+      fromStoreId: form.value.fromStoreId,
+      toStoreId:   form.value.toStoreId,
+      notes:       form.value.notes,
+      items:       items.value.map(i => ({ productId: i.productId, qty: i.qty, notes: i.notes })),
+    })
+    router.push(`/erp/stock-request/${route.params.id}`)
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to save'
   } finally {
@@ -477,7 +529,6 @@ async function save() {
   }
 }
 
-// Keyboard shortcuts: Ctrl+S save, Ctrl+L add items, Ctrl+D duplicate last row.
 function onPageKeydown(e) {
   const ctrl = e.ctrlKey || e.metaKey
   if (!ctrl) return

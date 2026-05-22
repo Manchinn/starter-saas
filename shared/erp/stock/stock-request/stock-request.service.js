@@ -1,7 +1,7 @@
 const { StockRequest, StockRequestItem, Product, Store, StoreStock, StockMovement } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku', 'stock']
 const storeAttrs   = ['id', 'name', 'code']
@@ -63,6 +63,40 @@ const create = async ({ date, fromStoreId, toStoreId, notes, items = [], userId,
     }
     await t.commit()
     return getById(req.id)
+  } catch (err) {
+    await t.rollback()
+    throw err
+  }
+}
+
+const update = async (id, { date, fromStoreId, toStoreId, notes, items = [], userId, organizationId }) => {
+  const req = await StockRequest.findByPk(id)
+  if (!req) throw { status: 404, message: 'Stock Transfer not found' }
+  if (req.status !== 'draft') throw { status: 400, message: 'Only draft transfers can be edited' }
+  if (!date)        throw { status: 400, message: 'Date is required' }
+  if (!fromStoreId) throw { status: 400, message: 'Source store is required' }
+  if (!toStoreId)   throw { status: 400, message: 'Destination store is required' }
+  if (fromStoreId === toStoreId) throw { status: 400, message: 'Source and destination stores must be different' }
+  if (!items.length) throw { status: 400, message: 'At least one item is required' }
+
+  const [fromStore, toStore] = await Promise.all([Store.findByPk(fromStoreId), Store.findByPk(toStoreId)])
+  if (!fromStore) throw { status: 400, message: 'Source store not found' }
+  if (!toStore)   throw { status: 400, message: 'Destination store not found' }
+
+  const t = await sequelize.transaction()
+  try {
+    await req.update({ date, fromStoreId, toStoreId, notes, modifiedBy: userId || null }, { transaction: t })
+    await StockRequestItem.destroy({ where: { stockRequestId: id }, transaction: t })
+    for (const item of items) {
+      if (!item.productId) throw { status: 400, message: 'Product is required on all items' }
+      if (!item.qty || item.qty <= 0) throw { status: 400, message: 'Quantity must be greater than 0' }
+      await StockRequestItem.create(
+        { stockRequestId: id, productId: item.productId, qty: item.qty, notes: item.notes || null, organizationId: organizationId || null },
+        { transaction: t }
+      )
+    }
+    await t.commit()
+    return getById(id)
   } catch (err) {
     await t.rollback()
     throw err
@@ -148,4 +182,4 @@ const remove = async (id) => {
   await req.destroy()
 }
 
-module.exports = { list, getById, create, confirm, remove }
+module.exports = { list, getById, create, update, confirm, remove }
