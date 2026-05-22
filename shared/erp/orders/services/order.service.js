@@ -129,7 +129,7 @@ const create = async ({
 
   const orderNumber = await generateOrderNumber()
   const { subtotal, tax, total, discountAmount, lines } = computeTotals(items, { discountType, discountValue })
-  const fx = await require('../../settings/currency.service').getRateOn(currency, orderDate, organizationId)
+  const fx = await require('../../settings/services/currency.service').getRateOn(currency, orderDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
@@ -307,7 +307,7 @@ const update = async (id, payload, userId) => {
   const headerExtras = {}
   if (currency !== undefined) headerExtras.currency = currency || null
   if (currency !== undefined || exchangeRate !== undefined) {
-    const fx = await require('../../settings/currency.service').getRateOn(currency, orderDate || order.orderDate, order.organizationId)
+    const fx = await require('../../settings/services/currency.service').getRateOn(currency, orderDate || order.orderDate, order.organizationId)
     headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   }
   // Optional header-only fields — only overwrite the column when the client
@@ -474,7 +474,7 @@ const createDeliveryOrder = async (id, userId, organizationId) => {
     attributes: ['id', 'refNo'],
   })
   if (existing) throw { status: 400, message: `Delivery order ${existing.refNo} already exists for this sales order. Cancel it first to create a new one.` }
-  const { getNext } = require('../../settings/sequence.service')
+  const { getNext } = require('../../settings/services/sequence.service')
 
   const refNo = await getNext('DO', userId)
   const today = new Date().toISOString().slice(0, 10)

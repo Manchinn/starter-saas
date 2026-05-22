@@ -1,7 +1,7 @@
 ﻿const { Journal, JournalLine, ChartOfAccount } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const accountAttrs = ['id', 'code', 'name', 'accountType', 'normalBalance']
 

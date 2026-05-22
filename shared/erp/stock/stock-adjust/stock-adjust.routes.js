@@ -1,6 +1,6 @@
 const { Router } = require('express')
 const controller = require('./stock-adjust.controller')
-const productController = require('../../products/product.controller')
+const productController = require('../../products/controllers/product.controller')
 const stockBalanceSvc = require('../stock-balance/stock-balance.service')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requirePermission } = require('../../../../server/middleware/permission')
@@ -31,6 +31,7 @@ router.get('/store-products', requirePermission('erp.stock.list'), async (req, r
 router.get('/',              requirePermission('erp.stock.list'),   (req, res) => controller.list(req, res))
 router.get('/:id',           requirePermission('erp.stock.list'),   (req, res) => controller.getById(req, res))
 router.post('/',             requirePermission('erp.stock.edit'),   (req, res) => controller.create(req, res))
+router.put('/:id',           requirePermission('erp.stock.edit'),   (req, res) => controller.update(req, res))
 router.post('/:id/confirm',  requirePermission('erp.stock.edit'),   (req, res) => controller.confirm(req, res))
 router.delete('/:id',        requirePermission('erp.stock.delete'), (req, res) => controller.remove(req, res))
 

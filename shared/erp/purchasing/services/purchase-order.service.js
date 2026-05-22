@@ -1,7 +1,7 @@
 const { PurchaseOrder, PurchaseOrderItem, Product, Vendor, PurchaseRequisition } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku']
 const vendorAttrs  = ['id', 'name', 'code']
@@ -63,7 +63,7 @@ const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, item
   if (!vendor) throw { status: 400, message: 'Vendor not found' }
 
   const refNo = await nextRefNo(userId)
-  const fx = await require('../../settings/currency.service').getRateOn(currency, date, organizationId)
+  const fx = await require('../../settings/services/currency.service').getRateOn(currency, date, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   const t = await sequelize.transaction()
   try {
@@ -112,7 +112,7 @@ const update = async (id, { date, deliveryDate, vendorId, requisitionId, notes, 
   const headerExtras = {}
   if (currency !== undefined) headerExtras.currency = currency || null
   if (currency !== undefined || exchangeRate !== undefined) {
-    const fx = await require('../../settings/currency.service').getRateOn(currency, date, po.organizationId)
+    const fx = await require('../../settings/services/currency.service').getRateOn(currency, date, po.organizationId)
     headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   }
 
@@ -159,7 +159,7 @@ const confirm = async (id, userId, user) => {
 
   if (user) {
     const total = po.items.reduce((s, i) => s + Number(i.qty || 0) * Number(i.unitPrice || 0), 0)
-    const thresholds = require('../../settings/approval-threshold.service')
+    const thresholds = require('../../settings/services/approval-threshold.service')
     await thresholds.enforce({ user, docType: 'purchase_order', amount: total, organizationId: po.organizationId })
   }
 

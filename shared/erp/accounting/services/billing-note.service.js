@@ -1,7 +1,7 @@
 ﻿const { BillingNote, BillingNoteInvoice, Invoice, Customer } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const customerAttrs = ['id', 'name', 'company', 'email', 'phone']
 const invoiceAttrs  = ['id', 'invoiceNumber', 'invoiceDate', 'dueDate', 'total', 'status']
@@ -81,7 +81,7 @@ const create = async ({ date, dueDate, customerId, notes, invoiceIds = [], curre
 
   const total  = invoices.reduce((s, inv) => s + Number(inv.total), 0)
   const refNo  = await nextRefNo(userId)
-  const fx = await require('../../settings/currency.service').getRateOn(currency, date, organizationId)
+  const fx = await require('../../settings/services/currency.service').getRateOn(currency, date, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   const t = await sequelize.transaction()

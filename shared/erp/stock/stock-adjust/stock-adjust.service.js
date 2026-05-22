@@ -1,7 +1,7 @@
 const { StockAdjust, StockAdjustItem, Product, Store, StoreStock, StockMovement } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku', 'stock', 'unit']
 
@@ -54,7 +54,45 @@ const create = async ({ date, reason, storeId, notes, items = [], userId, organi
       )
     }
     await t.commit()
+    require('../../audit/audit.service').log({
+      userId, action: 'stock-adjust.created', entityType: 'StockAdjust', entityId: adj.id,
+      summary: { refNo: adj.refNo, storeId, items: items.length },
+    })
     return getById(adj.id)
+  } catch (err) {
+    await t.rollback()
+    throw err
+  }
+}
+
+const update = async (id, { date, reason, storeId, notes, items = [], userId, organizationId }) => {
+  const adj = await StockAdjust.findByPk(id)
+  if (!adj) throw { status: 404, message: 'Stock Adjustment not found' }
+  if (adj.status !== 'draft') throw { status: 400, message: 'Only draft adjustments can be edited' }
+  if (!date)          throw { status: 400, message: 'Date is required' }
+  if (!storeId)       throw { status: 400, message: 'Store is required' }
+  if (!items.length)  throw { status: 400, message: 'At least one item is required' }
+  const store = await Store.findByPk(storeId)
+  if (!store) throw { status: 400, message: 'Store not found' }
+
+  const t = await sequelize.transaction()
+  try {
+    await adj.update({ date, reason, storeId, notes, modifiedBy: userId || null }, { transaction: t })
+    await StockAdjustItem.destroy({ where: { stockAdjustId: id }, transaction: t })
+    for (const item of items) {
+      if (!item.productId) throw { status: 400, message: 'Product is required on all items' }
+      if (item.qty === undefined || item.qty === 0) throw { status: 400, message: 'Quantity cannot be zero' }
+      await StockAdjustItem.create(
+        { stockAdjustId: id, productId: item.productId, qty: item.qty, notes: item.notes || null, organizationId: organizationId || null },
+        { transaction: t }
+      )
+    }
+    await t.commit()
+    require('../../audit/audit.service').log({
+      userId, action: 'stock-adjust.updated', entityType: 'StockAdjust', entityId: id,
+      summary: { refNo: adj.refNo, items: items.length },
+    })
+    return getById(id)
   } catch (err) {
     await t.rollback()
     throw err
@@ -102,6 +140,10 @@ const confirm = async (id) => {
     }
     await adj.update({ status: 'confirmed' }, { transaction: t })
     await t.commit()
+    require('../../audit/audit.service').log({
+      action: 'stock-adjust.confirmed', entityType: 'StockAdjust', entityId: id,
+      summary: { refNo: adj.refNo, storeId: adj.storeId, items: adj.items.length },
+    })
     return getById(id)
   } catch (err) {
     await t.rollback()
@@ -109,11 +151,15 @@ const confirm = async (id) => {
   }
 }
 
-const remove = async (id) => {
+const remove = async (id, userId) => {
   const adj = await StockAdjust.findByPk(id)
   if (!adj) throw { status: 404, message: 'Stock Adjustment not found' }
   if (adj.status === 'confirmed') throw { status: 400, message: 'Cannot delete a confirmed adjustment' }
   await adj.destroy()
+  require('../../audit/audit.service').log({
+    userId, action: 'stock-adjust.deleted', entityType: 'StockAdjust', entityId: id,
+    summary: { refNo: adj.refNo },
+  })
 }
 
-module.exports = { list, getById, create, confirm, remove }
+module.exports = { list, getById, create, update, confirm, remove }

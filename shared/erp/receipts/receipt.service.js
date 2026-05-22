@@ -39,7 +39,7 @@ const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amoun
   await require('../accounting/services/tax-period.service').assertOpen(receiptDate || new Date(), organizationId)
 
   const receiptNumber = await generateReceiptNumber()
-  const fx = await require('../settings/currency.service').getRateOn(currency, receiptDate, organizationId)
+  const fx = await require('../settings/services/currency.service').getRateOn(currency, receiptDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   const receipt = await Receipt.create({

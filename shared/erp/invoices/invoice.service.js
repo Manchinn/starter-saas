@@ -169,7 +169,7 @@ const create = async ({
     taxRate: i.taxRate != null ? Number(i.taxRate) : Number(taxRate || 0),
   }))
   const { subtotal, tax, total, discountAmount, lines } = computeTotals(itemsWithTax, { discountType, discountValue })
-  const fx = await require('../settings/currency.service').getRateOn(currency, invoiceDate, organizationId)
+  const fx = await require('../settings/services/currency.service').getRateOn(currency, invoiceDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
@@ -223,7 +223,7 @@ const update = async (id, payload, userId) => {
   const headerExtras = {}
   if (currency !== undefined) headerExtras.currency = currency || null
   if (currency !== undefined || exchangeRate !== undefined) {
-    const fx = await require('../settings/currency.service').getRateOn(currency, invoiceDate || invoice.invoiceDate, invoice.organizationId)
+    const fx = await require('../settings/services/currency.service').getRateOn(currency, invoiceDate || invoice.invoiceDate, invoice.organizationId)
     headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   }
   if (referenceNumber !== undefined) headerExtras.referenceNumber = referenceNumber || null

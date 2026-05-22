@@ -1,7 +1,7 @@
 const { StockCount, StockCountItem, Product, Store, StoreStock, StockMovement } = require('../../../../server/models')
 const { Op, fn, col } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku', 'stock']
 

@@ -39,7 +39,7 @@ const create = async ({ name, code, autoCode, email, phone, company, address, no
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   let customerCode = null
   if (autoCode) {
-    const seqSvc = require('../../settings/sequence.service')
+    const seqSvc = require('../../settings/services/sequence.service')
     customerCode = await seqSvc.getNext('CUS', userId)
   } else if (code?.trim()) {
     const existing = await Customer.findOne({ where: { code: code.trim() } })

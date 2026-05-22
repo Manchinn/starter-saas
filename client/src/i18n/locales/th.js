@@ -17,6 +17,8 @@ export default {
     delete: 'ลบ',
     edit: 'แก้ไข',
     print: 'พิมพ์',
+    remove: 'ลบออก',
+    duplicate: 'ทำสำเนา',
     actions: 'การดำเนินการ',
     create: 'สร้าง',
     search: 'ค้นหา',

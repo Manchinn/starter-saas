@@ -34,7 +34,7 @@ const getById = async (id) => {
 
 const create = async ({ name, code, description, unitPrice, currency = 'USD', status = 'active', activeFrom, activeTo, saleItemId, customerGroupId, autoCode, userId, organizationId }) => {
   if (autoCode) {
-    const seqSvc = require('../settings/sequence.service')
+    const seqSvc = require('../settings/services/sequence.service')
     code = await seqSvc.getNext('PRC', userId)
   } else if (code?.trim()) {
     const existing = await Pricing.findOne({ where: { code: code.trim(), organizationId: organizationId || null } })

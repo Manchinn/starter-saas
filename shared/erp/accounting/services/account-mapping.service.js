@@ -2,7 +2,7 @@ const { ChartOfAccount } = require('../../../../server/models')
 
 /**
  * Map well-known accounting roles to ChartOfAccount records by code.
- * Codes match the seed in shared/erp/settings/demo-data.service.js.
+ * Codes match the seed in shared/erp/settings/services/demo-data.service.js.
  *
  * If a required account is missing, throws an error so the caller knows
  * to seed the chart of accounts before posting.

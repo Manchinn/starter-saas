@@ -4,7 +4,7 @@ const {
 } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const customerAttrs = ['id', 'name', 'company', 'email', 'phone', 'address']
 const orderAttrs    = ['id', 'orderNumber', 'orderDate', 'status']

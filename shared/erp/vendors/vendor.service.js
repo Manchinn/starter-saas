@@ -30,7 +30,7 @@ const getById = async (id) => {
 const create = async ({ name, code, contactPerson, email, phone, address, notes, vendorTypes, status = 'active', activeFrom, activeTo, autoCode, userId, organizationId }) => {
   if (!name?.trim()) throw { status: 400, message: 'Name is required' }
   if (autoCode) {
-    const seqSvc = require('../settings/sequence.service')
+    const seqSvc = require('../settings/services/sequence.service')
     code = await seqSvc.getNext('VND', userId)
   } else if (code?.trim()) {
     const existing = await Vendor.findOne({ where: { code: code.trim(), organizationId: organizationId || null } })

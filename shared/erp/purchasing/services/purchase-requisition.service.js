@@ -1,7 +1,7 @@
 const { PurchaseRequisition, PurchaseRequisitionItem, PurchaseOrder, Product, Vendor } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku']
 const vendorAttrs  = ['id', 'name', 'code']
@@ -51,7 +51,7 @@ const create = async ({ date, requestedBy, department, vendorId, notes, items = 
   if (!items.length) throw { status: 400, message: 'At least one item is required' }
 
   const refNo = await nextRefNo(userId)
-  const fx = await require('../../settings/currency.service').getRateOn(currency, date, organizationId)
+  const fx = await require('../../settings/services/currency.service').getRateOn(currency, date, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   const t = await sequelize.transaction()
   try {
@@ -92,7 +92,7 @@ const update = async (id, { date, requestedBy, department, vendorId, notes, item
   const headerExtras = {}
   if (currency !== undefined) headerExtras.currency = currency || null
   if (currency !== undefined || exchangeRate !== undefined) {
-    const fx = await require('../../settings/currency.service').getRateOn(currency, date, req.organizationId)
+    const fx = await require('../../settings/services/currency.service').getRateOn(currency, date, req.organizationId)
     headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   }
 

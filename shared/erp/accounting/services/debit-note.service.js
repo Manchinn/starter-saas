@@ -1,6 +1,6 @@
 ﻿const { DebitNote, Invoice, Customer } = require('../../../../server/models')
 const { Op } = require('sequelize')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const customerAttrs = ['id', 'name', 'company', 'email', 'phone']
 const invoiceAttrs  = ['id', 'invoiceNumber', 'invoiceDate', 'dueDate', 'total', 'status']

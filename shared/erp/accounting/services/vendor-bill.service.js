@@ -51,7 +51,7 @@ const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceN
   const subtotal = items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.unitPrice || 0), 0)
   const tax   = toFixed(subtotal * (Number(taxRate) / 100), 2)
   const total = toFixed(subtotal + tax, 2)
-  const fx = await require('../../settings/currency.service').getRateOn(currency, billDate, organizationId)
+  const fx = await require('../../settings/services/currency.service').getRateOn(currency, billDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
@@ -107,7 +107,7 @@ const update = async (id, { vendorId, purchaseOrderId, goodReceiveId, vendorInvo
   const headerExtras = {}
   if (currency !== undefined) headerExtras.currency = currency || null
   if (currency !== undefined || exchangeRate !== undefined) {
-    const fx = await require('../../settings/currency.service').getRateOn(currency, billDate, bill.organizationId)
+    const fx = await require('../../settings/services/currency.service').getRateOn(currency, billDate, bill.organizationId)
     headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   }
 
@@ -157,7 +157,7 @@ const updateStatus = async (id, status, userId, user) => {
   }
 
   if (status === 'approved' && user) {
-    const thresholds = require('../../settings/approval-threshold.service')
+    const thresholds = require('../../settings/services/approval-threshold.service')
     await thresholds.enforce({ user, docType: 'vendor_bill', amount: Number(bill.total) || 0, organizationId: bill.organizationId })
   }
 

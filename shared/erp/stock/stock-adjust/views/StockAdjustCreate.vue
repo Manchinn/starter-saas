@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -84,13 +84,17 @@
                 </p>
               </div>
             </div>
-            <button @click="addRow" type="button"
-              :disabled="!form.storeId || loadingStoreProducts || (storeProducts.length > 0 && allUsedIds.length >= storeProducts.length)"
+            <button @click="openPicker" type="button"
+              :disabled="!form.storeId || loadingStoreProducts || !storeProducts.length"
+              :title="`${t('erp.common.addItem')}  (Ctrl+L)`"
               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary-500
                      bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg
                      transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.common.addItem') }}
+              <kbd class="hidden md:inline ml-1 px-1 py-px text-[10px] font-mono rounded bg-white/60 border border-primary-200 text-primary-700">
+                Ctrl+L
+              </kbd>
             </button>
           </div>
 
@@ -118,10 +122,10 @@
                 <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
               </div>
               <p class="text-sm font-semibold text-[#637381]">{{ t('erp.common.noItems') }}</p>
-              <p class="text-xs text-[#9BA7B0] mt-1 mb-4">Add products to adjust their stock quantities.</p>
-              <button @click="addRow" type="button"
+              <p class="text-xs text-[#9BA7B0] mt-1 mb-4">Click <strong>{{ t('erp.common.addItem') }}</strong> to pick products from this store.</p>
+              <button @click="openPicker" type="button" :disabled="!storeProducts.length"
                 class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-500
-                       bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors">
+                       bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors disabled:opacity-40">
                 <PlusIcon class="w-4 h-4" />
                 {{ t('erp.common.addItem') }}
               </button>
@@ -131,7 +135,7 @@
               <!-- Header row -->
               <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
                           text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider"
-                style="grid-template-columns: 2.5fr 7rem 8rem 2fr 2rem">
+                style="grid-template-columns: 2.5fr 7rem 8rem 2fr 4.5rem">
                 <div>{{ t('erp.common.product') }}</div>
                 <div class="text-right">{{ t('erp.stockAdjust.storeBalance') }}</div>
                 <div class="text-right">{{ t('erp.stockAdjust.adjQty') }} <span class="normal-case font-normal">(+/−)</span></div>
@@ -140,17 +144,21 @@
               </div>
 
               <div class="divide-y divide-[#E2E8F0]">
-                <div v-for="(item, i) in items" :key="i"
+                <div v-for="(item, i) in items" :key="item.key"
                   class="group grid items-center gap-3 px-5 py-3 transition-colors"
                   :class="item.qty < 0 && Math.abs(item.qty) > storeBalance(item.productId)
                     ? 'bg-red-50 hover:bg-red-50/80'
                     : 'hover:bg-[#F7F9FC]'"
-                  style="grid-template-columns: 2.5fr 7rem 8rem 2fr 2rem">
+                  style="grid-template-columns: 2.5fr 7rem 8rem 2fr 4.5rem">
 
-                  <SearchSelect v-model="item.productId" :options="availableProducts(i)" :placeholder="t('erp.common.selectProduct')">
-                    <template #option="{ option }">{{ option.name }}<span v-if="option.sku" class="text-[#9BA7B0]"> [{{ option.sku }}]</span></template>
-                    <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.sku" class="text-[#9BA7B0]"> [{{ option.sku }}]</span></template>
-                  </SearchSelect>
+                  <!-- Product (read-only label, chosen via popup) -->
+                  <div class="min-w-0 flex items-center gap-2">
+                    <span class="font-mono text-[11px] text-[#9BA7B0] tabular-nums w-5 text-right flex-shrink-0">{{ i + 1 }}</span>
+                    <div class="min-w-0">
+                      <p class="text-sm text-[#1C2434] truncate">{{ productName(item.productId) || '—' }}</p>
+                      <p v-if="productSku(item.productId)" class="text-[11px] font-mono text-[#9BA7B0] truncate">{{ productSku(item.productId) }}</p>
+                    </div>
+                  </div>
 
                   <div class="text-right">
                     <span v-if="item.productId"
@@ -171,15 +179,60 @@
                            focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                            transition-colors placeholder-[#CBD5E1]" />
 
-                  <button @click="removeRow(i)" type="button"
-                    class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg flex items-center justify-center
-                           text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0">
-                    <TrashIcon class="w-3.5 h-3.5" />
-                  </button>
+                  <!-- Row actions: duplicate-warning (back), + (duplicate row), × (remove) -->
+                  <div class="flex items-center justify-end gap-1">
+                    <!-- Duplicate-item indicator — clickable, opens popover with reason -->
+                    <div class="relative" data-dup-popover>
+                      <button v-if="isDuplicate(item)" type="button"
+                        tabindex="-1"
+                        @click="toggleDupPopover(item)"
+                        :aria-label="t('erp.stockAdjust.duplicateItemWarning')"
+                        class="flex items-center justify-center w-5 h-5 rounded hover:bg-amber-100 text-amber-500 transition-colors">
+                        <ExclamationTriangleIcon class="w-4 h-4" />
+                      </button>
+                      <div v-if="openDupKey === item.key"
+                        class="absolute z-20 right-full top-1/2 -translate-y-1/2 mr-2 w-60
+                               bg-amber-50 border border-amber-200 rounded-lg shadow-lg p-2.5
+                               text-[12px] text-amber-800 leading-snug">
+                        <div class="flex items-start gap-1.5">
+                          <ExclamationTriangleIcon class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+                          <span>{{ t('erp.stockAdjust.duplicateItemWarning') }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button @click="duplicateRow(i)" type="button"
+                      :title="`${t('erp.common.duplicate')}  (Ctrl+D last)`"
+                      class="w-7 h-7 rounded-lg flex items-center justify-center
+                             text-[#CBD5E1] hover:text-primary-500 hover:bg-primary-50 transition-all
+                             opacity-0 group-hover:opacity-100">
+                      <PlusIcon class="w-3.5 h-3.5" />
+                    </button>
+                    <button @click="removeRow(i)" type="button"
+                      :title="t('common.remove')"
+                      class="w-7 h-7 rounded-lg flex items-center justify-center
+                             text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-all
+                             opacity-0 group-hover:opacity-100">
+                      <TrashIcon class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- Hidden bulk-add popup -->
+          <SearchSelectPopup
+            ref="pickerRef"
+            :model-value="''"
+            :options="storeProducts"
+            label-key="name"
+            code-key="sku"
+            multiple
+            hide-trigger
+            search-placeholder="Search by name or SKU…"
+            submit-label="Add items"
+            @submit="onBulkAdd"
+          />
         </div>
 
         <!-- Global error -->
@@ -221,6 +274,21 @@
               </p>
             </div>
             <div class="flex items-center gap-3">
+              <!-- Keyboard cheat sheet -->
+              <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
+                <span class="flex items-center gap-1">
+                  <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+S</kbd>
+                  <span>save</span>
+                </span>
+                <span class="flex items-center gap-1">
+                  <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+L</kbd>
+                  <span>add</span>
+                </span>
+                <span class="flex items-center gap-1">
+                  <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+D</kbd>
+                  <span>dup</span>
+                </span>
+              </div>
               <RouterLink to="/erp/stock-adjust"
                 class="px-5 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
                 {{ t('common.cancel') }}
@@ -243,17 +311,17 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
-  ArrowLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon,
-  CheckIcon, ExclamationCircleIcon, ArrowPathIcon,
+  PlusIcon, TrashIcon, CheckIcon, ExclamationCircleIcon, ExclamationTriangleIcon, ArrowPathIcon,
   AdjustmentsHorizontalIcon, ClipboardDocumentListIcon,
   BuildingStorefrontIcon, CalculatorIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -273,6 +341,10 @@ const form  = ref({ date: new Date().toISOString().slice(0, 10), storeId: '', re
 const items = ref([])
 const error = ref('')
 const saving = ref(false)
+const pickerRef = ref(null)
+
+let rowKeySeq = 0
+const newKey = () => `r${++rowKeySeq}`
 
 onMounted(async () => {
   try {
@@ -301,28 +373,62 @@ watch(() => form.value.storeId, async (storeId) => {
   }
 })
 
-const allUsedIds = computed(() => items.value.map(it => it.productId).filter(Boolean))
-
-function availableProducts(rowIndex) {
-  const otherIds = items.value
-    .filter((_, i) => i !== rowIndex)
-    .map(it => it.productId)
-    .filter(Boolean)
-  return storeProducts.value.filter(p => !otherIds.includes(p.id))
+function productName(id) {
+  return storeProducts.value.find(p => p.id === id)?.name || ''
 }
-
+function productSku(id) {
+  return storeProducts.value.find(p => p.id === id)?.sku || ''
+}
 function storeBalance(productId) {
   if (!productId) return 0
   return storeProducts.value.find(p => p.id === productId)?.stock ?? 0
 }
 
-function addRow() {
-  if (items.value.length >= storeProducts.value.length && storeProducts.value.length > 0) return
-  items.value.push({ productId: '', qty: 0, notes: '' })
+function openPicker() {
+  if (!form.value.storeId || !storeProducts.value.length) return
+  pickerRef.value?.open()
+}
+
+function onBulkAdd(selectedProducts) {
+  for (const p of selectedProducts) {
+    items.value.push({ key: newKey(), productId: p.id, qty: 0, notes: '' })
+  }
+}
+
+function duplicateRow(i) {
+  const src = items.value[i]
+  if (!src) return
+  items.value.splice(i + 1, 0, { key: newKey(), productId: src.productId, qty: src.qty, notes: src.notes })
 }
 
 function removeRow(i) {
   items.value.splice(i, 1)
+}
+
+// Product IDs that appear on more than one row — flagged with an amber warning.
+const duplicateProductIds = computed(() => {
+  const counts = new Map()
+  for (const it of items.value) {
+    if (!it.productId) continue
+    counts.set(it.productId, (counts.get(it.productId) || 0) + 1)
+  }
+  const dups = new Set()
+  for (const [id, n] of counts) if (n > 1) dups.add(id)
+  return dups
+})
+function isDuplicate(item) {
+  return !!item.productId && duplicateProductIds.value.has(item.productId)
+}
+
+// Which row's duplicate-warning popover is open ('' = none).
+const openDupKey = ref('')
+function toggleDupPopover(item) {
+  openDupKey.value = openDupKey.value === item.key ? '' : item.key
+}
+function onDocClickClosePopover(e) {
+  if (!openDupKey.value) return
+  if (e.target.closest('[data-dup-popover]')) return
+  openDupKey.value = ''
 }
 
 const totalIn  = computed(() => items.value.reduce((s, i) => s + (i.qty > 0 ? i.qty : 0), 0))
@@ -339,7 +445,11 @@ async function save() {
   }
   saving.value = true
   try {
-    const { data } = await api.post('/erp/stock-adjust', { ...form.value, items: items.value })
+    const payload = {
+      ...form.value,
+      items: items.value.map(i => ({ productId: i.productId, qty: i.qty, notes: i.notes })),
+    }
+    const { data } = await api.post('/erp/stock-adjust', payload)
     router.push(`/erp/stock-adjust/${data.data.adjustment.id}`)
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to save'
@@ -347,4 +457,26 @@ async function save() {
     saving.value = false
   }
 }
+
+// Keyboard shortcuts: Ctrl+S save, Ctrl+L add items, Ctrl+D duplicate last row.
+function onPageKeydown(e) {
+  const ctrl = e.ctrlKey || e.metaKey
+  if (!ctrl) return
+  const key = e.key.toLowerCase()
+  if (key === 's') { e.preventDefault(); save() }
+  else if (key === 'l') { e.preventDefault(); openPicker() }
+  else if (key === 'd') {
+    if (!items.value.length) return
+    e.preventDefault()
+    duplicateRow(items.value.length - 1)
+  }
+}
+onMounted(() => {
+  document.addEventListener('keydown', onPageKeydown)
+  document.addEventListener('mousedown', onDocClickClosePopover)
+})
+onUnmounted(() => {
+  document.removeEventListener('keydown', onPageKeydown)
+  document.removeEventListener('mousedown', onDocClickClosePopover)
+})
 </script>

@@ -17,6 +17,8 @@ export default {
     delete: 'Delete',
     edit: 'Edit',
     print: 'Print',
+    remove: 'Remove',
+    duplicate: 'Duplicate',
     actions: 'Actions',
     create: 'Create',
     search: 'Search',

@@ -2,7 +2,7 @@ const { GoodReceive, GoodReceiveItem, Product, Store, StoreStock, StockMovement,
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { toFixed } = require('../../../../server/utils/fmt')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 /**
  * Convert a quantity from a given UOM to its base (stock) UOM using UOMConversion.

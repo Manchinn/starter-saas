@@ -5,7 +5,7 @@ const {
 } = require('../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../server/utils/fmt')
-const { getNext } = require('../settings/sequence.service')
+const { getNext } = require('../settings/services/sequence.service')
 
 const itemIncludes = [
   { model: SaleItem,    as: 'saleItem',    attributes: ['id', 'name', 'code'] },
@@ -130,7 +130,7 @@ const create = async ({
 
   const refNo = await getNext('QT', userId)
   const { subtotal, tax, total, discountAmount, lines } = computeTotals(items, { discountType, discountValue })
-  const fx = await require('../settings/currency.service').getRateOn(currency, quotationDate, organizationId)
+  const fx = await require('../settings/services/currency.service').getRateOn(currency, quotationDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
   let createdId
@@ -178,7 +178,7 @@ const update = async (id, payload, userId) => {
   const headerExtras = {}
   if (currency !== undefined) headerExtras.currency = currency || null
   if (currency !== undefined || exchangeRate !== undefined) {
-    const fx = await require('../settings/currency.service').getRateOn(currency, quotationDate || q.quotationDate, q.organizationId)
+    const fx = await require('../settings/services/currency.service').getRateOn(currency, quotationDate || q.quotationDate, q.organizationId)
     headerExtras.exchangeRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
   }
   if (referenceNumber !== undefined) headerExtras.referenceNumber = referenceNumber || null

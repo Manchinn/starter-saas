@@ -1,6 +1,6 @@
 const { Router } = require('express')
 const controller = require('./good-receive.controller')
-const productController = require('../../products/product.controller')
+const productController = require('../../products/controllers/product.controller')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requirePermission } = require('../../../../server/middleware/permission')
 

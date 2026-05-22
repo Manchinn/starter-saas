@@ -1,6 +1,6 @@
 const { Journal, JournalLine } = require('../../../../server/models')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 const accounts = require('./account-mapping.service')
 const logger = require('../../../../server/core/logger').forLabel('auto-journal')
 
