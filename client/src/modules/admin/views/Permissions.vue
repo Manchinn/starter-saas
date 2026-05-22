@@ -46,7 +46,7 @@
             v-for="m in ['grouped', 'flat']" :key="m"
             @click="viewMode = m"
             :class="[
-              'px-3 py-1 text-xs font-medium rounded-md transition-colors',
+              'px-3 py-1 text-xs font-medium transition-colors',
               viewMode === m ? 'bg-primary-50 text-primary-700' : 'text-[#637381] hover:bg-[#F7F9FC]'
             ]"
           >{{ t(`perms.view.${m}`) }}</button>
@@ -108,7 +108,7 @@
                   <button
                     v-can="'permissions.manage'"
                     @click="deletePerm(p)"
-                    class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors"
                     :title="t('common.delete')"
                   >
                     <TrashIcon class="w-4 h-4" />
@@ -169,7 +169,7 @@
                     <button
                       v-can="'permissions.manage'"
                       @click="deletePerm(p)"
-                      class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <TrashIcon class="w-4 h-4" />
                     </button>

@@ -44,10 +44,10 @@
                     class="px-2 py-1 text-xs font-semibold bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded-md hover:bg-slate-100" :title="t('erp.taxPeriods.viewReport')">
                     <DocumentChartBarIcon class="w-4 h-4 inline" />
                   </RouterLink>
-                  <button v-if="isDraft(p) || p.status !== 'closed'" @click="save(p)" :disabled="p._saving" class="px-2.5 py-1 text-xs font-semibold bg-primary-500 text-white rounded-md hover:bg-primary-700 disabled:opacity-50">{{ p._saving ? '…' : (isDraft(p) ? t('common.create') : t('common.save')) }}</button>
-                  <button v-if="!isDraft(p) && p.status === 'open'" @click="close(p)" :disabled="p._saving" class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-100 disabled:opacity-50">{{ t('erp.taxPeriods.closeBtn') }}</button>
-                  <button v-if="!isDraft(p) && p.status === 'closed'" @click="reopen(p)" :disabled="p._saving" class="px-2.5 py-1 text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 rounded-md hover:bg-amber-100 disabled:opacity-50">{{ t('erp.taxPeriods.reopenBtn') }}</button>
-                  <button v-if="isDraft(p) || p.status === 'open'" @click="remove(p)" class="p-1 text-[#9BA7B0] hover:text-red-500 rounded"><TrashIcon class="w-4 h-4" /></button>
+                  <button v-if="isDraft(p) || p.status !== 'closed'" @click="save(p)" :disabled="p._saving" class="px-2.5 py-1 text-xs font-semibold bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50">{{ p._saving ? '…' : (isDraft(p) ? t('common.create') : t('common.save')) }}</button>
+                  <button v-if="!isDraft(p) && p.status === 'open'" @click="close(p)" :disabled="p._saving" class="px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 disabled:opacity-50">{{ t('erp.taxPeriods.closeBtn') }}</button>
+                  <button v-if="!isDraft(p) && p.status === 'closed'" @click="reopen(p)" :disabled="p._saving" class="px-2.5 py-1 text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 disabled:opacity-50">{{ t('erp.taxPeriods.reopenBtn') }}</button>
+                  <button v-if="isDraft(p) || p.status === 'open'" @click="remove(p)" class="p-1 text-[#9BA7B0] hover:text-red-500"><TrashIcon class="w-4 h-4" /></button>
                 </div>
               </td>
             </tr>

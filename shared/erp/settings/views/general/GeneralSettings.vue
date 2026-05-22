@@ -115,7 +115,7 @@
         <div class="flex justify-end">
           <button @click="saveCurrency" :disabled="currencySaving"
             class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                   bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                   bg-primary-500 text-white hover:bg-primary-700
                    disabled:opacity-50 transition-colors shadow-sm">
             <CheckIcon v-if="!currencySaving" class="w-4 h-4" />
             {{ currencySaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
@@ -211,7 +211,7 @@
         <div class="flex justify-end">
           <button @click="saveCalendar" :disabled="calendarSaving"
             class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                   bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                   bg-primary-500 text-white hover:bg-primary-700
                    disabled:opacity-50 transition-colors shadow-sm">
             <CheckIcon v-if="!calendarSaving" class="w-4 h-4" />
             {{ calendarSaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
@@ -284,7 +284,7 @@
         <div class="flex justify-end">
           <button @click="saveTax" :disabled="taxSaving"
             class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                   bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                   bg-primary-500 text-white hover:bg-primary-700
                    disabled:opacity-50 transition-colors shadow-sm">
             <CheckIcon v-if="!taxSaving" class="w-4 h-4" />
             {{ taxSaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}

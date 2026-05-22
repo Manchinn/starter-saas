@@ -42,7 +42,7 @@
               :class="{ 'opacity-40': !mod.isActive }"
             >
               <input type="checkbox" :value="mod.id" v-model="selected"
-                     class="rounded border-[#CBD5E1] w-4 h-4 accent-primary-500" :disabled="!mod.isActive" />
+                     class="border-[#CBD5E1] w-4 h-4 accent-primary-500" :disabled="!mod.isActive" />
               <div class="flex-1 min-w-0">
                 <span class="text-sm font-medium text-[#1C2434]">{{ mod.name }}</span>
                 <span class="ml-2 text-xs font-mono text-[#9BA7B0] bg-[#F1F5F9] px-1.5 py-0.5 rounded">{{ mod.slug }}</span>

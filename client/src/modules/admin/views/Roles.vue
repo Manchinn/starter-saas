@@ -127,7 +127,7 @@
                     v-if="!role.isSystem"
                     v-can="'roles.manage'"
                     @click="deleteRole(role)"
-                    class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors"
                     :title="t('common.delete')"
                   >
                     <TrashIcon class="w-4 h-4" />
@@ -150,7 +150,7 @@
                 <h2 class="text-base font-semibold text-[#1C2434]">{{ viewRole.name }}</h2>
                 <span v-if="viewRole.isSystem" class="badge badge-amber">{{ t('roles.systemBadge') }}</span>
               </div>
-              <button @click="viewRole = null" class="text-[#9BA7B0] hover:text-[#637381] p-1 rounded-md">
+              <button @click="viewRole = null" class="text-[#9BA7B0] hover:text-[#637381] p-1">
                 <XMarkIcon class="w-4 h-4" />
               </button>
             </div>

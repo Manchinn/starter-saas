@@ -49,7 +49,7 @@
                 @keydown.left="onLeftRight('left', $event)"
                 @keydown.right="onLeftRight('right', $event)"
               />
-              <button type="button" class="p-1 rounded text-[#9BA7B0] hover:text-[#1C2434] hover:bg-[#F7F9FC] transition-colors"
+              <button type="button" class="p-1 text-[#9BA7B0] hover:text-[#1C2434] hover:bg-[#F7F9FC] transition-colors"
                 @click="close" aria-label="Close">
                 <XMarkIcon class="w-4 h-4" />
               </button>

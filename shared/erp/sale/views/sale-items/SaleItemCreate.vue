@@ -21,7 +21,7 @@
             <input v-else :value="autoCode.preview.value" type="text" readonly
               class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
             <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
+              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
               {{ t('erp.common.autoGenerate') }}
             </label>
           </div>

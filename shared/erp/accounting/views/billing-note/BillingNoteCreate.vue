@@ -116,7 +116,7 @@
               style="grid-template-columns: 2rem 1fr 6rem 6rem 7rem 5rem">
               <div class="flex items-center justify-center">
                 <input type="checkbox" :checked="allSelected" @change="toggleAll"
-                  class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
+                  class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
               </div>
               <div>{{ t('erp.billingNotes.colInvoiceNo') }}</div>
               <div>{{ t('erp.common.date') }}</div>
@@ -136,7 +136,7 @@
                 <div class="flex items-center justify-center">
                   <input type="checkbox" :checked="form.invoiceIds.includes(inv.id)"
                     @click.stop="toggleInvoice(inv.id)"
-                    class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
+                    class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
                 </div>
 
                 <span class="font-mono text-sm font-medium text-[#1C2434]">{{ inv.invoiceNumber }}</span>

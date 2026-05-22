@@ -29,7 +29,7 @@
               <input v-else :value="autoCode.preview.value" type="text" readonly
                 class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
               <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
+                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
                 {{ t('erp.common.autoGenerate') }}
               </label>
             </div>
@@ -94,7 +94,7 @@
 
           <div class="px-6 py-5 space-y-4">
             <label class="flex items-center gap-2 cursor-pointer select-none mb-2">
-              <input type="checkbox" v-model="createAccount" class="rounded text-primary-500 focus:ring-primary-500" />
+              <input type="checkbox" v-model="createAccount" class="text-primary-500 focus:ring-primary-500" />
               <span class="text-sm font-medium text-[#374151]">{{ t('erp.employees.createLogin') }}</span>
             </label>
 
@@ -131,7 +131,7 @@
               <label class="block text-sm font-medium text-[#374151] mb-3">{{ t('erp.employees.deptAssignments') }}</label>
               <div class="grid grid-cols-2 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/80 rounded-xl max-h-48 overflow-y-auto">
                 <label v-for="d in departments" :key="d.id" class="flex items-center gap-2 px-2 py-1.5 hover:bg-white cursor-pointer transition-colors">
-                  <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="rounded text-primary-500 focus:ring-primary-500" />
+                  <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="text-primary-500 focus:ring-primary-500" />
                   <span class="text-xs font-medium text-[#374151] truncate" :title="d.name">{{ d.name }}</span>
                 </label>
               </div>
@@ -156,7 +156,7 @@
         </RouterLink>
         <button @click="save" :disabled="saving"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white
-                 rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors shadow-sm">
+                 hover:bg-primary-700 disabled:opacity-50 transition-colors shadow-sm">
           <CheckIcon v-if="!saving" class="w-4 h-4" />
           {{ saving ? t('erp.common.creating') : t('erp.employees.create') }}
         </button>

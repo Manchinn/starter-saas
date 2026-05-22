@@ -106,7 +106,7 @@
               <!-- Actions -->
               <td class="td">
                 <div class="flex items-center justify-end gap-0.5">
-                  <button @click="openView(u)" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] rounded-md transition-colors" :title="$t('common.edit')">
+                  <button @click="openView(u)" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors" :title="$t('common.edit')">
                     <EyeIcon class="w-4 h-4" />
                   </button>
                   <RouterLink v-can="'organizations.edit'" :to="`/admin/organizations/${u.id}/edit`" class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors" :title="$t('common.edit')">
@@ -115,15 +115,15 @@
                   <RouterLink :to="`/admin/staff?organizationId=${u.id}`" class="p-1.5 text-[#9BA7B0] hover:text-violet-600 hover:bg-violet-50 rounded-md transition-colors">
                     <UserGroupIcon class="w-4 h-4" />
                   </RouterLink>
-                  <button @click="seedSequences(u)" :disabled="seedingId === u.id" class="p-1.5 text-[#9BA7B0] hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors disabled:opacity-40">
+                  <button @click="seedSequences(u)" :disabled="seedingId === u.id" class="p-1.5 text-[#9BA7B0] hover:text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-40">
                     <CpuChipIcon class="w-4 h-4" />
                   </button>
                   <button @click="loginAs(u)" :disabled="loggingInAsId === u.id"
-                    class="p-1.5 text-[#9BA7B0] hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors disabled:opacity-40"
+                    class="p-1.5 text-[#9BA7B0] hover:text-emerald-600 hover:bg-emerald-50 transition-colors disabled:opacity-40"
                     :title="$t('org.loginAs')">
                     <ArrowRightEndOnRectangleIcon class="w-4 h-4" />
                   </button>
-                  <button v-can="'organizations.delete'" @click="confirmDelete(u)" class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" :title="$t('common.delete')">
+                  <button v-can="'organizations.delete'" @click="confirmDelete(u)" class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors" :title="$t('common.delete')">
                     <TrashIcon class="w-4 h-4" />
                   </button>
                 </div>
@@ -160,7 +160,7 @@
           <div class="relative w-full max-w-md bg-white shadow-xl flex flex-col h-full">
             <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0]">
               <h2 class="text-base font-semibold text-[#1C2434]">{{ $t('org.details') }}</h2>
-              <button @click="viewOrganization = null" class="text-[#9BA7B0] hover:text-[#637381] p-1 rounded-md transition-colors">
+              <button @click="viewOrganization = null" class="text-[#9BA7B0] hover:text-[#637381] p-1 transition-colors">
                 <XMarkIcon class="w-4 h-4" />
               </button>
             </div>

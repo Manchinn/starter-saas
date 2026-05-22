@@ -33,13 +33,13 @@
         <div v-if="bn && !loading" class="flex items-center gap-2 flex-shrink-0">
           <button @click="onPrint" type="button"
             title="Print this document"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
             <PrinterIcon class="w-4 h-4" />
             {{ t('common.print') }}
           </button>
           <button v-if="bn.status === 'draft'" v-can="'erp.accounting.delete'" @click="confirmDelete" type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors">
             <TrashIcon class="w-4 h-4" />
           </button>
@@ -290,7 +290,7 @@
           <div class="flex items-center gap-2.5">
             <button v-for="s in forwardTransitions" :key="s"
               @click="changeStatus(s)" :disabled="updatingStatus"
-              class="px-4 py-2.5 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50
+              class="px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50
                      flex items-center gap-2"
               :class="forwardBtnClass(s)">
               <ArrowPathIcon v-if="updatingStatus" class="w-4 h-4 animate-spin" />
@@ -299,7 +299,7 @@
             <button v-for="s in cancelTransitions" :key="s"
               @click="changeStatus(s)" :disabled="updatingStatus"
               class="px-4 py-2 text-sm font-medium border border-red-200 text-red-600
-                     hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50">
+                     hover:bg-red-50 transition-colors disabled:opacity-50">
               {{ t('erp.billingNotes.cancelNote') }}
             </button>
           </div>

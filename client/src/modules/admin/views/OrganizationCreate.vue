@@ -101,7 +101,7 @@
           <label v-for="role in allRoles" :key="role.id"
             class="flex items-center gap-3 px-6 py-3 hover:bg-[#F7F9FC] cursor-pointer">
             <input type="checkbox" :value="role.id" v-model="form.roleIds"
-              class="rounded border-[#CBD5E1] w-4 h-4" />
+              class="border-[#CBD5E1] w-4 h-4" />
             <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: role.color }" />
             <div class="flex-1 min-w-0">
               <span class="text-sm font-medium text-[#1C2434]">{{ role.name }}</span>
@@ -129,7 +129,7 @@
         </RouterLink>
         <button @click="save" :disabled="saving"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                 bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                 bg-primary-500 text-white hover:bg-primary-700
                  disabled:opacity-50 transition shadow-sm">
           {{ saving ? $t('common.saving') : $t('org.create') }}
         </button>

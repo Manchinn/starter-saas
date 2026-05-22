@@ -44,7 +44,7 @@
         <div v-if="gr && !loading" class="flex items-center gap-2 flex-shrink-0">
           <button @click="onPrint" type="button"
             title="Print this document"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
             <PrinterIcon class="w-4 h-4" />
             {{ t('common.print') }}
@@ -56,7 +56,7 @@
             {{ t('common.edit') }}
           </RouterLink>
           <button v-if="gr.status === 'draft'" v-can="'erp.stock.delete'" @click="deleteGR" type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors">
             <TrashIcon class="w-4 h-4" />
           </button>
@@ -322,7 +322,7 @@
           </div>
           <div class="flex items-center gap-2.5">
             <button @click="confirmGR" :disabled="confirming"
-              class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+              class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
                      bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50">
               <ArrowPathIcon v-if="confirming" class="w-4 h-4 animate-spin" />
               <CheckIcon v-else class="w-4 h-4" />
@@ -340,7 +340,7 @@
             :disabled="converting || !!gr.linkedBill"
             :title="gr.linkedBill ? `Already linked to ${gr.linkedBill.billNumber}` : ''"
             class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary-50 text-primary-600 border border-primary-200
-                   rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                   hover:bg-primary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <DocumentTextIcon class="w-4 h-4" />
             {{ converting ? t('common.loading') : t('erp.goodReceive.createBill') }}
           </button>

@@ -116,7 +116,7 @@
               style="grid-template-columns: 2rem 1fr 7rem 7rem 8rem 5.5rem">
               <div class="flex items-center justify-center">
                 <input type="checkbox" :checked="allSelected" @change="toggleAll"
-                  class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
+                  class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
               </div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Invoice #</div>
               <div class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Date</div>
@@ -134,7 +134,7 @@
                 <div class="flex items-center justify-center">
                   <input type="checkbox" :checked="form.invoiceIds.includes(inv.id)"
                     @click.stop="toggleInvoice(inv.id)"
-                    class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
+                    class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-400 cursor-pointer" />
                 </div>
                 <span class="font-mono text-[13px] font-medium text-[#1C2434]">{{ inv.invoiceNumber }}</span>
                 <span class="text-[12px] text-[#637381]">{{ inv.invoiceDate }}</span>
@@ -220,7 +220,7 @@
         <button @click="save" :disabled="!canSave || saving" type="button"
           :title="!canSave ? 'Fill in the required fields first' : 'Create Payment (Ctrl+S)'"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
-                 bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                 bg-primary-500 text-white hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />
@@ -246,7 +246,7 @@
             <button type="button" @click="confirmAnswer(false)"
               class="px-4 py-2 text-sm font-medium text-[#637381] hover:text-[#1C2434]">Cancel</button>
             <button type="button" @click="confirmAnswer(true)"
-              class="px-4 py-2 text-sm font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 shadow-sm">
+              class="px-4 py-2 text-sm font-semibold bg-red-500 text-white hover:bg-red-600 shadow-sm">
               Discard
             </button>
           </div>

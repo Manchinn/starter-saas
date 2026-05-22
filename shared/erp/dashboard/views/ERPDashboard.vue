@@ -444,7 +444,7 @@
               <button v-if="stats.lowStockProducts?.length" v-can="'erp.purchasing.edit'"
                 @click="generateReorder" :disabled="generatingReorder"
                 :title="t('erp.dashboard.generateReorderHint')"
-                class="text-xs font-medium px-2.5 py-1 rounded-md bg-primary-50 text-primary-600 border border-primary-200 hover:bg-primary-100 disabled:opacity-50 transition-colors">
+                class="text-xs font-medium px-2.5 py-1 bg-primary-50 text-primary-600 border border-primary-200 hover:bg-primary-100 disabled:opacity-50 transition-colors">
                 {{ generatingReorder ? t('common.loading') : t('erp.dashboard.generateReorder') }}
               </button>
               <RouterLink to="/erp/item-master"

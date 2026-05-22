@@ -41,7 +41,7 @@
           </div>
           <div class="flex items-end pb-1">
             <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" v-model="form.movementLocked" class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 focus:ring-primary-500">
+              <input type="checkbox" v-model="form.movementLocked" class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-500">
               <span class="text-sm font-medium text-[#374151] font-bold text-red-600">{{ t('erp.stockCount.lockMovement') }}</span>
             </label>
           </div>

@@ -81,7 +81,7 @@
           <span class="text-[13px] text-[#DEE4EE] font-medium truncate max-w-28">{{ auth.user?.name }}</span>
         </div>
         <button @click="handleLogout" title="Sign out"
-                class="p-2 rounded-xl text-[#DEE4EE] hover:text-white hover:bg-white/[0.10] transition-colors">
+                class="p-2 text-[#DEE4EE] hover:text-white hover:bg-white/[0.10] transition-colors">
           <ArrowRightOnRectangleIcon class="w-4 h-4" />
         </button>
       </div>

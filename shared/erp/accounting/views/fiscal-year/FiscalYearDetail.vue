@@ -133,7 +133,7 @@
                   <div v-else></div>
                   <button @click="saveEdit" :disabled="saving"
                     class="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold
-                           bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition-colors">
+                           bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 transition-colors">
                     <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
                     <CheckIcon v-else class="w-4 h-4" />
                     {{ saving ? t('erp.fiscalYears.saving') : t('erp.fiscalYears.saveChanges') }}
@@ -188,7 +188,7 @@
                 class="border-t border-[#E2E8F0] px-5 pb-5 pt-4 space-y-2.5">
                 <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-3">{{ t('erp.common.actions') }}</p>
                 <button @click="confirmClose" :disabled="updatingStatus"
-                  class="w-full py-2.5 text-sm font-semibold rounded-xl bg-slate-700 text-white
+                  class="w-full py-2.5 text-sm font-semibold bg-slate-700 text-white
                          hover:bg-slate-800 transition-colors disabled:opacity-50
                          flex items-center justify-center gap-2">
                   <ArrowPathIcon v-if="updatingStatus" class="w-4 h-4 animate-spin" />
@@ -205,7 +205,7 @@
               class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-4">
               <button @click="confirmDelete"
                 class="w-full py-2 text-sm font-medium text-red-500 border border-red-200
-                       rounded-xl hover:bg-red-50 transition-colors flex items-center justify-center gap-2">
+                       hover:bg-red-50 transition-colors flex items-center justify-center gap-2">
                 <TrashIcon class="w-4 h-4" />
                 {{ t('erp.fiscalYears.deleteFiscalYear') }}
               </button>

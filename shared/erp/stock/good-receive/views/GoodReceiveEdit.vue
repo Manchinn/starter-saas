@@ -83,12 +83,12 @@
               <div class="flex items-center gap-1 p-1 bg-[#F1F5F9] w-fit flex-shrink-0">
                 <button type="button" @click="form.docType = 'invoice'"
                   :class="form.docType === 'invoice' ? 'bg-white shadow text-[#1C2434]' : 'text-[#637381] hover:text-[#374151]'"
-                  class="px-4 py-1.5 rounded-md text-sm font-medium transition">
+                  class="px-4 py-1.5 text-sm font-medium transition">
                   {{ t('erp.goodReceive.invoice') }}
                 </button>
                 <button type="button" @click="form.docType = 'delivery'"
                   :class="form.docType === 'delivery' ? 'bg-white shadow text-[#1C2434]' : 'text-[#637381] hover:text-[#374151]'"
-                  class="px-4 py-1.5 rounded-md text-sm font-medium transition">
+                  class="px-4 py-1.5 text-sm font-medium transition">
                   {{ t('erp.goodReceive.delivery') }}
                 </button>
               </div>
@@ -139,7 +139,7 @@
               :title="`${t('erp.goodReceive.addItem')} (Ctrl+A)`"
               class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
                      text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
-                     rounded-xl transition-colors">
+                     transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.goodReceive.addItem') }}
               <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+A</kbd>
@@ -382,7 +382,7 @@
         <button @click="saveDraft" :disabled="!canSave || savingDraft || saving" type="button"
           :title="!canSave ? t('erp.goodReceive.fillRequiredFields') : `${t('erp.goodReceive.saveDraft')} (Ctrl+S)`"
           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
-                 bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 rounded-xl
+                 bg-white text-primary-600 border border-primary-200 hover:bg-primary-50
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="savingDraft" class="w-4 h-4 animate-spin" />
           <BookmarkSquareIcon v-else class="w-4 h-4" />
@@ -391,7 +391,7 @@
         <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
           :title="!canSave ? t('erp.goodReceive.fillRequiredFields') : `${t('common.saveChanges')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
-                 bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                 bg-primary-500 text-white hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />
@@ -416,7 +416,7 @@
             <button type="button" @click="confirmAnswer(false)"
               class="px-4 py-2 text-sm font-medium text-[#637381] hover:text-[#1C2434]">{{ t('common.cancel') }}</button>
             <button type="button" @click="confirmAnswer(true)"
-              class="px-4 py-2 text-sm font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 shadow-sm">
+              class="px-4 py-2 text-sm font-semibold bg-red-500 text-white hover:bg-red-600 shadow-sm">
               {{ confirmOkLabel }}
             </button>
           </div>

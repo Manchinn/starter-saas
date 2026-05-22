@@ -30,10 +30,10 @@
           <p class="text-sm font-medium text-[#1C2434] truncate">{{ a.originalName }}</p>
           <p class="text-[11px] text-[#9BA7B0]">{{ fmtBytes(a.size) }} · {{ a.mimeType || '—' }}</p>
         </div>
-        <button @click="download(a)" class="p-1.5 text-[#9BA7B0] hover:text-primary-600 transition rounded-md">
+        <button @click="download(a)" class="p-1.5 text-[#9BA7B0] hover:text-primary-600 transition">
           <ArrowDownTrayIcon class="w-4 h-4" />
         </button>
-        <button @click="remove(a)" class="p-1.5 text-[#9BA7B0] hover:text-red-500 transition rounded-md">
+        <button @click="remove(a)" class="p-1.5 text-[#9BA7B0] hover:text-red-500 transition">
           <TrashIcon class="w-4 h-4" />
         </button>
       </li>

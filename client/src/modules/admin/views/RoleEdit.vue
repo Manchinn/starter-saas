@@ -70,7 +70,7 @@
           </RouterLink>
           <button @click="save" :disabled="saving"
             class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                   bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                   bg-primary-500 text-white hover:bg-primary-700
                    disabled:opacity-50 transition shadow-sm">
             {{ saving ? t('common.saving') : t('common.saveChanges') }}
           </button>

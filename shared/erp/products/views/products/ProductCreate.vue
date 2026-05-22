@@ -29,7 +29,7 @@
               <input v-else :value="autoCode.preview.value" type="text" readonly
                 class="w-full px-3 py-2 border border-[#E2E8F0] text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
               <label class="mt-1.5 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
+                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
                 {{ t('erp.common.autoGenerate') }}
               </label>
             </div>
@@ -136,7 +136,7 @@
                   <p class="text-sm font-medium text-[#1C2434] truncate">{{ s.name }}</p>
                   <p v-if="s.code" class="text-xs text-[#9BA7B0] font-mono">{{ s.code }}</p>
                 </div>
-                <button @click="removeStore(s.id)" class="text-[#9BA7B0] hover:text-red-500 transition flex-shrink-0 p-1 rounded">
+                <button @click="removeStore(s.id)" class="text-[#9BA7B0] hover:text-red-500 transition flex-shrink-0 p-1">
                   <XMarkIcon class="w-4 h-4" />
                 </button>
               </div>
@@ -166,7 +166,7 @@
                   <p class="text-sm font-medium text-[#1C2434] truncate">{{ v.name }}</p>
                   <p v-if="v.code" class="text-xs text-[#9BA7B0] font-mono">{{ v.code }}</p>
                 </div>
-                <button @click="removeVendor(v.id)" class="text-[#9BA7B0] hover:text-red-500 transition flex-shrink-0 p-1 rounded">
+                <button @click="removeVendor(v.id)" class="text-[#9BA7B0] hover:text-red-500 transition flex-shrink-0 p-1">
                   <XMarkIcon class="w-4 h-4" />
                 </button>
               </div>
@@ -190,7 +190,7 @@
         </RouterLink>
         <button @click="save" :disabled="saving"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                 bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                 bg-primary-500 text-white hover:bg-primary-700
                  disabled:opacity-50 transition shadow-sm">
           {{ saving ? t('erp.common.creating') : t('erp.products.create') }}
         </button>

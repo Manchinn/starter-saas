@@ -205,7 +205,7 @@
                         tabindex="-1"
                         @click="toggleDupPopover(item)"
                         :aria-label="t('erp.stockTransfer.duplicateItemWarning')"
-                        class="flex items-center justify-center w-5 h-5 rounded hover:bg-amber-100 text-amber-500 transition-colors">
+                        class="flex items-center justify-center w-5 h-5 hover:bg-amber-100 text-amber-500 transition-colors">
                         <ExclamationTriangleIcon class="w-4 h-4" />
                       </button>
                       <div v-if="openDupKey === item.key"
@@ -313,7 +313,7 @@
               </RouterLink>
               <button @click="save" :disabled="saving"
                 class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold
-                       bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                       bg-primary-500 text-white hover:bg-primary-600 shadow-sm
                        disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
                 <CheckIcon v-else class="w-4 h-4" />

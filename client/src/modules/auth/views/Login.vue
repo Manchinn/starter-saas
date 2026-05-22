@@ -181,7 +181,7 @@
                   autocomplete="email"
                   :placeholder="t('auth.emailPh')"
                   :class="[
-                    'w-full pl-10 pr-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                    'w-full pl-10 pr-4 py-3 bg-white border text-[14px] text-[#0F172A]',
                     'placeholder-[#CBD5E1] shadow-xs',
                     'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
                     errorOf('email')
@@ -219,7 +219,7 @@
                   autocomplete="current-password"
                   :placeholder="t('auth.passwordPh')"
                   :class="[
-                    'w-full pl-10 pr-11 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                    'w-full pl-10 pr-11 py-3 bg-white border text-[14px] text-[#0F172A]',
                     'placeholder-[#CBD5E1] shadow-xs',
                     'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
                     errorOf('password')
@@ -281,7 +281,7 @@
 
             <!-- Submit -->
             <button type="submit" :disabled="loading"
-              class="w-full py-3 px-6 rounded-xl text-[14px] font-semibold text-white
+              class="w-full py-3 px-6 text-[14px] font-semibold text-white
                      bg-primary-500 hover:bg-primary-600 active:bg-primary-700
                      disabled:opacity-60 disabled:cursor-not-allowed
                      shadow-[0_4px_16px_rgba(70,95,255,0.3)] hover:shadow-[0_6px_24px_rgba(70,95,255,0.4)]

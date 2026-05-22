@@ -18,7 +18,7 @@
             <input v-else :value="autoCode.preview.value" type="text" readonly
               class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
             <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
+              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
               {{ t('erp.common.autoGenerate') }}
             </label>
           </div>
@@ -72,7 +72,7 @@
               <label v-for="vt in vendorTypeOptions" :key="vt.id"
                 class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
                 <input type="checkbox" :value="vt.name" v-model="form.vendorTypes"
-                  class="rounded text-primary-500 focus:ring-primary-500" />
+                  class="text-primary-500 focus:ring-primary-500" />
                 {{ vt.name }}
               </label>
             </div>

@@ -102,7 +102,7 @@
                     <PencilIcon class="w-4 h-4" />
                   </RouterLink>
                   <button @click="confirmDelete(member)"
-                          class="p-1.5 rounded-md text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors"
+                          class="p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors"
                           :title="t('common.delete')">
                     <TrashIcon class="w-4 h-4" />
                   </button>

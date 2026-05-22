@@ -125,7 +125,7 @@
                                focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                     </td>
                     <td class="px-3 py-2 text-center">
-                      <input type="checkbox" v-model="editRow.isActive" class="rounded border-[#CBD5E1] w-4 h-4 accent-primary-500" />
+                      <input type="checkbox" v-model="editRow.isActive" class="border-[#CBD5E1] w-4 h-4 accent-primary-500" />
                     </td>
                     <td class="px-3 py-2">
                       <div class="flex items-center justify-end gap-1">
@@ -159,12 +159,12 @@
                     <td class="px-4 py-3">
                       <div class="flex items-center justify-end gap-1">
                         <button @click="startEdit(v)" :disabled="!!editRow"
-                          class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors
+                          class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors
                                  disabled:opacity-30 disabled:cursor-not-allowed">
                           <PencilIcon class="w-3.5 h-3.5" />
                         </button>
                         <button @click="deleteValue(v)" :disabled="!!editRow"
-                          class="p-1.5 text-[#9BA7B0] hover:text-red-500 hover:bg-red-50 rounded-md transition-colors
+                          class="p-1.5 text-[#9BA7B0] hover:text-red-500 hover:bg-red-50 transition-colors
                                  disabled:opacity-30 disabled:cursor-not-allowed">
                           <TrashIcon class="w-3.5 h-3.5" />
                         </button>
@@ -196,7 +196,7 @@
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </td>
                   <td class="px-3 py-2 text-center">
-                    <input type="checkbox" v-model="editRow.isActive" class="rounded border-[#CBD5E1] w-4 h-4 accent-primary-500" />
+                    <input type="checkbox" v-model="editRow.isActive" class="border-[#CBD5E1] w-4 h-4 accent-primary-500" />
                   </td>
                   <td class="px-3 py-2">
                     <div class="flex items-center justify-end gap-1">

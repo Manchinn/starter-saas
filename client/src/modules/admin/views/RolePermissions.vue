@@ -37,7 +37,7 @@
                 class="flex items-center gap-3 px-5 py-3 hover:bg-[#F7F9FC] cursor-pointer"
               >
                 <input type="checkbox" :value="perm.id" v-model="selected"
-                       class="rounded border-[#CBD5E1] w-4 h-4 accent-primary-500" />
+                       class="border-[#CBD5E1] w-4 h-4 accent-primary-500" />
                 <div>
                   <span class="text-sm font-medium text-[#1C2434]">{{ perm.name }}</span>
                   <span class="ml-2 text-xs font-mono text-[#9BA7B0] bg-[#F1F5F9] px-1.5 py-0.5 rounded">{{ perm.slug }}</span>

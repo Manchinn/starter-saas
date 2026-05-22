@@ -71,7 +71,7 @@
               <label v-for="vt in vendorTypeOptions" :key="vt.id"
                 class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
                 <input type="checkbox" :value="vt.name" v-model="form.vendorTypes"
-                  class="rounded text-primary-500 focus:ring-primary-500" />
+                  class="text-primary-500 focus:ring-primary-500" />
                 {{ vt.name }}
               </label>
             </div>

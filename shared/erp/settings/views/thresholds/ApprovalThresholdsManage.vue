@@ -7,7 +7,7 @@
           <p class="text-sm text-[#637381] mt-0.5">{{ t('erp.thresholds.subtitle') }}</p>
         </div>
         <button @click="addRow"
-          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-700 transition">
+          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-primary-500 text-white hover:bg-primary-700 transition">
           <PlusIcon class="w-4 h-4" />
           {{ t('erp.thresholds.addRule') }}
         </button>
@@ -51,11 +51,11 @@
               <td class="px-4 py-2 text-right">
                 <div class="flex items-center justify-end gap-1">
                   <button @click="save(r)" :disabled="r._saving"
-                    class="px-2.5 py-1 text-xs font-semibold bg-primary-500 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 transition">
+                    class="px-2.5 py-1 text-xs font-semibold bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
                     {{ r._saving ? '…' : (isDraft(r) ? t('common.create') : t('common.save')) }}
                   </button>
                   <button @click="remove(r)" :disabled="r._saving"
-                    class="p-1 text-[#9BA7B0] hover:text-red-500 rounded transition">
+                    class="p-1 text-[#9BA7B0] hover:text-red-500 transition">
                     <TrashIcon class="w-4 h-4" />
                   </button>
                 </div>

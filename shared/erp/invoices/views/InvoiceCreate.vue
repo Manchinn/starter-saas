@@ -41,7 +41,7 @@
                 </div>
                 <button type="button" @click="openCustomerCreate"
                   :title="`${t('erp.invoices.newCustomer')} (Alt+C)`"
-                  class="px-3 py-2.5 text-[12px] font-semibold rounded-xl border border-primary-200
+                  class="px-3 py-2.5 text-[12px] font-semibold border border-primary-200
                          text-primary-600 bg-primary-50 hover:bg-primary-100 transition-colors flex-shrink-0 inline-flex items-center gap-1.5">
                   <PlusIcon class="w-3.5 h-3.5" />
                   {{ t('erp.invoices.newCustomer') }}
@@ -110,7 +110,7 @@
           <template #actions>
             <button type="button" @click="syncAddressesFromCustomer"
               :disabled="!selectedCustomer?.address"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold rounded-xl
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
                      text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
                      transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               <ArrowPathIcon class="w-3.5 h-3.5" />
@@ -129,7 +129,7 @@
               <div class="flex items-center justify-between">
                 <FieldLabel :text="t('erp.invoices.billingAddress')" />
                 <label class="flex items-center gap-1.5 text-[11px] text-[#637381] cursor-pointer select-none">
-                  <input type="checkbox" v-model="billingSameAsShipping" class="rounded" />
+                  <input type="checkbox" v-model="billingSameAsShipping" class="" />
                   {{ t('erp.invoices.sameAsShipping') }}
                 </label>
               </div>
@@ -150,7 +150,7 @@
               :title="`${t('erp.invoices.addItem')} (Ctrl+A)`"
               class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
                      text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
-                     rounded-xl transition-colors">
+                     transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.invoices.addItem') }}
               <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+A</kbd>
@@ -210,7 +210,7 @@
 
                 <div v-if="line.isPackage" class="flex items-center gap-1.5 text-[13px] font-semibold text-primary-700">
                   <button type="button" @click="toggleCollapse(line.key)"
-                    class="flex items-center justify-center w-5 h-5 rounded hover:bg-primary-100 text-primary-600 flex-shrink-0">
+                    class="flex items-center justify-center w-5 h-5 hover:bg-primary-100 text-primary-600 flex-shrink-0">
                     <ChevronRightIcon v-if="isCollapsed(line.key)" class="w-3.5 h-3.5" />
                     <ChevronDownIcon  v-else                       class="w-3.5 h-3.5" />
                   </button>
@@ -406,7 +406,7 @@
         <button @click="saveDraft" :disabled="!canSave || savingDraft || saving" type="button"
           :title="!canSave ? t('erp.invoices.fillRequiredFields') : `${t('erp.invoices.saveDraft')} (Ctrl+S)`"
           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
-                 bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 rounded-xl
+                 bg-white text-primary-600 border border-primary-200 hover:bg-primary-50
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="savingDraft" class="w-4 h-4 animate-spin" />
           <BookmarkSquareIcon v-else class="w-4 h-4" />
@@ -415,7 +415,7 @@
         <button @click="save" :disabled="!canSave || saving || savingDraft" type="button"
           :title="!canSave ? t('erp.invoices.fillRequiredFields') : `${t('erp.invoices.create')} (Ctrl+Shift+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
-                 bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                 bg-primary-500 text-white hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />
@@ -441,7 +441,7 @@
             <button type="button" @click="confirmAnswer(false)"
               class="px-4 py-2 text-sm font-medium text-[#637381] hover:text-[#1C2434]">{{ t('common.cancel') }}</button>
             <button type="button" @click="confirmAnswer(true)"
-              class="px-4 py-2 text-sm font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 shadow-sm">
+              class="px-4 py-2 text-sm font-semibold bg-red-500 text-white hover:bg-red-600 shadow-sm">
               {{ confirmOkLabel }}
             </button>
           </div>
@@ -500,7 +500,7 @@
             <button @click="closeCustomerCreate" type="button"
               class="px-4 py-2 text-sm text-[#637381] hover:text-[#1C2434]">{{ t('common.cancel') }}</button>
             <button @click="saveCustomer" :disabled="newCustomerSaving" type="button"
-              class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50">
+              class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50">
               <ArrowPathIcon v-if="newCustomerSaving" class="w-4 h-4 animate-spin" />
               <CheckIcon v-else class="w-4 h-4" />
               {{ newCustomerSaving ? t('erp.common.creating') : t('common.save') }}

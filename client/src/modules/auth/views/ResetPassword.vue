@@ -23,7 +23,7 @@
             <input v-model="newPassword" type="password" required minlength="8" autocomplete="new-password"
               :placeholder="t('auth.passwordMinPh')"
               :class="[
-                'w-full px-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                'w-full px-4 py-3 bg-white border text-[14px] text-[#0F172A]',
                 'placeholder-[#CBD5E1] shadow-xs focus:outline-none focus:ring-2 focus:border-primary-400 transition',
                 errorOf('newPassword')
                   ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
@@ -39,7 +39,7 @@
             <input v-model="confirm" type="password" required minlength="8" autocomplete="new-password"
               :placeholder="t('auth.repeatPh')"
               :class="[
-                'w-full px-4 py-3 bg-white border rounded-xl text-[14px] text-[#0F172A]',
+                'w-full px-4 py-3 bg-white border text-[14px] text-[#0F172A]',
                 'placeholder-[#CBD5E1] shadow-xs focus:outline-none focus:ring-2 focus:border-primary-400 transition',
                 confirmError
                   ? 'border-red-400 ring-1 ring-red-200 focus:border-red-500 focus:ring-red-200/60'
@@ -53,7 +53,7 @@
           </div>
 
           <button type="submit" :disabled="loading || !canSubmit"
-            class="w-full py-3 px-6 rounded-xl text-[14px] font-semibold text-white
+            class="w-full py-3 px-6 text-[14px] font-semibold text-white
                    bg-primary-500 hover:bg-primary-600 active:bg-primary-700
                    disabled:opacity-60 disabled:cursor-not-allowed transition">
             {{ loading ? t('auth.resetting') : t('auth.resetPasswordBtn') }}

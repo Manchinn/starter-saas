@@ -46,7 +46,7 @@
               <td class="px-4 py-2 text-center"><input v-model="c.isBase" type="checkbox" /></td>
               <td class="px-4 py-2 text-center"><input v-model="c.isActive" type="checkbox" /></td>
               <td class="px-4 py-2 text-right">
-                <button @click="deleteCurrency(c)" class="p-1 text-[#9BA7B0] hover:text-red-500 rounded"><TrashIcon class="w-4 h-4" /></button>
+                <button @click="deleteCurrency(c)" class="p-1 text-[#9BA7B0] hover:text-red-500"><TrashIcon class="w-4 h-4" /></button>
               </td>
             </tr>
           </tbody>
@@ -84,7 +84,7 @@
               <td class="px-4 py-2"><input v-model.number="r.rate" type="number" min="0" step="0.0001" :disabled="!isDraft(r)" class="w-full px-2 py-1.5 border text-sm text-right tabular-nums disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2"><input v-model="r.notes" type="text" :disabled="!isDraft(r)" :placeholder="t('erp.currencies.notesPh')" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2 text-right">
-                <button @click="deleteRate(r)" class="p-1 text-[#9BA7B0] hover:text-red-500 rounded"><TrashIcon class="w-4 h-4" /></button>
+                <button @click="deleteRate(r)" class="p-1 text-[#9BA7B0] hover:text-red-500"><TrashIcon class="w-4 h-4" /></button>
               </td>
             </tr>
             <tr v-if="!rates.length && !rateDrafts.length"><td colspan="5" class="py-8 text-center text-[#9BA7B0]">{{ t('erp.currencies.noRates') }}</td></tr>

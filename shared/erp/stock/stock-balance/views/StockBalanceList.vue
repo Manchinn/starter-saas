@@ -43,7 +43,7 @@
             <SearchSelect v-model="filters.productId" :options="productOptions" :placeholder="t('erp.stockMovement.allProducts')" @change="load" />
           </div>
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" v-model="filters.includeZero" @change="load" class="rounded w-4 h-4" />
+            <input type="checkbox" v-model="filters.includeZero" @change="load" class="w-4 h-4" />
             <span class="text-sm text-[#374151]">{{ t('erp.stockBalance.includeZeroQty') }}</span>
           </label>
           <button @click="resetFilters"

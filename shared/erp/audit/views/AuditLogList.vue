@@ -69,7 +69,7 @@
           <span>{{ t('common.showing') }} {{ (page - 1) * limit + 1 }}–{{ Math.min(page * limit, total) }} {{ t('common.of') }} {{ total }}</span>
           <div class="flex items-center gap-2">
             <button @click="page = Math.max(1, page - 1); load()" :disabled="page === 1"
-              class="px-3 py-1 border rounded-md hover:bg-slate-50 disabled:opacity-40">&larr;</button>
+              class="px-3 py-1 border hover:bg-slate-50 disabled:opacity-40">&larr;</button>
             <span class="px-2">{{ page }} / {{ Math.ceil(total / limit) }}</span>
             <button @click="page = Math.min(Math.ceil(total / limit), page + 1); load()" :disabled="page * limit >= total"
               class="px-3 py-1 border rounded-md hover:bg-slate-50 disabled:opacity-40">&rarr;</button>

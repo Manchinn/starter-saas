@@ -56,7 +56,7 @@
               <label class="flex items-start gap-3 cursor-pointer select-none group">
                 <div class="mt-0.5 flex-shrink-0">
                   <input type="checkbox" v-model="form.isSystem"
-                    class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 accent-primary-500 cursor-pointer" />
+                    class="w-4 h-4 border-[#CBD5E1] text-primary-500 accent-primary-500 cursor-pointer" />
                 </div>
                 <div>
                   <span class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider group-hover:text-[#1C2434] transition-colors">

@@ -5,7 +5,7 @@
         <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.activity.title') }}</h2>
         <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.activity.subtitle') }}</p>
       </div>
-      <button @click="load" :disabled="loading" class="p-1.5 text-[#9BA7B0] hover:text-primary-500 rounded-md disabled:opacity-50" :title="t('common.loading')">
+      <button @click="load" :disabled="loading" class="p-1.5 text-[#9BA7B0] hover:text-primary-500 disabled:opacity-50" :title="t('common.loading')">
         <ArrowPathIcon class="w-4 h-4" :class="loading && 'animate-spin'" />
       </button>
     </div>

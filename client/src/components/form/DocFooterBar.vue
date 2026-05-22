@@ -11,7 +11,7 @@
       </RouterLink>
       <button @click="$emit('save')" :disabled="saving" type="button"
         class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold
-               bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+               bg-primary-500 text-white hover:bg-primary-600 shadow-sm
                disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
         <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
         <CheckIcon v-else class="w-4 h-4" />

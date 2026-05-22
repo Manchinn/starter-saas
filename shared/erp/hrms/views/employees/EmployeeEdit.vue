@@ -122,7 +122,7 @@
                   <div class="grid grid-cols-1 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/50 rounded-xl max-h-56 overflow-y-auto shadow-inner">
                     <label v-for="d in departments" :key="d.id" 
                       class="flex items-center gap-2.5 px-3 py-2 hover:bg-white hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-[#E2E8F0] group">
-                      <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="rounded text-primary-500 focus:ring-primary-500" />
+                      <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="text-primary-500 focus:ring-primary-500" />
                       <span class="text-xs font-medium text-[#637381] group-hover:text-primary-500 transition-colors truncate" :title="d.name">{{ d.name }}</span>
                     </label>
                   </div>
@@ -148,7 +148,7 @@
           </RouterLink>
           <button @click="save" :disabled="saving"
             class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold bg-primary-500 text-white
-                   rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-all shadow-md hover:shadow-lg active:scale-95">
+                   hover:bg-primary-700 disabled:opacity-50 transition-all shadow-md hover:shadow-lg active:scale-95">
             <CheckIcon v-if="!saving" class="w-4 h-4 shadow-sm" />
             {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
           </button>

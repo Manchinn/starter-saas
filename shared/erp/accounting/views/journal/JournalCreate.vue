@@ -57,7 +57,7 @@
               :title="`${t('erp.journals.addLine')} (Ctrl+L)`"
               class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
                      text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200
-                     rounded-xl transition-colors">
+                     transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.journals.addLine') }}
               <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+L</kbd>
@@ -177,7 +177,7 @@
         <button @click="save" :disabled="!canSave || saving" type="button"
           :title="!canSave ? t('erp.journals.balanceRequired') : `${t('erp.journals.newEntry')} (Ctrl+S)`"
           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold
-                 bg-primary-500 text-white rounded-xl hover:bg-primary-600 shadow-sm
+                 bg-primary-500 text-white hover:bg-primary-600 shadow-sm
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
           <CheckIcon v-else class="w-4 h-4" />

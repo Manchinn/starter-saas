@@ -24,7 +24,7 @@
           </div>
           <button @click="seed" :disabled="seeding || resetting"
             class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold flex-shrink-0
-                   bg-primary-500 text-white rounded-xl hover:bg-primary-700
+                   bg-primary-500 text-white hover:bg-primary-700
                    disabled:opacity-50 transition-colors shadow-sm">
             <SparklesIcon v-if="!seeding" class="w-4 h-4" />
             <ArrowPathIcon v-else class="w-4 h-4 animate-spin" />
@@ -216,7 +216,7 @@
           <div v-if="!confirmReset">
             <button @click="confirmReset = true" :disabled="seeding || resetting"
               class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold flex-shrink-0
-                     bg-white border border-red-300 text-red-600 rounded-xl hover:bg-red-50
+                     bg-white border border-red-300 text-red-600 hover:bg-red-50
                      disabled:opacity-50 transition-colors shadow-sm">
               <TrashIcon class="w-4 h-4" />
               {{ t('erp.settings.resetAll') }}
@@ -226,7 +226,7 @@
             <span class="text-sm text-red-600 font-medium">{{ t('erp.settings.confirmReset') }}</span>
             <button @click="reset" :disabled="resetting"
               class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                     bg-red-600 text-white rounded-xl hover:bg-red-700
+                     bg-red-600 text-white hover:bg-red-700
                      disabled:opacity-50 transition-colors shadow-sm">
               <ArrowPathIcon v-if="resetting" class="w-4 h-4 animate-spin" />
               <TrashIcon v-else class="w-4 h-4" />

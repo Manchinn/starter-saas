@@ -183,7 +183,7 @@
           <div class="relative" ref="langMenuRef">
             <button
               @click="langOpen = !langOpen"
-              class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-[13px] font-medium text-[#637381]
+              class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[13px] font-medium text-[#637381]
                      border border-[#E2E8F0] bg-white hover:bg-[#F7F9FC] transition-colors select-none"
             >
               <span>{{ currentLangLabel }}</span>
@@ -208,7 +208,7 @@
                     v-for="opt in langOptions"
                     :key="opt.code"
                     @click="setLang(opt.code)"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left rounded-xl
+                    class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left
                            hover:bg-[#F7F9FC] transition-colors"
                     :class="locale === opt.code ? 'text-primary-600 font-semibold' : 'text-[#1C2434]'"
                   >
@@ -223,7 +223,7 @@
           </div>
 
           <!-- Notification bell -->
-          <button class="hidden sm:flex w-10 h-10 items-center justify-center rounded-xl border border-[#E2E8F0]
+          <button class="hidden sm:flex w-10 h-10 items-center justify-center border border-[#E2E8F0]
                          bg-white hover:bg-[#F7F9FC] text-[#637381] hover:text-[#1C2434] transition-colors">
             <BellIcon class="w-5 h-5" />
           </button>
@@ -233,7 +233,7 @@
             <button
               type="button"
               @click="userOpen = !userOpen"
-              class="flex items-center gap-2.5 p-1 sm:pl-2.5 sm:pr-3.5 sm:py-1.5 rounded-xl border border-transparent sm:border-[#E2E8F0] bg-transparent sm:bg-white
+              class="flex items-center gap-2.5 p-1 sm:pl-2.5 sm:pr-3.5 sm:py-1.5 border border-transparent sm:border-[#E2E8F0] bg-transparent sm:bg-white
                      hover:bg-[#F7F9FC] transition-colors"
             >
               <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
@@ -276,7 +276,7 @@
                 </div>
                 <div class="p-1.5 border-t border-[#E2E8F0]">
                   <button type="button" @click="handleLogout"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#B91C1C] rounded-xl hover:bg-red-50 transition-colors">
+                    class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#B91C1C] hover:bg-red-50 transition-colors">
                     <ArrowRightOnRectangleIcon class="w-4 h-4" />
                     <span>{{ t('nav.signOut') }}</span>
                   </button>

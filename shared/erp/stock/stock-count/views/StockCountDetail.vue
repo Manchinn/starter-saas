@@ -37,7 +37,7 @@
         </div>
         <div v-if="sc && !loading" class="flex items-center gap-2 flex-shrink-0">
           <button @click="onPrint" type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
             <PrinterIcon class="w-4 h-4" />
             {{ t('common.print') }}
@@ -49,7 +49,7 @@
             {{ t('common.edit') }}
           </RouterLink>
           <button v-if="sc.status === 'draft'" v-can="'erp.stock.delete'" @click="deleteSc" type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors">
             <TrashIcon class="w-4 h-4" />
           </button>
@@ -103,7 +103,7 @@
           </div>
           <label class="inline-flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" v-model="sc.movementLocked" @change="toggleLock"
-              class="w-4 h-4 rounded border-[#CBD5E1] text-primary-500 focus:ring-primary-500/40" />
+              class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-500/40" />
             <span :class="sc.movementLocked ? 'text-red-600 font-bold' : 'text-[#9BA7B0]'"
               class="text-[11px] uppercase tracking-wider">
               {{ t('erp.stockCount.lockMovements') }}
@@ -303,7 +303,7 @@
             </p>
           </div>
           <button @click="confirmSc" :disabled="confirming"
-            class="px-4 py-2.5 text-sm font-semibold rounded-xl
+            class="px-4 py-2.5 text-sm font-semibold
                    bg-green-600 text-white hover:bg-green-700 disabled:opacity-50
                    flex items-center gap-2 transition-colors">
             <ArrowPathIcon v-if="confirming" class="w-4 h-4 animate-spin" />

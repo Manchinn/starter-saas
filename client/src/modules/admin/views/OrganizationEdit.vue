@@ -58,7 +58,7 @@
             </div>
 
             <div class="flex items-center gap-2.5">
-              <input type="checkbox" id="chk-active" v-model="form.isActive" class="rounded border-[#CBD5E1] w-4 h-4" />
+              <input type="checkbox" id="chk-active" v-model="form.isActive" class="border-[#CBD5E1] w-4 h-4" />
               <label for="chk-active" class="text-sm text-[#374151]">{{ t('org.accountActive') }}</label>
             </div>
 
@@ -172,7 +172,7 @@
             <div class="border border-[#E2E8F0] divide-y divide-[#E2E8F0] max-h-64 overflow-y-auto scrollbar-thin">
               <label v-for="role in allRoles" :key="role.id"
                 class="flex items-center gap-3 px-4 py-2.5 hover:bg-[#F7F9FC] cursor-pointer">
-                <input type="checkbox" :value="role.id" v-model="form.roleIds" class="rounded border-[#CBD5E1] w-4 h-4" />
+                <input type="checkbox" :value="role.id" v-model="form.roleIds" class="border-[#CBD5E1] w-4 h-4" />
                 <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: role.color }" />
                 <div class="flex-1 min-w-0">
                   <span class="text-sm font-medium text-[#1C2434]">{{ role.name }}</span>
@@ -197,7 +197,7 @@
             {{ t('common.cancel') }}
           </RouterLink>
           <button @click="save" :disabled="saving"
-            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 transition shadow-sm">
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition shadow-sm">
             {{ saving ? t('common.saving') : t('common.saveChanges') }}
           </button>
         </div>
