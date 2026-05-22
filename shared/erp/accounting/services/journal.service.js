@@ -14,7 +14,6 @@ const lineInclude = {
 
 const nextRefNo = (userId) => getNext('JE', userId)
 
-// โ”€โ”€ List โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
   const where  = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
@@ -29,7 +28,6 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, journals: rows }
 }
 
-// โ”€โ”€ Get by id โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const getById = async (id) => {
   const j = await Journal.findByPk(id, {
     include: [lineInclude],
@@ -38,7 +36,6 @@ const getById = async (id) => {
   return j
 }
 
-// โ”€โ”€ Validate balance โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 function checkBalance(lines) {
   if (!lines || lines.length < 2) throw { status: 400, message: 'A journal entry requires at least 2 lines' }
   const totalDebit  = lines.reduce((s, l) => s + Number(l.debit  || 0), 0)
@@ -48,7 +45,6 @@ function checkBalance(lines) {
   return totalDebit
 }
 
-// โ”€โ”€ Create โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const create = async ({ date, description, lines = [], userId, organizationId }) => {
   if (!date) throw { status: 400, message: 'Date is required' }
   await require('./tax-period.service').assertOpen(date, organizationId)
@@ -80,7 +76,6 @@ const create = async ({ date, description, lines = [], userId, organizationId })
   }
 }
 
-// โ”€โ”€ Update (draft only) โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const update = async (id, { date, description, lines = [], userId }) => {
   const j = await Journal.findByPk(id)
   if (!j)                  throw { status: 404, message: 'Journal not found' }
@@ -111,7 +106,6 @@ const update = async (id, { date, description, lines = [], userId }) => {
   }
 }
 
-// โ”€โ”€ Post โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const post = async (id, userId) => {
   const j = await Journal.findByPk(id, { include: [{ model: JournalLine, as: 'lines' }] })
   if (!j)                  throw { status: 404, message: 'Journal not found' }
@@ -122,7 +116,6 @@ const post = async (id, userId) => {
   return getById(id)
 }
 
-// โ”€โ”€ Void โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const voidJournal = async (id, userId) => {
   const j = await Journal.findByPk(id)
   if (!j)                   throw { status: 404, message: 'Journal not found' }
@@ -131,7 +124,6 @@ const voidJournal = async (id, userId) => {
   return getById(id)
 }
 
-// โ”€โ”€ Delete (draft only) โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const remove = async (id) => {
   const j = await Journal.findByPk(id)
   if (!j)                  throw { status: 404, message: 'Journal not found' }

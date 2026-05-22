@@ -34,8 +34,10 @@
               <DateInput v-model="form.date"
                 :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('date') && 'input-error']" />
               <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
+              <FieldError name="date" :errors="fieldErrors" />
             </div>
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.journals.colDescription')" />
@@ -204,6 +206,8 @@ import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -213,6 +217,7 @@ const accounts = ref([])
 const errors   = ref({})
 const globalError = ref('')
 const saving   = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const today = new Date().toISOString().slice(0, 10)
 const form = ref({
@@ -298,6 +303,7 @@ onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function save() {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   saving.value = true
   try {
@@ -307,7 +313,8 @@ async function save() {
     if (id) router.push(`/erp/accounting/journals/${id}`)
     else    router.push('/erp/accounting/journals')
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to create journal entry')
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, 'Failed to create journal entry')
   } finally {
     saving.value = false
   }

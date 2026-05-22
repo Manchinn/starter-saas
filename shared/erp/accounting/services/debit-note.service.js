@@ -12,7 +12,6 @@ const baseInclude = [
 
 const nextRefNo = (userId) => getNext('DN', userId)
 
-// โ”€โ”€ List โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
   const where  = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
@@ -28,14 +27,12 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, debitNotes: rows }
 }
 
-// โ”€โ”€ Get by id โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const getById = async (id) => {
   const dn = await DebitNote.findByPk(id, { include: baseInclude })
   if (!dn) throw { status: 404, message: 'Debit Note not found' }
   return dn
 }
 
-// โ”€โ”€ Customer invoices โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const customerInvoices = async ({ customerId, organizationId }) => {
   return Invoice.findAll({
     where: {
@@ -50,7 +47,6 @@ const customerInvoices = async ({ customerId, organizationId }) => {
   })
 }
 
-// โ”€โ”€ Create โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const create = async ({ date, customerId, invoiceId, reason, amount, notes, userId, organizationId }) => {
   if (!customerId)              throw { status: 400, message: 'Customer is required' }
   if (!date)                    throw { status: 400, message: 'Date is required' }
@@ -71,7 +67,6 @@ const create = async ({ date, customerId, invoiceId, reason, amount, notes, user
   return getById(dn.id)
 }
 
-// โ”€โ”€ Status transitions โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const issue = async (id, userId) => {
   const dn = await DebitNote.findByPk(id)
   if (!dn)                   throw { status: 404, message: 'Debit Note not found' }

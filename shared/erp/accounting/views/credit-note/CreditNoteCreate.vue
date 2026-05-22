@@ -33,11 +33,12 @@
             <!-- Customer -->
             <div class="col-span-2 lg:col-span-1">
               <FieldLabel :text="t('erp.common.customer')" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId || !!errorOf('customerId')" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
               <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
+              <FieldError name="customerId" :errors="fieldErrors" />
             </div>
 
             <!-- Date -->
@@ -46,8 +47,10 @@
               <DateInput v-model="form.date"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.date ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('date') && 'input-error']" />
               <p v-if="errors.date" class="mt-1 text-xs text-red-500">{{ errors.date }}</p>
+              <FieldError name="date" :errors="fieldErrors" />
             </div>
 
             <!-- Invoice (optional) - kept inline because the label has a secondary "(optional)" hint -->
@@ -67,8 +70,10 @@
               <input v-model="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('amount') && 'input-error']" />
               <p v-if="errors.amount" class="mt-1 text-xs text-red-500">{{ errors.amount }}</p>
+              <FieldError name="amount" :errors="fieldErrors" />
             </div>
 
             <!-- Reason -->
@@ -77,8 +82,10 @@
               <input v-model="form.reason" type="text" :placeholder="t('erp.creditNotes.reasonPh')"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.reason ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.reason ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('reason') && 'input-error']" />
               <p v-if="errors.reason" class="mt-1 text-xs text-red-500">{{ errors.reason }}</p>
+              <FieldError name="reason" :errors="fieldErrors" />
             </div>
 
             <!-- Notes -->
@@ -154,6 +161,8 @@ import SearchSelect from '@/components/SearchSelect.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import DocFooterBar from '@/components/form/DocFooterBar.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 import { fmtMoney } from '@/utils/fmt'
@@ -167,6 +176,7 @@ const loadingInvoices = ref(false)
 const saving          = ref(false)
 const globalError     = ref('')
 const errors          = ref({})
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({
@@ -210,6 +220,7 @@ function validate() {
 
 async function save() {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   saving.value = true
   try {
@@ -223,7 +234,8 @@ async function save() {
     })
     router.push(`/erp/billing/credit-notes/${data.data.creditNote.id}`)
   } catch (err) {
-    globalError.value = parseApiError(err, t('erp.creditNotes.errCreate'))
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, t('erp.creditNotes.errCreate'))
   } finally {
     saving.value = false
   }

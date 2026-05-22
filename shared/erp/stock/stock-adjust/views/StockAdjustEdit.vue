@@ -327,6 +327,7 @@ import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useMasterDataStore } from '@/stores/masterData'
 
@@ -344,6 +345,7 @@ const form  = ref({ refNo: '', date: '', storeId: '', reason: '', notes: '' })
 const items = ref([])
 const error = ref('')
 const saving = ref(false)
+const { setFromError, reset: resetErrors } = useFieldErrors()
 const loading = ref(true)
 const loadError = ref('')
 const pickerRef = ref(null)
@@ -482,6 +484,7 @@ const netQty   = computed(() => items.value.reduce((s, i) => s + (parseFloat(i.q
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.date)    { error.value = 'Date is required'; return }
   if (!form.value.storeId) { error.value = 'Store is required'; return }
   if (!items.value.length) { error.value = 'Add at least one item'; return }
@@ -499,7 +502,8 @@ async function save() {
     })
     router.push(`/erp/stock-adjust/${route.params.id}`)
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to save'
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || 'Failed to save'
   } finally {
     saving.value = false
   }

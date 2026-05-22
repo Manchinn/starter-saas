@@ -33,11 +33,12 @@
             <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel text="Customer" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId || !!errorOf('customerId')" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
+              <FieldError name="customerId" :errors="fieldErrors" />
               <CustomerChip :customer="selectedCustomer" />
             </div>
 
@@ -57,15 +58,18 @@
               <DateInput v-model="form.date"
                 :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('date') && 'input-error']" />
               <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
+              <FieldError name="date" :errors="fieldErrors" />
             </div>
 
             <!-- Payment Method -->
             <div>
               <FieldLabel text="Payment Method" required />
-              <SearchSelect v-model="form.paymentMethod" :options="paymentMethods" track-by="name" label-key="name" placeholder="— Select —" :invalid="!!errors.paymentMethod" />
+              <SearchSelect v-model="form.paymentMethod" :options="paymentMethods" track-by="name" label-key="name" placeholder="— Select —" :invalid="!!errors.paymentMethod || !!errorOf('paymentMethod')" />
               <p v-if="errors.paymentMethod" class="mt-1 text-[11px] text-red-500">{{ errors.paymentMethod }}</p>
+              <FieldError name="paymentMethod" :errors="fieldErrors" />
             </div>
 
             <!-- spacer to push notes to its own row on lg -->
@@ -270,6 +274,8 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -282,6 +288,7 @@ const loadingInvoices   = ref(false)
 const saving            = ref(false)
 const globalError       = ref('')
 const errors            = ref({})
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({
@@ -399,6 +406,7 @@ onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function save() {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   saving.value = true
   try {
@@ -413,7 +421,8 @@ async function save() {
     dirty.value = false
     router.push(`/erp/billing/receive-payments/${data.data.receivePayment.id}`)
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to create payment')
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, 'Failed to create payment')
   } finally {
     saving.value = false
   }

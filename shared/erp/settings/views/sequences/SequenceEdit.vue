@@ -151,6 +151,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 
 const { t } = useI18n()
@@ -162,6 +163,7 @@ const seq     = ref(null)
 const loading = ref(!isCreate)
 const saving  = ref(false)
 const error   = ref('')
+const { setFromError, reset: resetErrors } = useFieldErrors()
 
 const form = ref({
   code:         '',
@@ -216,6 +218,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   saving.value = true
   try {
     if (isCreate) {
@@ -227,7 +230,8 @@ async function save() {
       Object.assign(form.value, seq.value)
     }
   } catch (err) {
-    error.value = err.response?.data?.message || 'Save failed'
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || 'Save failed'
   } finally {
     saving.value = false
   }

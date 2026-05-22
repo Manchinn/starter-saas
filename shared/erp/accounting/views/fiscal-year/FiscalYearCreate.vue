@@ -28,24 +28,30 @@
               <input v-model="form.name" type="text" :placeholder="t('erp.fiscalYears.namePh')"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.name ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.name ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('name') && 'input-error']" />
               <p v-if="errors.name" class="mt-1 text-xs text-red-500">{{ errors.name }}</p>
+              <FieldError name="name" :errors="fieldErrors" />
             </div>
             <div>
               <FieldLabel :text="t('erp.fiscalYears.colStartDate')" required />
               <DateInput v-model="form.startDate"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.startDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.startDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('startDate') && 'input-error']" />
               <p v-if="errors.startDate" class="mt-1 text-xs text-red-500">{{ errors.startDate }}</p>
+              <FieldError name="startDate" :errors="fieldErrors" />
             </div>
             <div>
               <FieldLabel :text="t('erp.fiscalYears.colEndDate')" required />
               <DateInput v-model="form.endDate"
                 :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.endDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.endDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('endDate') && 'input-error']" />
               <p v-if="errors.endDate" class="mt-1 text-xs text-red-500">{{ errors.endDate }}</p>
+              <FieldError name="endDate" :errors="fieldErrors" />
             </div>
           </div>
 
@@ -82,6 +88,8 @@ import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -90,6 +98,7 @@ const router      = useRouter()
 const saving      = ref(false)
 const globalError = ref('')
 const errors      = ref({})
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({
   name:      '',
@@ -119,6 +128,7 @@ function validate() {
 
 async function save() {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   saving.value = true
   try {
@@ -130,7 +140,8 @@ async function save() {
     })
     router.push(`/erp/accounting/fiscal-years/${data.data.fiscalYear.id}`)
   } catch (err) {
-    globalError.value = parseApiError(err, t('erp.fiscalYears.errCreate'))
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, t('erp.fiscalYears.errCreate'))
   } finally {
     saving.value = false
   }

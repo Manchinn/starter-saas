@@ -457,6 +457,7 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
 import VendorChip from '../../../purchasing/views/purchase-requisition/VendorChip.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -483,6 +484,7 @@ const savingDraft    = ref(false)
 const draftSavedAt   = ref(null)
 const globalError    = ref('')
 const errors         = ref({})
+const { setFromError, reset: resetErrors } = useFieldErrors()
 
 // Once a draft has been saved-without-redirect we have a bill id, so further
 // saves PUT instead of POST and the page silently switches to edit mode.
@@ -781,6 +783,7 @@ onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function save({ redirect = true } = {}) {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   if (redirect) saving.value = true
   else          savingDraft.value = true
@@ -817,7 +820,8 @@ async function save({ redirect = true } = {}) {
       draftSavedAt.value = new Date()
     }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to save')
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
     savingDraft.value = false

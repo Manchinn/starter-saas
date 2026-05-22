@@ -68,8 +68,10 @@
               <DateInput v-model="form.date"
                 :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('date') && 'input-error']" />
               <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
+              <FieldError name="date" :errors="fieldErrors" />
             </div>
 
             <!-- Requested By -->
@@ -442,6 +444,8 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
 import VendorChip from './VendorChip.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -460,6 +464,7 @@ const savingDraft = ref(false)
 const draftSavedAt = ref(null)
 const globalError = ref('')
 const errors      = ref({})
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({
   date: '', requestedBy: '', department: '', vendorId: '', notes: '',
@@ -761,6 +766,7 @@ onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 // Save Changes → redirect; Save Draft → stay on edit page with "saved" indicator.
 async function save({ redirect = true } = {}) {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   if (redirect) saving.value = true
   else          savingDraft.value = true
@@ -789,7 +795,8 @@ async function save({ redirect = true } = {}) {
       draftSavedAt.value = new Date()
     }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to update requisition')
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, 'Failed to update requisition')
   } finally {
     saving.value = false
     savingDraft.value = false

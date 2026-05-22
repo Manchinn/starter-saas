@@ -14,7 +14,6 @@ const lineInclude = {
 
 const nextRefNo = (userId) => getNext('RCP', userId)
 
-// โ”€โ”€ List โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
   const where  = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
@@ -30,7 +29,6 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, receivePayments: rows }
 }
 
-// โ”€โ”€ Get by id โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const getById = async (id) => {
   const rp = await ReceivePayment.findByPk(id, {
     include: [
@@ -42,7 +40,6 @@ const getById = async (id) => {
   return rp
 }
 
-// โ”€โ”€ Available invoices โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const availableInvoices = async ({ customerId, organizationId }) => {
   const linked = await ReceivePaymentInvoice.findAll({
     include: [{
@@ -66,7 +63,6 @@ const availableInvoices = async ({ customerId, organizationId }) => {
   return Invoice.findAll({ where, order: [['invoiceDate', 'DESC']], attributes: invoiceAttrs })
 }
 
-// โ”€โ”€ Create โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const create = async ({ date, customerId, paymentMethod, reference, notes, invoiceIds = [], userId, organizationId }) => {
   if (!customerId)        throw { status: 400, message: 'Customer is required' }
   if (!date)              throw { status: 400, message: 'Date is required' }
@@ -107,7 +103,6 @@ const create = async ({ date, customerId, paymentMethod, reference, notes, invoi
   }
 }
 
-// โ”€โ”€ Confirm โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const confirm = async (id, userId) => {
   const rp = await ReceivePayment.findByPk(id, { include: [lineInclude] })
   if (!rp)                   throw { status: 404, message: 'Receive Payment not found' }
@@ -128,7 +123,6 @@ const confirm = async (id, userId) => {
   }
 }
 
-// โ”€โ”€ Cancel โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const cancel = async (id, userId) => {
   const rp = await ReceivePayment.findByPk(id)
   if (!rp)                   throw { status: 404, message: 'Receive Payment not found' }
@@ -137,7 +131,6 @@ const cancel = async (id, userId) => {
   return getById(id)
 }
 
-// โ”€โ”€ Remove โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 const remove = async (id) => {
   const rp = await ReceivePayment.findByPk(id)
   if (!rp)                   throw { status: 404, message: 'Receive Payment not found' }

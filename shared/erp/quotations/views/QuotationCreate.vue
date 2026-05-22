@@ -568,6 +568,7 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -588,6 +589,7 @@ const saving       = ref(false)
 const savingDraft  = ref(false)
 const draftSavedAt = ref(null)
 const errors       = ref({})
+const { setFromError, reset: resetErrors } = useFieldErrors()
 
 // Inline customer create slide-over state
 const customerCreateOpen = ref(false)
@@ -1077,6 +1079,7 @@ function validate() {
 
 async function save({ redirect = true } = {}) {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   if (redirect) saving.value = true
   else          savingDraft.value = true
@@ -1110,7 +1113,8 @@ async function save({ redirect = true } = {}) {
       draftSavedAt.value = new Date()
     }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to save quotation')
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, 'Failed to save quotation')
   } finally {
     saving.value = false
     savingDraft.value = false

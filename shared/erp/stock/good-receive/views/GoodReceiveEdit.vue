@@ -444,6 +444,7 @@ import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney, fmtRate, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -469,6 +470,7 @@ const globalError = ref('')
 const saving      = ref(false)
 const savingDraft = ref(false)
 const draftSavedAt = ref(null)
+const { setFromError, reset: resetErrors } = useFieldErrors()
 const pageLoading = ref(true)
 const loadError   = ref('')
 const refNo       = ref('')
@@ -676,6 +678,7 @@ onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function save({ redirect = true } = {}) {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   if (redirect) saving.value = true
   else          savingDraft.value = true
@@ -713,7 +716,8 @@ async function save({ redirect = true } = {}) {
       draftSavedAt.value = new Date()
     }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to save')
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
     savingDraft.value = false

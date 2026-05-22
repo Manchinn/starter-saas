@@ -24,7 +24,8 @@
               {{ t('erp.accounting.code') }} <span class="text-red-500">*</span>
             </label>
             <input v-model="form.code" type="text"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono" />
+              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono', errorOf('code') && 'input-error']" />
+            <FieldError name="code" :errors="fieldErrors" />
           </div>
 
           <div>
@@ -32,16 +33,20 @@
               {{ t('erp.accounting.name') }} <span class="text-red-500">*</span>
             </label>
             <input v-model="form.name" type="text"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+            <FieldError name="name" :errors="fieldErrors" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">
               {{ t('erp.accounting.accountType') }} <span class="text-red-500">*</span>
             </label>
-            <SearchSelect v-if="accountTypeOptions.length" v-model="form.accountType"
-              :options="accountTypeOptions" track-by="code" :placeholder="`— ${t('erp.accounting.selectType')} —`"
-              :allow-empty="false" @change="onTypeChange" />
+            <template v-if="accountTypeOptions.length">
+              <SearchSelect v-model="form.accountType"
+                :options="accountTypeOptions" track-by="code" :placeholder="`— ${t('erp.accounting.selectType')} —`"
+                :allow-empty="false" :invalid="!!errorOf('accountType')" @change="onTypeChange" />
+              <FieldError name="accountType" :errors="fieldErrors" />
+            </template>
             <p v-else class="text-xs text-amber-600 mt-1 px-3 py-2 bg-amber-50 rounded-lg border border-amber-200">
               {{ t('erp.accounting.noAccountTypes') }}
               <RouterLink to="/erp/settings/master-data" class="underline font-medium">{{ t('erp.accounting.setupMasterData') }}</RouterLink>
@@ -104,6 +109,8 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -129,6 +136,7 @@ const loading  = ref(true)
 const notFound = ref(false)
 const error    = ref('')
 const saving   = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 onMounted(async () => {
   const [typesRes, allAccountsRes] = await Promise.all([
@@ -164,6 +172,7 @@ function onTypeChange() {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.code.trim()) { error.value = t('erp.accounting.codeRequired'); return }
   if (!form.value.name.trim()) { error.value = t('erp.accounting.nameRequired'); return }
   saving.value = true
@@ -174,7 +183,8 @@ async function save() {
     })
     router.push('/erp/accounting/chart-of-accounts')
   } catch (err) {
-    error.value = parseApiError(err, 'Failed to save')
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
   }

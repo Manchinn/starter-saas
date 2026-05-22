@@ -346,6 +346,7 @@ import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 
 const { t }                = useI18n()
@@ -360,6 +361,7 @@ const form  = ref({ refNo: '', date: '', fromStoreId: '', toStoreId: '', notes: 
 const items = ref([])
 const error = ref('')
 const saving = ref(false)
+const { setFromError, reset: resetErrors } = useFieldErrors()
 const loading = ref(true)
 const loadError = ref('')
 const pickerRef = ref(null)
@@ -502,6 +504,7 @@ function onDocClickClosePopover(e) {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.date)        { error.value = 'Date is required'; return }
   if (!form.value.fromStoreId) { error.value = 'Source store is required'; return }
   if (!form.value.toStoreId)   { error.value = 'Destination store is required'; return }
@@ -523,7 +526,8 @@ async function save() {
     })
     router.push(`/erp/stock-request/${route.params.id}`)
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to save'
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || 'Failed to save'
   } finally {
     saving.value = false
   }

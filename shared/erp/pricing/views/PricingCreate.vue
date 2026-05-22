@@ -26,7 +26,8 @@
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text" placeholder="e.g. Standard Rate"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+            <FieldError name="name" :errors="fieldErrors" />
           </div>
 
           <div class="col-span-2">
@@ -38,7 +39,8 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.unitPrice') }} <span class="text-red-500">*</span></label>
             <input v-model.number="form.unitPrice" type="number" min="0" step="0.01"
-              class="w-full px-3 py-2 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              :class="['w-full px-3 py-2 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('unitPrice') && 'input-error']" />
+            <FieldError name="unitPrice" :errors="fieldErrors" />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -88,6 +90,8 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
@@ -100,6 +104,7 @@ const groups    = ref([])
 const saleItems = ref([])
 const error     = ref('')
 const saving    = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const statusOptions   = computed(() => [
   { id: 'active',   name: t('common.active')   },
@@ -118,6 +123,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
@@ -126,7 +132,8 @@ async function save() {
     await api.post('/erp/pricing', payload)
     router.push('/erp/pricing')
   } catch (err) {
-    error.value = parseApiError(err, 'Failed to create price list')
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to create price list')
   } finally {
     saving.value = false
   }

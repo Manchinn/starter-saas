@@ -79,7 +79,8 @@
             <!-- Payment Method -->
             <div>
               <FieldLabel :text="t('erp.receipts.paymentMethod')" required />
-              <SearchSelect v-model="form.paymentMethod" :options="paymentMethodOptions" placeholder="— Select —" />
+              <SearchSelect v-model="form.paymentMethod" :options="paymentMethodOptions" placeholder="— Select —" :invalid="!!errorOf('paymentMethod')" />
+              <FieldError name="paymentMethod" :errors="fieldErrors" />
             </div>
 
             <!-- Amount -->
@@ -88,8 +89,10 @@
               <input v-model.number="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
                 :class="['w-full px-3.5 py-2.5 border text-sm text-right tabular-nums transition-colors',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('amount') && 'input-error']" />
               <p v-if="errors.amount" class="mt-1 text-xs text-red-500">{{ errors.amount }}</p>
+              <FieldError name="amount" :errors="fieldErrors" />
             </div>
 
             <!-- Reference No. -->
@@ -165,6 +168,8 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import DocFooterBar from '@/components/form/DocFooterBar.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { useMasterDataStore } from '@/stores/masterData'
@@ -180,6 +185,7 @@ const paymentMethodOptions = computed(() => paymentMethods.value.map(m => ({ id:
 const saving           = ref(false)
 const globalError      = ref('')
 const errors           = ref({})
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({
@@ -225,6 +231,7 @@ function validate() {
 
 async function save() {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   saving.value = true
   try {
@@ -236,7 +243,8 @@ async function save() {
     const { data } = await api.post('/erp/receipts', payload)
     router.push(`/erp/receipts/${data.data.receipt.id}`)
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to create receipt')
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, 'Failed to create receipt')
   } finally {
     saving.value = false
   }

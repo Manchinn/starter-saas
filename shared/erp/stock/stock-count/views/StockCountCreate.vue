@@ -126,6 +126,7 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 
 const { t } = useI18n()
@@ -136,6 +137,7 @@ const items = ref([])
 const form = ref({ date: new Date().toISOString().slice(0, 10), storeId: '', notes: '', movementLocked: false })
 const error = ref('')
 const saving = ref(false)
+const { setFromError, reset: resetErrors } = useFieldErrors()
 const loadingProducts = ref(false)
 const lockedStoreInfo = ref(null)
 
@@ -198,6 +200,7 @@ const zeroVarianceCount     = computed(() => items.value.filter((i) => variance(
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.date)    { error.value = 'Date is required'; return }
   if (!form.value.storeId) { error.value = 'Store is required'; return }
   if (!items.value.length) { error.value = 'Load products before saving'; return }
@@ -215,7 +218,8 @@ async function save() {
     const { data } = await api.post('/erp/stock-count', payload)
     router.push(`/erp/stock-count/${data.data.stockCount.id}`)
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to save'
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || 'Failed to save'
   } finally {
     saving.value = false
   }

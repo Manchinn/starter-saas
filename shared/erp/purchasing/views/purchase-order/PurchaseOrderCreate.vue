@@ -47,7 +47,7 @@
               <FieldLabel :text="t('erp.po.vendor')" required />
               <div class="flex gap-2 items-start">
                 <div ref="vendorFieldRef" class="flex-1 min-w-0">
-                  <SearchSelect v-model="form.vendorId" :options="vendors" :invalid="!!errors.vendorId"
+                  <SearchSelect v-model="form.vendorId" :options="vendors" :invalid="!!errors.vendorId || !!errorOf('vendorId')"
                     :placeholder="`— ${t('erp.po.selectVendor')} —`">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> · {{ option.code }}</span></template>
                     <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> · {{ option.code }}</span></template>
@@ -63,6 +63,7 @@
                 </button>
               </div>
               <p v-if="errors.vendorId" class="mt-1 text-[11px] text-red-500">{{ errors.vendorId }}</p>
+              <FieldError name="vendorId" :errors="fieldErrors" />
               <VendorChip :vendor="selectedVendor" />
             </div>
 
@@ -79,8 +80,10 @@
               <DateInput v-model="form.date"
                 :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
+                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]',
+                         errorOf('date') && 'input-error']" />
               <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
+              <FieldError name="date" :errors="fieldErrors" />
             </div>
 
             <!-- Delivery Date -->
@@ -450,6 +453,8 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
 import VendorChip from '../purchase-requisition/VendorChip.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
@@ -473,6 +478,7 @@ const savingDraft  = ref(false)
 const draftSavedAt = ref(null)
 const globalError  = ref('')
 const errors       = ref({})
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 // Once a draft has been saved-without-redirect we have a PO id, so subsequent
 // saves PUT instead of POST and the page silently switches to edit mode.
@@ -767,6 +773,7 @@ onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function save({ redirect = true } = {}) {
   globalError.value = ''
+  resetErrors()
   if (!validate()) return
   if (redirect) saving.value = true
   else          savingDraft.value = true
@@ -801,7 +808,8 @@ async function save({ redirect = true } = {}) {
       draftSavedAt.value = new Date()
     }
   } catch (err) {
-    globalError.value = parseApiError(err, 'Failed to save')
+    const had = setFromError(err)
+    if (!had) globalError.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
     savingDraft.value = false

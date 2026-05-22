@@ -92,6 +92,7 @@ import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import { useMasterDataStore } from '@/stores/masterData'
 
 const router = useRouter()
@@ -101,9 +102,11 @@ const { t }  = useI18n()
 const form   = ref({ slug: '', name: '', description: '', isSystem: false })
 const saving = ref(false)
 const error  = ref('')
+const { setFromError, reset: resetErrors } = useFieldErrors()
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.slug.trim()) { error.value = t('erp.masterData.slugRequired'); return }
   if (!form.value.name.trim()) { error.value = t('erp.masterData.nameRequired'); return }
   saving.value = true
@@ -111,7 +114,8 @@ async function save() {
     const cat = await store.createCategory(form.value)
     router.push(`/erp/settings/master-data/${cat.id}`)
   } catch (err) {
-    error.value = err.response?.data?.message || t('erp.masterData.saveFailed')
+    const had = setFromError(err)
+    if (!had) error.value = err.response?.data?.message || t('erp.masterData.saveFailed')
   } finally {
     saving.value = false
   }
