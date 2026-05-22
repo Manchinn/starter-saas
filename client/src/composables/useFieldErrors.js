@@ -34,6 +34,29 @@ export function useFieldErrors() {
     fieldErrors.value = rest
   }
 
+  // Set one field's error message manually (e.g. from a client-side
+  // pre-check before the request goes out).
+  function setField(name, message) {
+    if (!name) return
+    fieldErrors.value = { ...fieldErrors.value, [name]: message }
+  }
+
+  // Apply multiple client-side rules at once. Pass an object whose keys
+  // are field names and values are the message (or '' / false / null to
+  // skip). Returns true if at least one error was set.
+  function setMany(map) {
+    const next = { ...fieldErrors.value }
+    let added = false
+    for (const [name, message] of Object.entries(map || {})) {
+      if (message) {
+        next[name] = message
+        added = true
+      }
+    }
+    fieldErrors.value = next
+    return added
+  }
+
   function reset() {
     fieldErrors.value = {}
   }
@@ -46,5 +69,5 @@ export function useFieldErrors() {
     return Object.keys(fieldErrors.value).length > 0
   }
 
-  return { fieldErrors, setFromError, clearField, reset, errorOf, hasErrors }
+  return { fieldErrors, setFromError, setField, setMany, clearField, reset, errorOf, hasErrors }
 }

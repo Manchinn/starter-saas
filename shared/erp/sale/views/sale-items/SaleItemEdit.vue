@@ -84,7 +84,7 @@ const products = ref([])
 const loading  = ref(true)
 const saving   = ref(false)
 const error    = ref('')
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 const statusOptions  = computed(() =>
   saleItemStatuses.value.length
@@ -118,7 +118,7 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { error.value = 'Name is required'; return }
+  if (!form.value.name.trim()) { setField('name', 'Name is required'); return }
   saving.value = true
   try {
     await api.put(`/erp/sale-items/${id}`, {

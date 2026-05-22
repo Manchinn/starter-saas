@@ -29,13 +29,15 @@
                 <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                   {{ t('erp.uomConversion.fromUom') }} <span class="text-red-500">*</span>
                 </label>
-                <SearchSelect v-model="form.fromUomId" :options="uomOptions" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
+                <SearchSelect v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
+                <FieldError name="fromUomId" :errors="fieldErrors" />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                   {{ t('erp.uomConversion.toUom') }} <span class="text-red-500">*</span>
                 </label>
-                <SearchSelect v-model="form.toUomId" :options="uomOptions" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
+                <SearchSelect v-model="form.toUomId" :options="uomOptions" :invalid="!!errorOf('toUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
+                <FieldError name="toUomId" :errors="fieldErrors" />
               </div>
             </div>
 
@@ -44,7 +46,8 @@
                 {{ t('erp.uomConversion.factor') }} <span class="text-red-500">*</span>
               </label>
               <input v-model.number="form.factor" type="number" min="0.000001" step="any" placeholder="e.g. 12"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                :class="['w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('factor') && 'input-error']" />
+              <FieldError name="factor" :errors="fieldErrors" />
               <p class="mt-1.5 text-xs text-[#9BA7B0]">
                 1 <span class="font-semibold text-[#374151]">{{ fromUomLabel }}</span>
                 =
@@ -106,7 +109,7 @@ const uoms    = ref([])
 const loading = ref(true)
 const saving  = ref(false)
 const error   = ref('')
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({ fromUomId: '', toUomId: '', factor: '', notes: '' })
 
@@ -134,9 +137,9 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.fromUomId)                        { error.value = 'From UOM is required'; return }
-  if (!form.value.toUomId)                          { error.value = 'To UOM is required'; return }
-  if (!form.value.factor || form.value.factor <= 0) { error.value = 'Factor must be greater than 0'; return }
+  if (!form.value.fromUomId)                        { setField('fromUomId', 'From UOM is required'); return }
+  if (!form.value.toUomId)                          { setField('toUomId',   'To UOM is required'); return }
+  if (!form.value.factor || form.value.factor <= 0) { setField('factor',    'Factor must be greater than 0'); return }
   saving.value = true
   try {
     await api.put(`/erp/uom-conversion/${route.params.id}`, form.value)

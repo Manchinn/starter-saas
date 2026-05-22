@@ -94,7 +94,7 @@ const autoCode = useAutoCode('CAT')
 const allCategories = ref([])
 const error = ref('')
 const saving = ref(false)
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 // Only top-level categories (no parent) can be parents
 const topLevelCategories = computed(() => allCategories.value.filter(c => !c.parentId))
@@ -111,7 +111,7 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { error.value = 'Name is required'; return }
+  if (!form.value.name.trim()) { setField('name', 'Name is required'); return }
   saving.value = true
   try {
     const payload = { ...form.value, parentId: form.value.parentId || null }

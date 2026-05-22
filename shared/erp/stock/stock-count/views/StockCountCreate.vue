@@ -26,11 +26,13 @@
         <div class="grid grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.date') }} <span class="text-red-500">*</span></label>
-            <DateInput v-model="form.date" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <DateInput v-model="form.date" :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('date') && 'input-error']" />
+            <FieldError name="date" :errors="fieldErrors" />
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.store') }} <span class="text-red-500">*</span></label>
-            <SearchSelect v-model="form.storeId" :options="storeOptions" :placeholder="t('erp.common.selectStore')" @change="onStoreChange" />
+            <SearchSelect v-model="form.storeId" :options="storeOptions" :invalid="!!errorOf('storeId')" :placeholder="t('erp.common.selectStore')" @change="onStoreChange" />
+            <FieldError name="storeId" :errors="fieldErrors" />
           </div>
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.notes') }}</label>
@@ -126,6 +128,7 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 
@@ -137,7 +140,7 @@ const items = ref([])
 const form = ref({ date: new Date().toISOString().slice(0, 10), storeId: '', notes: '', movementLocked: false })
 const error = ref('')
 const saving = ref(false)
-const { setFromError, reset: resetErrors } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 const loadingProducts = ref(false)
 const lockedStoreInfo = ref(null)
 
@@ -201,8 +204,8 @@ const zeroVarianceCount     = computed(() => items.value.filter((i) => variance(
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.date)    { error.value = 'Date is required'; return }
-  if (!form.value.storeId) { error.value = 'Store is required'; return }
+  if (!form.value.date)    { setField('date',    'Date is required'); return }
+  if (!form.value.storeId) { setField('storeId', 'Store is required'); return }
   if (!items.value.length) { error.value = 'Load products before saving'; return }
 
   saving.value = true

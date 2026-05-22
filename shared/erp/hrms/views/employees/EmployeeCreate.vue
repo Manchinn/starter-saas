@@ -37,13 +37,15 @@
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.firstName') }} <span class="text-red-500">*</span></label>
               <input v-model="form.firstName" type="text" placeholder="First name"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('firstName') && 'input-error']" />
+              <FieldError name="firstName" :errors="fieldErrors" />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.lastName') }} <span class="text-red-500">*</span></label>
               <input v-model="form.lastName" type="text" placeholder="Last name"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('lastName') && 'input-error']" />
+              <FieldError name="lastName" :errors="fieldErrors" />
             </div>
 
             <div>
@@ -100,19 +102,21 @@
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.emailUsername') }} <span class="text-red-500">*</span></label>
                 <input v-model="form.email" type="email" placeholder="employee@company.com"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('email') && 'input-error']" />
+                <FieldError name="email" :errors="fieldErrors" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.password') }} <span class="text-red-500">*</span></label>
                 <div class="relative">
                   <input v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="Min 8 characters"
-                    class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10" />
+                    :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10', errorOf('password') && 'input-error']" />
                   <button type="button" @click="showPassword = !showPassword"
                     class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9BA7B0] hover:text-[#637381]">
                     <EyeSlashIcon v-if="showPassword" class="w-4 h-4" />
                     <EyeIcon v-else class="w-4 h-4" />
                   </button>
                 </div>
+                <FieldError name="password" :errors="fieldErrors" />
               </div>
               <p class="text-xs text-[#637381] italic">
                 A system user account will be created and linked to this employee.
@@ -190,7 +194,7 @@ const error         = ref('')
 const saving        = ref(false)
 const createAccount = ref(false)
 const showPassword  = ref(false)
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({
   employeeCode:  '',
@@ -226,13 +230,13 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.firstName.trim()) { error.value = 'First name is required'; return }
-  if (!form.value.lastName.trim())  { error.value = 'Last name is required'; return }
+  if (!form.value.firstName.trim()) { setField('firstName', 'First name is required'); return }
+  if (!form.value.lastName.trim())  { setField('lastName',  'Last name is required'); return }
 
   if (createAccount.value) {
-    if (!form.value.email.trim())  { error.value = 'Email is required'; return }
-    if (!form.value.password)      { error.value = 'Password is required'; return }
-    if (form.value.password.length < 8) { error.value = 'Password must be at least 8 characters'; return }
+    if (!form.value.email.trim())  { setField('email',    'Email is required'); return }
+    if (!form.value.password)      { setField('password', 'Password is required'); return }
+    if (form.value.password.length < 8) { setField('password', 'Password must be at least 8 characters'); return }
   }
 
   saving.value = true

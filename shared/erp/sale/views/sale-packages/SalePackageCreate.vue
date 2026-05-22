@@ -157,7 +157,7 @@ const autoCode = useAutoCode('PKG')
 const form  = ref({ code: '', name: '', description: '', status: 'active', items: [] })
 const error  = ref('')
 const saving = ref(false)
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 const saleItems = ref([])
 
@@ -206,7 +206,7 @@ function removeItem(idx) { form.value.items.splice(idx, 1) }
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { error.value = 'Name is required'; return }
+  if (!form.value.name.trim()) { setField('name', 'Name is required'); return }
   if (form.value.items.some(i => !i.saleItemId)) { error.value = 'Pick an item for every row, or remove empty rows'; return }
   saving.value = true
   try {

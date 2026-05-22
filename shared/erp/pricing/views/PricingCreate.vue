@@ -104,7 +104,7 @@ const groups    = ref([])
 const saleItems = ref([])
 const error     = ref('')
 const saving    = ref(false)
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 const statusOptions   = computed(() => [
   { id: 'active',   name: t('common.active')   },
@@ -124,7 +124,7 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { error.value = 'Name is required'; return }
+  if (!form.value.name.trim()) { setField('name', 'Name is required'); return }
   saving.value = true
   try {
     const payload = { ...form.value, saleItemId: form.value.saleItemId || null, customerGroupId: form.value.customerGroupId || null }

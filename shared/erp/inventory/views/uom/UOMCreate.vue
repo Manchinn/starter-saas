@@ -81,13 +81,13 @@ const router = useRouter()
 const form   = ref({ name: '', abbreviation: '', description: '', status: 'active', activeFrom: '', activeTo: '' })
 const error  = ref('')
 const saving = ref(false)
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { error.value = 'Name is required'; return }
-  if (!form.value.abbreviation.trim()) { error.value = 'Code is required'; return }
+  if (!form.value.name.trim()) { setField('name', 'Name is required'); return }
+  if (!form.value.abbreviation.trim()) { setField('abbreviation', 'Code is required'); return }
   saving.value = true
   try {
     await api.post('/erp/uom', form.value)

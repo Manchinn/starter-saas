@@ -62,16 +62,17 @@
             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <FieldLabel :text="t('erp.common.date')" required />
-                <DateInput v-model="form.date" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
+                <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+                <FieldError name="date" :errors="fieldErrors" />
               </div>
 
               <div>
                 <FieldLabel :text="t('erp.common.store')" required />
-                <SearchSelect v-model="form.storeId" :options="stores" :placeholder="t('erp.common.selectStore')">
+                <SearchSelect v-model="form.storeId" :options="stores" :invalid="!!errorOf('storeId')" :placeholder="t('erp.common.selectStore')">
                   <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
                   <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
                 </SearchSelect>
+                <FieldError name="storeId" :errors="fieldErrors" />
               </div>
 
               <div v-if="form.type === 'customer_return'">
@@ -389,6 +390,7 @@ import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
@@ -413,7 +415,7 @@ const form  = ref({
 const items  = ref([])
 const error  = ref('')
 const saving = ref(false)
-const { setFromError, reset: resetErrors } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 const pickerRef = ref(null)
 
 let rowKeySeq = 0
@@ -527,8 +529,8 @@ function onDocClickClosePopover(e) {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.date)    { error.value = 'Date is required'; return }
-  if (!form.value.storeId) { error.value = 'Store is required'; return }
+  if (!form.value.date)    { setField('date',    'Date is required'); return }
+  if (!form.value.storeId) { setField('storeId', 'Store is required'); return }
   if (!items.value.length) { error.value = 'Add at least one item'; return }
   if (items.value.find(i => !i.productId || !i.qty || i.qty <= 0)) {
     error.value = 'All items must have a product and quantity > 0'; return

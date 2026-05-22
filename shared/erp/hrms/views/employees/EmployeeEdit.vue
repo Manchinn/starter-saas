@@ -34,13 +34,15 @@
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.firstName') }} <span class="text-red-500">*</span></label>
                 <input v-model="form.firstName" type="text"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('firstName') && 'input-error']" />
+                <FieldError name="firstName" :errors="fieldErrors" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.lastName') }} <span class="text-red-500">*</span></label>
                 <input v-model="form.lastName" type="text"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('lastName') && 'input-error']" />
+                <FieldError name="lastName" :errors="fieldErrors" />
               </div>
 
               <div class="col-span-2">
@@ -179,7 +181,7 @@ const saving  = ref(false)
 const users   = ref([])
 const departments = ref([])
 const error   = ref('')
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 const EMP_STATUS_OPTIONS = computed(() => [
   { id: 'active',     name: t('erp.employees.active') },
@@ -240,8 +242,8 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.firstName.trim()) { error.value = 'First name is required'; return }
-  if (!form.value.lastName.trim())  { error.value = 'Last name is required'; return }
+  if (!form.value.firstName.trim()) { setField('firstName', 'First name is required'); return }
+  if (!form.value.lastName.trim())  { setField('lastName',  'Last name is required'); return }
 
   saving.value = true
   try {

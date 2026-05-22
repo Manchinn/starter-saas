@@ -31,8 +31,8 @@
             <!-- Date -->
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
-              <DateInput v-model="form.date" class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
+              <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+              <FieldError name="date" :errors="fieldErrors" />
             </div>
 
             <!-- Notes -->
@@ -49,19 +49,21 @@
             <!-- From Store -->
             <div>
               <FieldLabel :text="t('erp.stockTransfer.fromStore')" required />
-              <SearchSelect v-model="form.fromStoreId" :options="fromStoreOptions" :placeholder="t('erp.common.selectStore')">
+              <SearchSelect v-model="form.fromStoreId" :options="fromStoreOptions" :invalid="!!errorOf('fromStoreId')" :placeholder="t('erp.common.selectStore')">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
               </SearchSelect>
+              <FieldError name="fromStoreId" :errors="fieldErrors" />
             </div>
 
             <!-- To Store -->
             <div>
               <FieldLabel :text="t('erp.stockTransfer.toStore')" required />
-              <SearchSelect v-model="form.toStoreId" :options="toStoreOptions" :placeholder="t('erp.common.selectStore')">
+              <SearchSelect v-model="form.toStoreId" :options="toStoreOptions" :invalid="!!errorOf('toStoreId')" :placeholder="t('erp.common.selectStore')">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> ({{ option.code }})</span></template>
               </SearchSelect>
+              <FieldError name="toStoreId" :errors="fieldErrors" />
             </div>
 
             <!-- Route arrow indicator -->
@@ -342,6 +344,7 @@ import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
@@ -359,7 +362,7 @@ const toStoreOptions   = computed(() => stores.value.filter(s => s.id !== form.v
 const items  = ref([])
 const error  = ref('')
 const saving = ref(false)
-const { setFromError, reset: resetErrors } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 const pickerRef = ref(null)
 
 let rowKeySeq = 0
@@ -455,9 +458,9 @@ function onDocClickClosePopover(e) {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.date)        { error.value = 'Date is required'; return }
-  if (!form.value.fromStoreId) { error.value = 'Source store is required'; return }
-  if (!form.value.toStoreId)   { error.value = 'Destination store is required'; return }
+  if (!form.value.date)        { setField('date',        'Date is required'); return }
+  if (!form.value.fromStoreId) { setField('fromStoreId', 'Source store is required'); return }
+  if (!form.value.toStoreId)   { setField('toStoreId',   'Destination store is required'); return }
   if (form.value.fromStoreId === form.value.toStoreId) { error.value = t('erp.stockTransfer.sameStoreError'); return }
   if (!items.value.length) { error.value = 'Add at least one item'; return }
   if (items.value.find(i => !i.productId || !i.qty || i.qty <= 0)) {

@@ -119,7 +119,7 @@ const form    = ref({ name: '', code: '', contactPerson: '', email: '', phone: '
 const error   = ref('')
 const saving  = ref(false)
 const autoCode = useAutoCode('VND')
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 onMounted(async () => {
   const { data } = await api.get('/erp/master-data/by-name/Vendor Types')
@@ -129,7 +129,7 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   resetErrors()
-  if (!form.value.name.trim()) { error.value = 'Name is required'; return }
+  if (!form.value.name.trim()) { setField('name', 'Name is required'); return }
   saving.value = true
   try {
     const payload = { ...form.value }
