@@ -42,10 +42,10 @@
             :errors="confirmFieldErrors"
           />
 
-          <div v-if="error" class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg">
+          <div v-if="error" class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm">
             {{ error }}
           </div>
-          <div v-if="success" class="px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg">
+          <div v-if="success" class="px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
             {{ success }}
           </div>
 

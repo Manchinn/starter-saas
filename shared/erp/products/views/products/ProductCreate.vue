@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -25,9 +25,9 @@
             <div>
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.codeSku') }}</label>
               <input v-if="!autoCode.enabled.value" v-model="form.sku" type="text" placeholder="SKU-001"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               <input v-else :value="autoCode.preview.value" type="text" readonly
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
               <label class="mt-1.5 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
                 <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
                 {{ t('erp.common.autoGenerate') }}
@@ -40,7 +40,7 @@
                 {{ t('erp.products.name') }} <span class="text-red-500">*</span>
               </label>
               <input v-model="form.name" type="text" placeholder="Product name"
-                :class="['w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('name') && 'input-error']" />
+                :class="['w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('name') && 'input-error']" />
               <FieldError name="name" :errors="fieldErrors" />
             </div>
 
@@ -54,20 +54,20 @@
             <div>
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.costPrice') }}</label>
               <input v-model="form.cost" type="number" min="0" step="0.01" placeholder="0.00"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
             </div>
 
             <!-- Reorder point + qty -->
             <div>
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.reorderPoint') }}</label>
               <input v-model.number="form.reorderPoint" type="number" min="0" step="1" :placeholder="t('erp.products.reorderPointPh')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderPointHint') }}</p>
             </div>
             <div>
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.reorderQty') }}</label>
               <input v-model.number="form.reorderQty" type="number" min="0" step="1" :placeholder="t('erp.products.reorderQtyPh')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderQtyHint') }}</p>
             </div>
 
@@ -75,7 +75,7 @@
             <div class="col-span-2">
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.description') }}</label>
               <textarea v-model="form.description" rows="3" placeholder="Optional description…"
-                class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none" />
+                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none" />
             </div>
 
             <!-- Selling UOM -->
@@ -94,11 +94,11 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeFrom') }}</label>
-                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeTo') }}</label>
-                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               </div>
             </div>
             <!-- Status -->
@@ -124,14 +124,14 @@
             <div class="flex gap-2">
               <div class="flex-1"><SearchSelect v-model="selectedStoreId" :options="availableStoreOptions" :placeholder="t('erp.common.selectStore')" /></div>
               <button @click="addStore" :disabled="!selectedStoreId"
-                class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-sm font-medium">
+                class="px-4 py-2 bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-40 transition text-sm font-medium">
                 {{ t('erp.common.add') }}
               </button>
             </div>
             <div class="space-y-2 min-h-[40px]">
               <div v-if="!linkedStores.length" class="text-sm text-[#9BA7B0] text-center py-4">{{ t('erp.products.noLinkedStores') }}</div>
               <div v-for="s in linkedStores" :key="s.id"
-                class="flex items-center justify-between gap-2 px-3 py-2.5 bg-[#F7F9FC] rounded-lg border border-[#E2E8F0]">
+                class="flex items-center justify-between gap-2 px-3 py-2.5 bg-[#F7F9FC] border border-[#E2E8F0]">
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-[#1C2434] truncate">{{ s.name }}</p>
                   <p v-if="s.code" class="text-xs text-[#9BA7B0] font-mono">{{ s.code }}</p>
@@ -154,14 +154,14 @@
             <div class="flex gap-2">
               <div class="flex-1"><SearchSelect v-model="selectedVendorId" :options="availableVendorOptions" :placeholder="`— ${t('erp.common.selectVendor')} —`" /></div>
               <button @click="addVendor" :disabled="!selectedVendorId"
-                class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-sm font-medium">
+                class="px-4 py-2 bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-40 transition text-sm font-medium">
                 {{ t('erp.common.add') }}
               </button>
             </div>
             <div class="space-y-2 min-h-[40px]">
               <div v-if="!linkedVendors.length" class="text-sm text-[#9BA7B0] text-center py-4">{{ t('erp.products.noLinkedVendors') }}</div>
               <div v-for="v in linkedVendors" :key="v.id"
-                class="flex items-center justify-between gap-2 px-3 py-2.5 bg-[#F7F9FC] rounded-lg border border-[#E2E8F0]">
+                class="flex items-center justify-between gap-2 px-3 py-2.5 bg-[#F7F9FC] border border-[#E2E8F0]">
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-[#1C2434] truncate">{{ v.name }}</p>
                   <p v-if="v.code" class="text-xs text-[#9BA7B0] font-mono">{{ v.code }}</p>
@@ -177,7 +177,7 @@
       </div>
 
       <!-- Error -->
-      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
         <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
         {{ error }}
       </div>

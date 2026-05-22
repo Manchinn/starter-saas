@@ -41,7 +41,7 @@
           >{{ g }} <span class="ml-1.5 text-[#9BA7B0] tabular">{{ groupedAll[g]?.length || 0 }}</span></button>
         </div>
 
-        <div class="ml-auto flex items-center gap-1 border border-[#E2E8F0] rounded-lg p-0.5">
+        <div class="ml-auto flex items-center gap-1 border border-[#E2E8F0] p-0.5">
           <button
             v-for="m in ['grouped', 'flat']" :key="m"
             @click="viewMode = m"
@@ -243,7 +243,7 @@ const displayedGroups = computed(() => Object.keys(filteredGrouped.value).sort()
 function chipClass(group) {
   const active = activeGroup.value === group
   return [
-    'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors',
+    'px-3 py-1.5 text-xs font-medium border transition-colors',
     active
       ? 'border-primary-500 bg-primary-50 text-primary-700'
       : 'border-[#E2E8F0] text-[#637381] hover:bg-[#F7F9FC]',

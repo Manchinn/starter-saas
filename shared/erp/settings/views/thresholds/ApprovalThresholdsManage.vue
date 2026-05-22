@@ -39,14 +39,14 @@
               </td>
               <td class="px-4 py-2">
                 <input v-model.number="r.amount" type="number" min="0" step="0.01"
-                  class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary-500" />
+                  class="w-full px-2 py-1.5 border text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-4 py-2">
                 <SearchSelect v-model="r.requiredPermission" :options="permissionOptions" :allow-empty="false" />
               </td>
               <td class="px-4 py-2">
                 <input v-model="r.notes" type="text" :placeholder="t('erp.thresholds.notesPh')"
-                  class="w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary-500" />
+                  class="w-full px-2 py-1.5 border text-sm focus:outline-none focus:ring-1 focus:ring-primary-500" />
               </td>
               <td class="px-4 py-2 text-right">
                 <div class="flex items-center justify-end gap-1">
@@ -65,7 +65,7 @@
         </table>
       </div>
 
-      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2">{{ error }}</div>
     </div>
   </AppLayout>
 </template>

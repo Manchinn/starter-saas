@@ -25,7 +25,7 @@
 
           <template #toolbar>
             <button @click="showFilters = !showFilters"
-              :class="['flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border transition-colors whitespace-nowrap',
+              :class="['flex items-center gap-1.5 px-3 py-2 text-sm font-medium border transition-colors whitespace-nowrap',
                 (filterStatus || showFilters)
                   ? 'bg-primary-50 border-primary-200 text-primary-600'
                   : 'bg-white border-[#E2E8F0] text-[#637381] hover:bg-slate-50']">

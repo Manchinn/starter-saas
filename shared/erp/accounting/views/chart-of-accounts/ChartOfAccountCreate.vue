@@ -18,7 +18,7 @@
               {{ t('erp.accounting.code') }} <span class="text-red-500">*</span>
             </label>
             <input v-model="form.code" type="text" placeholder="e.g. 1110"
-              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono', errorOf('code') && 'input-error']" />
+              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono', errorOf('code') && 'input-error']" />
             <FieldError name="code" :errors="fieldErrors" />
           </div>
 
@@ -27,7 +27,7 @@
               {{ t('erp.accounting.name') }} <span class="text-red-500">*</span>
             </label>
             <input v-model="form.name" type="text" :placeholder="t('erp.accounting.namePh')"
-              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
             <FieldError name="name" :errors="fieldErrors" />
           </div>
 
@@ -41,7 +41,7 @@
                 :allow-empty="false" :invalid="!!errorOf('accountType')" @change="onTypeChange" />
               <FieldError name="accountType" :errors="fieldErrors" />
             </template>
-            <p v-else class="text-xs text-amber-600 mt-1 px-3 py-2 bg-amber-50 rounded-lg border border-amber-200">
+            <p v-else class="text-xs text-amber-600 mt-1 px-3 py-2 bg-amber-50 border border-amber-200">
               {{ t('erp.accounting.noAccountTypes') }}
               <RouterLink to="/erp/settings/master-data" class="underline font-medium">{{ t('erp.accounting.setupMasterData') }}</RouterLink>
             </p>
@@ -63,7 +63,7 @@
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.accounting.description') }}</label>
             <textarea v-model="form.description" rows="3" :placeholder="t('erp.accounting.descriptionPh')"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
           </div>
 
           <div>
@@ -73,14 +73,14 @@
 
         </div>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
         <div class="flex justify-end gap-3 pt-2">
-          <RouterLink to="/erp/accounting/chart-of-accounts" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">
+          <RouterLink to="/erp/accounting/chart-of-accounts" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">
             {{ t('common.cancel') }}
           </RouterLink>
           <button @click="save" :disabled="saving"
-            class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+            class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
             {{ saving ? t('erp.common.creating') : t('erp.accounting.create') }}
           </button>
         </div>

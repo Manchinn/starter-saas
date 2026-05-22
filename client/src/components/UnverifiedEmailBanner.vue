@@ -7,7 +7,7 @@
     </svg>
     <span class="flex-1">{{ t('auth.unverifiedBanner') }}</span>
     <button @click="resend" :disabled="loading || sent"
-      class="px-3 py-1.5 text-xs font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 transition">
+      class="px-3 py-1.5 text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition">
       {{ sent ? t('auth.resentOk') : (loading ? t('auth.sending') : t('auth.resendVerification')) }}
     </button>
   </div>

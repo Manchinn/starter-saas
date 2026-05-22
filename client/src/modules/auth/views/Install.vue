@@ -65,7 +65,7 @@
             <!-- What gets set up -->
             <ul class="space-y-3">
               <li v-for="(item, i) in setupItems" :key="i" class="flex items-center gap-3">
-                <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                <div class="w-6 h-6 flex items-center justify-center flex-shrink-0"
                   style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);">
                   <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />

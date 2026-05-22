@@ -96,7 +96,7 @@ const columns = [
     cell: info => {
       const cat = info.row.original
       return h('div', { class: 'flex items-center gap-2.5' }, [
-        h('div', { class: 'w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0' },
+        h('div', { class: 'w-7 h-7 bg-primary-50 flex items-center justify-center flex-shrink-0' },
           h(CircleStackIcon, { class: 'w-3.5 h-3.5 text-primary-500' })
         ),
         h('span', { class: 'font-semibold text-[#1C2434]' }, cat.name),

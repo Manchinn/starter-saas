@@ -8,7 +8,7 @@
           <p class="text-sm text-[#637381] mt-0.5">{{ rows.length }} line{{ rows.length !== 1 ? 's' : '' }}</p>
         </div>
         <button @click="load" :disabled="loading"
-          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg
+          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-[#E2E8F0]
                  hover:bg-[#F7F9FC] transition-colors disabled:opacity-40 text-[#637381]">
           <ArrowPathIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           {{ t('erp.stockBalance.refresh') }}

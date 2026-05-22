@@ -7,7 +7,7 @@
       <!-- Hamburger (mobile only) -->
       <button
         type="button"
-        class="md:hidden p-2 -ml-1 rounded-lg text-[#DEE4EE] hover:bg-white/[0.10] transition-colors flex-shrink-0"
+        class="md:hidden p-2 -ml-1 text-[#DEE4EE] hover:bg-white/[0.10] transition-colors flex-shrink-0"
         @click="mobileNavOpen = true"
         aria-label="Open navigation"
       >
@@ -41,7 +41,7 @@
             <RouterLink
               v-if="!item.children"
               :to="item.to"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] text-[#DEE4EE]
+              class="flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-[#DEE4EE]
                      hover:bg-white/[0.08] hover:text-white transition-colors whitespace-nowrap flex-shrink-0"
               active-class="bg-white/[0.15] text-white font-medium"
             >
@@ -57,7 +57,7 @@
               @mouseleave="scheduleClose"
             >
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] text-[#DEE4EE]
+                class="flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-[#DEE4EE]
                        hover:bg-white/[0.08] hover:text-white transition-colors whitespace-nowrap"
                 :class="{ 'bg-white/[0.15] text-white': openDropdown === item.label || isGroupActive(item) }"
               >
@@ -133,7 +133,7 @@
             <span class="text-white text-[15px] font-bold tracking-tight flex-1">Starter SaaS</span>
             <button
               type="button"
-              class="p-2 -mr-1 rounded-lg text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
+              class="p-2 -mr-1 text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
               @click="mobileNavOpen = false"
               aria-label="Close navigation"
             >
@@ -252,7 +252,7 @@
                 type="button"
                 @click="handleLogout"
                 title="Sign out"
-                class="p-1.5 rounded-lg text-[#8D9BB4] hover:text-white hover:bg-white/[0.10] flex-shrink-0"
+                class="p-1.5 text-[#8D9BB4] hover:text-white hover:bg-white/[0.10] flex-shrink-0"
               >
                 <ArrowRightOnRectangleIcon class="w-4 h-4" />
               </button>
@@ -309,7 +309,7 @@
           left: dropdownPos.left + 'px',
           zIndex: 9999,
         }"
-        class="hidden md:block w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-1"
+        class="hidden md:block w-56 bg-white shadow-xl border border-gray-200 py-1"
         @mouseenter="cancelClose"
         @mouseleave="scheduleClose"
       >
@@ -480,7 +480,7 @@ function isGroupActive(item) {
   @apply !bg-primary-500/20 !text-white font-semibold;
 }
 .mobile-nav-item-sm {
-  @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-[#9BA7B8]
+  @apply flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#9BA7B8]
          hover:bg-white/[0.05] hover:text-[#DEE4EE] transition-colors duration-100 w-full;
 }
 </style>

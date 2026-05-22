@@ -82,7 +82,7 @@
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-3 print:hidden">
           <div class="flex items-center gap-1 flex-wrap">
             <template v-for="(step, i) in FLOW_STEPS" :key="step.key">
-              <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg"
+              <div class="flex items-center gap-2 px-2.5 py-1"
                 :class="stepChipClass(step.key)">
                 <CheckIcon v-if="stepState(step.key) === 'completed'" class="w-3.5 h-3.5" />
                 <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 rounded-full bg-current"></span>

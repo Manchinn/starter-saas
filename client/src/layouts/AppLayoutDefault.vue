@@ -36,7 +36,7 @@
         </div>
         <button
           type="button"
-          class="md:hidden p-2 -mr-2 rounded-lg text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
+          class="md:hidden p-2 -mr-2 text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
           @click="sidebarOpen = false"
           aria-label="Close navigation"
         >
@@ -152,7 +152,7 @@
           <button
             @click="handleLogout"
             title="Sign out"
-            class="p-1.5 rounded-lg text-[#8D9BB4] hover:text-white hover:bg-white/[0.10]
+            class="p-1.5 text-[#8D9BB4] hover:text-white hover:bg-white/[0.10]
                    opacity-0 group-hover:opacity-100 transition-all duration-150"
           >
             <ArrowRightOnRectangleIcon class="w-4 h-4" />
@@ -168,7 +168,7 @@
       <header class="h-[64px] bg-white border-b border-[#E2E8F0] flex items-center px-3 sm:px-4 md:px-6 gap-2 sm:gap-4 flex-shrink-0">
         <button
           type="button"
-          class="md:hidden p-2 -ml-1 rounded-lg text-[#637381] hover:bg-[#F7F9FC] transition-colors flex-shrink-0"
+          class="md:hidden p-2 -ml-1 text-[#637381] hover:bg-[#F7F9FC] transition-colors flex-shrink-0"
           @click="sidebarOpen = true"
           aria-label="Open navigation"
         >
@@ -294,7 +294,7 @@
           Viewing as <span class="font-bold">{{ auth.user?.name }}</span> ({{ auth.user?.email }})
         </p>
         <button @click="handleReturnToAdmin"
-          class="text-[12px] font-bold text-amber-900 bg-amber-900/15 hover:bg-amber-900/25 px-3 py-1 rounded-lg transition-colors flex-shrink-0">
+          class="text-[12px] font-bold text-amber-900 bg-amber-900/15 hover:bg-amber-900/25 px-3 py-1 transition-colors flex-shrink-0">
           Return to Admin
         </button>
       </div>
@@ -408,7 +408,7 @@ onUnmounted(() => {
   @apply bg-white/[0.04] text-white;
 }
 .nav-item-sm {
-  @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-[#9BA7B8]
+  @apply flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#9BA7B8]
          hover:bg-white/[0.05] hover:text-[#DEE4EE] transition-colors duration-100 w-full;
 }
 </style>

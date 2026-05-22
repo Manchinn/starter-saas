@@ -238,7 +238,7 @@
                          transition-all placeholder:text-[#CBD5E1]" />
 
                 <button @click="removeLine(idx)" type="button"
-                  class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
+                  class="w-7 h-7 flex items-center justify-center flex-shrink-0
                          text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-colors
                          opacity-0 group-hover:opacity-100">
                   <TrashIcon class="w-3.5 h-3.5" />

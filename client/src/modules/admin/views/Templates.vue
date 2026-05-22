@@ -47,7 +47,7 @@
           v-for="f in filters" :key="f.id"
           @click="filter = f.id"
           :class="[
-            'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors flex items-center gap-1.5',
+            'px-3 py-1.5 text-xs font-medium border transition-colors flex items-center gap-1.5',
             filter === f.id
               ? 'border-primary-500 bg-primary-50 text-primary-700'
               : 'border-[#E2E8F0] text-[#637381] hover:bg-[#F7F9FC]'

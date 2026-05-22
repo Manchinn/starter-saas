@@ -20,26 +20,26 @@
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.seqCode') }} <span class="text-red-500">*</span></label>
                 <input v-model="form.code" type="text" placeholder="e.g. PO"
-                  class="w-full px-3 py-2 border rounded-lg text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <p class="text-xs text-[#9BA7B0] mt-1">Unique short identifier, used by the system</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.seqName') }} <span class="text-red-500">*</span></label>
                 <input v-model="form.name" type="text" placeholder="e.g. Purchase Order"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
             </div>
 
             <div v-else>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.seqName') }} <span class="text-red-500">*</span></label>
               <input v-model="form.name" type="text"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.displayFormat') }} <span class="text-red-500">*</span></label>
               <input v-model="form.format" type="text" placeholder="e.g. GR-{YYYY}{MM}-{####}"
-                class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
               <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#9BA7B0] mt-2">
                 <span><code>{####}</code> = padded number</span>
                 <span><code>{YYYY}</code> = 4-digit year</span>
@@ -53,19 +53,19 @@
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.initialValue') }}</label>
                 <input v-model.number="form.initialValue" type="number" min="1"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <p class="text-xs text-[#9BA7B0] mt-1">Value after reset</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.runningValue') }}</label>
                 <input v-model.number="form.runningValue" type="number" min="1"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <p class="text-xs text-[#9BA7B0] mt-1">Next number to issue</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.maximumValue') }}</label>
                 <input v-model.number="form.maxValue" type="number" min="1"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 <p class="text-xs text-[#9BA7B0] mt-1">Error if exceeded</p>
               </div>
             </div>
@@ -76,25 +76,25 @@
                 <button v-for="opt in reseedOptions" :key="opt.value"
                   type="button" @click="form.reseedPeriod = opt.value"
                   :class="form.reseedPeriod === opt.value ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-[#637381] border-[#CBD5E1] hover:bg-[#F7F9FC]'"
-                  class="px-4 py-2 border rounded-lg text-sm font-medium transition">
+                  class="px-4 py-2 border text-sm font-medium transition">
                   {{ opt.label }}
                 </button>
               </div>
               <p class="text-xs text-[#9BA7B0] mt-2">{{ reseedDescription }}</p>
             </div>
 
-            <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+            <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
             <div class="flex justify-between items-center pt-2">
               <button v-if="!isCreate" @click="resetNow"
-                class="px-4 py-2 text-sm border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 transition">
+                class="px-4 py-2 text-sm border border-orange-300 text-orange-600 hover:bg-orange-50 transition">
                 {{ t('erp.settings.resetToInitial') }}
               </button>
               <div class="flex gap-3 ml-auto">
                 <RouterLink to="/erp/settings/sequence"
-                  class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
+                  class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
                 <button @click="save" :disabled="saving"
-                  class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+                  class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
                   {{ saving ? t('erp.common.saving') : t('common.save') }}
                 </button>
               </div>
@@ -105,7 +105,7 @@
           <div class="space-y-4">
             <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5">
               <h3 class="text-sm font-semibold text-[#374151] mb-3">{{ t('erp.settings.preview') }}</h3>
-              <div class="bg-[#F7F9FC] rounded-lg px-4 py-6 text-center">
+              <div class="bg-[#F7F9FC] px-4 py-6 text-center">
                 <p class="font-mono text-2xl font-bold text-primary-500 tracking-wide">{{ livePreview }}</p>
                 <p class="text-xs text-[#9BA7B0] mt-2">Next ref no (running value = {{ form.runningValue }})</p>
               </div>

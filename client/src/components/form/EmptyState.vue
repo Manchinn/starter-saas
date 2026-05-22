@@ -7,7 +7,7 @@
     <p v-if="subtitle" class="text-xs text-[#9BA7B0] mt-1 mb-4">{{ subtitle }}</p>
     <button v-if="actionLabel" @click="$emit('action')" type="button"
       class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-500
-             bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors">
+             bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors">
       <PlusIcon class="w-4 h-4" />
       {{ actionLabel }}
     </button>

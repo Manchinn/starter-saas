@@ -248,7 +248,7 @@
             </div>
             <div class="flex flex-wrap gap-2">
               <span v-for="item in group.items" :key="item"
-                class="inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-100 px-2.5 py-1 rounded-lg">
+                class="inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-100 px-2.5 py-1">
                 <span class="w-1 h-1 rounded-full bg-red-300 flex-shrink-0" />
                 {{ item }}
               </span>
@@ -266,13 +266,13 @@
 
       <!-- Feedback -->
       <div v-if="successMsg"
-        class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-lg">
+        class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
         <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
         {{ successMsg }}
       </div>
 
       <div v-if="errorMsg"
-        class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+        class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
         <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
         {{ errorMsg }}
       </div>

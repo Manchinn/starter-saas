@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
       <div class="flex items-center gap-3">
@@ -26,7 +26,7 @@
         <div class="grid grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.date') }} <span class="text-red-500">*</span></label>
-            <DateInput v-model="form.date" :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('date') && 'input-error']" />
+            <DateInput v-model="form.date" :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('date') && 'input-error']" />
             <FieldError name="date" :errors="fieldErrors" />
           </div>
           <div>
@@ -37,7 +37,7 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.notes') }}</label>
             <input v-model="form.notes" type="text" placeholder="Optional notes"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div class="flex items-end pb-1">
             <label class="flex items-center gap-2 cursor-pointer select-none">
@@ -57,7 +57,7 @@
           </div>
           <div class="flex items-center gap-2">
             <button v-if="form.storeId && !loadingProducts" @click="loadStoreProducts"
-              class="text-sm px-3 py-1.5 border border-[#CBD5E1] text-[#637381] rounded-lg hover:bg-[#F7F9FC] transition">
+              class="text-sm px-3 py-1.5 border border-[#CBD5E1] text-[#637381] hover:bg-[#F7F9FC] transition">
               {{ t('erp.stockCount.reloadProducts') }}
             </button>
           </div>
@@ -72,7 +72,7 @@
         </div>
         <template v-else>
           <!-- Summary bar -->
-          <div class="flex items-center gap-6 mb-4 px-3 py-2 bg-[#F7F9FC] rounded-lg text-xs text-[#637381]">
+          <div class="flex items-center gap-6 mb-4 px-3 py-2 bg-[#F7F9FC] text-xs text-[#637381]">
             <span>{{ items.length }} product{{ items.length !== 1 ? 's' : '' }}</span>
             <span class="text-green-700 font-medium">+{{ positiveVarianceCount }} over</span>
             <span class="text-red-600 font-medium">{{ negativeVarianceCount }} short</span>
@@ -96,7 +96,7 @@
                 <td class="px-3 py-2 text-right text-[#637381]">{{ item.systemQty }}</td>
                 <td class="px-3 py-2">
                   <input v-model.number="item.countedQty" type="number" min="0"
-                    class="w-full px-2 py-1.5 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                    class="w-full px-2 py-1.5 border text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 </td>
                 <td class="px-3 py-2 text-right font-semibold"
                   :class="variance(item) > 0 ? 'text-green-700' : variance(item) < 0 ? 'text-red-600' : 'text-[#9BA7B0]'">
@@ -108,12 +108,12 @@
         </template>
       </div>
 
-      <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+      <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
       <div class="flex justify-end gap-3">
-        <RouterLink to="/erp/stock-count" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
+        <RouterLink to="/erp/stock-count" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
         <button @click="save" :disabled="saving || !items.length"
-          class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+          class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
           {{ saving ? t('erp.common.saving') : t('erp.common.saveDraft') }}
         </button>
       </div>

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -27,7 +27,7 @@
                   {{ t('erp.productCategories.code') }}
                 </label>
                 <input v-model="form.code" type="text" placeholder="e.g. ELEC"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                  class="w-full px-3 py-2 border border-[#E2E8F0] text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               </div>
 
               <div>
@@ -35,7 +35,7 @@
                   {{ t('erp.productCategories.name') }} <span class="text-red-500">*</span>
                 </label>
                 <input v-model="form.name" type="text" placeholder="e.g. Electronics"
-                  :class="['w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('name') && 'input-error']" />
+                  :class="['w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('name') && 'input-error']" />
                 <FieldError name="name" :errors="fieldErrors" />
               </div>
 
@@ -51,17 +51,17 @@
                   {{ t('erp.productCategories.description') }}
                 </label>
                 <textarea v-model="form.description" rows="3" placeholder="Optional description…"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                  class="w-full px-3 py-2 border border-[#E2E8F0] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               </div>
 
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeFrom') }}</label>
-                  <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                  <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeTo') }}</label>
-                  <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                  <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                 </div>
               </div>
               <div>
@@ -76,7 +76,7 @@
         </div>
 
         <div v-if="error"
-          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
           <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ error }}
         </div>

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -15,9 +15,9 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.customerCode') }}</label>
             <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" placeholder="e.g. CUS-001"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             <input v-else :value="autoCode.preview.value" type="text" readonly
-              class="w-full px-3 py-2 border rounded-lg text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+              class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
             <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
               <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
               {{ t('erp.common.autoGenerate') }}
@@ -25,38 +25,38 @@
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.name') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" :placeholder="t('erp.customers.name')" :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+            <input v-model="form.name" type="text" :placeholder="t('erp.customers.name')" :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
             <FieldError name="name" :errors="fieldErrors" />
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.company') }}</label>
-            <input v-model="form.company" type="text" :placeholder="t('erp.customers.company')" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <input v-model="form.company" type="text" :placeholder="t('erp.customers.company')" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.email') }}</label>
-            <input v-model="form.email" type="email" :placeholder="t('erp.customers.email')" :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('email') && 'input-error']" />
+            <input v-model="form.email" type="email" :placeholder="t('erp.customers.email')" :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('email') && 'input-error']" />
             <FieldError name="email" :errors="fieldErrors" />
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.phone') }}</label>
-            <input v-model="form.phone" type="text" :placeholder="t('erp.customers.phone')" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <input v-model="form.phone" type="text" :placeholder="t('erp.customers.phone')" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.address') }}</label>
-            <textarea v-model="form.address" rows="2" :placeholder="t('erp.customers.address')" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+            <textarea v-model="form.address" rows="2" :placeholder="t('erp.customers.address')" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
           </div>
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.notes') }}</label>
-            <textarea v-model="form.notes" rows="3" :placeholder="t('erp.customers.notes')" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+            <textarea v-model="form.notes" rows="3" :placeholder="t('erp.customers.notes')" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
           </div>
           <div>
@@ -69,11 +69,11 @@
           </div>
         </div>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
         <div class="flex justify-end gap-3 pt-2">
-          <RouterLink to="/erp/customers" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">Cancel</RouterLink>
-          <button @click="save" :disabled="saving" class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+          <RouterLink to="/erp/customers" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">Cancel</RouterLink>
+          <button @click="save" :disabled="saving" class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
             {{ saving ? t('erp.common.creating') : t('erp.customers.create') }}
           </button>
         </div>

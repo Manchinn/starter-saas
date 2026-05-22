@@ -5,14 +5,14 @@
         <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.attachments.title') }}</h2>
         <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.attachments.subtitle') }}</p>
       </div>
-      <label class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition cursor-pointer">
+      <label class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition cursor-pointer">
         <ArrowUpTrayIcon class="w-4 h-4" />
         {{ uploading ? t('common.loading') : t('erp.attachments.upload') }}
         <input type="file" class="hidden" @change="onFile" :disabled="uploading" />
       </label>
     </div>
 
-    <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg">{{ error }}</div>
+    <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2">{{ error }}</div>
 
     <div v-if="loading" class="py-6 text-center text-sm text-[#9BA7B0]">{{ t('common.loading') }}</div>
 
@@ -23,7 +23,7 @@
 
     <ul v-else class="divide-y divide-[#F1F5F9]">
       <li v-for="a in items" :key="a.id" class="flex items-center gap-3 py-2.5">
-        <div class="w-9 h-9 bg-[#F7F9FC] border border-[#E2E8F0] rounded-lg flex items-center justify-center text-[#637381]">
+        <div class="w-9 h-9 bg-[#F7F9FC] border border-[#E2E8F0] flex items-center justify-center text-[#637381]">
           <DocumentIcon class="w-4 h-4" />
         </div>
         <div class="flex-1 min-w-0">

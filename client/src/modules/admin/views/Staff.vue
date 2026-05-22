@@ -71,7 +71,7 @@
                 class="hover:bg-[#F7F9FC]/60 transition-colors">
               <td class="td">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-primary-100 text-primary-500
+                  <div class="w-8 h-8 bg-primary-100 text-primary-500
                               flex items-center justify-center font-bold text-xs flex-shrink-0">
                     {{ member.name.charAt(0).toUpperCase() }}
                   </div>
@@ -121,7 +121,7 @@
             <button
               :disabled="page <= 1"
               @click="page--; load()"
-              class="h-7 w-7 flex items-center justify-center rounded-lg border border-[#E2E8F0]
+              class="h-7 w-7 flex items-center justify-center border border-[#E2E8F0]
                      text-[#637381] hover:bg-white disabled:opacity-30 transition-colors"
             >
               <ChevronLeftIcon class="w-3.5 h-3.5" />
@@ -132,7 +132,7 @@
             <button
               :disabled="page * limit >= total"
               @click="page++; load()"
-              class="h-7 w-7 flex items-center justify-center rounded-lg border border-[#E2E8F0]
+              class="h-7 w-7 flex items-center justify-center border border-[#E2E8F0]
                      text-[#637381] hover:bg-white disabled:opacity-30 transition-colors"
             >
               <ChevronRightIcon class="w-3.5 h-3.5" />

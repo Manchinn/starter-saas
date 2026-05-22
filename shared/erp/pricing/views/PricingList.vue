@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -20,7 +20,7 @@
 
           <template #toolbar>
             <button @click="showFilters = !showFilters"
-              :class="['flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border transition-colors whitespace-nowrap',
+              :class="['flex items-center gap-1.5 px-3 py-2 text-sm font-medium border transition-colors whitespace-nowrap',
                 (activeFilterCount > 0 || showFilters)
                   ? 'bg-primary-50 border-primary-200 text-primary-600'
                   : 'bg-white border-[#E2E8F0] text-[#637381] hover:bg-slate-50']">
@@ -128,11 +128,11 @@
         <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.pricing.deletePricing') }}</h2>
           <p class="text-sm text-[#637381]">Delete <span class="font-semibold">{{ deleteModal.pricing?.name }}</span>? This cannot be undone.</p>
-          <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">{{ deleteModal.error }}</div>
+          <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">{{ deleteModal.error }}</div>
           <div class="flex justify-end gap-3">
-            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors">{{ t('common.cancel') }}</button>
+            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">{{ t('common.cancel') }}</button>
             <button @click="doDelete" :disabled="deleteModal.saving"
-              class="px-5 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
+              class="px-5 py-2 text-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors">
               {{ deleteModal.saving ? 'Deleting…' : t('common.delete') }}
             </button>
           </div>

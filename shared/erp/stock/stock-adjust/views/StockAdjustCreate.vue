@@ -89,7 +89,7 @@
               :disabled="!form.storeId || loadingStoreProducts || !storeProducts.length"
               :title="`${t('erp.common.addItem')}  (Ctrl+L)`"
               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary-500
-                     bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg
+                     bg-primary-50 hover:bg-primary-100 border border-primary-200
                      transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.common.addItem') }}
@@ -126,7 +126,7 @@
               <p class="text-xs text-[#9BA7B0] mt-1 mb-4">Click <strong>{{ t('erp.common.addItem') }}</strong> to pick products from this store.</p>
               <button @click="openPicker" type="button" :disabled="!storeProducts.length"
                 class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-500
-                       bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors disabled:opacity-40">
+                       bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors disabled:opacity-40">
                 <PlusIcon class="w-4 h-4" />
                 {{ t('erp.common.addItem') }}
               </button>
@@ -193,7 +193,7 @@
                       </button>
                       <div v-if="openDupKey === item.key"
                         class="absolute z-20 right-full top-1/2 -translate-y-1/2 mr-2 w-60
-                               bg-amber-50 border border-amber-200 rounded-lg shadow-lg p-2.5
+                               bg-amber-50 border border-amber-200 shadow-lg p-2.5
                                text-[12px] text-amber-800 leading-snug">
                         <div class="flex items-start gap-1.5">
                           <ExclamationTriangleIcon class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
@@ -203,14 +203,14 @@
                     </div>
                     <button @click="duplicateRow(i)" type="button"
                       :title="`${t('erp.common.duplicate')}  (Ctrl+D last)`"
-                      class="w-7 h-7 rounded-lg flex items-center justify-center
+                      class="w-7 h-7 flex items-center justify-center
                              text-[#CBD5E1] hover:text-primary-500 hover:bg-primary-50 transition-all
                              opacity-0 group-hover:opacity-100">
                       <PlusIcon class="w-3.5 h-3.5" />
                     </button>
                     <button @click="removeRow(i)" type="button"
                       :title="t('common.remove')"
-                      class="w-7 h-7 rounded-lg flex items-center justify-center
+                      class="w-7 h-7 flex items-center justify-center
                              text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-all
                              opacity-0 group-hover:opacity-100">
                       <TrashIcon class="w-3.5 h-3.5" />

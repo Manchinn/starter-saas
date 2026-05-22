@@ -39,7 +39,7 @@
           <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0]">
             <span class="text-xs text-[#9BA7B0]">{{ t('common.order') }}: {{ mod.order }}</span>
             <RouterLink :to="`/admin/modules/${mod.id}/edit`"
-                    class="text-xs px-2.5 py-1 border border-[#E2E8F0] rounded-lg text-[#637381] hover:bg-[#F7F9FC] transition-colors">
+                    class="text-xs px-2.5 py-1 border border-[#E2E8F0] text-[#637381] hover:bg-[#F7F9FC] transition-colors">
               {{ t('common.edit') }}
             </RouterLink>
           </div>

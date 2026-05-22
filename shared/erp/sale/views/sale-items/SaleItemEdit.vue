@@ -19,7 +19,7 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.saleItems.code') }}</label>
             <input v-model="form.code" type="text" placeholder="e.g. SI-001"
-              class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
 
           <!-- Status -->
@@ -32,7 +32,7 @@
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.saleItems.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text"
-              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
             <FieldError name="name" :errors="fieldErrors" />
           </div>
 
@@ -44,12 +44,12 @@
 
         </div>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
         <div class="flex justify-end gap-3 pt-2">
-          <RouterLink to="/erp/sale-items" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
+          <RouterLink to="/erp/sale-items" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving"
-            class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+            class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
             {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
           </button>
         </div>

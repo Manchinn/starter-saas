@@ -48,7 +48,7 @@
               {{ t('erp.uomConversion.factor') }} <span class="text-red-500">*</span>
             </label>
             <input v-model.number="form.factor" type="number" min="0.000001" step="any" placeholder="e.g. 12"
-              :class="['w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('factor') && 'input-error']" />
+              :class="['w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('factor') && 'input-error']" />
             <FieldError name="factor" :errors="fieldErrors" />
             <p class="mt-1.5 text-xs text-[#9BA7B0]">
               1 <span class="font-semibold text-[#374151]">{{ fromUomLabel }}</span>
@@ -62,7 +62,7 @@
           <div>
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.uomConversion.notes') }}</label>
             <input v-model="form.notes" type="text" :placeholder="t('erp.uomConversion.notesPlaceholder')"
-              class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm
+              class="w-full px-3 py-2 border border-[#E2E8F0] text-sm
                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
           </div>
 
@@ -70,7 +70,7 @@
       </div>
 
       <!-- Error -->
-      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
         <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
         {{ error }}
       </div>

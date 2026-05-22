@@ -62,7 +62,7 @@
           <template #actions>
             <button v-if="!editRow" @click="startAdd"
               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary-500
-                     bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg transition-colors">
+                     bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.masterData.addValue') }}
             </button>
@@ -106,22 +106,22 @@
                   <tr v-if="editRow?.id === v.id" class="bg-primary-50/30">
                     <td class="px-3 py-2">
                       <input v-model="editRow.code" type="text" placeholder="CODE"
-                        class="w-full px-2.5 py-2 border border-primary-300 text-xs font-mono text-[#1C2434] rounded-lg
+                        class="w-full px-2.5 py-2 border border-primary-300 text-xs font-mono text-[#1C2434]
                                focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                     </td>
                     <td class="px-3 py-2">
                       <input v-model="editRow.name" type="text" :placeholder="t('common.name')"
-                        class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#1C2434] rounded-lg
+                        class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#1C2434]
                                focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                     </td>
                     <td class="px-3 py-2">
                       <input v-model="editRow.description" type="text" :placeholder="t('common.description')"
-                        class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#637381] rounded-lg
+                        class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#637381]
                                focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                     </td>
                     <td class="px-3 py-2">
                       <input v-model.number="editRow.sortOrder" type="number" min="0" step="1"
-                        class="w-full px-2.5 py-2 border border-primary-300 text-sm text-right text-[#1C2434] rounded-lg
+                        class="w-full px-2.5 py-2 border border-primary-300 text-sm text-right text-[#1C2434]
                                focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                     </td>
                     <td class="px-3 py-2 text-center">
@@ -131,13 +131,13 @@
                       <div class="flex items-center justify-end gap-1">
                         <button @click="saveRow" :disabled="savingRow"
                           class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-white bg-primary-500
-                                 hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50">
+                                 hover:bg-primary-600 transition-colors disabled:opacity-50">
                           <CheckIcon class="w-3 h-3" />
                           {{ t('common.save') }}
                         </button>
                         <button @click="cancelEdit"
                           class="px-2.5 py-1.5 text-xs font-medium text-[#637381] hover:text-[#1C2434] border border-[#E2E8F0]
-                                 rounded-lg hover:bg-[#F7F9FC] transition-colors">
+                                 hover:bg-[#F7F9FC] transition-colors">
                           {{ t('common.cancel') }}
                         </button>
                       </div>
@@ -177,22 +177,22 @@
                 <tr v-if="editRow?.id === 'new'" class="bg-primary-50/30">
                   <td class="px-3 py-2">
                     <input v-model="editRow.code" type="text" placeholder="CODE"
-                      class="w-full px-2.5 py-2 border border-primary-300 text-xs font-mono text-[#1C2434] rounded-lg
+                      class="w-full px-2.5 py-2 border border-primary-300 text-xs font-mono text-[#1C2434]
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </td>
                   <td class="px-3 py-2">
                     <input v-model="editRow.name" type="text" :placeholder="t('common.name')" ref="newNameInput"
-                      class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#1C2434] rounded-lg
+                      class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#1C2434]
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </td>
                   <td class="px-3 py-2">
                     <input v-model="editRow.description" type="text" :placeholder="t('common.description')"
-                      class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#637381] rounded-lg
+                      class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#637381]
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </td>
                   <td class="px-3 py-2">
                     <input v-model.number="editRow.sortOrder" type="number" min="0" step="1"
-                      class="w-full px-2.5 py-2 border border-primary-300 text-sm text-right text-[#1C2434] rounded-lg
+                      class="w-full px-2.5 py-2 border border-primary-300 text-sm text-right text-[#1C2434]
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </td>
                   <td class="px-3 py-2 text-center">
@@ -202,13 +202,13 @@
                     <div class="flex items-center justify-end gap-1">
                       <button @click="saveRow" :disabled="savingRow"
                         class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-white bg-primary-500
-                               hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50">
+                               hover:bg-primary-600 transition-colors disabled:opacity-50">
                         <CheckIcon class="w-3 h-3" />
                         {{ t('common.save') }}
                       </button>
                       <button @click="cancelEdit"
                         class="px-2.5 py-1.5 text-xs font-medium text-[#637381] hover:text-[#1C2434] border border-[#E2E8F0]
-                               rounded-lg hover:bg-[#F7F9FC] transition-colors">
+                               hover:bg-[#F7F9FC] transition-colors">
                         {{ t('common.cancel') }}
                       </button>
                     </div>

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -10,7 +10,7 @@
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
-      <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
+      <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3">
         {{ t('erp.customerGroups.notFound') }} <RouterLink to="/erp/customer-groups" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
       </div>
 
@@ -20,27 +20,27 @@
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customerGroups.code') }}</label>
             <input v-model="form.code" type="text"
-              class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customerGroups.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text"
-              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
             <FieldError name="name" :errors="fieldErrors" />
           </div>
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customerGroups.description') }}</label>
             <textarea v-model="form.description" rows="3"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
           </div>
           <div>
@@ -49,15 +49,15 @@
           </div>
         </div>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
         <div class="flex justify-between items-center pt-2">
           <button v-can="'erp.customer-groups.delete'" @click="confirmDelete"
-            class="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">{{ t('erp.customerGroups.deleteGroup') }}</button>
+            class="px-4 py-2 text-sm text-red-500 border border-red-200 hover:bg-red-50 transition">{{ t('erp.customerGroups.deleteGroup') }}</button>
           <div class="flex gap-3">
-            <RouterLink to="/erp/customer-groups" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">Cancel</RouterLink>
+            <RouterLink to="/erp/customer-groups" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">Cancel</RouterLink>
             <button @click="save" :disabled="saving"
-              class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+              class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
               {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
             </button>
           </div>

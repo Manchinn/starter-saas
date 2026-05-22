@@ -10,7 +10,7 @@
       </button>
     </div>
 
-    <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg">{{ error }}</div>
+    <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2">{{ error }}</div>
 
     <div v-if="loading && !logs.length" class="py-6 text-center text-sm text-[#9BA7B0]">{{ t('common.loading') }}</div>
 

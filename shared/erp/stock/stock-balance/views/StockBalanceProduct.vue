@@ -9,7 +9,7 @@
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
-      <div v-else-if="!summary" class="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
+      <div v-else-if="!summary" class="bg-red-50 text-red-700 text-sm px-4 py-3">
         {{ t('erp.stockBalance.productNotFound') }} <RouterLink to="/erp/stock-balance" class="underline ml-1">{{ t('erp.common.back') }}</RouterLink>
       </div>
 

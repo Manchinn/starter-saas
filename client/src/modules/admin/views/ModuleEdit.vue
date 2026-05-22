@@ -62,7 +62,7 @@
         </div>
 
         <!-- Error -->
-        <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+        <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
           <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ error }}
         </div>

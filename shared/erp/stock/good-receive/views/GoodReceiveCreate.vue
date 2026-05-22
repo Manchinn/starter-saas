@@ -70,7 +70,7 @@
               {{ t('erp.goodReceive.docType') }} <span class="text-red-500 normal-case font-normal">*</span>
             </label>
             <div class="flex items-start gap-6 flex-wrap">
-              <div class="flex items-center gap-1 p-1 bg-[#F1F5F9] rounded-lg w-fit flex-shrink-0">
+              <div class="flex items-center gap-1 p-1 bg-[#F1F5F9] w-fit flex-shrink-0">
                 <button type="button" @click="form.docType = 'invoice'"
                   :class="form.docType === 'invoice' ? 'bg-white shadow text-[#1C2434]' : 'text-[#637381] hover:text-[#374151]'"
                   class="px-4 py-1.5 rounded-md text-sm font-medium transition">
@@ -200,12 +200,12 @@
 
                   <button type="button" @click="toggleExpand(i)"
                     :class="expanded.has(i) ? 'bg-primary-100 text-primary-500' : 'text-[#9BA7B0] hover:text-[#637381]'"
-                    class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium transition mx-auto">
+                    class="w-7 h-7 flex items-center justify-center text-xs font-medium transition mx-auto">
                     {{ expanded.has(i) ? '▲' : '▼' }}
                   </button>
 
                   <button @click="removeRow(i)" type="button"
-                    class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg flex items-center justify-center
+                    class="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center
                            text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0">
                     <TrashIcon class="w-3.5 h-3.5" />
                   </button>

@@ -54,7 +54,7 @@
               <label class="label">{{ t('common.color') }}</label>
               <div class="flex items-center gap-3">
                 <input type="color" v-model="form.color"
-                  class="h-9 w-16 border border-[#E2E8F0] rounded-lg cursor-pointer p-0.5" />
+                  class="h-9 w-16 border border-[#E2E8F0] cursor-pointer p-0.5" />
                 <span class="text-sm font-mono text-[#637381]">{{ form.color }}</span>
               </div>
             </div>
@@ -64,7 +64,7 @@
       </div>
 
       <!-- Error -->
-      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
         <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
         {{ error }}
       </div>

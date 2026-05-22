@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -10,7 +10,7 @@
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">{{ t('common.loading') }}</div>
-      <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
+      <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3">
         {{ t('erp.products.notFound') }} <RouterLink to="/erp/item-master" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
       </div>
 
@@ -23,12 +23,12 @@
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.codeSku') }}</label>
               <input v-model="form.sku" type="text"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.name') }} <span class="text-red-500">*</span></label>
               <input v-model="form.name" type="text"
-                :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+                :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
               <FieldError name="name" :errors="fieldErrors" />
             </div>
             <div>
@@ -38,18 +38,18 @@
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.costPrice') }}</label>
               <input v-model="form.cost" type="number" min="0" step="0.01"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.reorderPoint') }}</label>
               <input v-model.number="form.reorderPoint" type="number" min="0" step="1" :placeholder="t('erp.products.reorderPointPh')"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderPointHint') }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.reorderQty') }}</label>
               <input v-model.number="form.reorderQty" type="number" min="0" step="1" :placeholder="t('erp.products.reorderQtyPh')"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderQtyHint') }}</p>
             </div>
             <div class="col-span-2">
@@ -59,11 +59,11 @@
                   <span class="ml-2 text-[#9BA7B0] font-normal text-xs">(total: {{ currentStock }})</span>
                 </label>
                 <RouterLink :to="`/erp/stock-movements?productId=${route.params.id}`"
-                  class="text-xs px-3 py-1 border rounded-lg hover:bg-[#F7F9FC] text-primary-500 transition">
+                  class="text-xs px-3 py-1 border hover:bg-[#F7F9FC] text-primary-500 transition">
                   {{ t('erp.products.viewMovements') }}
                 </RouterLink>
               </div>
-              <div v-if="storeStocks.length" class="border border-[#E2E8F0] rounded-lg overflow-hidden">
+              <div v-if="storeStocks.length" class="border border-[#E2E8F0] overflow-hidden">
                 <table class="w-full text-sm">
                   <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0]">
                     <tr>
@@ -85,7 +85,7 @@
             <div class="col-span-2">
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.description') }}</label>
               <textarea v-model="form.description" rows="3"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
             </div>
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.sellingUom') }}</label>
@@ -98,11 +98,11 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
             </div>
             <div>
@@ -111,17 +111,17 @@
             </div>
           </div>
 
-          <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+          <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
           <div class="flex justify-between items-center pt-2">
             <button v-can="'erp.products.delete'" @click="confirmDelete"
-              class="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
+              class="px-4 py-2 text-sm text-red-500 border border-red-200 hover:bg-red-50 transition">
               {{ t('erp.products.deleteProduct') }}
             </button>
             <div class="flex gap-3">
-              <RouterLink to="/erp/item-master" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
+              <RouterLink to="/erp/item-master" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
               <button @click="save" :disabled="saving"
-                class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+                class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
                 {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
               </button>
             </div>
@@ -137,14 +137,14 @@
             <div class="flex gap-2">
               <div class="flex-1"><SearchSelect v-model="selectedStoreId" :options="availableStoreOptions" :placeholder="t('erp.common.selectStore')" /></div>
               <button @click="addStore" :disabled="!selectedStoreId"
-                class="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
+                class="px-3 py-2 bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
                 +
               </button>
             </div>
             <div class="space-y-2 min-h-[40px]">
               <div v-if="!linkedStores.length" class="text-sm text-[#9BA7B0] text-center py-3">No stores linked.</div>
               <div v-for="s in linkedStores" :key="s.id"
-                class="flex items-center justify-between gap-2 px-3 py-2 bg-[#F7F9FC] rounded-lg border border-[#E2E8F0]">
+                class="flex items-center justify-between gap-2 px-3 py-2 bg-[#F7F9FC] border border-[#E2E8F0]">
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-[#1C2434] truncate">{{ s.name }}</p>
                   <p v-if="s.code" class="text-xs text-[#9BA7B0] font-mono">{{ s.code }}</p>
@@ -160,14 +160,14 @@
             <div class="flex gap-2">
               <div class="flex-1"><SearchSelect v-model="selectedVendorId" :options="availableVendorOptions" placeholder="— Select vendor —" /></div>
               <button @click="addVendor" :disabled="!selectedVendorId"
-                class="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
+                class="px-3 py-2 bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-40 transition text-lg leading-none">
                 +
               </button>
             </div>
             <div class="space-y-2 min-h-[40px]">
               <div v-if="!linkedVendors.length" class="text-sm text-[#9BA7B0] text-center py-3">No vendors linked.</div>
               <div v-for="v in linkedVendors" :key="v.id"
-                class="flex items-center justify-between gap-2 px-3 py-2 bg-[#F7F9FC] rounded-lg border border-[#E2E8F0]">
+                class="flex items-center justify-between gap-2 px-3 py-2 bg-[#F7F9FC] border border-[#E2E8F0]">
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-[#1C2434] truncate">{{ v.name }}</p>
                   <p v-if="v.code" class="text-xs text-[#9BA7B0] font-mono">{{ v.code }}</p>

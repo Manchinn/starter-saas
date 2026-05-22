@@ -127,7 +127,7 @@
               <button v-if="multiple" type="button"
                 @click="submitMulti"
                 :disabled="!checkedCount"
-                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold rounded-lg
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold
                        bg-primary-500 text-white hover:bg-primary-600
                        disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors">
                 <PlusIcon class="w-3.5 h-3.5" />

@@ -285,7 +285,7 @@
                 <div></div>
 
                 <button @click="removeLine(idx)" type="button"
-                  class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
+                  class="w-7 h-7 flex items-center justify-center flex-shrink-0
                          text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-colors
                          opacity-0 group-hover:opacity-100">
                   <TrashIcon class="w-3.5 h-3.5" />
@@ -445,7 +445,7 @@
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <h3 class="text-base font-semibold text-[#1C2434]">{{ t('erp.quotations.newCustomer') }}</h3>
             <button @click="closeCustomerCreate" type="button"
-              class="w-8 h-8 rounded-lg hover:bg-[#F1F5F9] text-[#637381] flex items-center justify-center">
+              class="w-8 h-8 hover:bg-[#F1F5F9] text-[#637381] flex items-center justify-center">
               <XMarkIcon class="w-4 h-4" />
             </button>
           </div>

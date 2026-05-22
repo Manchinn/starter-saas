@@ -122,7 +122,7 @@
               :disabled="loadingProducts"
               :title="`${t('erp.stockCount.reloadProducts')}  (Ctrl+R)`"
               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-[#637381]
-                     bg-white hover:bg-[#F7F9FC] border border-[#E2E8F0] rounded-lg
+                     bg-white hover:bg-[#F7F9FC] border border-[#E2E8F0]
                      transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               <ArrowPathIcon class="w-3.5 h-3.5" :class="loadingProducts ? 'animate-spin' : ''" />
               {{ t('erp.stockCount.reloadProducts') }}

@@ -58,7 +58,7 @@
               <!-- Organization -->
               <td class="td">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-primary-100 text-primary-500 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  <div class="w-8 h-8 bg-primary-100 text-primary-500 flex items-center justify-center font-bold text-xs flex-shrink-0">
                     {{ u.name.charAt(0).toUpperCase() }}
                   </div>
                   <div>
@@ -141,12 +141,12 @@
           </span>
           <div class="flex items-center gap-1.5">
             <button @click="page--" :disabled="page <= 1"
-              class="h-7 w-7 flex items-center justify-center rounded-lg border border-[#E2E8F0] text-[#637381] hover:bg-[#F1F5F9] disabled:opacity-40 transition-colors">
+              class="h-7 w-7 flex items-center justify-center border border-[#E2E8F0] text-[#637381] hover:bg-[#F1F5F9] disabled:opacity-40 transition-colors">
               <ChevronLeftIcon class="w-3.5 h-3.5" />
             </button>
             <span class="text-xs text-[#637381] font-medium px-1 tabular">{{ page }} / {{ Math.max(1, Math.ceil(total / limit)) }}</span>
             <button @click="page++" :disabled="page * limit >= total"
-              class="h-7 w-7 flex items-center justify-center rounded-lg border border-[#E2E8F0] text-[#637381] hover:bg-[#F1F5F9] disabled:opacity-40 transition-colors">
+              class="h-7 w-7 flex items-center justify-center border border-[#E2E8F0] text-[#637381] hover:bg-[#F1F5F9] disabled:opacity-40 transition-colors">
               <ChevronRightIcon class="w-3.5 h-3.5" />
             </button>
           </div>

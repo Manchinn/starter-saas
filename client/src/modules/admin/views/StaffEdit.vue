@@ -20,7 +20,7 @@
 
       <div v-else class="card overflow-hidden">
         <div class="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center gap-2">
-          <div class="p-1.5 rounded-lg bg-primary-50">
+          <div class="p-1.5 bg-primary-50">
             <UserIcon class="w-4 h-4 text-primary-500" />
           </div>
           <h3 class="text-[13px] font-semibold text-[#374151]">{{ t('staff.accountInfo') }}</h3>
@@ -62,7 +62,7 @@
           </div>
 
           <div v-if="error"
-               class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg">
+               class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm">
             {{ error }}
           </div>
 

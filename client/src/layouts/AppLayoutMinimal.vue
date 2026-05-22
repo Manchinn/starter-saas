@@ -26,7 +26,7 @@
       <!-- Logo -->
       <div class="h-[64px] flex items-center px-5 flex-shrink-0 border-b border-white/[0.07] gap-2">
         <div class="flex items-center gap-2.5 flex-1 min-w-0">
-          <div class="w-7 h-7 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div class="w-7 h-7 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0">
             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
@@ -35,7 +35,7 @@
         </div>
         <button
           type="button"
-          class="md:hidden p-2 -mr-2 rounded-lg text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
+          class="md:hidden p-2 -mr-2 text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
           @click="sidebarOpen = false"
           aria-label="Close navigation"
         >
@@ -159,7 +159,7 @@
       <header class="h-[64px] bg-white border-b border-[#E2E8F0] flex items-center px-3 sm:px-4 md:px-6 gap-2 sm:gap-4 flex-shrink-0">
         <button
           type="button"
-          class="md:hidden p-2 -ml-1 rounded-lg text-[#637381] hover:bg-[#F7F9FC] transition-colors flex-shrink-0"
+          class="md:hidden p-2 -ml-1 text-[#637381] hover:bg-[#F7F9FC] transition-colors flex-shrink-0"
           @click="sidebarOpen = true"
           aria-label="Open navigation"
         >
@@ -229,7 +229,7 @@ onUnmounted(() => {
   @apply !bg-primary-500/20 !text-white font-semibold;
 }
 .min-nav-item-sm {
-  @apply flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12.5px] text-[#9BA7B8]
+  @apply flex items-center gap-2 px-2.5 py-1.5 text-[12.5px] text-[#9BA7B8]
          hover:bg-white/[0.05] hover:text-[#DEE4EE] transition-colors duration-100 w-full;
 }
 </style>

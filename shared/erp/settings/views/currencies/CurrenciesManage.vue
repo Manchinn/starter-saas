@@ -9,7 +9,7 @@
         <button
           @click="saveAll"
           :disabled="!hasChanges || saving"
-          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           {{ saving ? t('common.saving') : t('common.saveChanges') }}
         </button>
@@ -19,7 +19,7 @@
       <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center justify-between">
           <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.currencies.currencies') }}</h2>
-          <button @click="addCurrencyDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white rounded-lg hover:bg-primary-700 transition">
+          <button @click="addCurrencyDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white hover:bg-primary-700 transition">
             <PlusIcon class="w-4 h-4" /> {{ t('erp.currencies.addCurrency') }}
           </button>
         </div>
@@ -39,10 +39,10 @@
             <tr v-if="loading"><td colspan="7" class="py-8 text-center text-[#9BA7B0]">{{ t('common.loading') }}</td></tr>
             <tr v-else-if="!currencies.length && !currencyDrafts.length"><td colspan="7" class="py-8 text-center text-[#9BA7B0]">{{ t('erp.currencies.noCurrencies') }}</td></tr>
             <tr v-for="(c, i) in [...currencies, ...currencyDrafts]" :key="c.id || `draft-${i}`" class="hover:bg-[#F7F9FC]">
-              <td class="px-4 py-2"><input v-model="c.code" :disabled="!isDraft(c)" type="text" maxlength="3" class="w-full px-2 py-1.5 border rounded-lg text-sm font-mono uppercase disabled:bg-[#F7F9FC]" /></td>
-              <td class="px-4 py-2"><input v-model="c.name" type="text" class="w-full px-2 py-1.5 border rounded-lg text-sm" /></td>
-              <td class="px-4 py-2"><input v-model="c.symbol" type="text" maxlength="4" class="w-full px-2 py-1.5 border rounded-lg text-sm text-center" /></td>
-              <td class="px-4 py-2"><input v-model.number="c.decimals" type="number" min="0" max="6" class="w-full px-2 py-1.5 border rounded-lg text-sm text-right" /></td>
+              <td class="px-4 py-2"><input v-model="c.code" :disabled="!isDraft(c)" type="text" maxlength="3" class="w-full px-2 py-1.5 border text-sm font-mono uppercase disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><input v-model="c.name" type="text" class="w-full px-2 py-1.5 border text-sm" /></td>
+              <td class="px-4 py-2"><input v-model="c.symbol" type="text" maxlength="4" class="w-full px-2 py-1.5 border text-sm text-center" /></td>
+              <td class="px-4 py-2"><input v-model.number="c.decimals" type="number" min="0" max="6" class="w-full px-2 py-1.5 border text-sm text-right" /></td>
               <td class="px-4 py-2 text-center"><input v-model="c.isBase" type="checkbox" /></td>
               <td class="px-4 py-2 text-center"><input v-model="c.isActive" type="checkbox" /></td>
               <td class="px-4 py-2 text-right">
@@ -60,7 +60,7 @@
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.currencies.exchangeRates') }}</h2>
             <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.currencies.ratesHint', { base: baseCode || '—' }) }}</p>
           </div>
-          <button @click="addRateDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white rounded-lg hover:bg-primary-700 transition">
+          <button @click="addRateDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white hover:bg-primary-700 transition">
             <PlusIcon class="w-4 h-4" /> {{ t('erp.currencies.addRate') }}
           </button>
         </div>
@@ -80,9 +80,9 @@
                 <SearchSelect v-if="isDraft(r)" v-model="r.currencyCode" :options="currencyOptions" placeholder="—" />
                 <span v-else class="font-mono font-semibold text-[#1C2434]">{{ r.currencyCode }}</span>
               </td>
-              <td class="px-4 py-2"><DateInput v-model="r.asOfDate" :disabled="!isDraft(r)" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
-              <td class="px-4 py-2"><input v-model.number="r.rate" type="number" min="0" step="0.0001" :disabled="!isDraft(r)" class="w-full px-2 py-1.5 border rounded-lg text-sm text-right tabular-nums disabled:bg-[#F7F9FC]" /></td>
-              <td class="px-4 py-2"><input v-model="r.notes" type="text" :disabled="!isDraft(r)" :placeholder="t('erp.currencies.notesPh')" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><DateInput v-model="r.asOfDate" :disabled="!isDraft(r)" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><input v-model.number="r.rate" type="number" min="0" step="0.0001" :disabled="!isDraft(r)" class="w-full px-2 py-1.5 border text-sm text-right tabular-nums disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><input v-model="r.notes" type="text" :disabled="!isDraft(r)" :placeholder="t('erp.currencies.notesPh')" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2 text-right">
                 <button @click="deleteRate(r)" class="p-1 text-[#9BA7B0] hover:text-red-500 rounded"><TrashIcon class="w-4 h-4" /></button>
               </td>
@@ -92,7 +92,7 @@
         </table>
       </div>
 
-      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2">{{ error }}</div>
     </div>
   </AppLayout>
 </template>

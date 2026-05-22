@@ -33,7 +33,7 @@
           <div class="px-6 py-5 space-y-5">
 
             <!-- Live Preview -->
-            <div class="rounded-lg bg-[#F7F9FC] border border-[#E2E8F0] px-5 py-4 flex items-center justify-between">
+            <div class="bg-[#F7F9FC] border border-[#E2E8F0] px-5 py-4 flex items-center justify-between">
               <span class="text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">{{ t('erp.settings.preview') }}</span>
               <div class="text-right space-y-0.5">
                 <div class="text-2xl font-bold text-[#1C2434] tabular-nums font-mono">{{ previewLarge }}</div>
@@ -57,7 +57,7 @@
                 <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                   {{ t('erp.settings.symbolPosition') }}
                 </label>
-                <div class="flex rounded-lg border border-[#E2E8F0] overflow-hidden text-sm">
+                <div class="flex border border-[#E2E8F0] overflow-hidden text-sm">
                   <button type="button" @click="currencyForm.position = 'prefix'"
                     :class="currencyForm.position === 'prefix'
                       ? 'flex-1 py-2 bg-primary-500 text-white font-medium'
@@ -248,7 +248,7 @@
               <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
                 {{ t('erp.settings.taxMethod') }}
               </label>
-              <div class="flex rounded-lg border border-[#E2E8F0] overflow-hidden text-sm">
+              <div class="flex border border-[#E2E8F0] overflow-hidden text-sm">
                 <button type="button" @click="taxForm.inclusive = false"
                   :class="!taxForm.inclusive
                     ? 'flex-1 py-2.5 bg-primary-500 text-white font-medium'

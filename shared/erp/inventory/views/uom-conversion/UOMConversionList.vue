@@ -53,16 +53,16 @@
               {{ deleteModal.item?.fromUom?.abbreviation }} → {{ deleteModal.item?.toUom?.abbreviation }}
             </span>
           </p>
-          <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">
+          <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
             {{ deleteModal.error }}
           </div>
           <div class="flex justify-end gap-3">
             <button @click="deleteModal.open = false"
-              class="px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors">
+              class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
               {{ t('common.cancel') }}
             </button>
             <button @click="doDelete" :disabled="deleteModal.saving"
-              class="px-5 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
+              class="px-5 py-2 text-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors">
               {{ deleteModal.saving ? t('erp.common.deleting') : t('common.delete') }}
             </button>
           </div>

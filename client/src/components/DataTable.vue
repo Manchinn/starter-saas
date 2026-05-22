@@ -109,7 +109,7 @@
         <button
           @click="$emit('update:page', page - 1)"
           :disabled="page <= 1"
-          class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#E2E8F0]
+          class="h-8 w-8 flex items-center justify-center border border-[#E2E8F0]
                  text-[#637381] hover:bg-[#F1F5F9] disabled:opacity-40 transition-colors"
         >
           <ChevronLeftIcon class="w-4 h-4" />
@@ -120,7 +120,7 @@
         <button
           @click="$emit('update:page', page + 1)"
           :disabled="page * pageSize >= total"
-          class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#E2E8F0]
+          class="h-8 w-8 flex items-center justify-center border border-[#E2E8F0]
                  text-[#637381] hover:bg-[#F1F5F9] disabled:opacity-40 transition-colors"
         >
           <ChevronRightIcon class="w-4 h-4" />

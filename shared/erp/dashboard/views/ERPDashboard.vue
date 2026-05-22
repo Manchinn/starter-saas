@@ -17,7 +17,7 @@
           </span>
           <button @click="loadStats" :disabled="loading"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#637381]
-                   bg-white border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors
+                   bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors
                    disabled:opacity-50">
             <ArrowPathIcon class="w-3.5 h-3.5" :class="loading ? 'animate-spin' : ''" />
             {{ t('erp.dashboard.refresh') }}
@@ -272,7 +272,7 @@
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+              <div class="w-7 h-7 bg-amber-50 flex items-center justify-center">
                 <ClockIcon class="w-4 h-4 text-amber-600" />
               </div>
               <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.dashboard.pendingApprovals') }}</h2>
@@ -381,7 +381,7 @@
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+              <div class="w-7 h-7 bg-blue-50 flex items-center justify-center">
                 <DocumentTextIcon class="w-4 h-4 text-blue-600" />
               </div>
               <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.dashboard.recentInvoices') }}</h2>
@@ -432,7 +432,7 @@
         <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
+              <div class="w-7 h-7 bg-red-50 flex items-center justify-center">
                 <ExclamationTriangleIcon class="w-4 h-4 text-red-500" />
               </div>
               <div>
@@ -506,7 +506,7 @@
       <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
           <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <div class="w-7 h-7 bg-indigo-50 flex items-center justify-center">
               <ArrowsRightLeftIcon class="w-4 h-4 text-indigo-600" />
             </div>
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.dashboard.recentMovements') }}</h2>
@@ -519,7 +519,7 @@
 
         <div v-if="loading" class="divide-y divide-[#E2E8F0]">
           <div v-for="i in 5" :key="i" class="px-6 py-3.5 flex items-center gap-4">
-            <div class="w-8 h-8 rounded-lg bg-[#F1F5F9] animate-pulse flex-shrink-0" />
+            <div class="w-8 h-8 bg-[#F1F5F9] animate-pulse flex-shrink-0" />
             <div class="flex-1 space-y-1.5">
               <div class="h-3 bg-[#F1F5F9] rounded animate-pulse w-40" />
               <div class="h-2.5 bg-[#F1F5F9] rounded animate-pulse w-24" />
@@ -554,7 +554,7 @@
               <tr v-for="m in stats.recentMovements" :key="m.id" class="hover:bg-[#F7F9FC]/60 transition-colors">
                 <td class="px-6 py-3.5">
                   <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" :class="movementIconBg(m.type)">
+                    <div class="w-8 h-8 flex items-center justify-center flex-shrink-0" :class="movementIconBg(m.type)">
                       <component :is="movementIcon(m.type)" class="w-4 h-4" />
                     </div>
                     <span class="text-xs font-semibold capitalize px-2 py-0.5 rounded-md" :class="movementBadge(m.type)">

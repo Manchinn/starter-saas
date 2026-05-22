@@ -17,9 +17,9 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.code') }}</label>
             <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" placeholder="e.g. PKG-001"
-              class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
             <input v-else :value="autoCode.preview.value" type="text" readonly
-              class="w-full px-3 py-2 border rounded-lg text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+              class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
             <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
               <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="rounded" />
               {{ t('erp.common.autoGenerate') }}
@@ -36,7 +36,7 @@
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text" :placeholder="t('erp.salePackages.namePh')"
-              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
             <FieldError name="name" :errors="fieldErrors" />
           </div>
 
@@ -44,7 +44,7 @@
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.description') }}</label>
             <textarea v-model="form.description" rows="2" :placeholder="t('erp.salePackages.descriptionPh')"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
           </div>
         </div>
       </div>
@@ -54,7 +54,7 @@
         <div class="flex items-center justify-between">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.salePackages.packageItems') }}</h2>
           <button @click="addLine" type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.salePackages.addItem') }}
           </button>
@@ -86,12 +86,12 @@
                 <td class="px-4 py-2.5 font-mono text-xs text-[#637381]">{{ item.code || '—' }}</td>
                 <td class="px-4 py-2.5">
                   <input v-model.number="item.quantity" type="number" min="0.01" step="0.01"
-                    class="w-full px-2 py-1 border rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                    class="w-full px-2 py-1 border text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 </td>
                 <td class="px-4 py-2.5">
                   <input v-model.number="item.unitPrice" type="number" min="0" step="0.01"
                     :placeholder="t('erp.salePackages.pricePh')"
-                    class="w-full px-2 py-1 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                    class="w-full px-2 py-1 border text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 </td>
                 <td class="px-4 py-2.5 text-right text-[#1C2434] font-medium tabular-nums">
                   <span v-if="item.unitPrice != null && item.unitPrice !== ''">
@@ -123,11 +123,11 @@
 
       <!-- Footer -->
       <div class="bg-white rounded-2xl border border-[#E2E8F0] px-6 py-4">
-        <div v-if="error" class="mb-3 bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+        <div v-if="error" class="mb-3 bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
         <div class="flex justify-end gap-3">
-          <RouterLink to="/erp/sale-packages" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
+          <RouterLink to="/erp/sale-packages" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
           <button @click="save" :disabled="saving"
-            class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+            class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
             {{ saving ? t('erp.common.saving') : t('erp.salePackages.create') }}
           </button>
         </div>

@@ -42,18 +42,18 @@
             <!-- Description -->
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.orderItems.description') }}</label>
-              <input v-model="editForm.productName" type="text" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Item description" />
+              <input v-model="editForm.productName" type="text" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Item description" />
             </div>
 
             <!-- Qty + Price -->
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.orderItems.quantity') }}</label>
-                <input v-model.number="editForm.quantity" type="number" min="1" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-right" />
+                <input v-model.number="editForm.quantity" type="number" min="1" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-right" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.orderItems.unitPrice') }}</label>
-                <input v-model.number="editForm.unitPrice" type="number" min="0" step="0.01" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-right" />
+                <input v-model.number="editForm.unitPrice" type="number" min="0" step="0.01" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-right" />
               </div>
             </div>
 
@@ -61,12 +61,12 @@
               Line total: <span class="font-semibold text-[#1C2434]">{{ fmtMoney((editForm.quantity || 0) * (editForm.unitPrice || 0)) }}</span>
             </div>
 
-            <div v-if="editModal.error" class="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{{ editModal.error }}</div>
+            <div v-if="editModal.error" class="bg-red-50 text-red-700 text-sm px-3 py-2">{{ editModal.error }}</div>
           </div>
 
           <div class="flex justify-end gap-3 pt-1">
-            <button @click="closeEdit" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</button>
-            <button @click="saveEdit" :disabled="editModal.saving" class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+            <button @click="closeEdit" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</button>
+            <button @click="saveEdit" :disabled="editModal.saving" class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
               {{ editModal.saving ? t('erp.common.saving') : t('common.saveChanges') }}
             </button>
           </div>
@@ -80,10 +80,10 @@
         <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.orderItems.deleteItem') }}</h2>
           <p class="text-sm text-[#637381]">Remove <span class="font-medium">{{ deleteModal.item?.productName }}</span> from order <span class="font-mono font-medium">{{ deleteModal.item?.order?.orderNumber }}</span>? This will recalculate the order total.</p>
-          <div v-if="deleteModal.error" class="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{{ deleteModal.error }}</div>
+          <div v-if="deleteModal.error" class="bg-red-50 text-red-700 text-sm px-3 py-2">{{ deleteModal.error }}</div>
           <div class="flex justify-end gap-3">
-            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</button>
-            <button @click="doDelete" :disabled="deleteModal.saving" class="px-5 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition">
+            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</button>
+            <button @click="doDelete" :disabled="deleteModal.saving" class="px-5 py-2 text-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition">
               {{ deleteModal.saving ? 'Deleting…' : 'Delete' }}
             </button>
           </div>

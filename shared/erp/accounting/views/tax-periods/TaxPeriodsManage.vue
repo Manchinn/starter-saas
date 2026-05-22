@@ -6,7 +6,7 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.taxPeriods.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ t('erp.taxPeriods.subtitle') }}</p>
         </div>
-        <button @click="addDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white rounded-lg hover:bg-primary-700 transition">
+        <button @click="addDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white hover:bg-primary-700 transition">
           <PlusIcon class="w-4 h-4" /> {{ t('erp.taxPeriods.addPeriod') }}
         </button>
       </div>
@@ -27,9 +27,9 @@
             <tr v-if="loading"><td colspan="6" class="py-8 text-center text-[#9BA7B0]">{{ t('common.loading') }}</td></tr>
             <tr v-else-if="!periods.length && !drafts.length"><td colspan="6" class="py-8 text-center text-[#9BA7B0]">{{ t('erp.taxPeriods.noPeriods') }}</td></tr>
             <tr v-for="(p, i) in [...periods, ...drafts]" :key="p.id || `draft-${i}`" class="hover:bg-[#F7F9FC]">
-              <td class="px-4 py-2"><input v-model="p.name" :disabled="p.status === 'closed' && !isDraft(p)" type="text" :placeholder="t('erp.taxPeriods.namePh')" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
-              <td class="px-4 py-2"><DateInput v-model="p.startDate" :disabled="p.status === 'closed' && !isDraft(p)" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
-              <td class="px-4 py-2"><DateInput v-model="p.endDate" :disabled="p.status === 'closed' && !isDraft(p)" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><input v-model="p.name" :disabled="p.status === 'closed' && !isDraft(p)" type="text" :placeholder="t('erp.taxPeriods.namePh')" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><DateInput v-model="p.startDate" :disabled="p.status === 'closed' && !isDraft(p)" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><DateInput v-model="p.endDate" :disabled="p.status === 'closed' && !isDraft(p)" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2 text-center">
                 <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize',
                   p.status === 'closed' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700']">
@@ -37,7 +37,7 @@
                   {{ p.status || 'open' }}
                 </span>
               </td>
-              <td class="px-4 py-2"><input v-model="p.notes" :disabled="p.status === 'closed' && !isDraft(p)" type="text" :placeholder="t('erp.taxPeriods.notesPh')" class="w-full px-2 py-1.5 border rounded-lg text-sm disabled:bg-[#F7F9FC]" /></td>
+              <td class="px-4 py-2"><input v-model="p.notes" :disabled="p.status === 'closed' && !isDraft(p)" type="text" :placeholder="t('erp.taxPeriods.notesPh')" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2 text-right">
                 <div class="flex items-center justify-end gap-1">
                   <RouterLink v-if="!isDraft(p)" :to="`/erp/accounting/tax-periods/${p.id}/vat-report`"
@@ -55,7 +55,7 @@
         </table>
       </div>
 
-      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2">{{ error }}</div>
     </div>
   </AppLayout>
 </template>

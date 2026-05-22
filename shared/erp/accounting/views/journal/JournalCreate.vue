@@ -105,7 +105,7 @@
 
                 <button @click="removeLine(idx)" type="button"
                   :disabled="form.lines.length <= 2"
-                  class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
+                  class="w-7 h-7 flex items-center justify-center flex-shrink-0
                          text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 transition-colors
                          opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:hover:bg-transparent">
                   <TrashIcon class="w-3.5 h-3.5" />

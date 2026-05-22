@@ -3,7 +3,7 @@
     <div class="space-y-6">
 
       <div class="flex items-center gap-3">
-        <RouterLink to="/erp/hrms/employees" class="p-1.5 rounded-lg text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
+        <RouterLink to="/erp/hrms/employees" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
         <div>
@@ -28,49 +28,49 @@
               <div class="col-span-2">
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.employeeCode') }}</label>
                 <input v-model="form.employeeCode" type="text" placeholder="e.g. EMP-001"
-                  class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.firstName') }} <span class="text-red-500">*</span></label>
                 <input v-model="form.firstName" type="text"
-                  :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('firstName') && 'input-error']" />
+                  :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('firstName') && 'input-error']" />
                 <FieldError name="firstName" :errors="fieldErrors" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.lastName') }} <span class="text-red-500">*</span></label>
                 <input v-model="form.lastName" type="text"
-                  :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('lastName') && 'input-error']" />
+                  :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('lastName') && 'input-error']" />
                 <FieldError name="lastName" :errors="fieldErrors" />
               </div>
 
               <div class="col-span-2">
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.position') }}</label>
                 <input v-model="form.position" type="text" placeholder="e.g. Software Engineer"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.phone') }}</label>
                 <input v-model="form.phone" type="text"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.startDate') }}</label>
                 <DateInput v-model="form.startDate"
-                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
 
               <div class="col-span-2 grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-                  <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-                  <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 </div>
               </div>
               <div class="col-span-2 border-t border-slate-50 pt-3">
@@ -121,7 +121,7 @@
                   </div>
                   <div class="grid grid-cols-1 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/50 rounded-xl max-h-56 overflow-y-auto shadow-inner">
                     <label v-for="d in departments" :key="d.id" 
-                      class="flex items-center gap-2.5 px-3 py-2 hover:bg-white hover:shadow-sm rounded-lg cursor-pointer transition-all border border-transparent hover:border-[#E2E8F0] group">
+                      class="flex items-center gap-2.5 px-3 py-2 hover:bg-white hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-[#E2E8F0] group">
                       <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="rounded text-primary-500 focus:ring-primary-500" />
                       <span class="text-xs font-medium text-[#637381] group-hover:text-primary-500 transition-colors truncate" :title="d.name">{{ d.name }}</span>
                     </label>
@@ -137,13 +137,13 @@
 
         </div>
 
-        <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+        <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
           <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ error }}
         </div>
 
         <div class="flex justify-end gap-3 pt-4">
-          <RouterLink to="/erp/hrms/employees" class="px-4 py-2 text-sm font-medium text-[#637381] border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors">
+          <RouterLink to="/erp/hrms/employees" class="px-4 py-2 text-sm font-medium text-[#637381] border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
             {{ t('common.cancel') }}
           </RouterLink>
           <button @click="save" :disabled="saving"

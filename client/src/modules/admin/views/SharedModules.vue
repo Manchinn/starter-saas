@@ -60,15 +60,15 @@
             <div v-if="auth.isAdmin" class="flex items-center gap-1">
               <button
                 @click="toggleModule(mod)"
-                class="text-xs px-2.5 py-1 border border-[#E2E8F0] rounded-lg text-[#637381] hover:bg-[#F7F9FC] transition-colors"
+                class="text-xs px-2.5 py-1 border border-[#E2E8F0] text-[#637381] hover:bg-[#F7F9FC] transition-colors"
               >{{ mod.isActive ? t('common.disable') : t('common.enable') }}</button>
               <RouterLink
                 :to="`/admin/shared-modules/${mod.id}/edit`"
-                class="text-xs px-2.5 py-1 border border-[#E2E8F0] rounded-lg text-[#637381] hover:bg-[#F7F9FC] transition-colors"
+                class="text-xs px-2.5 py-1 border border-[#E2E8F0] text-[#637381] hover:bg-[#F7F9FC] transition-colors"
               >{{ t('common.edit') }}</RouterLink>
               <button
                 @click="deleteModule(mod)"
-                class="text-xs px-2.5 py-1 border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                class="text-xs px-2.5 py-1 border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
               >{{ t('common.delete') }}</button>
             </div>
           </div>

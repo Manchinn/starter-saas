@@ -90,7 +90,7 @@
                 >
                   <td class="td">
                     <div class="flex items-center gap-3 min-w-0">
-                      <div class="w-8 h-8 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                      <div class="w-8 h-8 bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
                         {{ o.name.charAt(0).toUpperCase() }}
                       </div>
                       <div class="min-w-0">
@@ -143,7 +143,7 @@
             </div>
             <ul v-else class="divide-y divide-slate-50">
               <li v-for="s in signIns" :key="s.id" class="flex items-center gap-3 px-3 py-2.5">
-                <div class="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center flex-shrink-0">
+                <div class="w-8 h-8 bg-violet-50 text-violet-600 flex items-center justify-center flex-shrink-0">
                   <ComputerDesktopIcon class="w-4 h-4" />
                 </div>
                 <div class="flex-1 min-w-0">

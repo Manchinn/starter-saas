@@ -3,7 +3,7 @@
     <div class="space-y-6">
 
       <div class="flex items-center gap-3">
-        <RouterLink to="/erp/hrms/departments" class="p-1.5 rounded-lg text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
+        <RouterLink to="/erp/hrms/departments" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
         <div>
@@ -28,7 +28,7 @@
               </div>
               <input v-model="form.code" @input="form.code = form.code.toUpperCase()" type="text"
                 placeholder="e.g. ENG" maxlength="10"
-                class="w-full px-3 py-2 border rounded-lg text-sm font-mono uppercase
+                class="w-full px-3 py-2 border text-sm font-mono uppercase
                        focus:outline-none focus:ring-2 focus:ring-primary-500" />
               <p class="mt-1 text-xs text-[#9BA7B0]">Short unique identifier for this department</p>
             </div>
@@ -36,24 +36,24 @@
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.name') }} <span class="text-red-500">*</span></label>
               <input v-model="form.name" type="text" placeholder="e.g. Engineering"
-                :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+                :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
               <FieldError name="name" :errors="fieldErrors" />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.description') }}</label>
               <textarea v-model="form.description" rows="3" placeholder="Describe the functions of this department…"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"></textarea>
+                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"></textarea>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
               </div>
             </div>
             <div>
@@ -64,13 +64,13 @@
           </div>
         </div>
 
-        <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+        <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
           <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ error }}
         </div>
 
         <div class="flex justify-end gap-3">
-          <RouterLink to="/erp/hrms/departments" class="px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors">
+          <RouterLink to="/erp/hrms/departments" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
             {{ t('common.cancel') }}
           </RouterLink>
           <button @click="save" :disabled="saving"

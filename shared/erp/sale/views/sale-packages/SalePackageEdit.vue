@@ -21,7 +21,7 @@
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.code') }}</label>
               <input v-model="form.code" type="text" placeholder="e.g. PKG-001"
-                class="w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
 
             <!-- Status -->
@@ -34,7 +34,7 @@
             <div class="col-span-2">
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.name') }} <span class="text-red-500">*</span></label>
               <input v-model="form.name" type="text"
-                :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+                :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
               <FieldError name="name" :errors="fieldErrors" />
             </div>
 
@@ -42,7 +42,7 @@
             <div class="col-span-2">
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.description') }}</label>
               <textarea v-model="form.description" rows="2"
-                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
             </div>
           </div>
         </div>
@@ -52,7 +52,7 @@
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.salePackages.packageItems') }}</h2>
             <button @click="addLine" type="button"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors">
               <PlusIcon class="w-4 h-4" />
               {{ t('erp.salePackages.addItem') }}
             </button>
@@ -84,12 +84,12 @@
                   <td class="px-4 py-2.5 font-mono text-xs text-[#637381]">{{ item.code || '—' }}</td>
                   <td class="px-4 py-2.5">
                     <input v-model.number="item.quantity" type="number" min="0.01" step="0.01"
-                      class="w-full px-2 py-1 border rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                      class="w-full px-2 py-1 border text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-500" />
                   </td>
                   <td class="px-4 py-2.5">
                     <input v-model.number="item.unitPrice" type="number" min="0" step="0.01"
                       :placeholder="t('erp.salePackages.pricePh')"
-                      class="w-full px-2 py-1 border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                      class="w-full px-2 py-1 border text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
                   </td>
                   <td class="px-4 py-2.5 text-right text-[#1C2434] font-medium tabular-nums">
                     <span v-if="item.unitPrice != null && item.unitPrice !== ''">
@@ -121,16 +121,16 @@
 
         <!-- Footer -->
         <div class="bg-white rounded-2xl border border-[#E2E8F0] px-6 py-4">
-          <div v-if="error" class="mb-3 bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+          <div v-if="error" class="mb-3 bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
           <div class="flex items-center justify-between">
             <button @click="confirmDelete"
-              class="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+              class="px-4 py-2 text-sm text-red-600 border border-red-200 hover:bg-red-50 transition-colors">
               {{ t('common.delete') }}
             </button>
             <div class="flex gap-3">
-              <RouterLink to="/erp/sale-packages" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
+              <RouterLink to="/erp/sale-packages" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
               <button @click="save" :disabled="saving"
-                class="px-5 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition">
+                class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
                 {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
               </button>
             </div>
@@ -146,11 +146,11 @@
         <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.salePackages.deleteTitle') }}</h2>
           <p class="text-sm text-[#637381]">Delete <span class="font-semibold">{{ form.name }}</span>? This cannot be undone.</p>
-          <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">{{ deleteModal.error }}</div>
+          <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">{{ deleteModal.error }}</div>
           <div class="flex justify-end gap-3">
-            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border border-[#E2E8F0] rounded-lg hover:bg-[#F7F9FC] transition-colors">{{ t('common.cancel') }}</button>
+            <button @click="deleteModal.open = false" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">{{ t('common.cancel') }}</button>
             <button @click="doDelete" :disabled="deleteModal.saving"
-              class="px-5 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
+              class="px-5 py-2 text-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors">
               {{ deleteModal.saving ? 'Deleting…' : t('common.delete') }}
             </button>
           </div>
