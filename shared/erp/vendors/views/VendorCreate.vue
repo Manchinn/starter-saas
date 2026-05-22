@@ -101,8 +101,11 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 
@@ -116,6 +119,7 @@ const form    = ref({ name: '', code: '', contactPerson: '', email: '', phone: '
 const error   = ref('')
 const saving  = ref(false)
 const autoCode = useAutoCode('VND')
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 onMounted(async () => {
   const { data } = await api.get('/erp/master-data/by-name/Vendor Types')
@@ -124,6 +128,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
@@ -132,7 +137,8 @@ async function save() {
     await api.post('/erp/vendors', payload)
     router.push('/erp/vendors')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to create vendor'
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to create vendor')
   } finally {
     saving.value = false
   }

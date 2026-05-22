@@ -32,7 +32,8 @@
           <div class="col-span-2">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.saleItems.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+            <FieldError name="name" :errors="fieldErrors" />
           </div>
 
           <!-- Product Master -->
@@ -65,6 +66,8 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useMasterDataStore } from '@/stores/masterData'
 import { parseApiError } from '@/utils/apiError'
@@ -81,6 +84,7 @@ const products = ref([])
 const loading  = ref(true)
 const saving   = ref(false)
 const error    = ref('')
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const statusOptions  = computed(() =>
   saleItemStatuses.value.length
@@ -113,6 +117,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
@@ -123,7 +128,8 @@ async function save() {
     })
     router.push('/erp/sale-items')
   } catch (err) {
-    error.value = parseApiError(err, 'Failed to save')
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
   }

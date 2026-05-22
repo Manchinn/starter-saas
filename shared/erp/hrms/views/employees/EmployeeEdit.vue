@@ -165,6 +165,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -177,6 +179,7 @@ const saving  = ref(false)
 const users   = ref([])
 const departments = ref([])
 const error   = ref('')
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const EMP_STATUS_OPTIONS = computed(() => [
   { id: 'active',     name: t('erp.employees.active') },
@@ -236,6 +239,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.firstName.trim()) { error.value = 'First name is required'; return }
   if (!form.value.lastName.trim())  { error.value = 'Last name is required'; return }
 
@@ -244,7 +248,8 @@ async function save() {
     await api.put(`/erp/hrms/employees/${id}`, { ...form.value })
     router.push('/erp/hrms/employees')
   } catch (err) {
-    error.value = parseApiError(err, 'Failed to save')
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
   }

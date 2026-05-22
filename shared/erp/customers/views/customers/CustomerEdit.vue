@@ -19,7 +19,8 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.name') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <input v-model="form.name" type="text" :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+            <FieldError name="name" :errors="fieldErrors" />
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.company') }}</label>
@@ -27,7 +28,8 @@
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.email') }}</label>
-            <input v-model="form.email" type="email" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <input v-model="form.email" type="email" :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('email') && 'input-error']" />
+            <FieldError name="email" :errors="fieldErrors" />
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.phone') }}</label>
@@ -85,6 +87,8 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -101,6 +105,7 @@ const loading  = ref(true)
 const notFound = ref(false)
 const error    = ref('')
 const saving   = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 onMounted(async () => {
   const [groupsRes] = await Promise.allSettled([
@@ -125,13 +130,15 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
     await api.put(`/erp/customers/${route.params.id}`, { ...form.value, customerGroupId: form.value.customerGroupId || null })
     router.push('/erp/customers')
   } catch (err) {
-    error.value = parseApiError(err, 'Failed to save')
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
   }

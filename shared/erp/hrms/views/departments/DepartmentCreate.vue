@@ -30,7 +30,8 @@
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text" placeholder="e.g. Engineering"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+            <FieldError name="name" :errors="fieldErrors" />
           </div>
 
           <div>
@@ -85,14 +86,18 @@ import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router   = useRouter()
 const autoCode = useAutoCode('DEP')
 const saving   = ref(false)
 const error    = ref('')
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const STATUS_OPTIONS = computed(() => [
   { id: true,  name: t('common.active') },
@@ -110,6 +115,7 @@ const form = ref({
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.name.trim()) { error.value = 'Department name is required'; return }
 
   saving.value = true
@@ -119,7 +125,8 @@ async function save() {
     await api.post('/erp/hrms/departments', payload)
     router.push('/erp/hrms/departments')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to create department'
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to create department')
   } finally {
     saving.value = false
   }

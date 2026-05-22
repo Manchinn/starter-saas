@@ -35,7 +35,8 @@
                   {{ t('erp.productCategories.name') }} <span class="text-red-500">*</span>
                 </label>
                 <input v-model="form.name" type="text" placeholder="e.g. Electronics"
-                  class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                  :class="['w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('name') && 'input-error']" />
+                <FieldError name="name" :errors="fieldErrors" />
               </div>
 
               <div class="col-span-2">
@@ -103,7 +104,10 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
+import { parseApiError } from '@/utils/apiError'
 
 const { t }  = useI18n()
 
@@ -118,6 +122,7 @@ const allCategories = ref([])
 const loading = ref(true)
 const saving  = ref(false)
 const error   = ref('')
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({ code: '', name: '', description: '', parentId: '', status: 'active', activeFrom: '', activeTo: '' })
 
@@ -141,13 +146,15 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
     await api.put(`/erp/product-categories/${route.params.id}`, { ...form.value, parentId: form.value.parentId || null })
     router.push('/erp/product-categories')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to save'
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
   }

@@ -169,6 +169,8 @@ import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
@@ -188,6 +190,7 @@ const error         = ref('')
 const saving        = ref(false)
 const createAccount = ref(false)
 const showPassword  = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({
   employeeCode:  '',
@@ -222,6 +225,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.firstName.trim()) { error.value = 'First name is required'; return }
   if (!form.value.lastName.trim())  { error.value = 'Last name is required'; return }
 
@@ -241,7 +245,8 @@ async function save() {
     await api.post('/erp/hrms/employees', payload)
     router.push('/erp/hrms/employees')
   } catch (err) {
-    error.value = parseApiError(err, 'Failed to create employee')
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to create employee')
   } finally {
     saving.value = false
   }

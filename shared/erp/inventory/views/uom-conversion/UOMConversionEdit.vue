@@ -93,7 +93,10 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
+import { parseApiError } from '@/utils/apiError'
 
 const { t }  = useI18n()
 const route  = useRoute()
@@ -103,6 +106,7 @@ const uoms    = ref([])
 const loading = ref(true)
 const saving  = ref(false)
 const error   = ref('')
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({ fromUomId: '', toUomId: '', factor: '', notes: '' })
 
@@ -129,6 +133,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.fromUomId)                        { error.value = 'From UOM is required'; return }
   if (!form.value.toUomId)                          { error.value = 'To UOM is required'; return }
   if (!form.value.factor || form.value.factor <= 0) { error.value = 'Factor must be greater than 0'; return }
@@ -137,7 +142,8 @@ async function save() {
     await api.put(`/erp/uom-conversion/${route.params.id}`, form.value)
     router.push('/erp/uom-conversion')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to save'
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to save')
   } finally {
     saving.value = false
   }

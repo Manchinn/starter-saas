@@ -98,7 +98,10 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
+import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -106,6 +109,7 @@ const router = useRouter()
 const uoms   = ref([])
 const error  = ref('')
 const saving = ref(false)
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = reactive({ fromUomId: '', toUomId: '', factor: '', notes: '' })
 
@@ -120,6 +124,7 @@ onMounted(async () => {
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.fromUomId)                  { error.value = 'From UOM is required'; return }
   if (!form.toUomId)                    { error.value = 'To UOM is required'; return }
   if (!form.factor || form.factor <= 0) { error.value = 'Factor must be greater than 0'; return }
@@ -128,7 +133,8 @@ async function save() {
     await api.post('/erp/uom-conversion', { ...form })
     router.push('/erp/uom-conversion')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to create conversion'
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to create conversion')
   } finally {
     saving.value = false
   }

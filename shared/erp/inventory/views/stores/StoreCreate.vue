@@ -25,7 +25,8 @@
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.name') }} <span class="text-red-500">*</span></label>
             <input v-model="form.name" type="text" placeholder="e.g. Main Warehouse"
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              :class="['w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
+            <FieldError name="name" :errors="fieldErrors" />
           </div>
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.phone') }}</label>
@@ -80,6 +81,8 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import FieldError from '@/components/form/FieldError.vue'
+import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
@@ -95,9 +98,11 @@ const form     = ref({ name: '', code: '', phone: '', email: '', address: '', st
 const error    = ref('')
 const saving   = ref(false)
 const autoCode = useAutoCode('WHS')
+const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 async function save() {
   error.value = ''
+  resetErrors()
   if (!form.value.name.trim()) { error.value = 'Name is required'; return }
   saving.value = true
   try {
@@ -106,7 +111,8 @@ async function save() {
     await api.post('/erp/stores', payload)
     router.push('/erp/stores')
   } catch (err) {
-    error.value = parseApiError(err, 'Failed to create store')
+    const had = setFromError(err)
+    if (!had) error.value = parseApiError(err, 'Failed to create store')
   } finally {
     saving.value = false
   }
