@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <div v-if="loading" class="bg-white rounded-2xl border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">Loading…</div>
+      <div v-if="loading" class="bg-white border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">Loading…</div>
 
       <template v-else>
 
@@ -20,7 +20,7 @@
         <div class="grid grid-cols-2 gap-6 items-start">
           
           <!-- Left: Employee Information -->
-          <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-[#E2E8F0]">
               <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.employeeInfo') }}</h2>
             </div>
@@ -83,7 +83,7 @@
           <!-- Right Column -->
           <div class="space-y-6">
             <!-- User Account -->
-            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+            <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
               <div class="px-6 py-4 border-b border-[#E2E8F0]">
                 <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.userAccount') }}</h2>
                 <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.employees.linkedUser') }}</p>
@@ -92,9 +92,9 @@
                 <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.user') }}</label>
                 <SearchSelect v-model="form.userId" :options="userOptions" placeholder="— None —" />
 
-                <div v-if="selectedUser" class="mt-4 p-3.5 bg-[#F7F9FC] rounded-xl space-y-2 border border-[#E2E8F0]">
+                <div v-if="selectedUser" class="mt-4 p-3.5 bg-[#F7F9FC] space-y-2 border border-[#E2E8F0]">
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-500 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    <div class="w-9 h-9 bg-primary-100 text-primary-500 flex items-center justify-center font-bold text-sm flex-shrink-0">
                       {{ selectedUser.name.charAt(0).toUpperCase() }}
                     </div>
                     <div>
@@ -107,7 +107,7 @@
                       Role: <span class="font-semibold text-[#374151] capitalize">{{ selectedUser.role }}</span>
                     </span>
                     <span :class="selectedUser.isActive ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" 
-                      class="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded">
+                      class="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5">
                       {{ selectedUser.isActive ? t('erp.employees.active') : t('erp.employees.inactive') }}
                     </span>
                   </div>
@@ -119,7 +119,7 @@
                     <label class="block text-sm font-medium text-[#374151]">{{ t('erp.employees.deptAssignments') }}</label>
                     <span class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-widest">{{ form.departmentIds.length }} {{ t('erp.employees.selected') }}</span>
                   </div>
-                  <div class="grid grid-cols-1 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/50 rounded-xl max-h-56 overflow-y-auto shadow-inner">
+                  <div class="grid grid-cols-1 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/50 max-h-56 overflow-y-auto shadow-inner">
                     <label v-for="d in departments" :key="d.id" 
                       class="flex items-center gap-2.5 px-3 py-2 hover:bg-white hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-[#E2E8F0] group">
                       <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="text-primary-500 focus:ring-primary-500" />

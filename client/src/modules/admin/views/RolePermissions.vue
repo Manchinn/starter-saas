@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -40,7 +40,7 @@
                        class="border-[#CBD5E1] w-4 h-4 accent-primary-500" />
                 <div>
                   <span class="text-sm font-medium text-[#1C2434]">{{ perm.name }}</span>
-                  <span class="ml-2 text-xs font-mono text-[#9BA7B0] bg-[#F1F5F9] px-1.5 py-0.5 rounded">{{ perm.slug }}</span>
+                  <span class="ml-2 text-xs font-mono text-[#9BA7B0] bg-[#F1F5F9] px-1.5 py-0.5">{{ perm.slug }}</span>
                 </div>
               </label>
             </div>

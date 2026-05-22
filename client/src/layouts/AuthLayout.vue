@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="min-h-screen flex bg-white">
 
     <!-- ── Brand panel ─────────────────────────────────────────────────────── -->
@@ -11,15 +11,15 @@
 
       <!-- Gradient overlays -->
       <div class="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#1C2434] to-transparent pointer-events-none" />
-      <div class="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] pointer-events-none" />
-      <div class="absolute bottom-1/4 left-0 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] pointer-events-none" />
+      <div class="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 blur-[80px] pointer-events-none" />
+      <div class="absolute bottom-1/4 left-0 w-48 h-48 bg-violet-500/10 blur-[60px] pointer-events-none" />
 
       <!-- Content -->
       <div class="relative z-10 flex flex-col h-full p-8 xl:p-10">
 
         <!-- Logo -->
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+          <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-lg">
             <svg class="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                     d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -33,8 +33,8 @@
         <!-- Tagline block -->
         <div class="space-y-6">
           <div class="space-y-3">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/15 border border-primary-400/20">
-              <span class="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse"></span>
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/15 border border-primary-400/20">
+              <span class="w-1.5 h-1.5 bg-primary-400 animate-pulse"></span>
               <span class="text-xs font-medium text-primary-300">Production-ready starter kit</span>
             </div>
             <h1 class="text-[32px] xl:text-[36px] font-bold text-white leading-tight tracking-tight">
@@ -48,9 +48,9 @@
           <!-- Feature pills -->
           <div class="flex flex-wrap gap-2">
             <span v-for="f in features" :key="f"
-              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+              class="inline-flex items-center gap-1.5 px-3 py-1
                      bg-white/[0.06] border border-white/[0.10] text-[12px] font-medium text-[#DEE4EE]">
-              <span class="w-1 h-1 rounded-full bg-primary-400"></span>
+              <span class="w-1 h-1 bg-primary-400"></span>
               {{ f }}
             </span>
           </div>
@@ -83,7 +83,7 @@
 
         <!-- Mobile logo -->
         <div class="flex items-center gap-2.5 lg:hidden mb-6 sm:mb-8">
-          <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+          <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-md">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                     d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -93,7 +93,7 @@
         </div>
 
         <!-- Form card -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card-lg p-6 sm:p-8">
+        <div class="bg-white border border-[#E2E8F0] shadow-card-lg p-6 sm:p-8">
           <div class="mb-6 sm:mb-7">
             <h2 class="text-[20px] sm:text-[22px] font-bold text-[#1C2434] tracking-tight">{{ subtitle }}</h2>
             <p class="mt-1 text-[13px] text-[#637381]">{{ t('auth.continueDetails') }}</p>

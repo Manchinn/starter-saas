@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4">
@@ -11,7 +11,7 @@
         </button>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-[#F7F9FC] text-left">
             <tr>
@@ -31,9 +31,9 @@
               <td class="px-4 py-2"><DateInput v-model="p.startDate" :disabled="p.status === 'closed' && !isDraft(p)" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2"><DateInput v-model="p.endDate" :disabled="p.status === 'closed' && !isDraft(p)" class="w-full px-2 py-1.5 border text-sm disabled:bg-[#F7F9FC]" /></td>
               <td class="px-4 py-2 text-center">
-                <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize',
+                <span :class="['inline-flex items-center px-2.5 py-0.5 text-xs font-semibold capitalize',
                   p.status === 'closed' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700']">
-                  <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="p.status === 'closed' ? 'bg-red-500' : 'bg-green-500'" />
+                  <span class="w-1.5 h-1.5 mr-1.5" :class="p.status === 'closed' ? 'bg-red-500' : 'bg-green-500'" />
                   {{ p.status || 'open' }}
                 </span>
               </td>

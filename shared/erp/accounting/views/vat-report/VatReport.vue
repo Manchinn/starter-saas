@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
       <div class="flex items-center gap-3">
@@ -9,7 +9,7 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.vatReport.title') }}</h1>
           <p v-if="report?.period" class="text-sm text-[#637381] mt-0.5">
             {{ report.period.name }} · {{ report.period.startDate }} → {{ report.period.endDate }}
-            <span :class="['ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize',
+            <span :class="['ml-2 inline-flex items-center px-2 py-0.5 text-[10px] font-semibold capitalize',
               report.period.status === 'closed' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700']">
               {{ report.period.status }}
             </span>
@@ -20,23 +20,23 @@
       <div v-if="loading" class="py-12 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
 
       <template v-else-if="report">
-        <div v-if="report.message" class="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-xl">
+        <div v-if="report.message" class="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3">
           {{ report.message }}
         </div>
 
         <!-- Summary cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5">
+          <div class="bg-white border border-[#E2E8F0] p-5">
             <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">{{ t('erp.vatReport.outputTax') }}</p>
             <p class="text-2xl font-bold text-green-700 tabular-nums">{{ fmt(report.outputTax.total) }}</p>
             <p class="text-xs text-[#9BA7B0] mt-1">{{ report.outputTax.lines.length }} {{ t('erp.vatReport.lines') }}</p>
           </div>
-          <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5">
+          <div class="bg-white border border-[#E2E8F0] p-5">
             <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">{{ t('erp.vatReport.inputTax') }}</p>
             <p class="text-2xl font-bold text-blue-700 tabular-nums">{{ fmt(report.inputTax.total) }}</p>
             <p class="text-xs text-[#9BA7B0] mt-1">{{ report.inputTax.lines.length }} {{ t('erp.vatReport.lines') }}</p>
           </div>
-          <div class="rounded-2xl border p-5"
+          <div class="border p-5"
             :class="report.netPayable > 0 ? 'bg-red-50 border-red-200' : report.netPayable < 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-[#E2E8F0]'">
             <p class="text-[11px] font-semibold uppercase tracking-wider mb-2"
               :class="report.netPayable > 0 ? 'text-red-600' : report.netPayable < 0 ? 'text-emerald-700' : 'text-[#9BA7B0]'">
@@ -51,7 +51,7 @@
         </div>
 
         <!-- Output VAT lines -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center justify-between bg-green-50/40">
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.vatReport.outputTaxLines') }}</h2>
             <span class="text-xs text-[#637381]">{{ t('erp.vatReport.outputHint') }}</span>
@@ -86,7 +86,7 @@
         </div>
 
         <!-- Input VAT lines -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center justify-between bg-blue-50/40">
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.vatReport.inputTaxLines') }}</h2>
             <span class="text-xs text-[#637381]">{{ t('erp.vatReport.inputHint') }}</span>

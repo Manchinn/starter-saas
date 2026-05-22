@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -15,7 +15,7 @@
         <RouterLink to="/erp/accounting/chart-of-accounts" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
       </div>
 
-      <div v-else class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
+      <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
 
         <div class="grid grid-cols-2 gap-4">
 

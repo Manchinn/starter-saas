@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
       <div class="flex items-center gap-3">
@@ -15,7 +15,7 @@
 
       <template v-else>
         <!-- Product info -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6">
+        <div class="bg-white border border-[#E2E8F0] p-6">
           <div class="flex items-start justify-between gap-6">
             <div>
               <h2 class="text-xl font-bold text-[#1C2434]">{{ summary.product.name }}</h2>
@@ -56,7 +56,7 @@
         </div>
 
         <!-- Stock by Store -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] overflow-hidden">
           <div class="px-5 py-3 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.stockBalance.stockByStore') }}</h2>
           </div>
@@ -89,7 +89,7 @@
         </div>
 
         <!-- Recent Movements -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] overflow-hidden">
           <div class="px-5 py-3 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.stockBalance.recentMovements') }} <span class="text-[#9BA7B0] font-normal">{{ t('erp.stockBalance.last20') }}</span></h2>
           </div>
@@ -112,7 +112,7 @@
                 <td class="px-5 py-3 text-[#637381] text-xs">{{ mv.createdAt?.slice(0, 10) }}</td>
                 <td class="px-5 py-3">
                   <span :class="movementClass(mv.type)"
-                    class="px-2 py-0.5 rounded-full text-xs font-medium capitalize">
+                    class="px-2 py-0.5 text-xs font-medium capitalize">
                     {{ movementLabel(mv.type) }}
                   </span>
                 </td>

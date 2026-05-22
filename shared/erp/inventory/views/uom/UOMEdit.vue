@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -14,7 +14,7 @@
         {{ t('erp.uom.notFound') }} <RouterLink to="/erp/uom" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
       </div>
 
-      <div v-else class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
+      <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.code') }} <span class="text-red-500">*</span></label>

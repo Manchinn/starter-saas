@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -9,7 +9,7 @@
         ] : []">
         <template #badge>
           <span v-if="category?.isSystem"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold
+            class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold
                    bg-amber-50 text-amber-600 border border-amber-200">
             {{ t('erp.masterData.systemBadge') }}
           </span>
@@ -151,8 +151,8 @@
                     <td class="px-4 py-3 text-center text-sm text-[#637381] tabular-nums">{{ v.sortOrder ?? 0 }}</td>
                     <td class="px-4 py-3 text-center">
                       <span :class="v.isActive !== false ? 'bg-green-50 text-green-700' : 'bg-[#F1F5F9] text-[#9BA7B0]'"
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold">
-                        <span class="w-1.5 h-1.5 rounded-full" :class="v.isActive !== false ? 'bg-green-500' : 'bg-slate-400'"></span>
+                        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold">
+                        <span class="w-1.5 h-1.5" :class="v.isActive !== false ? 'bg-green-500' : 'bg-slate-400'"></span>
                         {{ v.isActive !== false ? t('common.active') : t('common.inactive') }}
                       </span>
                     </td>
@@ -221,7 +221,7 @@
 
           <!-- Row error -->
           <div v-if="rowError"
-            class="mx-4 mb-4 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+            class="mx-4 mb-4 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
             <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0 mt-0.5" />
             {{ rowError }}
           </div>

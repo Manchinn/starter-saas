@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -10,7 +10,7 @@
       </div>
 
       <!-- Header card -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
+      <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
 
           <!-- Code -->
@@ -50,7 +50,7 @@
       </div>
 
       <!-- Package Items card -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-4">
+      <div class="bg-white border border-[#E2E8F0] p-6 space-y-4">
         <div class="flex items-center justify-between">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.salePackages.packageItems') }}</h2>
           <button @click="addLine" type="button"
@@ -61,7 +61,7 @@
         </div>
 
         <!-- Items table -->
-        <div v-if="form.items.length" class="border border-[#E2E8F0] rounded-xl overflow-visible">
+        <div v-if="form.items.length" class="border border-[#E2E8F0] overflow-visible">
           <table class="w-full text-sm">
             <thead class="bg-[#F7F9FC]">
               <tr>
@@ -116,13 +116,13 @@
           </table>
         </div>
 
-        <div v-else class="border-2 border-dashed border-[#E2E8F0] rounded-xl py-8 text-center text-sm text-[#9BA7B0]">
+        <div v-else class="border-2 border-dashed border-[#E2E8F0] py-8 text-center text-sm text-[#9BA7B0]">
           {{ t('erp.salePackages.noItems') }}
         </div>
       </div>
 
       <!-- Footer -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] px-6 py-4">
+      <div class="bg-white border border-[#E2E8F0] px-6 py-4">
         <div v-if="error" class="mb-3 bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
         <div class="flex justify-end gap-3">
           <RouterLink to="/erp/sale-packages" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>

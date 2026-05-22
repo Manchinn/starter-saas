@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -45,7 +45,7 @@
                      class="border-[#CBD5E1] w-4 h-4 accent-primary-500" :disabled="!mod.isActive" />
               <div class="flex-1 min-w-0">
                 <span class="text-sm font-medium text-[#1C2434]">{{ mod.name }}</span>
-                <span class="ml-2 text-xs font-mono text-[#9BA7B0] bg-[#F1F5F9] px-1.5 py-0.5 rounded">{{ mod.slug }}</span>
+                <span class="ml-2 text-xs font-mono text-[#9BA7B0] bg-[#F1F5F9] px-1.5 py-0.5">{{ mod.slug }}</span>
               </div>
               <span v-if="!mod.isActive" class="badge badge-gray">{{ t('roles.inactiveBadge') }}</span>
             </label>

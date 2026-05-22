@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -158,7 +158,7 @@
                        transition-colors">
                 <PlusIcon class="w-3.5 h-3.5" />
                 {{ t('erp.deliveryOrders.addItem') }}
-                <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+A</kbd>
+                <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+A</kbd>
               </button>
             </div>
           </template>
@@ -199,7 +199,7 @@
                   @dragstart="onDragStart($event, idx)"
                   @dragend="onDragEnd"
                   class="text-[12px] font-semibold text-center select-none flex items-center justify-center
-                         cursor-grab active:cursor-grabbing rounded hover:bg-[#E2E8F0]/60 h-7
+                         cursor-grab active:cursor-grabbing hover:bg-[#E2E8F0]/60 h-7
                          text-[#CBD5E1] group-hover:text-[#637381]">
                   <Bars3Icon class="w-4 h-4 hidden group-hover:block" />
                   <span class="group-hover:hidden">{{ idx + 1 }}</span>
@@ -322,11 +322,11 @@
       <div class="flex items-center gap-2.5">
         <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
           <span class="flex items-center gap-1" :title="t('erp.deliveryOrders.create')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
+            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>save</span>
           </span>
           <span class="flex items-center gap-1" :title="t('erp.deliveryOrders.addItem')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
+            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
             <span>item</span>
           </span>
         </div>
@@ -349,9 +349,9 @@
     <!-- Confirm dialog -->
     <Teleport to="body">
       <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div class="w-full max-w-sm bg-white shadow-2xl overflow-hidden">
           <div class="px-5 py-4 flex items-start gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 bg-amber-100 flex items-center justify-center flex-shrink-0">
               <ExclamationTriangleIcon class="w-5 h-5 text-amber-600" />
             </div>
             <div class="flex-1 min-w-0">

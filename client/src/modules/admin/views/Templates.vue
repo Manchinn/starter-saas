@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -11,10 +11,10 @@
       </div>
 
       <!-- ─ Active template hero ─────────────────────────────────────────── -->
-      <section class="rounded-2xl border border-[#E2E8F0] bg-gradient-to-br from-primary-50 via-white to-violet-50 shadow-card p-5">
+      <section class="border border-[#E2E8F0] bg-gradient-to-br from-primary-50 via-white to-violet-50 shadow-card p-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-white border border-[#E2E8F0] flex items-center justify-center shadow-sm flex-shrink-0">
+            <div class="w-12 h-12 bg-white border border-[#E2E8F0] flex items-center justify-center shadow-sm flex-shrink-0">
               <SparklesIcon class="w-5 h-5 text-primary-600" />
             </div>
             <div>
@@ -25,7 +25,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="badge badge-green">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span class="w-1.5 h-1.5 bg-emerald-500"></span>
               {{ t('templates.active') }}
             </span>
             <button
@@ -63,7 +63,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         <article
           v-for="tmpl in filtered" :key="tmpl.slug"
-          class="group rounded-2xl border bg-white overflow-hidden flex flex-col transition-all duration-150"
+          class="group border bg-white overflow-hidden flex flex-col transition-all duration-150"
           :class="isActive(tmpl) ? 'border-primary-500 shadow-card-md ring-1 ring-primary-200' : 'border-[#E2E8F0] hover:border-[#CBD5E1] hover:shadow-card'"
         >
           <!-- Preview mockup -->
@@ -74,28 +74,28 @@
             <template v-if="tmpl.tags?.nav === 'topNav'">
               <div class="absolute inset-x-0 top-0 h-8 flex items-center px-4 gap-3"
                    :style="{ background: tmpl.preview.topbar }">
-                <div class="w-14 h-2 rounded" style="background:rgba(255,255,255,0.45)"></div>
-                <div class="w-9 h-1.5 rounded" style="background:rgba(255,255,255,0.25)"></div>
-                <div class="w-9 h-1.5 rounded" style="background:rgba(255,255,255,0.25)"></div>
-                <div class="w-9 h-1.5 rounded" style="background:rgba(255,255,255,0.25)"></div>
+                <div class="w-14 h-2" style="background:rgba(255,255,255,0.45)"></div>
+                <div class="w-9 h-1.5" style="background:rgba(255,255,255,0.25)"></div>
+                <div class="w-9 h-1.5" style="background:rgba(255,255,255,0.25)"></div>
+                <div class="w-9 h-1.5" style="background:rgba(255,255,255,0.25)"></div>
                 <div class="ml-auto flex items-center gap-2">
-                  <div class="w-12 h-1.5 rounded" style="background:rgba(255,255,255,0.2)"></div>
-                  <div class="w-4 h-4 rounded-full" style="background:rgba(255,255,255,0.35)"></div>
+                  <div class="w-12 h-1.5" style="background:rgba(255,255,255,0.2)"></div>
+                  <div class="w-4 h-4" style="background:rgba(255,255,255,0.35)"></div>
                 </div>
               </div>
               <div class="absolute inset-x-0 top-8 h-5 bg-white border-b border-slate-200 flex items-center px-4">
-                <div class="w-20 h-1.5 rounded bg-slate-300"></div>
+                <div class="w-20 h-1.5 bg-slate-300"></div>
               </div>
               <div class="absolute inset-x-0 top-14 bottom-0 p-3 space-y-2">
                 <div class="grid grid-cols-3 gap-2">
-                  <div class="h-7 bg-white rounded shadow-sm"></div>
-                  <div class="h-7 bg-white rounded shadow-sm"></div>
-                  <div class="h-7 bg-white rounded shadow-sm"></div>
+                  <div class="h-7 bg-white shadow-sm"></div>
+                  <div class="h-7 bg-white shadow-sm"></div>
+                  <div class="h-7 bg-white shadow-sm"></div>
                 </div>
-                <div class="h-12 bg-white rounded shadow-sm"></div>
+                <div class="h-12 bg-white shadow-sm"></div>
                 <div class="grid grid-cols-2 gap-2">
-                  <div class="h-8 bg-white rounded shadow-sm"></div>
-                  <div class="h-8 bg-white rounded shadow-sm"></div>
+                  <div class="h-8 bg-white shadow-sm"></div>
+                  <div class="h-8 bg-white shadow-sm"></div>
                 </div>
               </div>
             </template>
@@ -105,33 +105,33 @@
               <div class="absolute inset-y-0 left-0 w-20 flex flex-col"
                    :style="{ background: tmpl.preview.sidebar }">
                 <div class="h-8 flex items-center justify-center">
-                  <div class="w-10 h-2 rounded" style="background:rgba(255,255,255,0.45)"></div>
+                  <div class="w-10 h-2" style="background:rgba(255,255,255,0.45)"></div>
                 </div>
                 <div class="flex-1 p-2.5 space-y-1.5">
-                  <div class="h-2 rounded" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.45)' }"></div>
-                  <div class="h-2 rounded" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.3)' }"></div>
-                  <div class="h-2 rounded" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.3)' }"></div>
-                  <div class="h-2 rounded w-3/4" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.22)' }"></div>
-                  <div class="h-2 rounded w-2/3" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.22)' }"></div>
+                  <div class="h-2" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.45)' }"></div>
+                  <div class="h-2" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.3)' }"></div>
+                  <div class="h-2" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.3)' }"></div>
+                  <div class="h-2 w-3/4" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.22)' }"></div>
+                  <div class="h-2 w-2/3" :style="{ background: tmpl.tags?.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.22)' }"></div>
                 </div>
               </div>
               <div class="absolute inset-y-0 left-20 right-0 flex flex-col">
                 <div class="h-8 flex items-center px-3 border-b border-slate-200"
                      :style="{ background: tmpl.preview.topbar }">
-                  <div class="w-16 h-1.5 rounded"
+                  <div class="w-16 h-1.5"
                        :style="{ background: tmpl.preview.topbar === '#ffffff' ? '#cbd5e1' : 'rgba(255,255,255,0.35)' }"></div>
-                  <div class="ml-auto w-4 h-4 rounded-full"
+                  <div class="ml-auto w-4 h-4"
                        :style="{ background: tmpl.preview.topbar === '#ffffff' ? '#e2e8f0' : 'rgba(255,255,255,0.25)' }"></div>
                 </div>
                 <div class="flex-1 p-3 space-y-2"
                      :style="{ background: tmpl.preview.content }">
                   <div class="grid grid-cols-3 gap-2">
-                    <div class="h-6 rounded shadow-sm" :class="cardClass(tmpl)"></div>
-                    <div class="h-6 rounded shadow-sm" :class="cardClass(tmpl)"></div>
-                    <div class="h-6 rounded shadow-sm" :class="cardClass(tmpl)"></div>
+                    <div class="h-6 shadow-sm" :class="cardClass(tmpl)"></div>
+                    <div class="h-6 shadow-sm" :class="cardClass(tmpl)"></div>
+                    <div class="h-6 shadow-sm" :class="cardClass(tmpl)"></div>
                   </div>
-                  <div class="h-12 rounded shadow-sm" :class="cardClass(tmpl)"></div>
-                  <div class="h-7 rounded shadow-sm" :class="cardClass(tmpl)"></div>
+                  <div class="h-12 shadow-sm" :class="cardClass(tmpl)"></div>
+                  <div class="h-7 shadow-sm" :class="cardClass(tmpl)"></div>
                 </div>
               </div>
             </template>
@@ -139,7 +139,7 @@
             <!-- Active corner badge -->
             <div
               v-if="isActive(tmpl)"
-              class="absolute top-2 right-2 flex items-center gap-1 bg-primary-600 text-white text-[10.5px] font-semibold px-2 py-1 rounded-full shadow-sm"
+              class="absolute top-2 right-2 flex items-center gap-1 bg-primary-600 text-white text-[10.5px] font-semibold px-2 py-1 shadow-sm"
             >
               <CheckIcon class="w-3 h-3" />
               {{ t('templates.active') }}
@@ -186,7 +186,7 @@
           </div>
         </article>
 
-        <div v-if="!filtered.length" class="md:col-span-2 xl:col-span-3 text-center py-14 bg-white rounded-2xl border border-[#E2E8F0]">
+        <div v-if="!filtered.length" class="md:col-span-2 xl:col-span-3 text-center py-14 bg-white border border-[#E2E8F0]">
           <SparklesIcon class="w-8 h-8 mx-auto text-[#CBD5E1]" />
           <p class="text-sm text-[#9BA7B0] mt-2">{{ t('templates.noMatch') }}</p>
         </div>
@@ -196,7 +196,7 @@
       <Transition name="toast">
         <div
           v-if="applied"
-          class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#1C2434] text-white text-sm px-4 py-3 rounded-xl shadow-lg"
+          class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#1C2434] text-white text-sm px-4 py-3 shadow-lg"
         >
           <CheckCircleIcon class="w-5 h-5 text-emerald-400" />
           <span>{{ t('templates.appliedToast', { name: activeTemplate.name }) }}</span>

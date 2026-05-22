@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -13,7 +13,7 @@
         </RouterLink>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
 
         <!-- ── Toolbar ─────────────────────────────────────────────── -->
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
@@ -28,7 +28,7 @@
           v-model:page="page" :page-size="20">
           <template #empty>
             <div class="flex flex-col items-center gap-3 py-4">
-              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
                 <ArrowsRightLeftIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
               <div class="text-center">
@@ -45,7 +45,7 @@
     <!-- Delete confirm modal -->
     <Teleport to="body">
       <div v-if="deleteModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+        <div class="bg-white shadow-xl w-full max-w-sm p-6 space-y-4">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.uomConversion.deleteTitle') }}</h2>
           <p class="text-sm text-[#637381]">
             {{ t('erp.uomConversion.deleteConfirm') }}
@@ -183,12 +183,12 @@ const columns = [
     cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
       h(RouterLink, {
         to: `/erp/uom-conversion/${info.row.original.id}/edit`,
-        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
         title: t('common.edit'),
       }, () => h(PencilIcon, { class: 'w-4 h-4' })),
       h('button', {
         onClick: () => confirmDelete(info.row.original),
-        class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+        class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors',
         title: t('common.delete'),
       }, h(TrashIcon, { class: 'w-4 h-4' })),
     ]),

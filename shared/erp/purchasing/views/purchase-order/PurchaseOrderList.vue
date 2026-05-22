@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -18,7 +18,7 @@
       </div>
 
       <!-- Table card -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="orders" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           searchable :search-placeholder="t('erp.po.searchPh')">
@@ -31,7 +31,7 @@
                   : 'bg-white border-[#E2E8F0] text-[#637381] hover:bg-slate-50']">
               <AdjustmentsHorizontalIcon class="w-4 h-4" />
               {{ t('common.filters') }}
-              <span v-if="filterStatus" class="min-w-[18px] h-[18px] bg-primary-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold leading-none">1</span>
+              <span v-if="filterStatus" class="min-w-[18px] h-[18px] bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold leading-none">1</span>
             </button>
           </template>
 
@@ -61,7 +61,7 @@
 
           <template #empty>
             <div class="flex flex-col items-center gap-3 py-4">
-              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
                 <DocumentTextIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
               <p class="text-sm font-medium text-[#637381]">{{ t('erp.po.noFound') }}</p>
@@ -179,7 +179,7 @@ const columns = [
       const s   = info.getValue()
       const cls = statusClass[s] || 'bg-slate-100 text-slate-600'
       const lbl = t(`erp.po.status${s.charAt(0).toUpperCase() + s.slice(1)}`)
-      return h('span', { class: `inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${cls}` }, lbl)
+      return h('span', { class: `inline-flex items-center px-2.5 py-1 text-xs font-semibold capitalize ${cls}` }, lbl)
     },
   }),
   columnHelper.display({
@@ -190,7 +190,7 @@ const columns = [
       auth.hasPermission('erp.purchasing.delete') && info.row.original.status === 'draft'
         ? h('button', {
             onClick: () => confirmDelete(info.row.original),
-            class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+            class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors',
           }, h(TrashIcon, { class: 'w-4 h-4' }))
         : null,
     ]),

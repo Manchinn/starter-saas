@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -25,12 +25,12 @@
 
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <!-- Not found / not editable -->
       <div v-else-if="loadError"
-        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl">
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5">
         <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
         <span>{{ loadError }}
           <RouterLink to="/erp/stock-request" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
@@ -78,7 +78,7 @@
             </div>
 
             <div v-if="form.fromStoreId && form.toStoreId" class="col-span-2">
-              <div class="flex items-center gap-3 px-4 py-3 bg-violet-50 rounded-xl border border-violet-100">
+              <div class="flex items-center gap-3 px-4 py-3 bg-violet-50 border border-violet-100">
                 <BuildingStorefrontIcon class="w-4 h-4 text-violet-500 flex-shrink-0" />
                 <span class="text-sm font-semibold text-violet-800 truncate">
                   {{ stores.find(s => s.id === form.fromStoreId)?.name }}
@@ -95,10 +95,10 @@
         </FormCard>
 
         <!-- Section 2: Items -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 bg-green-50 flex items-center justify-center flex-shrink-0">
                 <ClipboardDocumentListIcon class="w-4 h-4 text-green-600" />
               </div>
               <div>
@@ -116,26 +116,26 @@
                      transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.common.addItem') }}
-              <kbd class="hidden md:inline ml-1 px-1 py-px text-[10px] font-mono rounded bg-white/60 border border-primary-200 text-primary-700">
+              <kbd class="hidden md:inline ml-1 px-1 py-px text-[10px] font-mono bg-white/60 border border-primary-200 text-primary-700">
                 Ctrl+L
               </kbd>
             </button>
           </div>
 
           <div v-if="!form.fromStoreId" class="flex flex-col items-center justify-center py-16 text-center">
-            <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
+            <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
               <BuildingStorefrontIcon class="w-7 h-7 text-[#CBD5E1]" />
             </div>
             <p class="text-sm font-semibold text-[#637381]">{{ t('erp.stockTransfer.selectStorePh') }}</p>
           </div>
 
           <div v-else-if="loadingStoreProducts" class="flex items-center justify-center py-16 text-[#9BA7B0] gap-2">
-            <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent animate-spin" />
             <span class="text-sm">{{ t('erp.stockTransfer.loadingProducts') }}</span>
           </div>
 
           <div v-else-if="!storeProducts.length" class="flex flex-col items-center justify-center py-16 text-center">
-            <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
+            <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
               <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
             </div>
             <p class="text-sm font-semibold text-[#637381]">{{ t('erp.stockTransfer.noStoreProducts') }}</p>
@@ -143,7 +143,7 @@
 
           <div v-else>
             <div v-if="!items.length" class="flex flex-col items-center justify-center py-16 text-center">
-              <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
+              <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
                 <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
               </div>
               <p class="text-sm font-semibold text-[#637381]">{{ t('erp.common.noItems') }}</p>
@@ -258,13 +258,13 @@
         <!-- Global error -->
         <div v-if="error"
           class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700
-                 text-sm px-4 py-3.5 rounded-xl">
+                 text-sm px-4 py-3.5">
           <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
           <span>{{ error }}</span>
         </div>
 
         <!-- Summary card -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
             <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.summary') }}</h2>
@@ -297,15 +297,15 @@
             <div class="flex items-center gap-3">
               <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
                 <span class="flex items-center gap-1">
-                  <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+S</kbd>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+S</kbd>
                   <span>save</span>
                 </span>
                 <span class="flex items-center gap-1">
-                  <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+L</kbd>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+L</kbd>
                   <span>add</span>
                 </span>
                 <span class="flex items-center gap-1">
-                  <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+D</kbd>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+D</kbd>
                   <span>dup</span>
                 </span>
               </div>

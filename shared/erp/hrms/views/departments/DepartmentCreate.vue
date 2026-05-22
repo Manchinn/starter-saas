@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-5 space-y-4">
 
           <div>

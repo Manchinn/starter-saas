@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4">
@@ -12,7 +12,7 @@
         </RouterLink>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="items" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           searchable :search-placeholder="t('erp.bills.searchPh')">
@@ -105,7 +105,7 @@ const columns = [
     header: () => t('erp.bills.colStatus'),
     cell: info => {
       const s = info.getValue()
-      return h('span', { class: `inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${STATUS_CLASS[s] || ''}` }, s)
+      return h('span', { class: `inline-flex items-center px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_CLASS[s] || ''}` }, s)
     },
   }),
   columnHelper.display({
@@ -113,7 +113,7 @@ const columns = [
     header: () => '',
     cell: info => h(RouterLink, {
       to: `/erp/purchasing/bills/${info.row.original.id}`,
-      class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+      class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
     }, () => h(EyeIcon, { class: 'w-4 h-4' })),
   }),
 ]

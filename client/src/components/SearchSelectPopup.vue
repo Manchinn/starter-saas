@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <!-- Default trigger — hidden when parent controls opening externally -->
     <button v-if="!hideTrigger" type="button" @click="openModal"
@@ -32,7 +32,7 @@
         <div v-if="open"
           class="fixed left-1/2 top-[12vh] -translate-x-1/2 w-full max-w-[640px] px-4 sm:px-0 z-[9999]"
         >
-          <div class="bg-white rounded-2xl shadow-2xl border border-[#E2E8F0] flex flex-col max-h-[70vh] overflow-hidden">
+          <div class="bg-white shadow-2xl border border-[#E2E8F0] flex flex-col max-h-[70vh] overflow-hidden">
             <!-- Header / search -->
             <div class="px-4 py-3 border-b border-[#E2E8F0] flex items-center gap-2.5">
               <MagnifyingGlassIcon class="w-4 h-4 text-[#9BA7B0] flex-shrink-0" />
@@ -77,7 +77,7 @@
                       : 'border-transparent hover:bg-[#F7F9FC]'">
                     <!-- Multi: checkbox; Single: nothing here, check icon at end -->
                     <span v-if="multiple"
-                      class="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors"
+                      class="w-4 h-4 border flex items-center justify-center flex-shrink-0 transition-colors"
                       :class="isChecked(row.option)
                         ? 'bg-primary-500 border-primary-500 text-white'
                         : 'border-[#CBD5E1] bg-white'">
@@ -106,23 +106,23 @@
                 </template>
               </span>
               <span class="hidden sm:flex items-center gap-3 text-[11px] text-[#9BA7B0]">
-                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">↑↓</kbd></span>
+                <span><kbd class="px-1.5 py-0.5 bg-white border border-[#E2E8F0] font-mono text-[10px]">↑↓</kbd></span>
                 <template v-if="multiple">
                   <span class="flex items-center gap-1">
-                    <kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">←</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-white border border-[#E2E8F0] font-mono text-[10px]">←</kbd>
                     <span>uncheck</span>
                   </span>
                   <span class="flex items-center gap-1">
-                    <kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">→</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-white border border-[#E2E8F0] font-mono text-[10px]">→</kbd>
                     <span>check</span>
                   </span>
                   <span class="flex items-center gap-1">
-                    <kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Enter</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-white border border-[#E2E8F0] font-mono text-[10px]">Enter</kbd>
                     <span>add</span>
                   </span>
                 </template>
-                <span v-else><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Enter</kbd></span>
-                <span><kbd class="px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono text-[10px]">Esc</kbd></span>
+                <span v-else><kbd class="px-1.5 py-0.5 bg-white border border-[#E2E8F0] font-mono text-[10px]">Enter</kbd></span>
+                <span><kbd class="px-1.5 py-0.5 bg-white border border-[#E2E8F0] font-mono text-[10px]">Esc</kbd></span>
               </span>
               <button v-if="multiple" type="button"
                 @click="submitMulti"

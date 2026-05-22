@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
       <div class="flex items-center gap-3">
@@ -9,7 +9,7 @@
       </div>
       
       <!-- Existing Lock Warning -->
-      <div v-if="lockedStoreInfo" class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+      <div v-if="lockedStoreInfo" class="bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
         <div class="mt-0.5">⚠️</div>
         <div>
           <p class="text-sm font-semibold text-amber-800">{{ t('erp.stockCount.storeLocked') }}</p>
@@ -21,7 +21,7 @@
       </div>
 
       <!-- Header -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6">
+      <div class="bg-white border border-[#E2E8F0] p-6">
         <h2 class="text-sm font-semibold text-[#374151] mb-4">{{ t('erp.common.header') }}</h2>
         <div class="grid grid-cols-3 gap-4">
           <div>
@@ -49,7 +49,7 @@
       </div>
 
       <!-- Products -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6">
+      <div class="bg-white border border-[#E2E8F0] p-6">
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.stockCount.colProduct') }}s</h2>

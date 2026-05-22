@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -13,7 +13,7 @@
         </RouterLink>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="rows" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           searchable :search-placeholder="t('erp.stockIssue.searchPh')">
@@ -26,7 +26,7 @@
                   : 'bg-white border-[#E2E8F0] text-[#637381] hover:bg-slate-50']">
               <AdjustmentsHorizontalIcon class="w-4 h-4" />
               {{ t('common.filters') }}
-              <span v-if="activeFilterCount" class="min-w-[18px] h-[18px] bg-primary-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold leading-none">
+              <span v-if="activeFilterCount" class="min-w-[18px] h-[18px] bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold leading-none">
                 {{ activeFilterCount }}
               </span>
             </button>
@@ -69,19 +69,19 @@
           <template #active-filters>
             <div v-if="activeFilterCount > 0" class="px-5 py-2.5 border-b border-[#E2E8F0] flex items-center gap-2 flex-wrap bg-primary-50/40">
               <span class="text-xs font-medium text-[#637381]">{{ t('common.activeFilters') }}:</span>
-              <span v-if="filterStatus" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+              <span v-if="filterStatus" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] text-xs font-medium text-[#374151]">
                 {{ t('erp.common.status') }}: <span class="capitalize font-semibold ml-0.5">{{ filterStatus }}</span>
                 <button @click="filterStatus = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 transition-colors">
                   <XMarkIcon class="w-3 h-3" />
                 </button>
               </span>
-              <span v-if="filterDateFrom" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+              <span v-if="filterDateFrom" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] text-xs font-medium text-[#374151]">
                 {{ t('common.dateFrom') }}: <span class="font-semibold ml-0.5">{{ filterDateFrom }}</span>
                 <button @click="filterDateFrom = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 transition-colors">
                   <XMarkIcon class="w-3 h-3" />
                 </button>
               </span>
-              <span v-if="filterDateTo" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+              <span v-if="filterDateTo" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] text-xs font-medium text-[#374151]">
                 {{ t('common.dateTo') }}: <span class="font-semibold ml-0.5">{{ filterDateTo }}</span>
                 <button @click="filterDateTo = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 transition-colors">
                   <XMarkIcon class="w-3 h-3" />
@@ -95,7 +95,7 @@
 
           <template #empty>
             <div class="flex flex-col items-center gap-3 py-4">
-              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
                 <ArrowUpTrayIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
               <div class="text-center">
@@ -176,9 +176,9 @@ const columns = [
       const s = info.getValue()
       const confirmed = s === 'confirmed'
       return h('span', {
-        class: `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${confirmed ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`,
+        class: `inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold capitalize ${confirmed ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`,
       }, [
-        h('span', { class: `w-1.5 h-1.5 rounded-full ${confirmed ? 'bg-green-500' : 'bg-amber-500'}` }),
+        h('span', { class: `w-1.5 h-1.5 ${confirmed ? 'bg-green-500' : 'bg-amber-500'}` }),
         s,
       ])
     },
@@ -191,18 +191,18 @@ const columns = [
       return h('div', { class: 'flex items-center justify-end gap-1.5' }, [
         h(RouterLink, {
           to: `/erp/stock-issue/${r.id}`,
-          class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+          class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
           title: 'View',
         }, () => h(EyeIcon, { class: 'w-4 h-4' })),
         r.status === 'draft' && h('button', {
           onClick: () => approveRow(r),
           disabled: approvingId.value === r.id,
-          class: 'p-1.5 text-[#9BA7B0] hover:text-green-700 hover:bg-green-50 rounded-md transition-colors disabled:opacity-40',
+          class: 'p-1.5 text-[#9BA7B0] hover:text-green-700 hover:bg-green-50 transition-colors disabled:opacity-40',
           title: 'Confirm',
         }, h(CheckCircleIcon, { class: 'w-4 h-4' })),
         r.status === 'draft' && h('button', {
           onClick: () => confirmDelete(r),
-          class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+          class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors',
           title: 'Delete',
         }, h(TrashIcon, { class: 'w-4 h-4' })),
       ].filter(Boolean))

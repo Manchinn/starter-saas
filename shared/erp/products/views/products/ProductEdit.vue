@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -18,7 +18,7 @@
       <div v-else class="flex gap-6 items-start">
 
         <!-- Left: product fields -->
-        <div class="flex-1 bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
+        <div class="flex-1 bg-white border border-[#E2E8F0] p-6 space-y-5">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.products.codeSku') }}</label>
@@ -132,7 +132,7 @@
         <div class="w-72 space-y-4 flex-shrink-0">
 
           <!-- Stores panel -->
-          <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5 space-y-4">
+          <div class="bg-white border border-[#E2E8F0] p-5 space-y-4">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.linkedStores') }}</h2>
             <div class="flex gap-2">
               <div class="flex-1"><SearchSelect v-model="selectedStoreId" :options="availableStoreOptions" :placeholder="t('erp.common.selectStore')" /></div>
@@ -155,7 +155,7 @@
           </div>
 
           <!-- Vendors panel -->
-          <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5 space-y-4">
+          <div class="bg-white border border-[#E2E8F0] p-5 space-y-4">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.linkedVendors') }}</h2>
             <div class="flex gap-2">
               <div class="flex-1"><SearchSelect v-model="selectedVendorId" :options="availableVendorOptions" placeholder="— Select vendor —" /></div>

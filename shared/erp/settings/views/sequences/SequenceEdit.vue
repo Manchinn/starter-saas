@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
       <div class="flex items-center gap-3">
@@ -6,7 +6,7 @@
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
         <h1 class="text-2xl font-bold text-[#1C2434]">{{ isCreate ? t('erp.settings.newSeq') : t('erp.settings.seqTitle') }}</h1>
-        <span v-if="!isCreate && seq" class="font-mono text-sm bg-[#F1F5F9] text-[#374151] px-2.5 py-0.5 rounded">{{ seq.code }}</span>
+        <span v-if="!isCreate && seq" class="font-mono text-sm bg-[#F1F5F9] text-[#374151] px-2.5 py-0.5">{{ seq.code }}</span>
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
@@ -14,7 +14,7 @@
       <template v-else>
         <div class="grid grid-cols-2 gap-6">
           <!-- Left: form fields -->
-          <div class="space-y-5 bg-white rounded-2xl border border-[#E2E8F0] p-6">
+          <div class="space-y-5 bg-white border border-[#E2E8F0] p-6">
 
             <div v-if="isCreate" class="grid grid-cols-2 gap-4">
               <div>
@@ -103,7 +103,7 @@
 
           <!-- Right: preview -->
           <div class="space-y-4">
-            <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5">
+            <div class="bg-white border border-[#E2E8F0] p-5">
               <h3 class="text-sm font-semibold text-[#374151] mb-3">{{ t('erp.settings.preview') }}</h3>
               <div class="bg-[#F7F9FC] px-4 py-6 text-center">
                 <p class="font-mono text-2xl font-bold text-primary-500 tracking-wide">{{ livePreview }}</p>
@@ -111,7 +111,7 @@
               </div>
             </div>
 
-            <div class="bg-white rounded-2xl border border-[#E2E8F0] p-5">
+            <div class="bg-white border border-[#E2E8F0] p-5">
               <h3 class="text-sm font-semibold text-[#374151] mb-3">{{ t('erp.settings.seqInfo') }}</h3>
               <dl class="space-y-2 text-sm">
                 <div class="flex justify-between">

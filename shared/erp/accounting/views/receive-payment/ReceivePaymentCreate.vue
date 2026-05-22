@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -100,7 +100,7 @@
 
           <!-- Loading -->
           <div v-else-if="loadingInvoices" class="flex items-center justify-center py-14">
-            <div class="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            <div class="w-6 h-6 border-2 border-primary-500 border-t-transparent animate-spin"></div>
           </div>
 
           <!-- No invoices -->
@@ -140,7 +140,7 @@
                 <span class="text-[12px] text-[#637381]">{{ inv.invoiceDate }}</span>
                 <span class="text-[12px] text-[#637381]">{{ inv.dueDate || '—' }}</span>
                 <span class="text-[13px] font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(inv.total) }}</span>
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold capitalize
                              bg-blue-50 text-blue-700 w-fit">{{ inv.status }}</span>
               </div>
             </div>
@@ -209,7 +209,7 @@
       <div class="flex items-center gap-2.5">
         <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
           <span class="flex items-center gap-1" title="Create Payment">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
+            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>save</span>
           </span>
         </div>
@@ -232,9 +232,9 @@
     <!-- Confirm dialog (Discard guard) -->
     <Teleport to="body">
       <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div class="w-full max-w-sm bg-white shadow-2xl overflow-hidden">
           <div class="px-5 py-4 flex items-start gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 bg-amber-100 flex items-center justify-center flex-shrink-0">
               <ExclamationTriangleIcon class="w-5 h-5 text-amber-600" />
             </div>
             <div class="flex-1 min-w-0">

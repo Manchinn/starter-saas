@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -16,7 +16,7 @@
         </RouterLink>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="receivePayments" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           searchable :search-placeholder="t('erp.receivePayments.searchPh')">
@@ -29,7 +29,7 @@
 
           <template #empty>
             <div class="flex flex-col items-center gap-3 py-4">
-              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
                 <BanknotesIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
               <div class="text-center">
@@ -117,7 +117,7 @@ const columns = [
   columnHelper.accessor('paymentMethod', {
     header: () => t('erp.receivePayments.colMethod'),
     cell: info => h('span', {
-      class: 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700'
+      class: 'inline-flex items-center px-2 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-700'
     }, info.getValue() || '—'),
   }),
   columnHelper.accessor('amount', {
@@ -130,9 +130,9 @@ const columns = [
     cell: info => {
       const s = info.getValue()
       return h('span', {
-        class: `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusClass(s)}`
+        class: `inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold capitalize ${statusClass(s)}`
       }, [
-        h('span', { class: `w-1.5 h-1.5 rounded-full ${statusDot(s)}` }),
+        h('span', { class: `w-1.5 h-1.5 ${statusDot(s)}` }),
         s,
       ])
     },
@@ -144,7 +144,7 @@ const columns = [
     cell: info => h('div', { class: 'flex items-center justify-end' }, [
       h(RouterLink, {
         to: `/erp/billing/receive-payments/${info.row.original.id}`,
-        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
         title: 'View',
       }, () => h(EyeIcon, { class: 'w-4 h-4' })),
     ]),

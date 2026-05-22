@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -17,14 +17,14 @@
             : 'text-[#637381] hover:text-[#1C2434]'">
           {{ tab.label }}
           <span v-if="activeTab === tab.key"
-            class="absolute bottom-0 inset-x-0 h-0.5 bg-primary-500 rounded-t"></span>
+            class="absolute bottom-0 inset-x-0 h-0.5 bg-primary-500"></span>
         </button>
       </div>
 
       <!-- ── Currency tab ─────────────────────────────────────────────── -->
       <template v-if="activeTab === 'currency'">
 
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.currency') }}</h2>
             <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.currencyDesc') }}</p>
@@ -103,12 +103,12 @@
 
         <!-- Feedback + save -->
         <div v-if="currencyError"
-          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
           <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ currencyError }}
         </div>
         <div v-if="currencySaved"
-          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
           <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ t('erp.settings.savedOk') }}
         </div>
@@ -127,7 +127,7 @@
       <!-- ── Date & Calendar tab ────────────────────────────────────────── -->
       <template v-if="activeTab === 'date'">
 
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
 
           <!-- Calendar system -->
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
@@ -139,7 +139,7 @@
 
             <!-- CE option -->
             <label
-              class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors"
+              class="flex items-start gap-4 p-4 border-2 cursor-pointer transition-colors"
               :class="calendarForm.system === 'CE'
                 ? 'border-primary-500 bg-primary-50'
                 : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
@@ -148,7 +148,7 @@
               <div>
                 <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.calendarCE') }}</p>
                 <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.calendarCEDesc') }}</p>
-                <p class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono text-[#374151]">
+                <p class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-xs font-mono text-[#374151]">
                   {{ previewDateFor('CE') }}
                 </p>
               </div>
@@ -156,7 +156,7 @@
 
             <!-- BE option -->
             <label
-              class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors"
+              class="flex items-start gap-4 p-4 border-2 cursor-pointer transition-colors"
               :class="calendarForm.system === 'BE'
                 ? 'border-primary-500 bg-primary-50'
                 : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
@@ -165,7 +165,7 @@
               <div>
                 <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.calendarBE') }}</p>
                 <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.calendarBEDesc') }}</p>
-                <p class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono text-[#374151]">
+                <p class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-xs font-mono text-[#374151]">
                   {{ previewDateFor('BE') }}
                 </p>
               </div>
@@ -181,7 +181,7 @@
             </div>
             <div class="grid grid-cols-2 gap-3">
               <label v-for="opt in DATE_FORMAT_OPTIONS" :key="opt"
-                class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors"
+                class="flex items-center gap-3 p-3 border-2 cursor-pointer transition-colors"
                 :class="calendarForm.dateFormat === opt
                   ? 'border-primary-500 bg-primary-50'
                   : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
@@ -199,12 +199,12 @@
 
         <!-- Feedback + save -->
         <div v-if="calendarError"
-          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
           <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ calendarError }}
         </div>
         <div v-if="calendarSaved"
-          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
           <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ t('erp.settings.savedOk') }}
         </div>
@@ -223,7 +223,7 @@
       <!-- ── Tax tab ──────────────────────────────────────────────────── -->
       <template v-if="activeTab === 'tax'">
 
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.tax') }}</h2>
             <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.taxDesc') }}</p>
@@ -272,12 +272,12 @@
 
         <!-- Feedback + save -->
         <div v-if="taxError"
-          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
           <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ taxError }}
         </div>
         <div v-if="taxSaved"
-          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
           <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
           {{ t('erp.settings.savedOk') }}
         </div>

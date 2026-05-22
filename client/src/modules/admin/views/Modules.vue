@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -11,7 +11,7 @@
       </div>
 
       <div v-if="modulesStore.loading" class="text-center py-12 text-[#9BA7B0]">
-        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin" />
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -29,7 +29,7 @@
               <p class="text-xs text-[#9BA7B0] font-mono mt-0.5">{{ mod.slug }}</p>
             </div>
             <span class="badge badge-green flex-shrink-0">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span class="w-1.5 h-1.5 bg-emerald-500"></span>
               {{ t('common.active') }}
             </span>
           </div>

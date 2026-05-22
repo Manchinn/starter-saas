@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -23,7 +23,7 @@
       </div>
 
       <!-- Toolbar -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-4 flex flex-wrap items-center gap-3">
+      <div class="bg-white border border-[#E2E8F0] shadow-card p-4 flex flex-wrap items-center gap-3">
         <div class="relative flex-1 min-w-48 max-w-72">
           <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
           <input v-model="search" type="search" :placeholder="t('perms.searchPh')" class="input pl-9" />
@@ -55,12 +55,12 @@
 
       <!-- Loading -->
       <div v-if="permissionsStore.loading" class="text-center py-14">
-        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <!-- Empty -->
       <div v-else-if="!filtered.length"
-           class="text-center py-16 bg-white border border-[#E2E8F0] rounded-2xl text-[#9BA7B0]">
+           class="text-center py-16 bg-white border border-[#E2E8F0] text-[#9BA7B0]">
         <KeyIcon class="w-10 h-10 mx-auto mb-3 opacity-30" />
         <p class="text-sm font-medium">{{ t('perms.noFound') }}</p>
       </div>
@@ -82,7 +82,7 @@
             <tr v-for="p in filtered" :key="p.id" class="hover:bg-[#F7F9FC]/60 transition-colors">
               <td class="td font-semibold text-[#1C2434]">{{ p.name }}</td>
               <td class="td">
-                <span class="font-mono text-xs text-[#637381] bg-[#F1F5F9] px-1.5 py-0.5 rounded">{{ p.slug }}</span>
+                <span class="font-mono text-xs text-[#637381] bg-[#F1F5F9] px-1.5 py-0.5">{{ p.slug }}</span>
               </td>
               <td class="td">
                 <span class="text-xs text-[#637381]">{{ p.group }}</span>
@@ -124,11 +124,11 @@
       <div v-else class="space-y-4">
         <div
           v-for="group in displayedGroups" :key="group"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden"
+          class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden"
         >
           <header class="px-5 py-3 border-b border-[#E2E8F0] flex items-center justify-between gap-3 bg-[#F7F9FC]">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-1 h-4 rounded-full bg-primary-500"></div>
+              <div class="w-1 h-4 bg-primary-500"></div>
               <h3 class="text-[13px] font-semibold text-[#1C2434] uppercase tracking-wide truncate">{{ group }}</h3>
               <span class="text-xs text-[#9BA7B0] tabular">· {{ t('perms.permCount', { n: filteredGrouped[group].length }) }}</span>
             </div>
@@ -147,7 +147,7 @@
               <tr v-for="p in filteredGrouped[group]" :key="p.id" class="hover:bg-[#F7F9FC]/60 transition-colors">
                 <td class="td font-semibold text-[#1C2434]">{{ p.name }}</td>
                 <td class="td">
-                  <span class="font-mono text-xs text-[#637381] bg-[#F1F5F9] px-1.5 py-0.5 rounded">{{ p.slug }}</span>
+                  <span class="font-mono text-xs text-[#637381] bg-[#F1F5F9] px-1.5 py-0.5">{{ p.slug }}</span>
                 </td>
                 <td class="td text-[#637381] text-xs max-w-md">
                   <p class="line-clamp-1">{{ p.description || '—' }}</p>

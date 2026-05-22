@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -13,13 +13,13 @@
       </div>
 
       <div v-if="loading" class="text-center py-12 text-[#9BA7B0]">
-        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin" />
       </div>
 
       <template v-else>
 
         <!-- Account Details -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.details') }}</h2>
             <span class="badge badge-blue text-xs">{{ form.email }}</span>
@@ -66,7 +66,7 @@
         </div>
 
         <!-- Company Profile (used on printable documents) -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.companyProfile') }}</h2>
             <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('org.companyProfileDesc') }}</p>
@@ -76,7 +76,7 @@
             <!-- Logo column -->
             <div>
               <label class="label">{{ t('org.logo') }}</label>
-              <div class="w-[160px] h-[160px] rounded-2xl border border-dashed border-[#E2E8F0] bg-[#F7F9FC]
+              <div class="w-[160px] h-[160px] border border-dashed border-[#E2E8F0] bg-[#F7F9FC]
                           flex items-center justify-center overflow-hidden">
                 <img v-if="form.logoPath" :src="logoSrc" :alt="form.companyName || form.name"
                   class="max-w-full max-h-full object-contain" />
@@ -144,7 +144,7 @@
         </div>
 
         <!-- Child Organizations -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.childOrgs') }}</h2>
           </div>
@@ -163,7 +163,7 @@
         </div>
 
         <!-- Assigned Roles -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.assignedRoles') }}</h2>
             <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('org.assignedRolesDesc') }}</p>
@@ -173,7 +173,7 @@
               <label v-for="role in allRoles" :key="role.id"
                 class="flex items-center gap-3 px-4 py-2.5 hover:bg-[#F7F9FC] cursor-pointer">
                 <input type="checkbox" :value="role.id" v-model="form.roleIds" class="border-[#CBD5E1] w-4 h-4" />
-                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: role.color }" />
+                <span class="w-2.5 h-2.5 flex-shrink-0" :style="{ backgroundColor: role.color }" />
                 <div class="flex-1 min-w-0">
                   <span class="text-sm font-medium text-[#1C2434]">{{ role.name }}</span>
                   <span class="ml-2 text-xs text-[#9BA7B0]">{{ role.slug }}</span>

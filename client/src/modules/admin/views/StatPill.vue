@@ -1,6 +1,6 @@
-<template>
-  <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-4 py-3 flex items-center gap-3">
-    <div :class="['w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0', toneClass.bg]">
+﻿<template>
+  <div class="bg-white border border-[#E2E8F0] shadow-card px-4 py-3 flex items-center gap-3">
+    <div :class="['w-9 h-9 flex items-center justify-center flex-shrink-0', toneClass.bg]">
       <component :is="icon" :class="['w-4 h-4', toneClass.fg]" />
     </div>
     <div class="min-w-0">

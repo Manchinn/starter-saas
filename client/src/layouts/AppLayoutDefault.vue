@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="flex h-screen bg-[#F1F5F9] overflow-hidden">
 
     <!-- ── Mobile backdrop ───────────────────────────────────────────────────── -->
@@ -26,7 +26,7 @@
       <!-- Logo -->
       <div class="h-[64px] flex items-center px-6 border-b border-white/[0.07] flex-shrink-0 gap-3">
         <div class="flex items-center gap-3 flex-1 min-w-0">
-          <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+          <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-md">
             <svg class="w-[15px] h-[15px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                     d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -139,9 +139,9 @@
 
       <!-- User strip -->
       <div class="border-t border-white/[0.07] p-3 flex-shrink-0">
-        <div class="flex items-center gap-3 px-2 py-2.5 rounded-xl group cursor-default
+        <div class="flex items-center gap-3 px-2 py-2.5 group cursor-default
                     hover:bg-white/[0.06] transition-colors duration-150">
-          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+          <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
                       text-white text-[13px] font-bold flex-shrink-0 select-none">
             {{ userInitial }}
           </div>
@@ -201,7 +201,7 @@
             >
               <div
                 v-if="langOpen"
-                class="absolute right-0 top-full mt-1.5 w-44 bg-white border border-[#E2E8F0] rounded-2xl shadow-card-lg z-50 overflow-hidden"
+                class="absolute right-0 top-full mt-1.5 w-44 bg-white border border-[#E2E8F0] shadow-card-lg z-50 overflow-hidden"
               >
                 <div class="p-1.5">
                   <button
@@ -215,7 +215,7 @@
                     <span class="text-base leading-none">{{ opt.flag }}</span>
                     <span class="flex-1">{{ opt.label }}</span>
                     <span v-if="locale === opt.code"
-                      class="w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0" />
+                      class="w-1.5 h-1.5 bg-primary-500 flex-shrink-0" />
                   </button>
                 </div>
               </div>
@@ -236,7 +236,7 @@
               class="flex items-center gap-2.5 p-1 sm:pl-2.5 sm:pr-3.5 sm:py-1.5 border border-transparent sm:border-[#E2E8F0] bg-transparent sm:bg-white
                      hover:bg-[#F7F9FC] transition-colors"
             >
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+              <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
                           text-white text-[12px] font-bold flex-shrink-0">
                 {{ userInitial }}
               </div>
@@ -257,7 +257,7 @@
               leave-to-class="opacity-0 scale-95 -translate-y-1"
             >
               <div v-if="userOpen"
-                   class="absolute right-0 top-full mt-1.5 w-56 bg-white border border-[#E2E8F0] rounded-2xl shadow-card-lg z-50 overflow-hidden">
+                   class="absolute right-0 top-full mt-1.5 w-56 bg-white border border-[#E2E8F0] shadow-card-lg z-50 overflow-hidden">
                 <div class="px-4 py-3 border-b border-[#E2E8F0]">
                   <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ auth.user?.name }}</p>
                   <p class="text-[11.5px] text-[#637381] truncate">{{ auth.user?.email }}</p>
@@ -398,7 +398,7 @@ onUnmounted(() => {
 
 <style scoped>
 .nav-item {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] text-[#DEE4EE]
+  @apply flex items-center gap-3 px-3 py-2.5 text-[13.5px] text-[#DEE4EE]
          hover:bg-white/[0.06] hover:text-white transition-colors duration-100 w-full;
 }
 .nav-item-active {

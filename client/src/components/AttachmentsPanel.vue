@@ -1,5 +1,5 @@
-<template>
-  <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-4">
+﻿<template>
+  <div class="bg-white border border-[#E2E8F0] p-6 space-y-4">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.attachments.title') }}</h2>
@@ -17,7 +17,7 @@
     <div v-if="loading" class="py-6 text-center text-sm text-[#9BA7B0]">{{ t('common.loading') }}</div>
 
     <div v-else-if="!items.length"
-      class="border-2 border-dashed border-[#E2E8F0] rounded-xl py-8 text-center text-sm text-[#9BA7B0]">
+      class="border-2 border-dashed border-[#E2E8F0] py-8 text-center text-sm text-[#9BA7B0]">
       {{ t('erp.attachments.empty') }}
     </div>
 

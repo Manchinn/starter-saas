@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -25,12 +25,12 @@
 
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <!-- Not found / not editable -->
       <div v-else-if="loadError"
-        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl">
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5">
         <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
         <span>{{ loadError }}
           <RouterLink to="/erp/stock-count" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
@@ -41,7 +41,7 @@
 
         <!-- Lock conflict warning (a different draft holds the lock on this store) -->
         <div v-if="lockedStoreInfo && lockedStoreInfo.id !== route.params.id"
-          class="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-xl">
+          class="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3">
           <ExclamationTriangleIcon class="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-600" />
           <div>
             <p class="font-semibold">{{ t('erp.stockCount.storeLocked') }}</p>
@@ -89,7 +89,7 @@
               <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
                 {{ t('erp.stockCount.stockMovement') }}
               </label>
-              <label class="inline-flex items-center gap-2 px-3.5 py-2.5 border border-[#E2E8F0] rounded-xl cursor-pointer select-none w-full">
+              <label class="inline-flex items-center gap-2 px-3.5 py-2.5 border border-[#E2E8F0] cursor-pointer select-none w-full">
                 <input type="checkbox" v-model="form.movementLocked"
                   class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-500/40" />
                 <LockClosedIcon v-if="form.movementLocked" class="w-4 h-4 text-red-600" />
@@ -105,10 +105,10 @@
         </FormCard>
 
         <!-- Section 2: Products -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 bg-green-50 flex items-center justify-center flex-shrink-0">
                 <ClipboardDocumentListIcon class="w-4 h-4 text-green-600" />
               </div>
               <div>
@@ -130,19 +130,19 @@
           </div>
 
           <div v-if="!form.storeId" class="flex flex-col items-center justify-center py-16 text-center">
-            <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
+            <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
               <BuildingStorefrontIcon class="w-7 h-7 text-[#CBD5E1]" />
             </div>
             <p class="text-sm font-semibold text-[#637381]">{{ t('erp.stockCount.selectStore') }}</p>
           </div>
 
           <div v-else-if="loadingProducts" class="flex items-center justify-center py-16 text-[#9BA7B0] gap-2">
-            <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent animate-spin" />
             <span class="text-sm">{{ t('erp.stockCount.loadingProducts') }}</span>
           </div>
 
           <div v-else-if="!items.length" class="flex flex-col items-center justify-center py-16 text-center">
-            <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
+            <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
               <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
             </div>
             <p class="text-sm font-semibold text-[#637381]">{{ t('erp.stockIssue.noStoreProducts') }}</p>
@@ -153,15 +153,15 @@
             <div class="flex items-center gap-6 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
                         text-[11px] font-semibold text-[#637381]">
               <span class="inline-flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                <span class="w-1.5 h-1.5 bg-green-500"></span>
                 <span class="text-green-700">+{{ positiveVarianceCount }} over</span>
               </span>
               <span class="inline-flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                <span class="w-1.5 h-1.5 bg-red-500"></span>
                 <span class="text-red-600">{{ negativeVarianceCount }} short</span>
               </span>
               <span class="inline-flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#CBD5E1]"></span>
+                <span class="w-1.5 h-1.5 bg-[#CBD5E1]"></span>
                 <span class="text-[#637381]">{{ zeroVarianceCount }} matched</span>
               </span>
             </div>
@@ -208,13 +208,13 @@
         <!-- Global error -->
         <div v-if="error"
           class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700
-                 text-sm px-4 py-3.5 rounded-xl">
+                 text-sm px-4 py-3.5">
           <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
           <span>{{ error }}</span>
         </div>
 
         <!-- Summary card -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
             <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.summary') }}</h2>
@@ -252,11 +252,11 @@
             <div class="flex items-center gap-3">
               <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
                 <span class="flex items-center gap-1">
-                  <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+S</kbd>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+S</kbd>
                   <span>save</span>
                 </span>
                 <span class="flex items-center gap-1">
-                  <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+R</kbd>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px]">Ctrl+R</kbd>
                   <span>reload</span>
                 </span>
               </div>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -27,7 +27,7 @@
       </PageHeader>
 
       <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <ErrorBanner v-else-if="loadError" :message="loadError" />
@@ -203,7 +203,7 @@
                   @dragstart="onDragStart($event, idx)"
                   @dragend="onDragEnd"
                   class="text-[12px] font-semibold text-center select-none flex items-center justify-center
-                         cursor-grab active:cursor-grabbing rounded hover:bg-[#E2E8F0]/60 h-7
+                         cursor-grab active:cursor-grabbing hover:bg-[#E2E8F0]/60 h-7
                          text-[#CBD5E1] group-hover:text-[#637381]">
                   <Bars3Icon class="w-4 h-4 hidden group-hover:block" />
                   <span class="group-hover:hidden">{{ idx + 1 }}</span>
@@ -415,9 +415,9 @@
     <!-- Confirm dialog -->
     <Teleport to="body">
       <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div class="w-full max-w-sm bg-white shadow-2xl overflow-hidden">
           <div class="px-5 py-4 flex items-start gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 bg-amber-100 flex items-center justify-center flex-shrink-0">
               <ExclamationTriangleIcon class="w-5 h-5 text-amber-600" />
             </div>
             <div class="flex-1 min-w-0">

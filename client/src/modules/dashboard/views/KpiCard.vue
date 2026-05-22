@@ -1,7 +1,7 @@
-<template>
-  <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-5">
+﻿<template>
+  <div class="bg-white border border-[#E2E8F0] shadow-card p-5">
     <div class="flex items-start justify-between gap-3 mb-3">
-      <div :class="['w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', toneClass.bg]">
+      <div :class="['w-10 h-10 flex items-center justify-center flex-shrink-0', toneClass.bg]">
         <component :is="icon" :class="['w-5 h-5', toneClass.fg]" />
       </div>
       <span v-if="trend !== null && trend !== undefined" :class="trendBadge" class="badge text-[11px]">
@@ -10,7 +10,7 @@
       </span>
     </div>
     <p class="text-2xl font-bold text-[#1C2434] tabular leading-none">
-      <span v-if="loading" class="inline-block w-16 h-6 bg-[#F1F5F9] rounded animate-pulse align-middle"></span>
+      <span v-if="loading" class="inline-block w-16 h-6 bg-[#F1F5F9] animate-pulse align-middle"></span>
       <template v-else>{{ value }}</template>
     </p>
     <div class="mt-2 flex items-center justify-between gap-2">

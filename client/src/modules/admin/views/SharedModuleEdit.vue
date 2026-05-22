@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -13,12 +13,12 @@
       </div>
 
       <div v-if="loading" class="text-center py-12 text-[#9BA7B0]">
-        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin" />
       </div>
 
       <template v-else>
 
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('mods.moduleDetails') }}</h2>
             <span class="text-xs font-mono text-[#9BA7B0]">{{ form.slug }}</span>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AuthLayout :subtitle="t('auth.registerSubtitle')">
     <form @submit.prevent="handleRegister" class="space-y-4">
 
@@ -39,7 +39,7 @@
       />
 
       <div v-if="formError"
-           class="px-4 py-3 bg-[#FEE2E2] border border-[#FECACA] text-[#B91C1C] text-sm rounded-xl">
+           class="px-4 py-3 bg-[#FEE2E2] border border-[#FECACA] text-[#B91C1C] text-sm">
         {{ formError }}
       </div>
 

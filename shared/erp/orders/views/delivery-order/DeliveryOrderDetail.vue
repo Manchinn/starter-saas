@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -13,9 +13,9 @@
           <div class="flex items-center gap-2.5 flex-wrap">
             <h1 class="text-xl font-bold text-[#1C2434]">{{ loading ? '…' : (doc?.refNo || t('erp.deliveryOrders.title')) }}</h1>
             <span v-if="doc && !loading"
-              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold capitalize"
               :class="statusBadge(doc.status)">
-              <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(doc.status)"></span>
+              <span class="w-1.5 h-1.5" :class="statusDot(doc.status)"></span>
               {{ doc.status }}
             </span>
           </div>
@@ -50,11 +50,11 @@
       </div>
 
       <div v-if="loading" class="flex items-center justify-center py-20 print:hidden">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <div v-else-if="notFound"
-        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl print:hidden">
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 print:hidden">
         <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
         <span>{{ t('erp.deliveryOrders.notFound') }}
           <RouterLink to="/erp/delivery-orders" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
@@ -63,13 +63,13 @@
 
       <template v-else>
         <!-- Workflow strip -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-3 print:hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card px-5 py-3 print:hidden">
           <div class="flex items-center gap-1 flex-wrap">
             <template v-for="(step, i) in FLOW_STEPS" :key="step.key">
               <div class="flex items-center gap-2 px-2.5 py-1"
                 :class="stepChipClass(step.key)">
                 <CheckIcon v-if="stepState(step.key) === 'completed'" class="w-3.5 h-3.5" />
-                <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 rounded-full bg-current"></span>
+                <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 bg-current"></span>
                 <span v-else class="text-[10px] font-bold opacity-50">{{ i + 1 }}</span>
                 <span class="text-[12px] font-semibold">{{ step.label }}</span>
               </div>
@@ -84,13 +84,13 @@
 
         <!-- Document -->
         <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:rounded-none rounded-2xl
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
                         overflow-hidden">
 
           <div v-if="stampLabel"
             class="pointer-events-none absolute inset-0 flex items-center justify-center z-10"
             aria-hidden="true">
-            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] rounded-md px-6 py-2
+            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] px-6 py-2
                          text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]"
               :class="stampClass">
               {{ stampLabel }}
@@ -270,7 +270,7 @@
 
         <!-- Status transitions -->
         <div v-can="'erp.orders.edit'" v-if="availableTransitions.length"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
+          class="bg-white border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
                  flex items-center justify-between flex-wrap gap-3">
           <div>
             <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">
@@ -301,7 +301,7 @@
 
         <!-- Convert to Invoice -->
         <div v-if="['shipped', 'delivered'].includes(doc.status)"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
+          class="bg-white border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
                  flex items-center flex-wrap gap-3">
           <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mr-2">
             {{ t('erp.deliveryOrders.convertActions') }}

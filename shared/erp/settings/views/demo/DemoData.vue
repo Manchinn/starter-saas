@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -11,7 +11,7 @@
       </div>
 
       <!-- Seed Demo Data -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
           <div class="flex items-start gap-2">
             <SparklesIcon class="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
@@ -42,14 +42,14 @@
               <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Foundation</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <div v-for="item in SECTION_FOUNDATION" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+              <div v-for="item in SECTION_FOUNDATION" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
-                  <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                  <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5">{{ item.count }}</span>
                 </div>
                 <ul class="space-y-0.5">
                   <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
-                    <span class="w-1 h-1 rounded-full bg-indigo-300 flex-shrink-0" />
+                    <span class="w-1 h-1 bg-indigo-300 flex-shrink-0" />
                     {{ row }}
                   </li>
                 </ul>
@@ -64,14 +64,14 @@
               <span class="text-xs font-bold text-sky-600 uppercase tracking-widest">Parties</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div v-for="item in SECTION_PARTIES" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+              <div v-for="item in SECTION_PARTIES" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
-                  <span class="text-xs font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                  <span class="text-xs font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5">{{ item.count }}</span>
                 </div>
                 <ul class="space-y-0.5">
                   <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
-                    <span class="w-1 h-1 rounded-full bg-sky-300 flex-shrink-0" />
+                    <span class="w-1 h-1 bg-sky-300 flex-shrink-0" />
                     {{ row }}
                   </li>
                 </ul>
@@ -86,14 +86,14 @@
               <span class="text-xs font-bold text-violet-600 uppercase tracking-widest">HRMS</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div v-for="item in SECTION_HRMS" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+              <div v-for="item in SECTION_HRMS" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
-                  <span class="text-xs font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                  <span class="text-xs font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5">{{ item.count }}</span>
                 </div>
                 <ul class="space-y-0.5">
                   <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
-                    <span class="w-1 h-1 rounded-full bg-violet-300 flex-shrink-0" />
+                    <span class="w-1 h-1 bg-violet-300 flex-shrink-0" />
                     {{ row }}
                   </li>
                 </ul>
@@ -108,14 +108,14 @@
               <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Sales Cycle</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              <div v-for="item in SECTION_SALES" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+              <div v-for="item in SECTION_SALES" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
-                  <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                  <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5">{{ item.count }}</span>
                 </div>
                 <ul class="space-y-0.5">
                   <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
-                    <span class="w-1 h-1 rounded-full bg-emerald-300 flex-shrink-0" />
+                    <span class="w-1 h-1 bg-emerald-300 flex-shrink-0" />
                     {{ row }}
                   </li>
                 </ul>
@@ -130,14 +130,14 @@
               <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Purchasing</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div v-for="item in SECTION_PURCHASING" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+              <div v-for="item in SECTION_PURCHASING" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
-                  <span class="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                  <span class="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5">{{ item.count }}</span>
                 </div>
                 <ul class="space-y-0.5">
                   <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
-                    <span class="w-1 h-1 rounded-full bg-amber-300 flex-shrink-0" />
+                    <span class="w-1 h-1 bg-amber-300 flex-shrink-0" />
                     {{ row }}
                   </li>
                 </ul>
@@ -152,14 +152,14 @@
               <span class="text-xs font-bold text-teal-600 uppercase tracking-widest">Inventory Transactions</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-              <div v-for="item in SECTION_INVENTORY" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+              <div v-for="item in SECTION_INVENTORY" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
-                  <span class="text-xs font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                  <span class="text-xs font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5">{{ item.count }}</span>
                 </div>
                 <ul class="space-y-0.5">
                   <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
-                    <span class="w-1 h-1 rounded-full bg-teal-300 flex-shrink-0" />
+                    <span class="w-1 h-1 bg-teal-300 flex-shrink-0" />
                     {{ row }}
                   </li>
                 </ul>
@@ -174,14 +174,14 @@
               <span class="text-xs font-bold text-rose-600 uppercase tracking-widest">Accounting</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
-              <div v-for="item in SECTION_ACCOUNTING" :key="item.label" class="rounded-xl border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
+              <div v-for="item in SECTION_ACCOUNTING" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[10px] font-semibold text-[#637381] uppercase tracking-wide leading-tight">{{ item.label }}</span>
-                  <span class="text-xs font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-full">{{ item.count }}</span>
+                  <span class="text-xs font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5">{{ item.count }}</span>
                 </div>
                 <ul class="space-y-0.5">
                   <li v-for="row in item.rows" :key="row" class="flex items-center gap-1.5 text-xs text-[#374151]">
-                    <span class="w-1 h-1 rounded-full bg-rose-300 flex-shrink-0" />
+                    <span class="w-1 h-1 bg-rose-300 flex-shrink-0" />
                     {{ row }}
                   </li>
                 </ul>
@@ -202,7 +202,7 @@
       </div>
 
       <!-- Reset All Data -->
-      <div class="bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden">
+      <div class="bg-white border border-red-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-red-100 flex items-center justify-between">
           <div class="flex items-start gap-2">
             <TrashIcon class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
@@ -249,7 +249,7 @@
             <div class="flex flex-wrap gap-2">
               <span v-for="item in group.items" :key="item"
                 class="inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-100 px-2.5 py-1">
-                <span class="w-1 h-1 rounded-full bg-red-300 flex-shrink-0" />
+                <span class="w-1 h-1 bg-red-300 flex-shrink-0" />
                 {{ item }}
               </span>
             </div>

@@ -1,7 +1,7 @@
-<template>
+﻿<template>
   <div v-if="vendor"
-    class="mt-2.5 flex items-center gap-2.5 px-3 py-2 bg-primary-50 rounded-xl border border-primary-100">
-    <div class="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
+    class="mt-2.5 flex items-center gap-2.5 px-3 py-2 bg-primary-50 border border-primary-100">
+    <div class="w-7 h-7 bg-primary-500 flex items-center justify-center flex-shrink-0">
       <span class="text-xs font-bold text-white uppercase">{{ vendor.name?.charAt(0) }}</span>
     </div>
     <div class="min-w-0 flex-1">
@@ -13,7 +13,7 @@
       </p>
     </div>
     <span v-if="vendor.code"
-      class="flex-shrink-0 text-[11px] font-mono px-2.5 py-0.5 rounded-full
+      class="flex-shrink-0 text-[11px] font-mono px-2.5 py-0.5
              bg-white border border-primary-200 text-primary-600">
       {{ vendor.code }}
     </span>

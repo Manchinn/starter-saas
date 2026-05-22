@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -16,7 +16,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="badge badge-green">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse"></span>
+            <span class="w-1.5 h-1.5 bg-[#22C55E] animate-pulse"></span>
             {{ t('dashboard.systemsOk') }}
           </span>
           <RouterLink to="/admin/organizations/create" class="btn-primary text-[12.5px]">
@@ -48,7 +48,7 @@
         <section class="card overflow-hidden xl:col-span-2">
           <header class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-1 h-4 rounded-full bg-primary-500 flex-shrink-0"></div>
+              <div class="w-1 h-4 bg-primary-500 flex-shrink-0"></div>
               <h3 class="text-[14px] font-semibold text-[#1C2434] truncate">{{ t('dashboard.orgsTitle') }}</h3>
               <span class="text-[12px] text-[#9BA7B0] tabular">· {{ t('dashboard.orgsCount', { n: totalOrgs }) }}</span>
             </div>
@@ -72,7 +72,7 @@
               <tbody class="divide-y divide-slate-50">
                 <tr v-if="loadingOrgs">
                   <td colspan="5" class="text-center py-12">
-                    <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin"></div>
                   </td>
                 </tr>
                 <tr v-else-if="!organizations.length">
@@ -104,16 +104,16 @@
                     <div class="flex flex-wrap gap-1">
                       <span
                         v-for="r in o.roles.slice(0, 3)" :key="r.id"
-                        class="px-2 py-0.5 rounded-full text-[11px] font-medium text-white whitespace-nowrap"
+                        class="px-2 py-0.5 text-[11px] font-medium text-white whitespace-nowrap"
                         :style="{ backgroundColor: r.color }"
                       >{{ r.name }}</span>
-                      <span v-if="o.roles.length > 3" class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#F1F5F9] text-[#637381]">+{{ o.roles.length - 3 }}</span>
+                      <span v-if="o.roles.length > 3" class="px-2 py-0.5 text-[11px] font-medium bg-[#F1F5F9] text-[#637381]">+{{ o.roles.length - 3 }}</span>
                       <span v-if="!o.roles.length" class="text-[#9BA7B0] text-xs">—</span>
                     </div>
                   </td>
                   <td class="td">
                     <span :class="o.isActive ? 'badge-green' : 'badge-red'" class="badge">
-                      <span class="w-1.5 h-1.5 rounded-full" :class="o.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                      <span class="w-1.5 h-1.5" :class="o.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
                       {{ o.isActive ? t('common.active') : t('common.inactive') }}
                     </span>
                   </td>
@@ -128,14 +128,14 @@
         <section class="card overflow-hidden">
           <header class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-1 h-4 rounded-full bg-violet-500"></div>
+              <div class="w-1 h-4 bg-violet-500"></div>
               <h3 class="text-[14px] font-semibold text-[#1C2434]">{{ t('dashboard.signInsTitle') }}</h3>
             </div>
             <span class="text-[11px] text-[#9BA7B0]">{{ t('dashboard.last7d') }}</span>
           </header>
           <div class="px-2 py-2">
             <div v-if="loadingSignIns" class="px-3 py-8 text-center text-[#9BA7B0] text-sm">
-              <div class="inline-block w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+              <div class="inline-block w-5 h-5 border-2 border-violet-500 border-t-transparent animate-spin"></div>
             </div>
             <div v-else-if="!signIns.length" class="px-3 py-10 text-center text-[#9BA7B0]">
               <ComputerDesktopIcon class="w-7 h-7 mx-auto opacity-40" />
@@ -162,7 +162,7 @@
       <section class="card overflow-hidden">
         <header class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between gap-3">
           <div class="flex items-center gap-3">
-            <div class="w-1 h-4 rounded-full bg-emerald-500"></div>
+            <div class="w-1 h-4 bg-emerald-500"></div>
             <h3 class="text-[14px] font-semibold text-[#1C2434]">{{ t('dashboard.moduleUsageTitle') }}</h3>
             <span class="text-[12px] text-[#9BA7B0]">· {{ t('dashboard.orgAdoption', { n: moduleTotalOrgs }) }}</span>
           </div>
@@ -173,7 +173,7 @@
         </header>
         <div class="p-5">
           <div v-if="loadingModules" class="py-8 text-center text-[#9BA7B0]">
-            <div class="inline-block w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <div class="inline-block w-5 h-5 border-2 border-emerald-500 border-t-transparent animate-spin"></div>
           </div>
           <div v-else-if="!moduleUsage.length" class="py-10 text-center text-[#9BA7B0]">
             <PuzzlePieceIcon class="w-7 h-7 mx-auto opacity-40" />
@@ -184,14 +184,14 @@
               <div class="flex items-center justify-between gap-3 text-[13px]">
                 <div class="flex items-center gap-2 min-w-0">
                   <span class="font-semibold text-[#1C2434] truncate">{{ m.name }}</span>
-                  <span v-if="m.isCore" class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-600">CORE</span>
-                  <span v-if="!m.isActive" class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#F1F5F9] text-[#9BA7B0]">{{ t('common.inactive') }}</span>
+                  <span v-if="m.isCore" class="px-1.5 py-0.5 text-[10px] font-medium bg-primary-50 text-primary-600">CORE</span>
+                  <span v-if="!m.isActive" class="px-1.5 py-0.5 text-[10px] font-medium bg-[#F1F5F9] text-[#9BA7B0]">{{ t('common.inactive') }}</span>
                 </div>
                 <span class="text-[12px] text-[#637381] tabular whitespace-nowrap">{{ m.assignedOrgCount }} / {{ moduleTotalOrgs }} · {{ m.pct }}%</span>
               </div>
-              <div class="h-1.5 w-full bg-[#F1F5F9] rounded-full overflow-hidden">
+              <div class="h-1.5 w-full bg-[#F1F5F9] overflow-hidden">
                 <div
-                  class="h-full rounded-full transition-all"
+                  class="h-full transition-all"
                   :class="m.pct >= 70 ? 'bg-emerald-500' : m.pct >= 30 ? 'bg-primary-500' : 'bg-[#CBD5E1]'"
                   :style="{ width: `${m.pct}%` }"
                 ></div>

@@ -1,6 +1,6 @@
-<template>
+﻿<template>
   <div :class="['flex flex-col items-center justify-center text-center', paddingClass]">
-    <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
+    <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
       <component :is="icon" class="w-7 h-7 text-[#CBD5E1]" />
     </div>
     <p class="text-sm font-semibold text-[#637381]">{{ title }}</p>

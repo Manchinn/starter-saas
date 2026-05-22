@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -14,22 +14,22 @@
       </div>
 
       <!-- Format hint -->
-      <div class="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4">
+      <div class="bg-blue-50 border border-blue-100 px-5 py-4">
         <p class="text-sm font-semibold text-blue-800 mb-2">{{ t('erp.settings.formatTokens') }}</p>
         <div class="flex flex-wrap gap-x-6 gap-y-1.5 text-xs text-blue-700">
-          <span><code class="bg-blue-100 px-1.5 py-0.5 rounded font-mono">{####}</code> → padded number</span>
-          <span><code class="bg-blue-100 px-1.5 py-0.5 rounded font-mono">{YYYY}</code> → 4-digit year</span>
-          <span><code class="bg-blue-100 px-1.5 py-0.5 rounded font-mono">{YY}</code> → 2-digit year</span>
-          <span><code class="bg-blue-100 px-1.5 py-0.5 rounded font-mono">{MM}</code> → month</span>
-          <span><code class="bg-blue-100 px-1.5 py-0.5 rounded font-mono">{DD}</code> → day</span>
+          <span><code class="bg-blue-100 px-1.5 py-0.5 font-mono">{####}</code> → padded number</span>
+          <span><code class="bg-blue-100 px-1.5 py-0.5 font-mono">{YYYY}</code> → 4-digit year</span>
+          <span><code class="bg-blue-100 px-1.5 py-0.5 font-mono">{YY}</code> → 2-digit year</span>
+          <span><code class="bg-blue-100 px-1.5 py-0.5 font-mono">{MM}</code> → month</span>
+          <span><code class="bg-blue-100 px-1.5 py-0.5 font-mono">{DD}</code> → day</span>
         </div>
         <p class="mt-2 text-xs text-blue-600">
-          Example: <code class="bg-blue-100 px-1.5 py-0.5 rounded font-mono">GR-{YYYY}{MM}-{####}</code>
+          Example: <code class="bg-blue-100 px-1.5 py-0.5 font-mono">GR-{YYYY}{MM}-{####}</code>
           → <strong>GR-202504-0001</strong>
         </p>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="rows" :loading="loading" :total="rows.length" :page-size="9999">
           <template #empty>
             <p class="text-center text-sm text-[#9BA7B0] font-medium">{{ t('erp.settings.noSeqs') }}</p>
@@ -91,7 +91,7 @@ const columns = [
   ch.accessor('reseedPeriod', {
     header: () => t('erp.settings.seqColReseed'),
     cell: info => h('span', {
-      class: `inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${reseedClass(info.getValue())}`,
+      class: `inline-flex items-center px-2.5 py-1 text-xs font-semibold ${reseedClass(info.getValue())}`,
     }, reseedLabel(info.getValue())),
   }),
   ch.accessor('preview', {
@@ -106,12 +106,12 @@ const columns = [
       return h('div', { class: 'flex items-center justify-end gap-1' }, [
         h(RouterLink, {
           to: `/erp/settings/sequence/${r.id}/edit`,
-          class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+          class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
           title: 'Edit',
         }, () => h(PencilIcon, { class: 'w-4 h-4' })),
         !isBuiltIn(r.code) && h('button', {
           onClick: () => deleteRow(r),
-          class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+          class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors',
           title: 'Delete',
         }, h(TrashIcon, { class: 'w-4 h-4' })),
       ].filter(Boolean))

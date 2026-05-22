@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <!-- Toolbar: server-side global filter + caller-provided extras -->
     <div
@@ -67,7 +67,7 @@
         <!-- Loading -->
         <tr v-if="loading">
           <td :colspan="columns.length" class="text-center py-16">
-            <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin"></div>
           </td>
         </tr>
 

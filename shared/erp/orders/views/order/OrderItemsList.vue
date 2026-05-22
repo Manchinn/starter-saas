@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -6,7 +6,7 @@
         <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.orderItems.title') }}</h1>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] overflow-hidden">
         <DataTable :columns="columns" :data="items" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           searchable :search-placeholder="t('erp.orderItems.colProduct')">
@@ -21,7 +21,7 @@
     <!-- Edit Modal -->
     <Teleport to="body">
       <div v-if="editModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-5">
+        <div class="bg-white shadow-xl w-full max-w-md p-6 space-y-5">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.orderItems.editItem') }}</h2>
             <button @click="closeEdit" class="text-[#9BA7B0] hover:text-[#637381] text-lg leading-none">&times;</button>
@@ -77,7 +77,7 @@
     <!-- Delete Confirm Modal -->
     <Teleport to="body">
       <div v-if="deleteModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+        <div class="bg-white shadow-xl w-full max-w-sm p-6 space-y-4">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.orderItems.deleteItem') }}</h2>
           <p class="text-sm text-[#637381]">Remove <span class="font-medium">{{ deleteModal.item?.productName }}</span> from order <span class="font-mono font-medium">{{ deleteModal.item?.order?.orderNumber }}</span>? This will recalculate the order total.</p>
           <div v-if="deleteModal.error" class="bg-red-50 text-red-700 text-sm px-3 py-2">{{ deleteModal.error }}</div>
@@ -175,12 +175,12 @@ const columns = [
       const item = row.original
       if (item.product) {
         return h('div', { class: 'flex items-center gap-2' }, [
-          h('span', { class: 'w-2 h-2 rounded-full bg-green-500' }),
+          h('span', { class: 'w-2 h-2 bg-green-500' }),
           h('span', { class: 'text-xs text-[#637381]' }, 'Linked to Master'),
         ])
       }
       return h('div', { class: 'flex items-center gap-2 opacity-50' }, [
-        h('span', { class: 'w-2 h-2 rounded-full bg-slate-300' }),
+        h('span', { class: 'w-2 h-2 bg-slate-300' }),
         h('span', { class: 'text-xs text-[#9BA7B0]' }, 'Custom Item'),
       ])
     },
@@ -190,7 +190,7 @@ const columns = [
     header: () => t('erp.orderItems.colOrderStatus'),
     cell: ({ row }) => {
       const s = row.original.order?.status
-      return h('span', { class: `px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${statusClass(s)}` }, s)
+      return h('span', { class: `px-2 py-0.5 text-[10px] font-medium capitalize ${statusClass(s)}` }, s)
     },
   }),
   ch.display({

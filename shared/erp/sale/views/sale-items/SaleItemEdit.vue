@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -9,9 +9,9 @@
         <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.saleItems.edit') }}</h1>
       </div>
 
-      <div v-if="loading" class="bg-white rounded-2xl border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
+      <div v-if="loading" class="bg-white border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
 
-      <div v-else class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
+      <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
 
         <div class="grid grid-cols-2 gap-4">
 

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -15,9 +15,9 @@
               {{ loading ? '…' : (receipt?.receiptNumber || t('erp.receipts.title')) }}
             </h1>
             <span v-if="receipt && !loading"
-              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold capitalize"
               :class="statusBadge(receipt.status)">
-              <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(receipt.status)"></span>
+              <span class="w-1.5 h-1.5" :class="statusDot(receipt.status)"></span>
               {{ receipt.status }}
             </span>
             <DocCurrencyBadge v-if="receipt" :currency="receipt.currency" :exchange-rate="receipt.exchangeRate" :total="receipt.amount" />
@@ -62,12 +62,12 @@
 
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-20 print:hidden">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <!-- Not found -->
       <div v-else-if="notFound"
-        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl print:hidden">
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 print:hidden">
         <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
         <span>{{ t('erp.receipts.notFound') }}
           <RouterLink to="/erp/receipts" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
@@ -76,13 +76,13 @@
 
       <template v-else>
         <!-- Workflow strip -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-3 print:hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card px-5 py-3 print:hidden">
           <div class="flex items-center gap-1 flex-wrap">
             <template v-for="(step, i) in FLOW_STEPS" :key="step.key">
               <div class="flex items-center gap-2 px-2.5 py-1"
                 :class="stepChipClass(step.key)">
                 <CheckIcon v-if="stepState(step.key) === 'completed'" class="w-3.5 h-3.5" />
-                <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 rounded-full bg-current"></span>
+                <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 bg-current"></span>
                 <span v-else class="text-[10px] font-bold opacity-50">{{ i + 1 }}</span>
                 <span class="text-[12px] font-semibold">{{ step.label }}</span>
               </div>
@@ -97,14 +97,14 @@
 
         <!-- Document -->
         <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:rounded-none rounded-2xl
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
                         overflow-hidden">
 
           <!-- DRAFT / CONFIRMED / CANCELLED stamp -->
           <div v-if="stampLabel"
             class="pointer-events-none absolute inset-0 flex items-center justify-center z-10"
             aria-hidden="true">
-            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] rounded-md px-6 py-2
+            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] px-6 py-2
                          text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]"
               :class="stampClass">
               {{ stampLabel }}
@@ -186,7 +186,7 @@
             <div>
               <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.receipts.paymentMethod') }}</p>
               <p class="mt-0.5">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700">
+                <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold bg-blue-50 text-blue-700">
                   {{ methodLabel(receipt.paymentMethod) }}
                 </span>
               </p>
@@ -222,7 +222,7 @@
                     </RouterLink>
                   </td>
                   <td class="py-2.5 align-top">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#F1F5F9] text-[#374151]">
+                    <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold bg-[#F1F5F9] text-[#374151]">
                       {{ methodLabel(receipt.paymentMethod) }}
                     </span>
                   </td>
@@ -234,7 +234,7 @@
                   <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">1</td>
                   <td class="py-2.5 align-top text-[#9BA7B0] italic">{{ t('erp.receipts.paymentDetails') }}</td>
                   <td class="py-2.5 align-top">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#F1F5F9] text-[#374151]">
+                    <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold bg-[#F1F5F9] text-[#374151]">
                       {{ methodLabel(receipt.paymentMethod) }}
                     </span>
                   </td>
@@ -287,7 +287,7 @@
 
         <!-- Status transitions -->
         <div v-can="'erp.receipts.edit'" v-if="forwardTransitions.length || cancelTransitions.length"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
+          class="bg-white border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
                  flex items-center justify-between flex-wrap gap-3">
           <div>
             <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Next Action</p>
@@ -314,8 +314,8 @@
 
         <!-- Confirmed info -->
         <div v-if="receipt.status === 'confirmed'"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+          class="bg-white border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden flex items-center gap-3">
+          <div class="w-8 h-8 bg-green-50 flex items-center justify-center flex-shrink-0">
             <CheckIcon class="w-4 h-4 text-green-600" />
           </div>
           <div>

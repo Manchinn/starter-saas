@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -14,7 +14,7 @@
       </div>
 
       <!-- Basic Information -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E2E8F0]">
           <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.basicInfo') }}</h2>
         </div>
@@ -115,7 +115,7 @@
       <div class="grid grid-cols-2 gap-6">
 
         <!-- Linked Stores -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.linkedStores') }}</h2>
             <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.products.linkedStoresDesc') }}</p>
@@ -145,7 +145,7 @@
         </div>
 
         <!-- Linked Vendors -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.products.linkedVendors') }}</h2>
             <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.products.linkedVendorsDesc') }}</p>

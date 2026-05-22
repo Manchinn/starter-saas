@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="flex h-screen bg-[#111827] overflow-hidden">
 
     <!-- ── Mobile backdrop ────────────────────────────────────────────────── -->
@@ -26,7 +26,7 @@
       <!-- Logo -->
       <div class="h-[64px] flex items-center px-6 flex-shrink-0 border-b border-white/[0.07] gap-3">
         <div class="flex items-center gap-3 flex-1 min-w-0">
-          <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+          <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-md">
             <svg class="w-[15px] h-[15px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                     d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -139,9 +139,9 @@
 
       <!-- User strip -->
       <div class="border-t border-white/[0.07] p-3 flex-shrink-0">
-        <div class="flex items-center gap-3 px-2 py-2.5 rounded-xl group cursor-default
+        <div class="flex items-center gap-3 px-2 py-2.5 group cursor-default
                     hover:bg-white/[0.06] transition-colors duration-150">
-          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+          <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
                       text-white text-[13px] font-bold flex-shrink-0 select-none">
             {{ userInitial }}
           </div>
@@ -177,8 +177,8 @@
         <div class="flex-1 min-w-0">
           <h2 class="text-[14px] font-semibold text-[#DEE4EE] truncate">{{ currentPageTitle }}</h2>
         </div>
-        <div class="flex items-center gap-2.5 p-1 sm:pl-2.5 sm:pr-3.5 sm:py-1.5 rounded-xl border border-transparent sm:border-white/[0.08] bg-transparent sm:bg-white/[0.05]">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+        <div class="flex items-center gap-2.5 p-1 sm:pl-2.5 sm:pr-3.5 sm:py-1.5 border border-transparent sm:border-white/[0.08] bg-transparent sm:bg-white/[0.05]">
+          <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
                       text-white text-[12px] font-bold flex-shrink-0">
             {{ userInitial }}
           </div>
@@ -243,7 +243,7 @@ onUnmounted(() => {
 
 <style scoped>
 .dark-nav-item {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] text-[#DEE4EE]
+  @apply flex items-center gap-3 px-3 py-2.5 text-[13.5px] text-[#DEE4EE]
          hover:bg-white/[0.06] hover:text-white transition-colors duration-100 w-full;
 }
 .dark-nav-item-active {

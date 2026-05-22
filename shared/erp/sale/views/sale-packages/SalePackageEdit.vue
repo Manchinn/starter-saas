@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -9,12 +9,12 @@
         <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.salePackages.edit') }}</h1>
       </div>
 
-      <div v-if="loading" class="bg-white rounded-2xl border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
+      <div v-if="loading" class="bg-white border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
 
       <template v-else>
 
         <!-- Header card -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
+        <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
           <div class="grid grid-cols-2 gap-4">
 
             <!-- Code -->
@@ -48,7 +48,7 @@
         </div>
 
         <!-- Package Items card -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-4">
+        <div class="bg-white border border-[#E2E8F0] p-6 space-y-4">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.salePackages.packageItems') }}</h2>
             <button @click="addLine" type="button"
@@ -59,7 +59,7 @@
           </div>
 
           <!-- Items table -->
-          <div v-if="form.items.length" class="border border-[#E2E8F0] rounded-xl overflow-visible">
+          <div v-if="form.items.length" class="border border-[#E2E8F0] overflow-visible">
             <table class="w-full text-sm">
               <thead class="bg-[#F7F9FC]">
                 <tr>
@@ -114,13 +114,13 @@
             </table>
           </div>
 
-          <div v-else class="border-2 border-dashed border-[#E2E8F0] rounded-xl py-8 text-center text-sm text-[#9BA7B0]">
+          <div v-else class="border-2 border-dashed border-[#E2E8F0] py-8 text-center text-sm text-[#9BA7B0]">
             {{ t('erp.salePackages.noItems') }}
           </div>
         </div>
 
         <!-- Footer -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] px-6 py-4">
+        <div class="bg-white border border-[#E2E8F0] px-6 py-4">
           <div v-if="error" class="mb-3 bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
           <div class="flex items-center justify-between">
             <button @click="confirmDelete"
@@ -143,7 +143,7 @@
     <!-- Delete confirm modal -->
     <Teleport to="body">
       <div v-if="deleteModal.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+        <div class="bg-white shadow-xl w-full max-w-sm p-6 space-y-4">
           <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.salePackages.deleteTitle') }}</h2>
           <p class="text-sm text-[#637381]">Delete <span class="font-semibold">{{ form.name }}</span>? This cannot be undone.</p>
           <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">{{ deleteModal.error }}</div>

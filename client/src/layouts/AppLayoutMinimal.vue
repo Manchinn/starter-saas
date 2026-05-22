@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="flex h-screen bg-[#F1F5F9] overflow-hidden">
 
     <!-- ── Mobile backdrop ────────────────────────────────────────────────── -->
@@ -136,8 +136,8 @@
 
       <!-- User strip -->
       <div class="p-3 flex-shrink-0 border-t border-white/[0.07]">
-        <div class="flex items-center gap-2.5 group cursor-default px-2 py-2 rounded-xl hover:bg-white/[0.06] transition-colors">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+        <div class="flex items-center gap-2.5 group cursor-default px-2 py-2 hover:bg-white/[0.06] transition-colors">
+          <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
                       text-white text-[12px] font-bold flex-shrink-0">
             {{ userInitial }}
           </div>
@@ -222,7 +222,7 @@ onUnmounted(() => {
 
 <style scoped>
 .min-nav-item {
-  @apply flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-[#DEE4EE]
+  @apply flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#DEE4EE]
          hover:bg-white/[0.06] hover:text-white transition-colors duration-100 w-full;
 }
 .min-nav-item-active {

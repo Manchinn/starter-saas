@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -17,22 +17,22 @@
 
       <!-- Summary cards -->
       <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm p-5">
           <p class="text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1">{{ t('erp.stockBalance.totalLines') }}</p>
           <p class="text-2xl font-bold text-[#1C2434] tabular-nums">{{ rows.length }}</p>
         </div>
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm p-5">
           <p class="text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1">{{ t('erp.stockBalance.totalQty') }}</p>
           <p class="text-2xl font-bold text-[#1C2434] tabular-nums">{{ fmtQty(totalQty) }}</p>
         </div>
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm p-5">
           <p class="text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1">{{ t('erp.stockBalance.totalValue') }}</p>
           <p class="text-2xl font-bold text-primary-500 tabular-nums">{{ fmtMoney(totalValue) }}</p>
         </div>
       </div>
 
       <!-- Filters -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm px-5 py-4">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm px-5 py-4">
         <div class="flex flex-wrap items-end gap-4">
           <div class="w-48">
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.stockBalance.colStore') }}</label>
@@ -54,11 +54,11 @@
       </div>
 
       <!-- Table -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="rows" :loading="loading" :total="rows.length" :page-size="9999">
           <template #empty>
             <div class="flex flex-col items-center gap-2">
-              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
                 <ChartBarIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
               <p class="text-sm text-[#9BA7B0] font-medium">{{ t('erp.stockBalance.noFound') }}</p>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -15,15 +15,15 @@
       </div>
 
       <div v-if="modulesStore.loading" class="text-center py-12 text-[#9BA7B0]">
-        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin" />
       </div>
 
       <!-- Empty state -->
       <div
         v-else-if="!sharedModules.length"
-        class="bg-white border-2 border-dashed border-[#E2E8F0] rounded-xl p-12 text-center"
+        class="bg-white border-2 border-dashed border-[#E2E8F0] p-12 text-center"
       >
-        <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] flex items-center justify-center mx-auto mb-4">
+        <div class="w-12 h-12 bg-[#F1F5F9] flex items-center justify-center mx-auto mb-4">
           <PuzzlePieceIcon class="w-6 h-6 text-[#9BA7B0]" />
         </div>
         <p class="font-semibold text-[#637381]">{{ t('mods.noShared') }}</p>
@@ -47,7 +47,7 @@
               <p class="text-xs text-[#9BA7B0] font-mono mt-0.5">{{ mod.slug }}</p>
             </div>
             <span :class="mod.isActive ? 'badge-green' : 'badge-gray'" class="badge flex-shrink-0">
-              <span class="w-1.5 h-1.5 rounded-full"
+              <span class="w-1.5 h-1.5"
                     :class="mod.isActive ? 'bg-emerald-500' : 'bg-slate-400'"></span>
               {{ mod.isActive ? t('common.active') : t('common.inactive') }}
             </span>

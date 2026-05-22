@@ -1,6 +1,6 @@
-<template>
+﻿<template>
   <span v-if="currency" class="inline-flex items-center gap-1.5">
-    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-slate-100 text-slate-700">
+    <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-mono font-semibold bg-slate-100 text-slate-700">
       {{ currency }}
     </span>
     <span v-if="!isBase && baseCode && total != null" class="text-[11px] text-[#9BA7B0] tabular-nums">

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -14,7 +14,7 @@
       </div>
 
       <!-- Account Details -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E2E8F0]">
           <h2 class="text-sm font-semibold text-[#374151]">{{ $t('org.accountDetails') }}</h2>
         </div>
@@ -57,7 +57,7 @@
       </div>
 
       <!-- Configuration -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E2E8F0]">
           <h2 class="text-sm font-semibold text-[#374151]">{{ $t('org.configuration') }}</h2>
         </div>
@@ -92,7 +92,7 @@
       </div>
 
       <!-- Assigned Roles -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E2E8F0]">
           <h2 class="text-sm font-semibold text-[#374151]">{{ $t('org.assignedRoles') }}</h2>
           <p class="text-xs text-[#9BA7B0] mt-0.5">{{ $t('org.assignedRolesDesc') }}</p>
@@ -102,7 +102,7 @@
             class="flex items-center gap-3 px-6 py-3 hover:bg-[#F7F9FC] cursor-pointer">
             <input type="checkbox" :value="role.id" v-model="form.roleIds"
               class="border-[#CBD5E1] w-4 h-4" />
-            <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: role.color }" />
+            <span class="w-2.5 h-2.5 flex-shrink-0" :style="{ backgroundColor: role.color }" />
             <div class="flex-1 min-w-0">
               <span class="text-sm font-medium text-[#1C2434]">{{ role.name }}</span>
               <span class="ml-2 text-xs text-[#9BA7B0]">{{ role.slug }}</span>

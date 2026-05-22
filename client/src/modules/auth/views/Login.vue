@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="min-h-screen flex">
 
     <!-- ── Left branding panel ──────────────────────────────────────────────── -->
@@ -17,11 +17,11 @@
                  linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
                  background-size: 44px 44px;" />
         <!-- Orbs -->
-        <div class="absolute top-[-100px] right-[-80px] w-[500px] h-[500px] rounded-full blur-[120px]"
+        <div class="absolute top-[-100px] right-[-80px] w-[500px] h-[500px] blur-[120px]"
           style="background: radial-gradient(circle, rgba(70,95,255,0.2) 0%, transparent 70%)" />
-        <div class="absolute bottom-[-80px] left-[-60px] w-[400px] h-[400px] rounded-full blur-[100px]"
+        <div class="absolute bottom-[-80px] left-[-60px] w-[400px] h-[400px] blur-[100px]"
           style="background: radial-gradient(circle, rgba(70,95,255,0.12) 0%, transparent 70%)" />
-        <div class="absolute top-[45%] left-[55%] w-[260px] h-[260px] rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2"
+        <div class="absolute top-[45%] left-[55%] w-[260px] h-[260px] blur-[80px] -translate-x-1/2 -translate-y-1/2"
           style="background: radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%)" />
       </div>
 
@@ -30,7 +30,7 @@
 
         <!-- Logo -->
         <div class="flex items-center gap-3 flex-shrink-0">
-          <div class="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
+          <div class="w-9 h-9-[10px] flex items-center justify-center flex-shrink-0"
             style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);
                    box-shadow: 0 0 0 1px rgba(70,95,255,0.4), 0 4px 16px rgba(70,95,255,0.35);">
             <svg class="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,9 +46,9 @@
           <div class="space-y-9 max-w-[360px]">
 
             <!-- Badge -->
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full w-fit"
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 w-fit"
               style="background: rgba(70,95,255,0.12); border: 1px solid rgba(70,95,255,0.28);">
-              <span class="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse flex-shrink-0" />
+              <span class="w-1.5 h-1.5 bg-primary-400 animate-pulse flex-shrink-0" />
               <span class="text-[11px] font-semibold text-primary-300 tracking-widest uppercase">
                 {{ t('auth.brandBadge') }}
               </span>
@@ -67,7 +67,7 @@
             <!-- Stats row -->
             <div class="grid grid-cols-3 gap-3">
               <div v-for="stat in stats" :key="stat.label"
-                class="rounded-xl px-3 py-3"
+                class="px-3 py-3"
                 style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);">
                 <div class="text-[19px] font-bold text-white tracking-tight">{{ stat.value }}</div>
                 <div class="text-[11px] mt-0.5 text-[#475569]">{{ stat.label }}</div>
@@ -77,7 +77,7 @@
             <!-- Feature list -->
             <ul class="space-y-3">
               <li v-for="(feat, i) in features" :key="i" class="flex items-start gap-3">
-                <div class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
+                <div class="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5"
                   style="background: rgba(70,95,255,0.15); border: 1px solid rgba(70,95,255,0.28);">
                   <svg class="w-2.5 h-2.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -91,7 +91,7 @@
         </div>
 
         <!-- Testimonial -->
-        <div class="flex-shrink-0 rounded-2xl p-5"
+        <div class="flex-shrink-0 p-5"
           style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
           <!-- Quote icon -->
           <svg class="w-6 h-6 mb-3 text-primary-500 opacity-50" fill="currentColor" viewBox="0 0 32 32">
@@ -106,7 +106,7 @@
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
               </svg>
             </div>
-            <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+            <div class="w-7 h-7 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
               style="background: linear-gradient(135deg, #465fff, #2D35CF);">
               SC
             </div>
@@ -127,7 +127,7 @@
       <div class="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0">
         <!-- Mobile logo (hidden on large) -->
         <div class="flex items-center gap-2.5 lg:hidden">
-          <div class="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0"
+          <div class="w-8 h-8-[9px] flex items-center justify-center flex-shrink-0"
             style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -248,7 +248,7 @@
             <label class="flex items-center gap-2.5 cursor-pointer select-none w-fit group">
               <div class="relative flex-shrink-0">
                 <input v-model="remember" type="checkbox" class="sr-only peer" />
-                <div class="w-4 h-4 rounded border-[1.5px] border-[#CBD5E1] bg-white
+                <div class="w-4 h-4 border-[1.5px] border-[#CBD5E1] bg-white
                             peer-checked:bg-primary-500 peer-checked:border-primary-500
                             flex items-center justify-center transition-all duration-150">
                   <svg v-if="remember" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,7 +270,7 @@
               leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <div v-if="error"
-                class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl">
+                class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px]">
                 <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />

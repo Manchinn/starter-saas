@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -28,7 +28,7 @@
 
       <!-- Loading -->
       <div v-if="pageLoading" class="flex items-center justify-center py-20">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <!-- Not found / non-draft -->
@@ -70,7 +70,7 @@
                      transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.journals.addLine') }}
-              <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+L</kbd>
+              <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+L</kbd>
             </button>
           </template>
 

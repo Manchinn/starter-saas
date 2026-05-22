@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -15,13 +15,13 @@
               {{ loading ? '…' : (sc?.refNo || t('erp.stockCount.detail')) }}
             </h1>
             <span v-if="sc && !loading"
-              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold capitalize"
               :class="statusBadge(sc.status)">
-              <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(sc.status)"></span>
+              <span class="w-1.5 h-1.5" :class="statusDot(sc.status)"></span>
               {{ sc.status }}
             </span>
             <span v-if="sc?.movementLocked"
-              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider
+              class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider
                      bg-red-50 text-red-600">
               <LockClosedIcon class="w-3 h-3" />
               {{ t('erp.stockCount.locked') }}
@@ -58,12 +58,12 @@
 
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-20 print:hidden">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <!-- Not found -->
       <div v-else-if="!sc"
-        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl print:hidden">
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 print:hidden">
         <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
         <span>{{ t('erp.stockCount.notFound') }}
           <RouterLink to="/erp/stock-count" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
@@ -72,12 +72,12 @@
 
       <template v-else>
         <!-- Workflow strip (hidden on print) -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-3 print:hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card px-5 py-3 print:hidden">
           <div class="flex items-center gap-1 flex-wrap">
             <template v-for="(step, i) in FLOW_STEPS" :key="step.key">
               <div class="flex items-center gap-2 px-2.5 py-1" :class="stepChipClass(step.key)">
                 <CheckIcon v-if="stepState(step.key) === 'completed'" class="w-3.5 h-3.5" />
-                <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 rounded-full bg-current"></span>
+                <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 bg-current"></span>
                 <span v-else class="text-[10px] font-bold opacity-50">{{ i + 1 }}</span>
                 <span class="text-[12px] font-semibold">{{ step.label }}</span>
               </div>
@@ -90,10 +90,10 @@
              one editable knob on this page outside the document so the
              printed sheet stays clean. -->
         <div v-if="sc.status === 'draft'" v-can="'erp.stock.edit'"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
+          class="bg-white border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
                  flex items-center justify-between flex-wrap gap-3">
           <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <div class="w-8 h-8 bg-amber-50 flex items-center justify-center flex-shrink-0">
               <LockClosedIcon class="w-4 h-4 text-amber-600" />
             </div>
             <div>
@@ -113,7 +113,7 @@
 
         <!-- ── Document ─────────────────────────────────────────── -->
         <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:rounded-none rounded-2xl
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
                         overflow-hidden">
 
           <!-- DRAFT diagonal stamp -->
@@ -121,7 +121,7 @@
             class="pointer-events-none absolute inset-0 flex items-center justify-center z-10"
             aria-hidden="true">
             <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] border-amber-400 text-amber-500
-                         rounded-md px-6 py-2 text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]">
+                         px-6 py-2 text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]">
               Draft
             </span>
           </div>
@@ -292,7 +292,7 @@
 
         <!-- Status action (hidden on print) -->
         <div v-if="sc.status === 'draft'" v-can="'erp.stock.edit'"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
+          class="bg-white border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
                  flex items-center justify-between flex-wrap gap-3">
           <div>
             <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">

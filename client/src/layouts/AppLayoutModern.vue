@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="flex flex-col h-screen bg-[#F1F5F9]">
 
     <!-- ── Topbar ─────────────────────────────────────────────────────────── -->
@@ -16,7 +16,7 @@
 
       <!-- Logo -->
       <div class="flex items-center gap-2 md:mr-4 flex-shrink-0">
-        <div class="w-6 h-6 bg-white/20 rounded-md flex items-center justify-center flex-shrink-0">
+        <div class="w-6 h-6 bg-white/20 flex items-center justify-center flex-shrink-0">
           <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
@@ -73,8 +73,8 @@
 
       <!-- Right: user info + logout -->
       <div class="flex items-center gap-2.5 flex-shrink-0 ml-auto">
-        <div class="hidden lg:flex items-center gap-2.5 pl-2.5 pr-3.5 py-1.5 rounded-xl border border-white/[0.12] bg-white/[0.06]">
-          <div class="w-7 h-7 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+        <div class="hidden lg:flex items-center gap-2.5 pl-2.5 pr-3.5 py-1.5 border border-white/[0.12] bg-white/[0.06]">
+          <div class="w-7 h-7 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
                       text-white text-[11px] font-bold flex-shrink-0">
             {{ userInitial }}
           </div>
@@ -125,7 +125,7 @@
         >
           <!-- Header -->
           <div class="h-[64px] flex items-center px-5 border-b border-white/[0.07] flex-shrink-0 gap-3">
-            <div class="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center flex-shrink-0">
+            <div class="w-7 h-7 bg-white/20 flex items-center justify-center flex-shrink-0">
               <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -239,8 +239,8 @@
 
           <!-- User strip -->
           <div class="border-t border-white/[0.07] p-3 flex-shrink-0">
-            <div class="flex items-center gap-3 px-2 py-2 rounded-xl">
-              <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+            <div class="flex items-center gap-3 px-2 py-2">
+              <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
                           text-white text-[13px] font-bold flex-shrink-0">
                 {{ userInitial }}
               </div>
@@ -265,7 +265,7 @@
       <div
         v-if="openDropdown && activeItem && isMegaMenu"
         :style="megaMenuStyle"
-        class="hidden md:block bg-white rounded-xl shadow-xl border border-gray-200 p-3 scrollbar-thin"
+        class="hidden md:block bg-white shadow-xl border border-gray-200 p-3 scrollbar-thin"
         @mouseenter="cancelClose"
         @mouseleave="scheduleClose"
       >
@@ -473,7 +473,7 @@ function isGroupActive(item) {
 
 <style scoped>
 .mobile-nav-item {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] text-[#DEE4EE]
+  @apply flex items-center gap-3 px-3 py-2.5 text-[13.5px] text-[#DEE4EE]
          hover:bg-white/[0.06] hover:text-white transition-colors duration-100 w-full;
 }
 .mobile-nav-item-active {

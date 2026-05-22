@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -72,9 +72,9 @@
         </FormCard>
 
         <!-- Section 2: Select Invoices -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <div class="w-8 h-8 bg-blue-50 flex items-center justify-center flex-shrink-0">
               <ClipboardDocumentListIcon class="w-4 h-4 text-blue-600" />
             </div>
             <div>
@@ -87,7 +87,7 @@
 
           <!-- No customer selected -->
           <div v-if="!form.customerId" class="flex flex-col items-center justify-center py-14 text-center">
-            <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
+            <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
               <UserIcon class="w-7 h-7 text-[#CBD5E1]" />
             </div>
             <p class="text-sm font-semibold text-[#637381]">{{ t('erp.billingNotes.selectCustomerFirst') }}</p>
@@ -96,12 +96,12 @@
 
           <!-- Loading invoices -->
           <div v-else-if="loadingInvoices" class="flex items-center justify-center py-14">
-            <div class="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            <div class="w-6 h-6 border-2 border-primary-500 border-t-transparent animate-spin"></div>
           </div>
 
           <!-- No available invoices -->
           <div v-else-if="!availableInvoices.length" class="flex flex-col items-center justify-center py-14 text-center">
-            <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
+            <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
               <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
             </div>
             <p class="text-sm font-semibold text-[#637381]">{{ t('erp.billingNotes.noAvailableInvoices') }}</p>
@@ -143,7 +143,7 @@
                 <span class="text-xs text-[#637381]">{{ inv.invoiceDate }}</span>
                 <span class="text-xs text-[#637381]">{{ inv.dueDate || '—' }}</span>
                 <span class="text-sm font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtMoney(inv.total) }}</span>
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold capitalize
                              bg-blue-50 text-blue-700">{{ inv.status }}</span>
 
               </div>
@@ -159,7 +159,7 @@
         <ErrorBanner :message="globalError" />
 
         <!-- Summary + Actions -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
             <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.billingNotes.summary') }}</h2>

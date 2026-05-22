@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -15,7 +15,7 @@
       </div>
 
       <!-- Filters -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm px-5 py-4 flex flex-wrap gap-4 items-end">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm px-5 py-4 flex flex-wrap gap-4 items-end">
         <div class="flex flex-col gap-1">
           <label class="text-xs font-medium text-[#637381]">{{ t('erp.arAging.asOfDate') }}</label>
           <DateInput v-model="asOfDate" @change="fetch" class="input w-44" />
@@ -30,7 +30,7 @@
 
       <!-- Loading -->
       <div v-if="loading" class="flex justify-center py-16">
-        <div class="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-8 h-8 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <template v-else-if="report">
@@ -38,7 +38,7 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <div v-for="card in summaryCards" :key="card.key"
-            class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm px-4 py-4 flex flex-col gap-1">
+            class="bg-white border border-[#E2E8F0] shadow-sm px-4 py-4 flex flex-col gap-1">
             <p class="text-[11px] font-semibold uppercase tracking-wide" :class="card.labelClass">{{ card.label }}</p>
             <p class="text-lg font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(report.summary[card.key]) }}</p>
             <p class="text-[11px] text-[#9BA7B0]">
@@ -47,7 +47,7 @@
                 : '0%' }}
             </p>
           </div>
-          <div class="bg-primary-50 border border-primary-200 rounded-2xl px-4 py-4 flex flex-col gap-1">
+          <div class="bg-primary-50 border border-primary-200 px-4 py-4 flex flex-col gap-1">
             <p class="text-[11px] font-semibold uppercase tracking-wide text-primary-600">{{ t('erp.arAging.grandTotal') }}</p>
             <p class="text-lg font-bold text-primary-700 tabular-nums">{{ fmtMoney(report.summary.total) }}</p>
             <p class="text-[11px] text-primary-500">{{ report.customers.length }} customers</p>
@@ -56,8 +56,8 @@
 
         <!-- No data state -->
         <div v-if="report.customers.length === 0"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm flex flex-col items-center gap-3 py-16">
-          <div class="w-12 h-12 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+          class="bg-white border border-[#E2E8F0] shadow-sm flex flex-col items-center gap-3 py-16">
+          <div class="w-12 h-12 bg-[#F1F5F9] flex items-center justify-center">
             <ChartBarIcon class="w-6 h-6 text-[#9BA7B0]" />
           </div>
           <div class="text-center">
@@ -67,7 +67,7 @@
         </div>
 
         <!-- Aging Table per customer -->
-        <div v-else class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div v-else class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <table class="w-full text-sm">
             <thead>
               <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
@@ -130,7 +130,7 @@
                     class="border-b border-[#F1F5F9] bg-[#FAFBFC]">
                     <td class="px-4 py-2.5 pl-8" colspan="1">
                       <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="bucketDot(inv.bucket)"></span>
+                        <span class="w-1.5 h-1.5 flex-shrink-0" :class="bucketDot(inv.bucket)"></span>
                         <RouterLink :to="`/erp/invoices/${inv.id}`"
                           class="font-mono text-xs font-medium text-primary-600 hover:underline">
                           {{ inv.invoiceNumber }}
@@ -164,7 +164,7 @@
                       <!-- invoice meta: due date + overdue badge -->
                       <div class="flex items-center justify-end gap-1.5">
                         <span v-if="inv.daysOverdue > 0"
-                          class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                          class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold"
                           :class="overdueBadge(inv.bucket)">
                           +{{ inv.daysOverdue }}d
                         </span>

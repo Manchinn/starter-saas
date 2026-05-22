@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="w-full space-y-5">
       <div>
@@ -35,7 +35,7 @@
             :key="s.id"
             class="flex items-center gap-4 px-2 py-4"
           >
-            <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
+            <div class="w-10 h-10 bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
               <ComputerDesktopIcon class="w-5 h-5" />
             </div>
             <div class="flex-1 min-w-0">

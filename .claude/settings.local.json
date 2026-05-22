@@ -90,7 +90,8 @@
       "PowerShell(node server/scripts/seed_payment_terms.js)",
       "PowerShell(node -e \"process.chdir\\('server'\\); require\\('dotenv'\\).config\\(\\); const { User, MasterDataCategory } = require\\('./models'\\); \\(async \\(\\) => { const users = await User.findAll\\({ attributes: ['id', 'name', 'email', 'organizationId'] }\\); console.log\\('users:', JSON.stringify\\(users, null, 2\\)\\); const cats = await MasterDataCategory.findAll\\({ where: { slug: 'payment-terms' }, attributes: ['id', 'slug', 'name', 'organizationId'] }\\); console.log\\('payment-terms categories:', JSON.stringify\\(cats, null, 2\\)\\); process.exit\\(0\\) }\\)\\(\\)\")",
       "Bash(git *)",
-      "PowerShell(npx --prefix client vite build --config client/vite.config.js 2>&1 | Select-Object -Last 15)"
+      "PowerShell(npx --prefix client vite build --config client/vite.config.js 2>&1 | Select-Object -Last 15)",
+      "Bash(find shared/erp/*/views client/src/modules -name '*Create.vue' -o -name '*Edit.vue' -o -name '*Form.vue')"
     ]
   }
 }

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -61,7 +61,7 @@
           <tbody class="divide-y divide-slate-50">
             <tr v-if="rolesStore.loading">
               <td colspan="7" class="text-center py-14">
-                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin"></div>
               </td>
             </tr>
             <tr v-else-if="!filtered.length">
@@ -79,7 +79,7 @@
             >
               <td class="td">
                 <div class="flex items-center gap-3 min-w-0">
-                  <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: role.color }" />
+                  <span class="w-2.5 h-2.5 flex-shrink-0" :style="{ backgroundColor: role.color }" />
                   <div class="min-w-0">
                     <p class="font-semibold text-[#1C2434] text-sm truncate">{{ role.name }}</p>
                     <p class="text-[11px] font-mono text-[#9BA7B0] truncate">{{ role.slug }}</p>
@@ -146,7 +146,7 @@
           <div class="relative w-full max-w-md bg-white shadow-xl flex flex-col h-full">
             <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0]">
               <div class="flex items-center gap-2.5">
-                <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: viewRole.color }" />
+                <span class="w-2.5 h-2.5" :style="{ backgroundColor: viewRole.color }" />
                 <h2 class="text-base font-semibold text-[#1C2434]">{{ viewRole.name }}</h2>
                 <span v-if="viewRole.isSystem" class="badge badge-amber">{{ t('roles.systemBadge') }}</span>
               </div>
@@ -166,15 +166,15 @@
               </div>
 
               <div class="grid grid-cols-3 gap-3 pt-2">
-                <div class="rounded-xl border border-[#E2E8F0] px-3 py-2.5 text-center">
+                <div class="border border-[#E2E8F0] px-3 py-2.5 text-center">
                   <p class="text-lg font-bold text-[#1C2434] tabular leading-none">{{ viewRole.permissionCount ?? viewRole.permissions?.length ?? 0 }}</p>
                   <p class="text-[10.5px] text-[#637381] uppercase tracking-wider mt-1.5">{{ t('roles.colPerms') }}</p>
                 </div>
-                <div class="rounded-xl border border-[#E2E8F0] px-3 py-2.5 text-center">
+                <div class="border border-[#E2E8F0] px-3 py-2.5 text-center">
                   <p class="text-lg font-bold text-[#1C2434] tabular leading-none">{{ viewRole.moduleCount ?? viewRole.modules?.length ?? 0 }}</p>
                   <p class="text-[10.5px] text-[#637381] uppercase tracking-wider mt-1.5">{{ t('roles.colMods') }}</p>
                 </div>
-                <div class="rounded-xl border border-[#E2E8F0] px-3 py-2.5 text-center">
+                <div class="border border-[#E2E8F0] px-3 py-2.5 text-center">
                   <p class="text-lg font-bold text-[#1C2434] tabular leading-none">{{ viewRole.userCount ?? 0 }}</p>
                   <p class="text-[10.5px] text-[#637381] uppercase tracking-wider mt-1.5">{{ t('roles.colUsers') }}</p>
                 </div>
@@ -185,7 +185,7 @@
                 <div v-if="viewRole.permissions?.length" class="flex flex-wrap gap-1">
                   <span
                     v-for="p in viewRole.permissions" :key="p.id"
-                    class="px-1.5 py-0.5 bg-[#F1F5F9] text-[#637381] text-[11px] rounded font-mono"
+                    class="px-1.5 py-0.5 bg-[#F1F5F9] text-[#637381] text-[11px] font-mono"
                   >{{ p.slug }}</span>
                 </div>
                 <p v-else class="text-xs text-[#9BA7B0] italic">{{ t('roles.noPermsAssigned') }}</p>
@@ -196,7 +196,7 @@
                 <div v-if="viewRole.modules?.length" class="flex flex-wrap gap-1">
                   <span
                     v-for="m in viewRole.modules" :key="m.id"
-                    class="px-2 py-0.5 bg-primary-50 text-primary-600 text-[11px] rounded font-medium"
+                    class="px-2 py-0.5 bg-primary-50 text-primary-600 text-[11px] font-medium"
                   >{{ m.name }}</span>
                 </div>
                 <p v-else class="text-xs text-[#9BA7B0] italic">{{ t('roles.noModulesAssigned') }}</p>

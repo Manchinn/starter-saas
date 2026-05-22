@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -15,7 +15,7 @@
       </div>
 
       <!-- Table card -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
 
         <!-- Filter bar -->
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
@@ -31,7 +31,7 @@
           :initial-sorting="[{ id: 'name', desc: true }]">
           <template #empty>
             <div class="flex flex-col items-center gap-2">
-              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
                 <CircleStackIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
               <p class="text-sm text-[#9BA7B0] font-medium">{{ t('erp.masterData.noFound') }}</p>
@@ -88,7 +88,7 @@ const columns = [
   columnHelper.accessor('slug', {
     header: () => t('common.code'),
     cell: info => h('span', {
-      class: 'font-mono text-xs text-[#637381] bg-[#F7F9FC] border border-[#E2E8F0] px-2 py-0.5 rounded',
+      class: 'font-mono text-xs text-[#637381] bg-[#F7F9FC] border border-[#E2E8F0] px-2 py-0.5',
     }, info.getValue()),
   }),
   columnHelper.accessor('name', {
@@ -102,7 +102,7 @@ const columns = [
         h('span', { class: 'font-semibold text-[#1C2434]' }, cat.name),
         cat.isSystem
           ? h('span', {
-              class: 'px-1.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-semibold rounded uppercase tracking-wide',
+              class: 'px-1.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-semibold uppercase tracking-wide',
             }, t('erp.masterData.systemBadge'))
           : null,
       ])
@@ -119,7 +119,7 @@ const columns = [
     header: () => t('erp.masterData.valuesCount'),
     meta: { thClass: 'text-center', tdClass: 'text-center' },
     cell: info => h('span', {
-      class: 'inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 bg-[#F1F5F9] text-[#637381] text-xs font-semibold rounded-full tabular-nums',
+      class: 'inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 bg-[#F1F5F9] text-[#637381] text-xs font-semibold tabular-nums',
     }, String(info.getValue())),
   }),
   columnHelper.display({
@@ -132,13 +132,13 @@ const columns = [
       return h('div', { class: 'flex items-center justify-end gap-1' }, [
         h(RouterLink, {
           to: `/erp/settings/master-data/${cat.id}`,
-          class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors',
+          class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
           title: t('common.edit'),
         }, () => h(PencilIcon, { class: 'w-4 h-4' })),
         !cat.isSystem
           ? h('button', {
               onClick: () => confirmDelete(cat),
-              class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors',
+              class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors',
               title: t('common.delete'),
             }, h(TrashIcon, { class: 'w-4 h-4' }))
           : null,

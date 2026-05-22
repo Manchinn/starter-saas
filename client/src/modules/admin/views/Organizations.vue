@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -42,7 +42,7 @@
           <tbody class="divide-y divide-slate-50">
             <tr v-if="loading">
               <td colspan="8" class="text-center py-14">
-                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin"></div>
               </td>
             </tr>
             <tr v-else-if="!organizations.length">
@@ -83,7 +83,7 @@
               <td class="td">
                 <div class="flex flex-wrap gap-1">
                   <span v-for="r in u.roles" :key="r.id"
-                    class="px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                    class="px-2 py-0.5 text-xs font-medium text-white"
                     :style="{ backgroundColor: r.color }">{{ r.name }}</span>
                   <span v-if="!u.roles?.length" class="text-[#9BA7B0] text-xs">—</span>
                 </div>
@@ -92,7 +92,7 @@
               <!-- Status -->
               <td class="td">
                 <span :class="u.isActive ? 'badge-green' : 'badge-red'" class="badge">
-                  <span class="w-1.5 h-1.5 rounded-full" :class="u.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                  <span class="w-1.5 h-1.5" :class="u.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
                   {{ u.isActive ? $t('common.active') : $t('common.inactive') }}
                 </span>
               </td>
@@ -167,7 +167,7 @@
 
             <div class="flex-1 overflow-y-auto scrollbar-thin px-6 py-5 space-y-5">
               <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-primary-100 text-primary-500 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                <div class="w-12 h-12 bg-primary-100 text-primary-500 flex items-center justify-center text-xl font-bold flex-shrink-0">
                   {{ viewOrganization.name.charAt(0).toUpperCase() }}
                 </div>
                 <div>
@@ -187,7 +187,7 @@
                   <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ $t('org.colStatus') }}</dt>
                   <dd class="mt-1.5">
                     <span :class="viewOrganization.isActive ? 'badge-green' : 'badge-red'" class="badge">
-                      <span class="w-1.5 h-1.5 rounded-full" :class="viewOrganization.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                      <span class="w-1.5 h-1.5" :class="viewOrganization.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
                       {{ viewOrganization.isActive ? $t('common.active') : $t('common.inactive') }}
                     </span>
                   </dd>
@@ -212,7 +212,7 @@
                   <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-1.5">{{ $t('org.childOrgs') }}</dt>
                   <dd class="flex flex-wrap gap-1.5">
                     <span v-for="c in viewOrganization.children" :key="c.id"
-                      class="px-2 py-0.5 bg-[#F1F5F9] text-[#374151] rounded-full text-xs font-medium">{{ c.name }}</span>
+                      class="px-2 py-0.5 bg-[#F1F5F9] text-[#374151] text-xs font-medium">{{ c.name }}</span>
                   </dd>
                 </div>
               </div>
@@ -222,12 +222,12 @@
                 <div v-if="!viewOrganization.roles?.length" class="text-sm text-[#9BA7B0] italic">{{ $t('org.noRolesAssigned') }}</div>
                 <div v-for="role in viewOrganization.roles" :key="role.id" class="mb-3">
                   <div class="flex items-center gap-2 mb-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: role.color }" />
+                    <span class="w-2.5 h-2.5 flex-shrink-0" :style="{ backgroundColor: role.color }" />
                     <span class="font-medium text-[#1C2434] text-sm">{{ role.name }}</span>
                   </div>
                   <div class="flex flex-wrap gap-1 pl-4">
                     <span v-for="perm in role.permissions" :key="perm.id"
-                      class="px-1.5 py-0.5 bg-[#F1F5F9] text-[#637381] rounded text-xs font-mono">{{ perm.slug }}</span>
+                      class="px-1.5 py-0.5 bg-[#F1F5F9] text-[#637381] text-xs font-mono">{{ perm.slug }}</span>
                     <span v-if="!role.permissions?.length" class="text-xs text-[#9BA7B0] italic">{{ $t('org.noPermissions') }}</span>
                   </div>
                 </div>

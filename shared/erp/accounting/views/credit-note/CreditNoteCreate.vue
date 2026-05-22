@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -104,7 +104,7 @@
         <ErrorBanner :message="globalError" />
 
         <!-- Summary -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
             <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.creditNotes.summary') }}</h2>

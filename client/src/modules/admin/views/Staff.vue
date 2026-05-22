@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -56,7 +56,7 @@
           <tbody class="divide-y divide-slate-50">
             <tr v-if="loading">
               <td colspan="5" class="px-5 py-14 text-center">
-                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin" />
               </td>
             </tr>
             <tr v-else-if="!staff.length">
@@ -89,7 +89,7 @@
               </td>
               <td class="td">
                 <span :class="member.isActive ? 'badge-green' : 'badge-red'" class="badge">
-                  <span class="w-1.5 h-1.5 rounded-full"
+                  <span class="w-1.5 h-1.5"
                         :class="member.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
                   {{ member.isActive ? t('common.active') : t('common.inactive') }}
                 </span>

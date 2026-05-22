@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -13,10 +13,10 @@
           <div class="flex items-center gap-2.5 flex-wrap">
             <h1 class="text-xl font-bold text-[#1C2434]">{{ loading ? '…' : (fy?.name || t('erp.fiscalYears.title')) }}</h1>
             <span v-if="fy && !loading"
-              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold capitalize"
               :class="statusBadge(fy.status)">
               <LockClosedIcon v-if="fy.status === 'closed'" class="w-3 h-3" />
-              <span v-else class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              <span v-else class="w-1.5 h-1.5 bg-green-500"></span>
               {{ fy.status }}
             </span>
           </div>
@@ -32,12 +32,12 @@
 
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
       </div>
 
       <!-- Not found -->
       <div v-else-if="notFound"
-        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl">
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5">
         <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
         <span>{{ t('erp.fiscalYears.notFound') }}
           <RouterLink to="/erp/accounting/fiscal-years" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
@@ -51,9 +51,9 @@
           <div class="lg:col-span-2 space-y-5">
 
             <!-- Info card -->
-            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+            <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
               <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                <div class="w-8 h-8 bg-indigo-50 flex items-center justify-center flex-shrink-0">
                   <CalendarDaysIcon class="w-4 h-4 text-indigo-600" />
                 </div>
                 <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.fiscalYears.details') }}</h2>
@@ -67,10 +67,10 @@
                   <div>
                     <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-0.5">{{ t('common.status') }}</dt>
                     <dd>
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize"
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold capitalize"
                         :class="statusBadge(fy.status)">
                         <LockClosedIcon v-if="fy.status === 'closed'" class="w-3 h-3" />
-                        <span v-else class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        <span v-else class="w-1.5 h-1.5 bg-green-500"></span>
                         {{ fy.status }}
                       </span>
                     </dd>
@@ -93,9 +93,9 @@
 
             <!-- Edit form (open only) -->
             <div v-if="fy.status === 'open'" v-can="'erp.accounting.edit'"
-              class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+              class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
               <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                <div class="w-8 h-8 bg-primary-50 flex items-center justify-center flex-shrink-0">
                   <PencilSquareIcon class="w-4 h-4 text-primary-500" />
                 </div>
                 <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.fiscalYears.editDetails') }}</h2>
@@ -144,7 +144,7 @@
 
             <!-- Notes (closed) -->
             <div v-if="fy.notes && fy.status === 'closed'"
-              class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-5">
+              class="bg-white border border-[#E2E8F0] shadow-card p-5">
               <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-2">{{ t('erp.common.notes') }}</p>
               <p class="text-sm text-[#374151] whitespace-pre-line">{{ fy.notes }}</p>
             </div>
@@ -154,7 +154,7 @@
           <!-- RIGHT: Workflow -->
           <div class="space-y-4">
 
-            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+            <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
               <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
                 <BoltIcon class="w-4 h-4 text-[#9BA7B0]" />
                 <h3 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.common.workflow') }}</h3>
@@ -163,10 +163,10 @@
               <div class="px-5 py-5">
                 <template v-for="(step, i) in FLOW_STEPS" :key="step.key">
                   <div class="flex items-center gap-3">
-                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ring-2 flex-shrink-0 transition-all"
+                    <div class="w-7 h-7 flex items-center justify-center text-xs font-bold ring-2 flex-shrink-0 transition-all"
                       :class="stepNodeClass(step.key)">
                       <CheckIcon v-if="stepState(step.key) === 'completed'" class="w-3.5 h-3.5" />
-                      <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 rounded-full bg-white"></span>
+                      <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 bg-white"></span>
                       <span v-else class="text-[10px]">{{ i + 1 }}</span>
                     </div>
                     <div class="flex-1 py-1">
@@ -177,7 +177,7 @@
                   </div>
                   <div v-if="i < FLOW_STEPS.length - 1" class="flex gap-3">
                     <div class="w-7 flex justify-center flex-shrink-0">
-                      <div class="w-0.5 h-5 rounded-full" :class="connectorClass(step.key)"></div>
+                      <div class="w-0.5 h-5" :class="connectorClass(step.key)"></div>
                     </div>
                   </div>
                 </template>
@@ -202,7 +202,7 @@
 
             <!-- Delete (open only) -->
             <div v-if="fy.status === 'open'" v-can="'erp.accounting.delete'"
-              class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-4">
+              class="bg-white border border-[#E2E8F0] shadow-card p-4">
               <button @click="confirmDelete"
                 class="w-full py-2 text-sm font-medium text-red-500 border border-red-200
                        hover:bg-red-50 transition-colors flex items-center justify-center gap-2">

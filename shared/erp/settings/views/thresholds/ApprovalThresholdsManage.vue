@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4">
@@ -13,7 +13,7 @@
         </button>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
             <tr>

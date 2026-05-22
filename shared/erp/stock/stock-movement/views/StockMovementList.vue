@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -7,7 +7,7 @@
         <p class="text-sm text-[#637381] mt-0.5">{{ total }} movement{{ total !== 1 ? 's' : '' }}</p>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="rows" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           searchable :search-placeholder="t('erp.stockMovement.searchPh', 'Search by ref no…')">
@@ -20,7 +20,7 @@
                   : 'bg-white border-[#E2E8F0] text-[#637381] hover:bg-slate-50']">
               <AdjustmentsHorizontalIcon class="w-4 h-4" />
               {{ t('common.filters') }}
-              <span v-if="activeFilterCount" class="min-w-[18px] h-[18px] bg-primary-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold leading-none">
+              <span v-if="activeFilterCount" class="min-w-[18px] h-[18px] bg-primary-500 text-white text-[10px] flex items-center justify-center font-bold leading-none">
                 {{ activeFilterCount }}
               </span>
             </button>
@@ -63,19 +63,19 @@
           <template #active-filters>
             <div v-if="activeFilterCount > 0" class="px-5 py-2.5 border-b border-[#E2E8F0] flex items-center gap-2 flex-wrap bg-primary-50/40">
               <span class="text-xs font-medium text-[#637381]">{{ t('common.activeFilters') }}:</span>
-              <span v-if="filterType" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+              <span v-if="filterType" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] text-xs font-medium text-[#374151]">
                 {{ t('erp.stockMovement.colType') }}: <span class="font-semibold ml-0.5 capitalize">{{ filterType.replace('_', ' ') }}</span>
                 <button @click="filterType = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 transition-colors">
                   <XMarkIcon class="w-3 h-3" />
                 </button>
               </span>
-              <span v-if="filterDateFrom" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+              <span v-if="filterDateFrom" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] text-xs font-medium text-[#374151]">
                 {{ t('common.dateFrom') }}: <span class="font-semibold ml-0.5">{{ filterDateFrom }}</span>
                 <button @click="filterDateFrom = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 transition-colors">
                   <XMarkIcon class="w-3 h-3" />
                 </button>
               </span>
-              <span v-if="filterDateTo" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] rounded-full text-xs font-medium text-[#374151]">
+              <span v-if="filterDateTo" class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 bg-white border border-[#E2E8F0] text-xs font-medium text-[#374151]">
                 {{ t('common.dateTo') }}: <span class="font-semibold ml-0.5">{{ filterDateTo }}</span>
                 <button @click="filterDateTo = ''; onFilterChange()" class="ml-1 p-0.5 text-[#9BA7B0] hover:text-red-500 transition-colors">
                   <XMarkIcon class="w-3 h-3" />
@@ -89,7 +89,7 @@
 
           <template #empty>
             <div class="flex flex-col items-center gap-3 py-4">
-              <div class="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center">
+              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
                 <ArrowsRightLeftIcon class="w-5 h-5 text-[#9BA7B0]" />
               </div>
               <div class="text-center">
@@ -183,7 +183,7 @@ const columns = [
     cell: info => {
       const v = info.getValue()
       return h('span', {
-        class: `inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${typeBadge(v)}`,
+        class: `inline-flex items-center px-2.5 py-1 text-xs font-semibold capitalize ${typeBadge(v)}`,
       }, v?.replace('_', ' '))
     },
   }),

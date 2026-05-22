@@ -1,9 +1,9 @@
-<template>
-  <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+﻿<template>
+  <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
     <div v-if="title || $slots.header || $slots.actions"
       class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
       <div class="flex items-center gap-3 min-w-0">
-        <div v-if="icon" :class="['w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0', iconBg]">
+        <div v-if="icon" :class="['w-8 h-8 flex items-center justify-center flex-shrink-0', iconBg]">
           <component :is="icon" :class="['w-4 h-4', iconText]" />
         </div>
         <div class="min-w-0">

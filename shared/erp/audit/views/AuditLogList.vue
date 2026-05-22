@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4">
@@ -9,7 +9,7 @@
       </div>
 
       <!-- Filters -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] p-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div class="bg-white border border-[#E2E8F0] p-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div>
           <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('erp.audit.entityType') }}</label>
           <SearchSelect v-model="filterEntityType" :options="entityTypeOptions" :placeholder="t('common.all')" @change="onFilter" />
@@ -29,7 +29,7 @@
       </div>
 
       <!-- Table -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
             <tr>
@@ -51,7 +51,7 @@
               <td class="px-4 py-2 text-xs text-[#637381] tabular-nums">{{ fmtDateTime(l.createdAt) }}</td>
               <td class="px-4 py-2 text-xs">{{ l.userEmail || '—' }}</td>
               <td class="px-4 py-2">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono bg-[#F1F5F9] text-[#374151]">{{ l.action }}</span>
+                <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-mono bg-[#F1F5F9] text-[#374151]">{{ l.action }}</span>
               </td>
               <td class="px-4 py-2 text-xs">
                 <p class="font-medium text-[#1C2434]">{{ l.entityType }}</p>
@@ -72,7 +72,7 @@
               class="px-3 py-1 border hover:bg-slate-50 disabled:opacity-40">&larr;</button>
             <span class="px-2">{{ page }} / {{ Math.ceil(total / limit) }}</span>
             <button @click="page = Math.min(Math.ceil(total / limit), page + 1); load()" :disabled="page * limit >= total"
-              class="px-3 py-1 border rounded-md hover:bg-slate-50 disabled:opacity-40">&rarr;</button>
+              class="px-3 py-1 border hover:bg-slate-50 disabled:opacity-40">&rarr;</button>
           </div>
         </div>
       </div>

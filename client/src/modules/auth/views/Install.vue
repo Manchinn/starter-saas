@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="min-h-screen flex">
 
     <!-- ── Left branding panel ──────────────────────────────────────────────── -->
@@ -15,11 +15,11 @@
           style="background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
                  linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
                  background-size: 44px 44px;" />
-        <div class="absolute top-[-100px] right-[-80px] w-[500px] h-[500px] rounded-full blur-[120px]"
+        <div class="absolute top-[-100px] right-[-80px] w-[500px] h-[500px] blur-[120px]"
           style="background: radial-gradient(circle, rgba(70,95,255,0.2) 0%, transparent 70%)" />
-        <div class="absolute bottom-[-80px] left-[-60px] w-[400px] h-[400px] rounded-full blur-[100px]"
+        <div class="absolute bottom-[-80px] left-[-60px] w-[400px] h-[400px] blur-[100px]"
           style="background: radial-gradient(circle, rgba(70,95,255,0.12) 0%, transparent 70%)" />
-        <div class="absolute top-[45%] left-[55%] w-[260px] h-[260px] rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2"
+        <div class="absolute top-[45%] left-[55%] w-[260px] h-[260px] blur-[80px] -translate-x-1/2 -translate-y-1/2"
           style="background: radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%)" />
       </div>
 
@@ -28,7 +28,7 @@
 
         <!-- Logo -->
         <div class="flex items-center gap-3 flex-shrink-0">
-          <div class="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
+          <div class="w-9 h-9-[10px] flex items-center justify-center flex-shrink-0"
             style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);
                    box-shadow: 0 0 0 1px rgba(70,95,255,0.4), 0 4px 16px rgba(70,95,255,0.35);">
             <svg class="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,9 +44,9 @@
           <div class="space-y-9 max-w-[360px]">
 
             <!-- Badge -->
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full w-fit"
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 w-fit"
               style="background: rgba(70,95,255,0.12); border: 1px solid rgba(70,95,255,0.28);">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+              <span class="w-1.5 h-1.5 bg-emerald-400 animate-pulse flex-shrink-0" />
               <span class="text-[11px] font-semibold text-primary-300 tracking-widest uppercase">
                 {{ t('auth.setupTitle') }}
               </span>
@@ -76,11 +76,11 @@
             </ul>
 
             <!-- Step indicators -->
-            <div class="rounded-2xl p-5 space-y-3"
+            <div class="p-5 space-y-3"
               style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
               <p class="text-[11px] font-semibold text-[#475569] uppercase tracking-widest">Quick setup — 3 steps</p>
               <div v-for="(step, i) in steps" :key="i" class="flex items-center gap-3">
-                <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
+                <div class="w-6 h-6 flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
                   :style="i === 0
                     ? 'background: linear-gradient(135deg,#465fff,#3641f5); color:#fff; box-shadow:0 2px 8px rgba(70,95,255,0.4)'
                     : 'background: rgba(255,255,255,0.06); color:#475569; border:1px solid rgba(255,255,255,0.08)'">
@@ -113,7 +113,7 @@
       <!-- Top bar -->
       <div class="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0">
         <div class="flex items-center gap-2.5 lg:hidden">
-          <div class="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0"
+          <div class="w-8 h-8-[9px] flex items-center justify-center flex-shrink-0"
             style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -288,11 +288,11 @@
             <div class="space-y-2.5">
               <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">Setup options</p>
 
-              <label class="flex items-start gap-3 cursor-pointer select-none rounded-xl border border-[#E2E8F0] bg-white px-4 py-3.5 hover:border-primary-300 hover:bg-primary-50/30 transition-all duration-150"
+              <label class="flex items-start gap-3 cursor-pointer select-none border border-[#E2E8F0] bg-white px-4 py-3.5 hover:border-primary-300 hover:bg-primary-50/30 transition-all duration-150"
                 :class="seedSequences ? 'border-primary-300 bg-primary-50/30' : ''">
                 <div class="relative flex-shrink-0 mt-0.5">
                   <input v-model="seedSequences" type="checkbox" class="sr-only" />
-                  <div class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center transition-all duration-150"
+                  <div class="w-4 h-4 border-[1.5px] flex items-center justify-center transition-all duration-150"
                     :class="seedSequences ? 'bg-primary-500 border-primary-500' : 'bg-white border-[#CBD5E1]'">
                     <svg v-if="seedSequences" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
@@ -307,11 +307,11 @@
                 </div>
               </label>
 
-              <label class="flex items-start gap-3 cursor-pointer select-none rounded-xl border border-[#E2E8F0] bg-white px-4 py-3.5 hover:border-primary-300 hover:bg-primary-50/30 transition-all duration-150"
+              <label class="flex items-start gap-3 cursor-pointer select-none border border-[#E2E8F0] bg-white px-4 py-3.5 hover:border-primary-300 hover:bg-primary-50/30 transition-all duration-150"
                 :class="seedDemo ? 'border-primary-300 bg-primary-50/30' : ''">
                 <div class="relative flex-shrink-0 mt-0.5">
                   <input v-model="seedDemo" type="checkbox" class="sr-only" />
-                  <div class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center transition-all duration-150"
+                  <div class="w-4 h-4 border-[1.5px] flex items-center justify-center transition-all duration-150"
                     :class="seedDemo ? 'bg-primary-500 border-primary-500' : 'bg-white border-[#CBD5E1]'">
                     <svg v-if="seedDemo" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
@@ -336,7 +336,7 @@
               leave-from-class="opacity-100"
               leave-to-class="opacity-0">
               <div v-if="errors.length"
-                class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl">
+                class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px]">
                 <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />

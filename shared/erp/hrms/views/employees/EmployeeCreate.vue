@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -16,7 +16,7 @@
       <div class="grid grid-cols-2 gap-6 items-start">
 
         <!-- Left: Employee Information -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.employeeInfo') }}</h2>
           </div>
@@ -87,7 +87,7 @@
         </div>
 
         <!-- Right: Login Credentials (Optional) -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.loginCredentials') }}</h2>
           </div>
@@ -129,7 +129,7 @@
             <!-- Moved Department Selection here -->
             <div class="pt-6 border-t border-[#E2E8F0]">
               <label class="block text-sm font-medium text-[#374151] mb-3">{{ t('erp.employees.deptAssignments') }}</label>
-              <div class="grid grid-cols-2 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/80 rounded-xl max-h-48 overflow-y-auto">
+              <div class="grid grid-cols-2 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/80 max-h-48 overflow-y-auto">
                 <label v-for="d in departments" :key="d.id" class="flex items-center gap-2 px-2 py-1.5 hover:bg-white cursor-pointer transition-colors">
                   <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="text-primary-500 focus:ring-primary-500" />
                   <span class="text-xs font-medium text-[#374151] truncate" :title="d.name">{{ d.name }}</span>

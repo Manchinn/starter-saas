@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -60,7 +60,7 @@
                      transition-colors">
               <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.journals.addLine') }}
-              <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 rounded bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+L</kbd>
+              <kbd class="hidden sm:inline ml-0.5 px-1.5 py-0.5 bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Ctrl+L</kbd>
             </button>
           </template>
 
@@ -162,11 +162,11 @@
       <div class="flex items-center gap-2.5">
         <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
           <span class="flex items-center gap-1" :title="t('erp.journals.newEntry')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
+            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>save</span>
           </span>
           <span class="flex items-center gap-1" :title="t('erp.journals.addLine')">
-            <kbd class="px-1.5 py-0.5 rounded border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+L</kbd>
+            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+L</kbd>
             <span>line</span>
           </span>
         </div>

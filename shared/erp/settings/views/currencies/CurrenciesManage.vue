@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
       <div class="flex items-center justify-between gap-4">
@@ -16,7 +16,7 @@
       </div>
 
       <!-- Currencies -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center justify-between">
           <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.currencies.currencies') }}</h2>
           <button @click="addCurrencyDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white hover:bg-primary-700 transition">
@@ -54,7 +54,7 @@
       </div>
 
       <!-- Exchange Rates -->
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center justify-between">
           <div>
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.currencies.exchangeRates') }}</h2>

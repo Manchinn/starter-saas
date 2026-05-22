@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -27,9 +27,9 @@
       <div class="space-y-5">
 
         <!-- Section: Debit Note Information -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+            <div class="w-8 h-8 bg-orange-50 flex items-center justify-center flex-shrink-0">
               <ArrowTrendingUpIcon class="w-4 h-4 text-orange-500" />
             </div>
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.debitNotes.info') }}</h2>
@@ -112,7 +112,7 @@
         <ErrorBanner :message="globalError" />
 
         <!-- Summary -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2.5">
             <CalculatorIcon class="w-4 h-4 text-[#9BA7B0]" />
             <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.debitNotes.summary') }}</h2>

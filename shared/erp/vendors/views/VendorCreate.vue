@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -9,7 +9,7 @@
         <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.vendors.new') }}</h1>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
+      <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.code') }}</label>

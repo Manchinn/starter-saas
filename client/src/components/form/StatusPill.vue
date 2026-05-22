@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <span :class="[
-      'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border',
+      'inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold border',
       tone.bg, tone.text, tone.border,
     ]">
-    <span v-if="dot" :class="['w-1.5 h-1.5 rounded-full', tone.dot]"></span>
+    <span v-if="dot" :class="['w-1.5 h-1.5', tone.dot]"></span>
     <slot>{{ label }}</slot>
   </span>
 </template>
