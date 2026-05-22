@@ -78,6 +78,7 @@ export default {
     stockCount: {
       title:           'นับสต็อก',
       new:             'นับสต็อกใหม่',
+      edit:            'แก้ไขการนับสต็อก',
       detail:          'รายละเอียดการนับสต็อก',
       documentTitle:   'ใบนับสต็อก',
       docPreparedBy:   'ผู้นับ',

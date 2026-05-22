@@ -43,6 +43,15 @@ module.exports = {
     }
   },
 
+  async update(req, res) {
+    try {
+      const sc = await service.update(req.params.id, { ...req.body, userId: req.user?.id })
+      return ok(res, { stockCount: sc }, 'Stock Count updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
   async confirm(req, res) {
     try {
       const sc = await service.confirm(req.params.id, req.user?.id)

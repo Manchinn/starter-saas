@@ -98,6 +98,12 @@ export const routes = [
     component: () => import('./stock-count/views/StockCountDetail.vue'),
     meta: { requiresAuth: true, title: 'Stock Count Detail' },
   },
+  {
+    path: '/erp/stock-count/:id/edit',
+    name: 'erp-stock-count-edit',
+    component: () => import('./stock-count/views/StockCountEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Stock Count' },
+  },
   // Stock Transfer
   {
     path: '/erp/stock-request',

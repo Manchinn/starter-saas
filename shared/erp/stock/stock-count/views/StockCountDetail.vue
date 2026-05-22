@@ -42,6 +42,12 @@
             <PrinterIcon class="w-4 h-4" />
             {{ t('common.print') }}
           </button>
+          <RouterLink v-if="sc.status === 'draft'" v-can="'erp.stock.edit'" :to="`/erp/stock-count/${sc.id}/edit`"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+                   text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors">
+            <PencilSquareIcon class="w-4 h-4" />
+            {{ t('common.edit') }}
+          </RouterLink>
           <button v-if="sc.status === 'draft'" v-can="'erp.stock.delete'" @click="deleteSc" type="button"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
                    text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors">
@@ -319,7 +325,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   ArrowLeftIcon, ChevronRightIcon, CheckIcon, ArrowPathIcon,
-  TrashIcon, PrinterIcon, ExclamationCircleIcon,
+  TrashIcon, PencilSquareIcon, PrinterIcon, ExclamationCircleIcon,
   LockClosedIcon, LockOpenIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'

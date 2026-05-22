@@ -78,6 +78,7 @@ export default {
     stockCount: {
       title:           'Stock Count',
       new:             'New Count',
+      edit:            'Edit Stock Count',
       detail:          'Stock Count Detail',
       documentTitle:   'Stock Count',
       docPreparedBy:   'Counted By',
