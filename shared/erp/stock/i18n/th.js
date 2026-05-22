@@ -78,6 +78,11 @@ export default {
     stockCount: {
       title:           'นับสต็อก',
       new:             'นับสต็อกใหม่',
+      detail:          'รายละเอียดการนับสต็อก',
+      documentTitle:   'ใบนับสต็อก',
+      docPreparedBy:   'ผู้นับ',
+      docApprovedBy:   'ผู้อนุมัติ',
+      confirmHint:     'ยืนยันเพื่อปรับยอดสต็อกในคลังให้ตรงกับยอดนับ (ไม่สามารถย้อนกลับได้)',
       searchPh:        'ค้นหาเลขอ้างอิง…',
       noFound:         'ไม่พบข้อมูล',
       storeLocked:     'คลังถูกล็อกอยู่',

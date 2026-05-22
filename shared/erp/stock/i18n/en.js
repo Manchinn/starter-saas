@@ -78,6 +78,11 @@ export default {
     stockCount: {
       title:           'Stock Count',
       new:             'New Count',
+      detail:          'Stock Count Detail',
+      documentTitle:   'Stock Count',
+      docPreparedBy:   'Counted By',
+      docApprovedBy:   'Approved By',
+      confirmHint:     'Confirm to overwrite store stock with the counted quantities. This cannot be undone.',
       searchPh:        'Search ref no…',
       noFound:         'No records found',
       storeLocked:     'Store Already Locked',
