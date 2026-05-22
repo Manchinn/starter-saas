@@ -1,7 +1,7 @@
 const { StockIssue, StockIssueItem, Product, Store, StoreStock, StockMovement } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku', 'stock', 'unit']
 
@@ -71,6 +71,44 @@ const create = async ({ date, storeId, reason, notes, items = [], userId, organi
   }
 }
 
+const update = async (id, { date, storeId, reason, notes, items = [], userId, organizationId }) => {
+  const issue = await StockIssue.findByPk(id)
+  if (!issue) throw { status: 404, message: 'Stock Issue not found' }
+  if (issue.status !== 'draft') throw { status: 400, message: 'Only draft issues can be edited' }
+  if (!date)         throw { status: 400, message: 'Date is required' }
+  if (!storeId)      throw { status: 400, message: 'Store is required' }
+  if (!items.length) throw { status: 400, message: 'At least one item is required' }
+  const store = await Store.findByPk(storeId)
+  if (!store) throw { status: 400, message: 'Store not found' }
+
+  const t = await sequelize.transaction()
+  try {
+    await issue.update({ date, storeId, reason, notes, modifiedBy: userId || null }, { transaction: t })
+    await StockIssueItem.destroy({ where: { stockIssueId: id }, transaction: t })
+    for (const item of items) {
+      if (!item.productId) throw { status: 400, message: 'Product is required on all items' }
+      if (!item.qty || item.qty <= 0) throw { status: 400, message: 'Quantity must be greater than 0' }
+      await StockIssueItem.create(
+        {
+          stockIssueId: id,
+          productId:    item.productId,
+          qty:          item.qty,
+          batchId:      item.batchId || null,
+          expiryDate:   item.expiryDate || null,
+          notes:        item.notes || null,
+          organizationId: organizationId || null,
+        },
+        { transaction: t }
+      )
+    }
+    await t.commit()
+    return getById(id)
+  } catch (err) {
+    await t.rollback()
+    throw err
+  }
+}
+
 const confirm = async (id) => {
   const issue = await StockIssue.findByPk(id, { include: [itemInclude] })
   if (!issue) throw { status: 404, message: 'Stock Issue not found' }
@@ -133,4 +171,4 @@ const remove = async (id) => {
   await issue.destroy()
 }
 
-module.exports = { list, getById, create, confirm, remove }
+module.exports = { list, getById, create, update, confirm, remove }

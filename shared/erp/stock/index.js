@@ -53,6 +53,12 @@ export const routes = [
     component: () => import('./stock-adjust/views/StockAdjustDetail.vue'),
     meta: { requiresAuth: true, title: 'Stock Adjustment Detail' },
   },
+  {
+    path: '/erp/stock-adjust/:id/edit',
+    name: 'erp-stock-adjust-edit',
+    component: () => import('./stock-adjust/views/StockAdjustEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Stock Adjustment' },
+  },
   // Stock Balance
   {
     path: '/erp/stock-balance',
@@ -148,6 +154,12 @@ export const routes = [
     name: 'erp-stock-issue-detail',
     component: () => import('./stock-issue/views/StockIssueDetail.vue'),
     meta: { requiresAuth: true, title: 'Stock Issue Detail' },
+  },
+  {
+    path: '/erp/stock-issue/:id/edit',
+    name: 'erp-stock-issue-edit',
+    component: () => import('./stock-issue/views/StockIssueEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Stock Issue' },
   },
 ]
 
