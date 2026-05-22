@@ -1,9 +1,9 @@
 const { Router } = require('express')
-const { body } = require('express-validator')
 const controller = require('./organization.controller')
 const { authenticate } = require('../../middleware/auth')
 const { requirePermission } = require('../../middleware/permission')
 const { validate } = require('../../middleware/validate')
+const { createRules } = require('./organization.validators')
 
 const router = Router()
 
@@ -19,13 +19,7 @@ router.get('/all-staff', requirePermission('organizations.list'), (req, res) => 
 router.get('/all', requirePermission('organizations.list'), (req, res) => controller.listAll(req, res))
 
 // Permission-guarded
-router.post('/', requirePermission('organizations.edit'), [
-  body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
-  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-  body('role').optional().isIn(['admin', 'user']).withMessage('Role must be admin or user'),
-  validate,
-], (req, res) => controller.create(req, res))
+router.post('/', requirePermission('organizations.edit'), createRules, validate, (req, res) => controller.create(req, res))
 
 router.get('/', requirePermission('organizations.list'), (req, res) => controller.list(req, res))
 router.get('/:id', requirePermission('organizations.list'), (req, res) => controller.getById(req, res))

@@ -1,18 +1,12 @@
-﻿const { Router } = require('express')
-const { body } = require('express-validator')
+const { Router } = require('express')
 const { validate } = require('../../../../server/middleware/validate')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requirePermission } = require('../../../../server/middleware/permission')
 const controller = require('../controllers/fiscal-year.controller')
+const { createRules } = require('../validators/fiscal-year.validators')
 
 const router = Router()
 router.use(authenticate)
-
-const createRules = [
-  body('name').notEmpty().withMessage('Name is required'),
-  body('startDate').notEmpty().withMessage('Start date is required'),
-  body('endDate').notEmpty().withMessage('End date is required'),
-]
 
 router.get('/',           requirePermission('erp.accounting.list'),   controller.list)
 router.get('/:id',        requirePermission('erp.accounting.list'),   controller.getById)

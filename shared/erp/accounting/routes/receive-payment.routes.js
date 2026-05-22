@@ -1,19 +1,12 @@
-﻿const { Router } = require('express')
-const { body } = require('express-validator')
+const { Router } = require('express')
 const { validate } = require('../../../../server/middleware/validate')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requirePermission } = require('../../../../server/middleware/permission')
 const controller = require('../controllers/receive-payment.controller')
+const { createRules } = require('../validators/receive-payment.validators')
 
 const router = Router()
 router.use(authenticate)
-
-const createRules = [
-  body('customerId').notEmpty().withMessage('Customer is required'),
-  body('date').notEmpty().withMessage('Date is required'),
-  body('paymentMethod').notEmpty().withMessage('Payment method is required'),
-  body('invoiceIds').isArray({ min: 1 }).withMessage('Select at least one invoice'),
-]
 
 // Static routes before /:id
 router.get('/available-invoices', requirePermission('erp.accounting.list'),   controller.availableInvoices)

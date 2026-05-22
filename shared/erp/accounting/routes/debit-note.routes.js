@@ -1,19 +1,12 @@
-﻿const { Router } = require('express')
-const { body } = require('express-validator')
+const { Router } = require('express')
 const { validate } = require('../../../../server/middleware/validate')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requirePermission } = require('../../../../server/middleware/permission')
 const controller = require('../controllers/debit-note.controller')
+const { createRules } = require('../validators/debit-note.validators')
 
 const router = Router()
 router.use(authenticate)
-
-const createRules = [
-  body('customerId').notEmpty().withMessage('Customer is required'),
-  body('date').notEmpty().withMessage('Date is required'),
-  body('reason').notEmpty().withMessage('Reason is required'),
-  body('amount').isFloat({ gt: 0 }).withMessage('Amount must be greater than 0'),
-]
 
 // Static routes before /:id
 router.get('/customer-invoices',   requirePermission('erp.accounting.list'),   controller.customerInvoices)

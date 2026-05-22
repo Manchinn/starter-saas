@@ -1,21 +1,12 @@
 const { Router } = require('express')
-const { body } = require('express-validator')
 const { validate } = require('../../../../server/middleware/validate')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requirePermission } = require('../../../../server/middleware/permission')
 const controller = require('../controllers/delivery-order.controller')
+const { createRules } = require('../validators/delivery-order.validators')
 
 const router = Router()
 router.use(authenticate)
-
-// Package-row payloads carry `salePackageId` and no `productName` — they're
-// expanded to flat children server-side. Skip the productName check for those.
-const createRules = [
-  body('customerId').notEmpty().withMessage('Customer is required'),
-  body('date').notEmpty().withMessage('Date is required'),
-  body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
-  body('items.*.qty').isNumeric().withMessage('Item quantity must be a number'),
-]
 
 router.get('/',              requirePermission('erp.orders.list'),   controller.list)
 router.get('/:id',           requirePermission('erp.orders.list'),   controller.getById)
