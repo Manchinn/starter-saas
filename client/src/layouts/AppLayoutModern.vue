@@ -285,7 +285,7 @@
               <li v-for="link in col.items" :key="link.to">
                 <RouterLink
                   :to="link.to"
-                  class="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[12.5px] text-gray-600
+                  class="flex items-center gap-1.5 px-1.5 py-1 text-[12.5px] text-gray-600
                          hover:bg-primary-50 hover:text-primary-700 transition-colors leading-tight"
                   active-class="text-primary-700 font-medium bg-primary-50"
                   @click="openDropdown = null"

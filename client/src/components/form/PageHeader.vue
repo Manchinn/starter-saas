@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-start gap-4">
     <RouterLink v-if="backTo" :to="backTo"
-      class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
+      class="mt-0.5 p-2 text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white border border-transparent
              hover:border-[#E2E8F0] transition-all flex-shrink-0">
       <ArrowLeftIcon class="w-[18px] h-[18px]" />
     </RouterLink>

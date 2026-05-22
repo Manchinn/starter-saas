@@ -29,7 +29,7 @@
           <h1 class="text-[20px] font-bold text-[#0F172A] mb-1.5">{{ t('auth.verifiedTitle') }}</h1>
           <p class="text-[13px] text-[#64748B] mb-6">{{ t('auth.verifiedDesc') }}</p>
           <RouterLink :to="auth.isAuthenticated ? '/dashboard' : '/login'"
-            class="inline-block py-2.5 px-6 rounded-xl text-[14px] font-semibold text-white bg-primary-500 hover:bg-primary-600 transition">
+            class="inline-block py-2.5 px-6 text-[14px] font-semibold text-white bg-primary-500 hover:bg-primary-600 transition">
             {{ auth.isAuthenticated ? t('nav.dashboard') : t('auth.signIn') }}
           </RouterLink>
         </div>
@@ -43,7 +43,7 @@
           <h1 class="text-[20px] font-bold text-[#0F172A] mb-1.5">{{ t('auth.verifyFailedTitle') }}</h1>
           <p class="text-[13px] text-[#64748B] mb-6">{{ error || t('auth.verifyFailedDesc') }}</p>
           <RouterLink to="/login"
-            class="inline-block py-2.5 px-6 rounded-xl text-[14px] font-semibold text-white bg-primary-500 hover:bg-primary-600 transition">
+            class="inline-block py-2.5 px-6 text-[14px] font-semibold text-white bg-primary-500 hover:bg-primary-600 transition">
             {{ t('auth.backToSignIn') }}
           </RouterLink>
         </div>

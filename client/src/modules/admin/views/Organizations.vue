@@ -109,10 +109,10 @@
                   <button @click="openView(u)" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors" :title="$t('common.edit')">
                     <EyeIcon class="w-4 h-4" />
                   </button>
-                  <RouterLink v-can="'organizations.edit'" :to="`/admin/organizations/${u.id}/edit`" class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors" :title="$t('common.edit')">
+                  <RouterLink v-can="'organizations.edit'" :to="`/admin/organizations/${u.id}/edit`" class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors" :title="$t('common.edit')">
                     <PencilIcon class="w-4 h-4" />
                   </RouterLink>
-                  <RouterLink :to="`/admin/staff?organizationId=${u.id}`" class="p-1.5 text-[#9BA7B0] hover:text-violet-600 hover:bg-violet-50 rounded-md transition-colors">
+                  <RouterLink :to="`/admin/staff?organizationId=${u.id}`" class="p-1.5 text-[#9BA7B0] hover:text-violet-600 hover:bg-violet-50 transition-colors">
                     <UserGroupIcon class="w-4 h-4" />
                   </RouterLink>
                   <button @click="seedSequences(u)" :disabled="seedingId === u.id" class="p-1.5 text-[#9BA7B0] hover:text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-40">

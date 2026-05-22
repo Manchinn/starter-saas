@@ -75,7 +75,7 @@
 
         <div class="flex justify-end gap-3">
           <RouterLink to="/erp/uom-conversion"
-            class="px-4 py-2.5 text-sm border border-[#E2E8F0] rounded-xl hover:bg-[#F7F9FC] transition text-[#637381]">
+            class="px-4 py-2.5 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition text-[#637381]">
             {{ t('common.cancel') }}
           </RouterLink>
           <button @click="save" :disabled="saving"

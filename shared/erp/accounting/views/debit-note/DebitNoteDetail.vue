@@ -5,7 +5,7 @@
       <!-- Top action bar (hidden on print) -->
       <div class="flex items-start gap-3 print:hidden">
         <RouterLink to="/erp/billing/debit-notes"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
+          class="mt-0.5 p-2 text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
                  border border-transparent hover:border-[#E2E8F0] transition-all flex-shrink-0">
           <ArrowLeftIcon class="w-[18px] h-[18px]" />
         </RouterLink>
@@ -32,7 +32,7 @@
           <div v-if="dn && !loading && dn.invoice" class="flex items-center gap-1.5 mt-2 flex-wrap">
             <span class="text-[11px] text-[#9BA7B0] font-medium">{{ t('erp.common.source') }}:</span>
             <RouterLink :to="`/erp/invoices/${dn.invoice.id}`"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+              class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
               <DocumentTextIcon class="w-3 h-3" /> {{ dn.invoice.invoiceNumber }}
             </RouterLink>
           </div>

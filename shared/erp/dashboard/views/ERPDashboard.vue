@@ -42,7 +42,7 @@
 
         <!-- Sales MTD -->
         <RouterLink to="/erp/invoices"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
             <ArrowTrendingUpIcon class="w-5 h-5 text-emerald-600" />
           </div>
@@ -56,7 +56,7 @@
 
         <!-- Outstanding AR -->
         <RouterLink to="/erp/invoices?status=sent"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group"
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group"
           :class="(stats.finance?.arOverdueCount ?? 0) > 0 ? 'border-red-200 bg-red-50/30' : ''">
           <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-90 transition-colors"
             :class="(stats.finance?.arOverdueCount ?? 0) > 0 ? 'bg-red-100' : 'bg-blue-50'">
@@ -78,7 +78,7 @@
 
         <!-- Outstanding AP -->
         <RouterLink to="/erp/purchasing/bills"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-amber-200 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-amber-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
             <BanknotesIcon class="w-5 h-5 text-amber-600" />
           </div>
@@ -92,7 +92,7 @@
 
         <!-- This Period VAT -->
         <RouterLink :to="stats.finance?.vatPeriod ? `/erp/accounting/tax-periods/${stats.finance.vatPeriod.id}/vat-report` : '/erp/accounting/tax-periods'"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-slate-300 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-slate-300 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0 group-hover:bg-slate-100 transition-colors">
             <DocumentChartBarIcon class="w-5 h-5 text-slate-700" />
           </div>
@@ -124,7 +124,7 @@
 
         <!-- Open Quotations -->
         <RouterLink to="/erp/quotations"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-violet-200 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-violet-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-100 transition-colors">
             <DocumentTextIcon class="w-5 h-5 text-violet-600" />
           </div>
@@ -140,7 +140,7 @@
 
         <!-- Active Sales Orders -->
         <RouterLink to="/erp/orders"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
             <ShoppingCartIcon class="w-5 h-5 text-emerald-600" />
           </div>
@@ -156,7 +156,7 @@
 
         <!-- Pending Deliveries -->
         <RouterLink to="/erp/delivery-orders"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-amber-200 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-amber-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
             <TruckIcon class="w-5 h-5 text-amber-600" />
           </div>
@@ -172,7 +172,7 @@
 
         <!-- Sent invoice count (replaces legacy AR tile; the financial AR moved to the Finance row above) -->
         <RouterLink to="/erp/invoices?status=sent"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
             <DocumentTextIcon class="w-5 h-5 text-blue-600" />
           </div>
@@ -191,7 +191,7 @@
 
         <!-- Active Products -->
         <RouterLink to="/erp/item-master"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-indigo-200 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-indigo-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-100 transition-colors">
             <CubeIcon class="w-5 h-5 text-indigo-600" />
           </div>
@@ -209,7 +209,7 @@
 
         <!-- Stock on Hand -->
         <RouterLink to="/erp/stock-balance"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-teal-200 hover:shadow-md transition-all group">
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-teal-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
             <ArchiveBoxIcon class="w-5 h-5 text-teal-600" />
           </div>
@@ -246,7 +246,7 @@
 
         <!-- Draft Journals -->
         <RouterLink to="/erp/accounting/journals"
-          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-orange-200 hover:shadow-md transition-all group"
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-orange-200 hover:shadow-md transition-all group"
           :class="(stats.draftJournals ?? 0) > 0 ? 'border-orange-100 bg-orange-50/20' : ''">
           <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-90 transition-colors"
             :class="(stats.draftJournals ?? 0) > 0 ? 'bg-orange-100' : 'bg-orange-50'">
@@ -593,7 +593,7 @@
         <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
 
           <RouterLink to="/erp/invoices/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
+            class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-blue-300 hover:bg-blue-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
               <DocumentTextIcon class="w-5 h-5 text-blue-600" />
@@ -604,7 +604,7 @@
           </RouterLink>
 
           <RouterLink to="/erp/quotations/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
+            class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-violet-300 hover:bg-violet-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-violet-100 group-hover:bg-violet-200 flex items-center justify-center transition-colors">
               <ClipboardDocumentListIcon class="w-5 h-5 text-violet-600" />
@@ -615,7 +615,7 @@
           </RouterLink>
 
           <RouterLink to="/erp/orders/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
+            class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-emerald-300 hover:bg-emerald-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition-colors">
               <ShoppingCartIcon class="w-5 h-5 text-emerald-600" />
@@ -626,7 +626,7 @@
           </RouterLink>
 
           <RouterLink to="/erp/good-receive/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
+            class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-amber-300 hover:bg-amber-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-amber-100 group-hover:bg-amber-200 flex items-center justify-center transition-colors">
               <TruckIcon class="w-5 h-5 text-amber-600" />
@@ -637,7 +637,7 @@
           </RouterLink>
 
           <RouterLink to="/erp/accounting/journals/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
+            class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-orange-300 hover:bg-orange-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center transition-colors">
               <PencilSquareIcon class="w-5 h-5 text-orange-600" />
@@ -648,7 +648,7 @@
           </RouterLink>
 
           <RouterLink to="/erp/stock-count/create"
-            class="flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-[#E2E8F0]
+            class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-purple-300 hover:bg-purple-50 transition-all group text-center">
             <div class="w-10 h-10 rounded-xl bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center transition-colors">
               <ClipboardDocumentCheckIcon class="w-5 h-5 text-purple-600" />

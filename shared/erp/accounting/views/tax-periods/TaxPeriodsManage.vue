@@ -41,7 +41,7 @@
               <td class="px-4 py-2 text-right">
                 <div class="flex items-center justify-end gap-1">
                   <RouterLink v-if="!isDraft(p)" :to="`/erp/accounting/tax-periods/${p.id}/vat-report`"
-                    class="px-2 py-1 text-xs font-semibold bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded-md hover:bg-slate-100" :title="t('erp.taxPeriods.viewReport')">
+                    class="px-2 py-1 text-xs font-semibold bg-slate-50 text-slate-700 border border-[#E2E8F0] hover:bg-slate-100" :title="t('erp.taxPeriods.viewReport')">
                     <DocumentChartBarIcon class="w-4 h-4 inline" />
                   </RouterLink>
                   <button v-if="isDraft(p) || p.status !== 'closed'" @click="save(p)" :disabled="p._saving" class="px-2.5 py-1 text-xs font-semibold bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50">{{ p._saving ? '…' : (isDraft(p) ? t('common.create') : t('common.save')) }}</button>

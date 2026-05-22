@@ -5,7 +5,7 @@
       <!-- Top action bar (hidden on print) -->
       <div class="flex items-start gap-3 print:hidden">
         <RouterLink to="/erp/invoices"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
+          class="mt-0.5 p-2 text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
                  border border-transparent hover:border-[#E2E8F0] transition-all flex-shrink-0">
           <ArrowLeftIcon class="w-[18px] h-[18px]" />
         </RouterLink>
@@ -39,11 +39,11 @@
           <div v-if="invoice && !loading && (invoice.order || invoice.deliveryOrder)" class="flex items-center gap-1.5 mt-2 flex-wrap">
             <span class="text-[11px] text-[#9BA7B0] font-medium">{{ t('erp.common.source') }}:</span>
             <RouterLink v-if="invoice.order" :to="`/erp/orders/${invoice.order.id}`"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+              class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
               <ShoppingCartIcon class="w-3 h-3" /> {{ invoice.order.orderNumber }}
             </RouterLink>
             <RouterLink v-if="invoice.deliveryOrder" :to="`/erp/delivery-orders/${invoice.deliveryOrder.id}`"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-purple-50 text-purple-700 hover:bg-purple-100">
+              class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-purple-50 text-purple-700 hover:bg-purple-100">
               <TruckIcon class="w-3 h-3" /> {{ invoice.deliveryOrder.refNo }}
             </RouterLink>
           </div>
@@ -57,7 +57,7 @@
             {{ t('common.print') }}
           </button>
           <RouterLink v-if="invoice.status === 'draft'" v-can="'erp.invoices.edit'" :to="`/erp/invoices/${invoice.id}/edit`"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors">
             <PencilSquareIcon class="w-4 h-4" />
             {{ t('common.edit') }}
@@ -366,7 +366,7 @@
             {{ converting ? t('erp.common.saving') : t('erp.invoices.recordPayment') }}
           </button>
           <RouterLink v-if="invoice.linkedReceipt" :to="`/erp/receipts/${invoice.linkedReceipt.id}`"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+            class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
             → {{ invoice.linkedReceipt.receiptNumber }}
           </RouterLink>
           <span v-if="convertError" class="self-center text-xs text-red-600">{{ convertError }}</span>

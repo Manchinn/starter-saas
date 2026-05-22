@@ -65,7 +65,7 @@
             {{ t('auth.resetDone') }}
           </div>
           <RouterLink to="/login"
-            class="block text-center py-3 px-6 rounded-xl text-[14px] font-semibold text-white bg-primary-500 hover:bg-primary-600 transition">
+            class="block text-center py-3 px-6 text-[14px] font-semibold text-white bg-primary-500 hover:bg-primary-600 transition">
             {{ t('auth.signIn') }}
           </RouterLink>
         </div>

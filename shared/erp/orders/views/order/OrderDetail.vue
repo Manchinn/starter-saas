@@ -5,7 +5,7 @@
       <!-- Top action bar (hidden on print) -->
       <div class="flex items-start gap-3 print:hidden">
         <RouterLink to="/erp/orders"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
+          class="mt-0.5 p-2 text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
                  border border-transparent hover:border-[#E2E8F0] transition-all flex-shrink-0">
           <ArrowLeftIcon class="w-[18px] h-[18px]" />
         </RouterLink>
@@ -40,7 +40,7 @@
             {{ t('common.print') }}
           </button>
           <RouterLink v-if="order.status === 'draft'" v-can="'erp.orders.edit'" :to="`/erp/orders/${order.id}/edit`"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors">
             <PencilSquareIcon class="w-4 h-4" />
             {{ t('common.edit') }}
@@ -346,7 +346,7 @@
             {{ converting === 'do' ? t('erp.common.saving') : t('erp.orders.createDeliveryOrder') }}
           </button>
           <RouterLink v-if="order.linkedDeliveryOrder" :to="`/erp/delivery-orders/${order.linkedDeliveryOrder.id}`"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+            class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
             → {{ order.linkedDeliveryOrder.refNo }}
           </RouterLink>
 
@@ -359,7 +359,7 @@
             {{ converting === 'inv' ? t('erp.common.saving') : t('erp.orders.createInvoice') }}
           </button>
           <RouterLink v-if="order.linkedInvoice" :to="`/erp/invoices/${order.linkedInvoice.id}`"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+            class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
             → {{ order.linkedInvoice.invoiceNumber }}
           </RouterLink>
 

@@ -264,12 +264,12 @@
                 </div>
                 <div class="p-1.5">
                   <RouterLink to="/profile/general" @click="userOpen = false"
-                    class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] rounded-xl hover:bg-[#F7F9FC] transition-colors">
+                    class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
                     <UserCircleIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('nav.profile') }}</span>
                   </RouterLink>
                   <RouterLink to="/profile/sessions" @click="userOpen = false"
-                    class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] rounded-xl hover:bg-[#F7F9FC] transition-colors">
+                    class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
                     <ComputerDesktopIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('profile.tabSessions') }}</span>
                   </RouterLink>

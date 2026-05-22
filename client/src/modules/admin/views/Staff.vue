@@ -97,7 +97,7 @@
               <td class="td text-right">
                 <div class="flex items-center justify-end gap-0.5">
                   <RouterLink :to="`/admin/staff/${member.id}/edit`"
-                              class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors"
+                              class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors"
                               :title="t('common.edit')">
                     <PencilIcon class="w-4 h-4" />
                   </RouterLink>

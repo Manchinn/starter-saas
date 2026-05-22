@@ -5,7 +5,7 @@
       <!-- Top action bar (hidden on print) -->
       <div class="flex items-start gap-3 print:hidden">
         <RouterLink to="/erp/stock-request"
-          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
+          class="mt-0.5 p-2 text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
                  border border-transparent hover:border-[#E2E8F0] transition-all flex-shrink-0">
           <ArrowLeftIcon class="w-[18px] h-[18px]" />
         </RouterLink>
@@ -37,7 +37,7 @@
             {{ t('common.print') }}
           </button>
           <RouterLink v-if="req.status === 'draft'" v-can="'erp.stock.edit'" :to="`/erp/stock-request/${req.id}/edit`"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors">
             <PencilSquareIcon class="w-4 h-4" />
             {{ t('common.edit') }}
