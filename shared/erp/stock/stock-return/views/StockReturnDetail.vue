@@ -1,128 +1,358 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/stock-return" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
+    <div class="space-y-5">
+
+      <!-- Top action bar (hidden on print) -->
+      <div class="flex items-start gap-3 print:hidden">
+        <RouterLink to="/erp/stock-return"
+          class="mt-0.5 p-2 rounded-xl text-[#9BA7B0] hover:text-[#1C2434] hover:bg-white
+                 border border-transparent hover:border-[#E2E8F0] transition-all flex-shrink-0">
+          <ArrowLeftIcon class="w-[18px] h-[18px]" />
         </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.stockReturn.title') }}</h1>
-        <span v-if="sr" :class="typeClass(sr.type)" class="px-2.5 py-0.5 rounded-full text-xs font-medium">
-          {{ sr.type === 'customer_return' ? t('erp.stockReturn.customerReturn') : t('erp.stockReturn.returnToVendor') }}
-        </span>
-        <span v-if="sr" :class="sr.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'"
-          class="px-2.5 py-0.5 rounded-full text-xs font-medium capitalize">{{ sr?.status }}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <h1 class="text-xl font-bold text-[#1C2434]">
+              {{ loading ? '…' : (sr?.refNo || t('erp.stockReturn.detail')) }}
+            </h1>
+            <span v-if="sr && !loading"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize"
+              :class="statusBadge(sr.status)">
+              <span class="w-1.5 h-1.5 rounded-full" :class="statusDot(sr.status)"></span>
+              {{ sr.status }}
+            </span>
+            <span v-if="sr && !loading"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
+              :class="typeBadge(sr.type)">
+              <component :is="sr.type === 'customer_return' ? ArrowDownTrayIcon : ArrowUpTrayIcon" class="w-3 h-3" />
+              {{ sr.type === 'customer_return' ? t('erp.stockReturn.customerReturn') : t('erp.stockReturn.returnToVendor') }}
+            </span>
+          </div>
+          <nav class="flex items-center gap-1.5 mt-1">
+            <RouterLink to="/erp/stock-return" class="text-[12px] text-[#9BA7B0] hover:text-[#637381] transition-colors">
+              {{ t('erp.stockReturn.title') }}
+            </RouterLink>
+            <ChevronRightIcon class="w-3 h-3 text-[#CBD5E1]" />
+            <span class="text-[12px] text-[#637381]">{{ sr?.refNo || '…' }}</span>
+          </nav>
+        </div>
+        <div v-if="sr && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <button @click="onPrint" type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+                   text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
+            <PrinterIcon class="w-4 h-4" />
+            {{ t('common.print') }}
+          </button>
+          <RouterLink v-if="sr.status === 'draft'" v-can="'erp.stock.edit'" :to="`/erp/stock-return/${sr.id}/edit`"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+                   text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors">
+            <PencilSquareIcon class="w-4 h-4" />
+            {{ t('common.edit') }}
+          </RouterLink>
+          <button v-if="sr.status === 'draft'" v-can="'erp.stock.delete'" @click="deleteSR" type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-xl
+                   text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors">
+            <TrashIcon class="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
-      <div v-else-if="!sr" class="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
-        {{ t('erp.stockReturn.notFound') }} <RouterLink to="/erp/stock-return" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
+      <!-- Loading -->
+      <div v-if="loading" class="flex items-center justify-center py-20 print:hidden">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+
+      <!-- Not found -->
+      <div v-else-if="!sr"
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl print:hidden">
+        <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <span>{{ t('erp.stockReturn.notFound') }}
+          <RouterLink to="/erp/stock-return" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
+        </span>
       </div>
 
       <template v-else>
-        <!-- Header info -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-4">
-          <div class="grid grid-cols-5 gap-6 text-sm">
-            <div><p class="text-[#637381] mb-1">{{ t('erp.common.refNo') }}</p><p class="font-mono font-semibold text-[#1C2434]">{{ sr.refNo }}</p></div>
-            <div><p class="text-[#637381] mb-1">{{ t('erp.common.date') }}</p><p class="font-medium text-[#1C2434]">{{ fmtDate(sr.date) }}</p></div>
-            <div><p class="text-[#637381] mb-1">{{ t('erp.common.store') }}</p><p class="font-medium text-[#1C2434]">{{ sr.store?.name || '—' }}</p></div>
-            <div v-if="sr.type === 'customer_return'">
-              <p class="text-[#637381] mb-1">{{ t('erp.stockReturn.customer') }}</p>
-              <p class="font-medium text-[#1C2434]">{{ sr.customer?.name || '—' }}</p>
-              <p v-if="sr.customer?.company" class="text-xs text-[#9BA7B0]">{{ sr.customer.company }}</p>
-            </div>
-            <div v-else>
-              <p class="text-[#637381] mb-1">{{ t('erp.stockReturn.vendor') }}</p>
-              <p class="font-medium text-[#1C2434]">{{ sr.vendor?.name || '—' }}</p>
-              <p v-if="sr.vendor?.code" class="text-xs text-[#9BA7B0] font-mono">{{ sr.vendor.code }}</p>
-            </div>
-            <div><p class="text-[#637381] mb-1">{{ t('erp.common.notes') }}</p><p class="text-[#374151]">{{ sr.notes || '—' }}</p></div>
-          </div>
-
-          <div class="pt-3 border-t border-[#E2E8F0] text-xs"
-            :class="sr.type === 'customer_return' ? 'text-blue-600' : 'text-orange-600'">
-            <span v-if="sr.type === 'customer_return'">
-              {{ t('erp.stockReturn.descCustomer') }}
-            </span>
-            <span v-else>
-              {{ t('erp.stockReturn.descVendor') }}
-            </span>
+        <!-- Workflow strip (hidden on print) -->
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-3 print:hidden">
+          <div class="flex items-center gap-1 flex-wrap">
+            <template v-for="(step, i) in FLOW_STEPS" :key="step.key">
+              <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg" :class="stepChipClass(step.key)">
+                <CheckIcon v-if="stepState(step.key) === 'completed'" class="w-3.5 h-3.5" />
+                <span v-else-if="stepState(step.key) === 'current'" class="w-2 h-2 rounded-full bg-current"></span>
+                <span v-else class="text-[10px] font-bold opacity-50">{{ i + 1 }}</span>
+                <span class="text-[12px] font-semibold">{{ step.label }}</span>
+              </div>
+              <ChevronRightIcon v-if="i < FLOW_STEPS.length - 1" class="w-3 h-3 text-[#CBD5E1] flex-shrink-0" />
+            </template>
           </div>
         </div>
 
-        <!-- Items -->
-        <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-          <div class="px-5 py-3 border-b border-[#E2E8F0]">
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.common.items') }}</h2>
+        <!-- ── Document ─────────────────────────────────────────── -->
+        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:rounded-none rounded-2xl
+                        overflow-hidden">
+
+          <!-- DRAFT diagonal stamp -->
+          <div v-if="sr.status === 'draft'"
+            class="pointer-events-none absolute inset-0 flex items-center justify-center z-10"
+            aria-hidden="true">
+            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] border-amber-400 text-amber-500
+                         rounded-md px-6 py-2 text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]">
+              Draft
+            </span>
           </div>
-          <table class="w-full text-sm">
-            <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
-              <tr>
-                <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.stockReturn.colProduct') }}</th>
-                <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.stockReturn.colSku') }}</th>
-                <th class="px-5 py-3 font-medium text-[#637381] text-right">{{ t('erp.stockReturn.colQty') }}</th>
-                <th class="px-5 py-3 font-medium text-[#637381] text-right">{{ t('erp.stockReturn.colCost') }}</th>
-                <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.common.batchId') }}</th>
-                <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.common.expiryDate') }}</th>
-                <th class="px-5 py-3 font-medium text-[#637381]">{{ t('erp.stockReturn.colReason') }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#E2E8F0]">
-              <tr v-for="item in sr.items" :key="item.id" class="hover:bg-[#F7F9FC]">
-                <td class="px-5 py-3 font-medium text-[#1C2434]">{{ item.product?.name }}</td>
-                <td class="px-5 py-3 font-mono text-xs text-[#9BA7B0]">{{ item.product?.sku || '—' }}</td>
-                <td class="px-5 py-3 text-right font-semibold"
+
+          <!-- Document header: company + title block -->
+          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
+            <div class="flex-1 min-w-0 flex items-start gap-4">
+              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
+                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
+              <div class="min-w-0">
+                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
+                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
+                  {{ companyAddress }}
+                </p>
+                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
+                  <p v-if="companyPhone">{{ t('erp.orders.docPhoneAbbr') }} {{ companyPhone }}</p>
+                  <p v-if="companyEmail">{{ companyEmail }}</p>
+                  <p v-if="companyTaxId" class="tabular-nums">
+                    <span class="text-[#9BA7B0]">{{ t('erp.orders.docTaxId') }}</span> {{ companyTaxId }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <h2 class="text-[22px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
+                {{ t('erp.stockReturn.documentTitle') }}
+              </h2>
+              <p class="mt-1 text-[10px] font-bold tracking-wider uppercase"
+                :class="sr.type === 'customer_return' ? 'text-blue-600' : 'text-orange-600'">
+                {{ sr.type === 'customer_return' ? t('erp.stockReturn.customerReturn') : t('erp.stockReturn.returnToVendor') }}
+              </p>
+              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
+                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
+                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ sr.refNo }}</dd>
+
+                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
+                  {{ t('erp.common.date') }}
+                </dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(sr.date) || '—' }}</dd>
+              </dl>
+            </div>
+          </header>
+
+          <!-- Counterparty / Store meta -->
+          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4 border-b border-dashed border-[#E2E8F0]">
+            <div>
+              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
+                {{ sr.type === 'customer_return' ? t('erp.stockReturn.customer') : t('erp.stockReturn.vendor') }}
+              </p>
+              <p class="text-[14px] font-bold text-[#1C2434]">
+                {{ sr.type === 'customer_return' ? (sr.customer?.name || '—') : (sr.vendor?.name || '—') }}
+              </p>
+              <p v-if="sr.type === 'customer_return' && sr.customer?.company" class="text-[12px] text-[#374151]">
+                {{ sr.customer.company }}
+              </p>
+              <p v-if="sr.type === 'vendor_return' && sr.vendor?.code" class="text-[11px] text-[#637381] font-mono mt-0.5">
+                {{ sr.vendor.code }}
+              </p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
+                {{ t('erp.common.store') }}
+              </p>
+              <p class="text-[14px] font-bold text-[#1C2434]">{{ sr.store?.name || '—' }}</p>
+              <p v-if="sr.store?.code" class="text-[11px] text-[#637381] font-mono mt-0.5">{{ sr.store.code }}</p>
+            </div>
+          </section>
+
+          <!-- Line items table -->
+          <section class="px-10 pt-6 pb-2">
+            <table class="w-full text-[12px]">
+              <thead>
+                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
+                  <th class="py-2.5 text-left w-8">#</th>
+                  <th class="py-2.5 text-left w-28">{{ t('erp.stockReturn.colSku') }}</th>
+                  <th class="py-2.5 text-left">{{ t('erp.common.product') }}</th>
+                  <th class="py-2.5 text-right w-20">{{ t('erp.stockReturn.colQty') }}</th>
+                  <th class="py-2.5 text-right w-24">{{ t('erp.stockReturn.colCost') }}</th>
+                  <th class="py-2.5 text-right w-28">{{ t('erp.stockReturn.totalValue') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, idx) in (sr.items || [])" :key="item.id" class="border-b border-[#F1F5F9]">
+                  <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
+                  <td class="py-2.5 align-top text-[#637381] font-mono text-[11px]">{{ item.product?.sku || '—' }}</td>
+                  <td class="py-2.5 align-top">
+                    <span class="font-semibold text-[#1C2434]">{{ item.product?.name || '—' }}</span>
+                    <span v-if="item.batchId" class="block text-[10px] text-[#9BA7B0] font-mono mt-0.5">
+                      {{ t('erp.common.batchId') }}: {{ item.batchId }}
+                    </span>
+                    <span v-if="item.reason" class="block text-[10px] text-[#9BA7B0] mt-0.5">{{ item.reason }}</span>
+                  </td>
+                  <td class="py-2.5 align-top text-right font-semibold tabular-nums"
+                    :class="sr.type === 'customer_return' ? 'text-green-700' : 'text-red-600'">
+                    {{ sr.type === 'customer_return' ? '+' : '−' }}{{ Number(item.qty) }}
+                  </td>
+                  <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ fmtMoney(item.cost) }}</td>
+                  <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
+                    {{ fmtMoney(Number(item.qty) * Number(item.cost)) }}
+                  </td>
+                </tr>
+                <tr v-if="!(sr.items || []).length">
+                  <td colspan="6" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
+                    {{ t('erp.common.noItems') }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <!-- Totals block — right-aligned -->
+          <section class="px-10 pb-6 flex justify-end">
+            <dl class="w-full sm:w-72 text-[12px] space-y-1.5">
+              <div class="flex items-center justify-between">
+                <dt class="text-[#637381]">{{ t('erp.common.items') }}</dt>
+                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ (sr.items || []).length }}</dd>
+              </div>
+              <div class="flex items-center justify-between">
+                <dt class="text-[#637381]">{{ t('erp.stockReturn.totalReturnQty') }}</dt>
+                <dd class="font-semibold tabular-nums"
                   :class="sr.type === 'customer_return' ? 'text-green-700' : 'text-red-600'">
-                  {{ sr.type === 'customer_return' ? '+' : '−' }}{{ Number(item.qty) }}
-                </td>
-                <td class="px-5 py-3 text-right text-[#637381]">{{ fmtMoney(item.cost) }}</td>
-                <td class="px-5 py-3 font-mono text-xs text-[#637381]">{{ item.batchId || '—' }}</td>
-                <td class="px-5 py-3 text-xs text-[#637381]">{{ item.expiryDate || '—' }}</td>
-                <td class="px-5 py-3 text-[#637381] text-xs">{{ item.reason || '—' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                  {{ sr.type === 'customer_return' ? '+' : '−' }}{{ totalQty }}
+                </dd>
+              </div>
+              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
+                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">{{ t('erp.stockReturn.totalValue') }}</dt>
+                <dd class="text-[16px] font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(totalValue) }}</dd>
+              </div>
+            </dl>
+          </section>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{{ error }}</div>
+          <!-- Notes -->
+          <section v-if="sr.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
+            <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
+              {{ t('erp.common.notes') }}
+            </p>
+            <p class="text-[12px] text-[#374151] whitespace-pre-line leading-relaxed">{{ sr.notes }}</p>
+          </section>
 
-        <!-- Actions -->
-        <div class="flex justify-between items-center">
-          <button v-if="sr.status === 'draft'" @click="deleteSR"
-            class="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
-            {{ t('erp.common.deleteDraft') }}
-          </button>
-          <div class="flex gap-3 ml-auto">
-            <RouterLink to="/erp/stock-return" class="px-4 py-2 text-sm border rounded-lg hover:bg-[#F7F9FC] transition">{{ t('erp.common.back') }}</RouterLink>
-            <button v-if="sr.status === 'draft'" @click="confirmSR" :disabled="confirming"
-              class="px-5 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition">
-              {{ confirming ? t('erp.common.confirming') : t('erp.stockReturn.confirmReturn') }}
-            </button>
+          <!-- Signatures -->
+          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
+            <div class="grid grid-cols-2 gap-10">
+              <div>
+                <div class="h-10 border-b border-[#1C2434]"></div>
+                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
+                  {{ t('erp.stockReturn.docPreparedBy') }}
+                </p>
+              </div>
+              <div>
+                <div class="h-10 border-b border-[#1C2434]"></div>
+                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
+                  {{ t('erp.stockReturn.docApprovedBy') }}
+                </p>
+              </div>
+            </div>
+          </footer>
+        </article>
+
+        <!-- Status action (hidden on print) -->
+        <div v-if="sr.status === 'draft'" v-can="'erp.stock.edit'"
+          class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
+                 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">
+              {{ t('erp.orders.nextAction') }}
+            </p>
+            <p class="text-[13px] text-[#637381] mt-0.5">
+              {{ t('erp.stockReturn.confirmHint') }}
+            </p>
           </div>
+          <button @click="confirmSR" :disabled="confirming"
+            class="px-4 py-2.5 text-sm font-semibold rounded-xl
+                   bg-green-600 text-white hover:bg-green-700 disabled:opacity-50
+                   flex items-center gap-2 transition-colors">
+            <ArrowPathIcon v-if="confirming" class="w-4 h-4 animate-spin" />
+            <CheckIcon v-else class="w-4 h-4" />
+            {{ confirming ? t('erp.common.confirming') : t('erp.stockReturn.confirmReturn') }}
+          </button>
         </div>
+        <p v-if="error" class="text-xs text-red-600 print:hidden">{{ error }}</p>
+
+        <ActivityTimeline ref-type="StockReturn" :ref-id="sr.id" class="print:hidden" />
       </template>
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  ArrowLeftIcon, ChevronRightIcon, CheckIcon, ArrowPathIcon,
+  TrashIcon, PencilSquareIcon, PrinterIcon, ExclamationCircleIcon,
+  ArrowDownTrayIcon, ArrowUpTrayIcon,
+} from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
-import { fmtDate } from '@/utils/fmt'
-import { fmtMoney } from '@/utils/fmt'
+import { fmtDate, fmtMoney } from '@/utils/fmt'
+import { useAuthStore } from '@/stores/auth'
 
-const { t } = useI18n()
-const route     = useRoute()
-const router    = useRouter()
-const sr        = ref(null)
-const loading   = ref(true)
-const confirming = ref(false)
-const error     = ref('')
+const { t }    = useI18n()
+const route    = useRoute()
+const router   = useRouter()
+const auth     = useAuthStore()
+
+const sr           = ref(null)
+const loading      = ref(true)
+const confirming   = ref(false)
+const error        = ref('')
+
+const FLOW_STEPS = [
+  { key: 'draft',     label: 'Draft' },
+  { key: 'confirmed', label: 'Confirmed' },
+]
+
+const stepState = (key) => {
+  if (!sr.value) return 'pending'
+  const status = sr.value.status
+  if (key === status) return 'current'
+  if (key === 'draft' && status === 'confirmed') return 'completed'
+  return 'pending'
+}
+
+const stepChipClass = (key) => {
+  const state = stepState(key)
+  if (state === 'completed') return 'bg-green-50 text-green-700'
+  if (state === 'current')   return 'bg-primary-50 text-primary-600'
+  return 'bg-[#F1F5F9] text-[#9BA7B0]'
+}
+
+const statusBadge = (s) => (s === 'confirmed' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700')
+const statusDot   = (s) => (s === 'confirmed' ? 'bg-green-500' : 'bg-amber-500')
+
+const typeBadge = (t) => (t === 'customer_return' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700')
+
+// Company profile from current organization (same pattern as OrderDetail)
+const org = computed(() => auth.user?.organization || {})
+const companyName    = computed(() => org.value.companyName || org.value.name || 'Your Company')
+const companyAddress = computed(() => org.value.address || '')
+const companyPhone   = computed(() => org.value.phone   || '')
+const companyEmail   = computed(() => org.value.email   || '')
+const companyTaxId   = computed(() => org.value.taxId   || '')
+const companyLogoSrc = computed(() => {
+  const p = org.value.logoPath
+  if (!p) return ''
+  if (/^https?:\/\//i.test(p)) return p
+  return p.startsWith('/') ? p : `/${p}`
+})
+
+const totalQty   = computed(() => (sr.value?.items || []).reduce((s, i) => s + (Number(i.qty) || 0), 0))
+const totalValue = computed(() => (sr.value?.items || []).reduce((s, i) => s + ((Number(i.qty) || 0) * (Number(i.cost) || 0)), 0))
 
 async function load() {
+  loading.value = true
   try {
     const { data } = await api.get(`/erp/stock-return/${route.params.id}`)
     sr.value = data.data.stockReturn
@@ -132,20 +362,19 @@ async function load() {
     loading.value = false
   }
 }
-
 onMounted(load)
 
-function typeClass(type) {
-  return type === 'customer_return' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+function onPrint() {
+  window.print()
 }
 
 async function confirmSR() {
-  if (!confirm('Confirm this Stock Return? Stock will be updated and this cannot be undone.')) return
+  if (!confirm(`Confirm ${sr.value.refNo}? Stock will be updated and this cannot be undone.`)) return
   confirming.value = true
   error.value = ''
   try {
-    const { data } = await api.post(`/erp/stock-return/${route.params.id}/confirm`)
-    sr.value = data.data.stockReturn
+    await api.post(`/erp/stock-return/${route.params.id}/confirm`)
+    await load()
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to confirm'
   } finally {
@@ -154,7 +383,7 @@ async function confirmSR() {
 }
 
 async function deleteSR() {
-  if (!confirm('Delete this draft? This cannot be undone.')) return
+  if (!confirm(`Delete ${sr.value.refNo}? This cannot be undone.`)) return
   try {
     await api.delete(`/erp/stock-return/${route.params.id}`)
     router.push('/erp/stock-return')

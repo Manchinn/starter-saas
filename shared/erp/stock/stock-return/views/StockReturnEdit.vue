@@ -2,33 +2,47 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.stockReturn.new')" back-to="/erp/stock-return"
+      <PageHeader :title="t('erp.stockReturn.edit')" :back-to="`/erp/stock-return/${route.params.id}`"
         :breadcrumb="[
           { label: t('erp.stockReturn.title'), to: '/erp/stock-return' },
-          { label: t('erp.stockReturn.new') },
+          { label: form.refNo || '…', to: `/erp/stock-return/${route.params.id}` },
+          { label: t('common.edit') },
         ]">
         <template #badge>
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/erp/stock-return"
+            :cancel-to="`/erp/stock-return/${route.params.id}`"
             :cancel-label="t('common.cancel')"
             :saving="saving"
             :saving-label="t('erp.common.saving')"
-            :save-label="t('erp.common.saveDraft')"
+            :save-label="t('common.save')"
             @save="save"
           />
         </template>
       </PageHeader>
 
-      <div class="space-y-5">
+      <!-- Loading -->
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+
+      <!-- Not found / not editable -->
+      <div v-else-if="loadError"
+        class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3.5 rounded-xl">
+        <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <span>{{ loadError }}
+          <RouterLink to="/erp/stock-return" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
+        </span>
+      </div>
+
+      <div v-else class="space-y-5">
 
         <!-- Section 1: Return Info -->
         <FormCard :title="t('erp.stockReturn.returnInfo')" :icon="ReceiptRefundIcon" icon-color="amber">
           <div class="space-y-5">
 
-            <!-- Type toggle (full-width row) -->
             <div>
               <FieldLabel :text="t('erp.stockReturn.returnType')" required />
               <div class="inline-flex items-center gap-1 p-1 bg-[#F1F5F9] rounded-xl">
@@ -49,7 +63,6 @@
                   {{ t('erp.stockReturn.returnToVendor') }}
                 </button>
               </div>
-              <!-- Type description -->
               <p class="mt-2 text-[12px] flex items-start gap-1.5"
                 :class="form.type === 'customer_return' ? 'text-blue-600' : 'text-orange-600'">
                 <InformationCircleIcon class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
@@ -58,7 +71,6 @@
               </p>
             </div>
 
-            <!-- Date / Store / Customer or Vendor / Notes -->
             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <FieldLabel :text="t('erp.common.date')" required />
@@ -131,7 +143,6 @@
             </button>
           </div>
 
-          <!-- No store selected -->
           <div v-if="!form.storeId" class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
               <BuildingStorefrontIcon class="w-7 h-7 text-[#CBD5E1]" />
@@ -139,13 +150,11 @@
             <p class="text-sm font-semibold text-[#637381]">{{ t('erp.stockReturn.selectStorePh') }}</p>
           </div>
 
-          <!-- Loading -->
           <div v-else-if="loadingStoreProducts" class="flex items-center justify-center py-16 text-[#9BA7B0] gap-2">
             <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
             <span class="text-sm">{{ t('erp.stockReturn.loadingProducts') }}</span>
           </div>
 
-          <!-- No products -->
           <div v-else-if="!storeProducts.length" class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
               <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
@@ -154,7 +163,6 @@
           </div>
 
           <div v-else>
-            <!-- Empty state -->
             <div v-if="!items.length" class="flex flex-col items-center justify-center py-16 text-center">
               <div class="w-14 h-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-4">
                 <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
@@ -170,12 +178,11 @@
             </div>
 
             <div v-else>
-              <!-- Header row -->
               <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
                           text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider"
                 style="grid-template-columns: 2.2fr 5rem 5.5rem 6.5rem 5.5rem 7rem 1.5fr 4.5rem">
                 <div>{{ t('erp.common.product') }}</div>
-                <div class="text-right">{{ t('erp.stockReturn.available') || t('erp.stockIssue.available') }}</div>
+                <div class="text-right">{{ t('erp.stockIssue.available') }}</div>
                 <div class="text-right">{{ t('erp.stockReturn.colQty') }} <span class="text-red-400 normal-case">*</span></div>
                 <div class="text-right">{{ t('erp.stockReturn.costPerUnit') }}</div>
                 <div>{{ t('erp.common.batchId') }}</div>
@@ -190,7 +197,6 @@
                   :class="rowWarn(item) ? 'bg-red-50 hover:bg-red-50/80' : 'hover:bg-[#F7F9FC]'"
                   style="grid-template-columns: 2.2fr 5rem 5.5rem 6.5rem 5.5rem 7rem 1.5fr 4.5rem">
 
-                  <!-- Product label -->
                   <div class="min-w-0 flex items-center gap-2">
                     <span class="font-mono text-[11px] text-[#9BA7B0] tabular-nums w-5 text-right flex-shrink-0">{{ i + 1 }}</span>
                     <div class="min-w-0">
@@ -199,7 +205,6 @@
                     </div>
                   </div>
 
-                  <!-- Available -->
                   <div class="text-right">
                     <span v-if="item.productId" class="font-mono text-sm font-semibold tabular-nums"
                       :class="storeBalance(item.productId) > 0 ? 'text-[#374151]' : 'text-[#9BA7B0]'">
@@ -208,7 +213,6 @@
                     <span v-else class="text-[#CBD5E1]">—</span>
                   </div>
 
-                  <!-- Qty -->
                   <input v-model.number="item.qty" type="number" min="0.01" step="0.01" placeholder="0"
                     class="w-full px-2.5 py-2 border text-sm text-right tabular-nums
                            focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
@@ -216,31 +220,26 @@
                       ? 'border-red-400 text-red-600'
                       : (form.type === 'customer_return' ? 'border-[#E2E8F0] text-green-700 font-semibold' : 'border-[#E2E8F0] text-red-600 font-semibold')" />
 
-                  <!-- Cost -->
                   <input v-model.number="item.cost" type="number" min="0" step="0.0001" placeholder="0.00"
                     class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm text-right tabular-nums text-[#1C2434]
                            focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
 
-                  <!-- Batch ID -->
                   <input v-model="item.batchId" type="text" :placeholder="t('erp.common.batchPh')"
                     class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm text-[#1C2434]
                            focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                            transition-colors placeholder-[#CBD5E1]" />
 
-                  <!-- Expiry -->
                   <input v-model="item.expiryDate" type="date"
                     class="w-full px-2 py-2 border border-[#E2E8F0] text-xs text-[#1C2434]
                            focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                            transition-colors" />
 
-                  <!-- Reason -->
                   <SearchSelect v-if="returnReasons.length" v-model="item.reason" :options="returnReasons" track-by="name" label-key="name" :placeholder="t('erp.common.optional')" />
                   <input v-else v-model="item.reason" type="text" :placeholder="t('erp.common.optional')"
                     class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm text-[#1C2434]
                            focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
                            transition-colors placeholder-[#CBD5E1]" />
 
-                  <!-- Row actions -->
                   <div class="flex items-center justify-end gap-1">
                     <div class="relative" data-dup-popover>
                       <button v-if="isDuplicate(item)" type="button"
@@ -280,7 +279,6 @@
             </div>
           </div>
 
-          <!-- Hidden bulk-add popup -->
           <SearchSelectPopup
             ref="pickerRef"
             :model-value="''"
@@ -351,7 +349,7 @@
                   <span>dup</span>
                 </span>
               </div>
-              <RouterLink to="/erp/stock-return"
+              <RouterLink :to="`/erp/stock-return/${route.params.id}`"
                 class="px-5 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
                 {{ t('common.cancel') }}
               </RouterLink>
@@ -361,7 +359,7 @@
                        disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <ArrowPathIcon v-if="saving" class="w-4 h-4 animate-spin" />
                 <CheckIcon v-else class="w-4 h-4" />
-                {{ saving ? t('erp.common.saving') : t('erp.common.saveDraft') }}
+                {{ saving ? t('erp.common.saving') : t('common.save') }}
               </button>
             </div>
           </div>
@@ -375,7 +373,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   PlusIcon, TrashIcon, CheckIcon, ArrowPathIcon,
   ExclamationCircleIcon, ExclamationTriangleIcon, InformationCircleIcon,
@@ -395,45 +393,92 @@ import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
 import { useMasterDataStore } from '@/stores/masterData'
 
-const { t } = useI18n()
+const { t }                = useI18n()
+const route                = useRoute()
 const router               = useRouter()
 const masterDataStore      = useMasterDataStore()
+
 const stores               = ref([])
 const customers            = ref([])
 const vendors              = ref([])
 const storeProducts        = ref([])
 const loadingStoreProducts = ref(false)
 const returnReasons        = ref([])
-const form  = ref({
-  date: new Date().toISOString().slice(0, 10),
-  type: 'customer_return',
-  storeId: '', customerId: '', vendorId: '', notes: '',
-})
-const items  = ref([])
-const error  = ref('')
+
+const form  = ref({ refNo: '', date: '', type: 'customer_return', storeId: '', customerId: '', vendorId: '', notes: '' })
+const items = ref([])
+const error = ref('')
 const saving = ref(false)
+const loading = ref(true)
+const loadError = ref('')
 const pickerRef = ref(null)
 
 let rowKeySeq = 0
 const newKey = () => `r${++rowKeySeq}`
 
+let initialStoreId = ''
+let skipNextStoreWatch = false
+
 onMounted(async () => {
   try {
-    const [storeRes, custRes, vendorRes] = await Promise.all([
+    const [storesRes, custRes, vendorRes, srRes] = await Promise.all([
       api.get('/erp/stock-return/stores-lookup'),
       api.get('/erp/customers', { params: { limit: 200 } }),
       api.get('/erp/vendors/all'),
+      api.get(`/erp/stock-return/${route.params.id}`),
     ])
-    stores.value    = storeRes.data.data.stores
+    stores.value    = storesRes.data.data.stores
     customers.value = custRes.data.data.customers
     vendors.value   = vendorRes.data.data.vendors
+    returnReasons.value = await masterDataStore.getValues('return-reasons')
+
+    const sr = srRes.data.data.stockReturn
+    if (!sr) { loadError.value = 'Stock Return not found'; return }
+    if (sr.status !== 'draft') {
+      loadError.value = 'Only draft returns can be edited. This one is already ' + sr.status + '.'
+      return
+    }
+
+    form.value = {
+      refNo:      sr.refNo,
+      date:       sr.date,
+      type:       sr.type,
+      storeId:    sr.storeId,
+      customerId: sr.customerId || '',
+      vendorId:   sr.vendorId   || '',
+      notes:      sr.notes || '',
+    }
+    initialStoreId = sr.storeId
+    skipNextStoreWatch = true
+
+    if (initialStoreId) {
+      loadingStoreProducts.value = true
+      try {
+        const { data } = await api.get('/erp/stock-return/store-products', { params: { storeId: initialStoreId } })
+        storeProducts.value = data.data.products
+      } finally {
+        loadingStoreProducts.value = false
+      }
+    }
+
+    items.value = (sr.items || []).map(i => ({
+      key:        newKey(),
+      productId:  i.productId,
+      qty:        Number(i.qty),
+      cost:       Number(i.cost) || 0,
+      batchId:    i.batchId || '',
+      expiryDate: i.expiryDate || '',
+      reason:     i.reason || '',
+    }))
   } catch (err) {
-    console.error('Failed to load lookups:', err.message)
+    loadError.value = err.response?.data?.message || 'Failed to load return'
+  } finally {
+    loading.value = false
   }
-  returnReasons.value = await masterDataStore.getValues('return-reasons')
 })
 
 watch(() => form.value.storeId, async (storeId) => {
+  if (skipNextStoreWatch) { skipNextStoreWatch = false; return }
   items.value = []
   storeProducts.value = []
   if (!storeId) return
@@ -467,8 +512,6 @@ function storeBalance(productId) {
   return storeProducts.value.find(p => p.id === productId)?.stock ?? 0
 }
 
-// Vendor returns deplete the store. Warn when qty exceeds on-hand; customer
-// returns add to stock, so they never overflow the available balance.
 function rowWarn(item) {
   if (form.value.type !== 'vendor_return') return false
   return item.qty > storeBalance(item.productId)
@@ -535,7 +578,7 @@ async function save() {
   }
   saving.value = true
   try {
-    const payload = {
+    await api.put(`/erp/stock-return/${route.params.id}`, {
       date:       form.value.date,
       type:       form.value.type,
       storeId:    form.value.storeId,
@@ -550,9 +593,8 @@ async function save() {
         expiryDate: i.expiryDate || null,
         reason:     i.reason || null,
       })),
-    }
-    const { data } = await api.post('/erp/stock-return', payload)
-    router.push(`/erp/stock-return/${data.data.stockReturn.id}`)
+    })
+    router.push(`/erp/stock-return/${route.params.id}`)
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to save'
   } finally {
@@ -560,7 +602,6 @@ async function save() {
   }
 }
 
-// Keyboard shortcuts: Ctrl+S save, Ctrl+L add items, Ctrl+D duplicate last row.
 function onPageKeydown(e) {
   const ctrl = e.ctrlKey || e.metaKey
   if (!ctrl) return

@@ -1,7 +1,7 @@
 const { StockReturn, StockReturnItem, Product, Store, StoreStock, StockMovement, Customer, Vendor } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
-const { getNext } = require('../../settings/sequence.service')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const productAttrs = ['id', 'name', 'sku', 'stock']
 
@@ -95,6 +95,59 @@ const create = async ({ date, type, storeId, customerId, vendorId, notes, items 
   }
 }
 
+const update = async (id, { date, type, storeId, customerId, vendorId, notes, items = [], userId, organizationId }) => {
+  const sr = await StockReturn.findByPk(id)
+  if (!sr) throw { status: 404, message: 'Stock Return not found' }
+  if (sr.status !== 'draft') throw { status: 400, message: 'Only draft returns can be edited' }
+  if (!date)    throw { status: 400, message: 'Date is required' }
+  if (!type || !['customer_return', 'vendor_return'].includes(type))
+    throw { status: 400, message: 'Type must be customer_return or vendor_return' }
+  if (!storeId) throw { status: 400, message: 'Store is required' }
+  if (!items.length) throw { status: 400, message: 'At least one item is required' }
+
+  if (type === 'customer_return' && customerId) {
+    const c = await Customer.findByPk(customerId)
+    if (!c) throw { status: 400, message: 'Customer not found' }
+  }
+  if (type === 'vendor_return' && vendorId) {
+    const v = await Vendor.findByPk(vendorId)
+    if (!v) throw { status: 400, message: 'Vendor not found' }
+  }
+  const store = await Store.findByPk(storeId)
+  if (!store) throw { status: 400, message: 'Store not found' }
+
+  const t = await sequelize.transaction()
+  try {
+    await sr.update({
+      date, type, storeId, notes,
+      customerId: type === 'customer_return' ? (customerId || null) : null,
+      vendorId:   type === 'vendor_return'   ? (vendorId   || null) : null,
+      modifiedBy: userId || null,
+    }, { transaction: t })
+
+    await StockReturnItem.destroy({ where: { stockReturnId: id }, transaction: t })
+    for (const item of items) {
+      if (!item.productId) throw { status: 400, message: 'Product is required on all items' }
+      if (!item.qty || parseFloat(item.qty) <= 0) throw { status: 400, message: 'Quantity must be greater than 0' }
+      await StockReturnItem.create({
+        stockReturnId: id,
+        productId:  item.productId,
+        qty:        parseFloat(item.qty),
+        cost:       parseFloat(item.cost || 0),
+        batchId:    item.batchId || null,
+        expiryDate: item.expiryDate || null,
+        reason:     item.reason || null,
+        organizationId: organizationId || null,
+      }, { transaction: t })
+    }
+    await t.commit()
+    return getById(id)
+  } catch (err) {
+    await t.rollback()
+    throw err
+  }
+}
+
 const confirm = async (id) => {
   const sr = await StockReturn.findByPk(id, { include: [itemInclude] })
   if (!sr) throw { status: 404, message: 'Stock Return not found' }
@@ -155,4 +208,4 @@ const remove = async (id) => {
   await sr.destroy()
 }
 
-module.exports = { list, getById, create, confirm, remove }
+module.exports = { list, getById, create, update, confirm, remove }
