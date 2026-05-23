@@ -25,7 +25,7 @@
       </PageHeader>
 
       <!-- Sections -->
-      <div class="space-y-5">
+      <div class="space-y-5" @focusin="scrollFocused">
 
         <!-- Customer & Order Info -->
         <FormCard :title="t('erp.orders.customerInfo')" :icon="UserIcon" icon-color="primary" :padded="false">
@@ -802,6 +802,12 @@ function onPageKeydown(e) {
 }
 onMounted(() => document.addEventListener('keydown', onPageKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+
+function scrollFocused(e) {
+  const el = e.target
+  if (!el || !['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(el.tagName)) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
 
 function defaultTaxRate() {
   // Prefer the previous *priced* row's rate (skip package headers, which are 0).

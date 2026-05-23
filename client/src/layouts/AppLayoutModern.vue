@@ -94,7 +94,7 @@
     </div>
 
     <!-- ── Page content ───────────────────────────────────────────────────── -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin">
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin" style="scroll-padding-bottom: 80px; scroll-padding-top: 16px;">
       <slot />
     </main>
 
