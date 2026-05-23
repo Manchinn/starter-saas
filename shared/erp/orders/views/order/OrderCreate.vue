@@ -426,32 +426,16 @@
         </span>
       </div>
       <div class="flex items-center gap-2.5">
-        <!-- Keyboard cheat sheet — visible on wider screens so users discover
-             the shortcuts without having to dig through tooltips. -->
-        <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1" :title="t('erp.orders.saveDraft')">
-            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
-            <span>draft</span>
-          </span>
-          <span class="flex items-center gap-1" :title="t('erp.orders.createOrder')">
-            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+Shift+S</kbd>
-            <span>save</span>
-          </span>
-          <span class="flex items-center gap-1" :title="t('erp.orders.addItem')">
-            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
-            <span>item</span>
-          </span>
-          <span class="flex items-center gap-1" :title="t('erp.orders.discard')">
-            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Esc</kbd>
-            <span>discard</span>
-          </span>
-        </div>
-        <span class="lg:hidden md:inline text-[11px] text-[#9BA7B0]">
-          <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl</kbd>
-          +
-          <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">S</kbd>
-          {{ t('erp.common.toSave') }}
-        </span>
+        <!-- Shortcuts toggle -->
+        <button @click="shortcutsOpen = !shortcutsOpen" type="button"
+          title="Keyboard shortcuts (?)"
+          :class="['hidden sm:inline-flex items-center gap-1.5 px-2.5 py-2 text-[11px] font-medium border transition-colors mr-1',
+                   shortcutsOpen
+                     ? 'border-primary-300 bg-primary-50 text-primary-600'
+                     : 'border-[#E2E8F0] text-[#9BA7B0] hover:bg-[#F7F9FC] hover:text-[#637381]']">
+          <kbd class="font-mono text-[13px] leading-none">?</kbd>
+          <span class="hidden lg:inline">Shortcuts</span>
+        </button>
         <button @click="discard" type="button"
           class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
           {{ t('erp.orders.discard') }}
@@ -504,6 +488,97 @@
           </div>
         </div>
       </div>
+    </Teleport>
+
+    <!-- Keyboard shortcuts panel -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-150 ease-out"
+        enter-from-class="opacity-0 translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition duration-100 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-2"
+      >
+        <div v-if="shortcutsOpen"
+          class="fixed bottom-[72px] right-6 z-30 w-72 bg-white border border-[#E2E8F0] shadow-xl overflow-hidden">
+
+          <!-- Header -->
+          <div class="px-4 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0] flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-[12px] font-semibold text-[#1C2434]">Keyboard Shortcuts</span>
+              <kbd class="px-1 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px] text-[#9BA7B0]">?</kbd>
+            </div>
+            <button @click="shortcutsOpen = false" type="button"
+              class="w-5 h-5 flex items-center justify-center text-[#9BA7B0] hover:text-[#374151]">
+              <XMarkIcon class="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <!-- Groups -->
+          <div class="px-4 py-3 space-y-3.5 text-[12px]">
+
+            <div>
+              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">Save</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Save as draft</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Ctrl+S</kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Create order</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Ctrl+Shift+S</kbd>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">Items</p>
+              <div class="flex items-center justify-between">
+                <span class="text-[#374151]">Add item</span>
+                <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Ctrl+A</kbd>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">Customer</p>
+              <div class="flex items-center justify-between">
+                <span class="text-[#374151]">New customer</span>
+                <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Alt+C</kbd>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">Navigation</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Discard & go back</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Esc</kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Show / hide shortcuts</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">?</kbd>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-[#E2E8F0]">
+              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">In dialogs</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Confirm action</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Enter</kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Cancel</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Esc</kbd>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </Transition>
     </Teleport>
 
     <!-- Inline customer create slide-over -->
@@ -622,6 +697,7 @@ const newCustomerNameRef = ref(null)
 
 
 const referenceInputRef = ref(null)
+const shortcutsOpen    = ref(false)
 
 // Loaded on mount from /erp/master-data/payment-terms — admins can rename or
 // add terms in /erp/settings/master-data without touching this file.
@@ -803,6 +879,12 @@ function onPageKeydown(e) {
     return
   }
 
+  // Shortcuts panel: Esc or ? closes it.
+  if (shortcutsOpen.value) {
+    if (e.key === 'Escape' || e.key === '?') { e.preventDefault(); shortcutsOpen.value = false }
+    return
+  }
+
   // Customer slide-over swallows all shortcuts except Esc so typing inside
   // it can't accidentally trigger Save/Add-item from the underlying page.
   if (customerCreateOpen.value) {
@@ -810,11 +892,15 @@ function onPageKeydown(e) {
     return
   }
 
+  // Don't fire ? shortcut while the user is typing in a form field.
+  const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)
+
   if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
   else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
   else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
   else if (alt  && key === 'i')          { e.preventDefault(); openBulkPicker() }
   else if (alt  && key === 'c')          { e.preventDefault(); openCustomerCreate() }
+  else if (e.key === '?' && !typing)     { e.preventDefault(); shortcutsOpen.value = !shortcutsOpen.value }
   else if (e.key === 'Escape')           { e.preventDefault(); discard() }
 }
 onMounted(() => document.addEventListener('keydown', onPageKeydown))
