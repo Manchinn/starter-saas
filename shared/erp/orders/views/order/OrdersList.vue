@@ -8,17 +8,28 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.orders.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} order{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink
-          v-can="'erp.orders.edit'"
-          to="/erp/orders/create"
-          class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.orders.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <button @click="shortcutsOpen = !shortcutsOpen" type="button"
+            title="Keyboard shortcuts (?)"
+            :class="['hidden sm:inline-flex items-center gap-1.5 px-2.5 py-2 text-[11px] font-medium border transition-colors',
+                     shortcutsOpen
+                       ? 'border-primary-300 bg-primary-50 text-primary-600'
+                       : 'border-[#E2E8F0] text-[#9BA7B0] hover:bg-[#F7F9FC] hover:text-[#637381]']">
+            <kbd class="font-mono text-[13px] leading-none">?</kbd>
+            <span class="hidden lg:inline">Shortcuts</span>
+          </button>
+          <RouterLink
+            v-can="'erp.orders.edit'"
+            to="/erp/orders/create"
+            class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.orders.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <!-- Table card -->
-      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div ref="tableWrapRef" class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="orders" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           searchable :search-placeholder="t('erp.orders.searchPh')">
@@ -118,12 +129,83 @@
       </div>
 
     </div>
+
+    <!-- Keyboard shortcuts panel -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-150 ease-out"
+        enter-from-class="opacity-0 translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition duration-100 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-2"
+      >
+        <div v-if="shortcutsOpen"
+          class="fixed bottom-6 right-6 z-30 w-72 bg-white border border-[#E2E8F0] shadow-xl overflow-hidden">
+
+          <div class="px-4 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0] flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-[12px] font-semibold text-[#1C2434]">Keyboard Shortcuts</span>
+              <kbd class="px-1 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px] text-[#9BA7B0]">?</kbd>
+            </div>
+            <button @click="shortcutsOpen = false" type="button"
+              class="w-5 h-5 flex items-center justify-center text-[#9BA7B0] hover:text-[#374151]">
+              <XMarkIcon class="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div class="px-4 py-3 space-y-3.5 text-[12px]">
+
+            <div>
+              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">Actions</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">New order</span>
+                  <div class="flex items-center gap-1">
+                    <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">N</kbd>
+                    <span class="text-[10px] text-[#9BA7B0]">or</span>
+                    <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">C</kbd>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">Search & Filter</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Focus search</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">/</kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Toggle filters</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">F</kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[#374151]">Clear search / close filters</span>
+                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Esc</kbd>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-[#E2E8F0]">
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-[#374151]">Show / hide shortcuts</span>
+                <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">?</kbd>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
   </AppLayout>
 </template>
 
 <script setup>
-import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { h, ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, EyeIcon, DocumentTextIcon,
@@ -133,10 +215,12 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import DateInput from '@/components/DateInput.vue'
 import api from '@/api'
 import { fmtMoney, fmtDate } from '@/utils/fmt'
 
-const { t } = useI18n()
+const { t }  = useI18n()
+const router = useRouter()
 
 const STATUS_FILTER_OPTIONS = computed(() => [
   { id: 'draft',     name: t('erp.orders.draft') },
@@ -158,6 +242,42 @@ const showFilters    = ref(false)
 const loading        = ref(false)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterDateFrom.value, filterDateTo.value].filter(Boolean).length)
+
+const shortcutsOpen = ref(false)
+const tableWrapRef  = ref(null)
+
+function focusSearch() {
+  const input = tableWrapRef.value?.querySelector('input[type="search"]')
+    || tableWrapRef.value?.querySelector('input')
+  input?.focus()
+  input?.select()
+}
+
+function onKeydown(e) {
+  const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)
+
+  // Shortcuts panel: Esc or ? closes it.
+  if (shortcutsOpen.value) {
+    if (e.key === 'Escape' || e.key === '?') { e.preventDefault(); shortcutsOpen.value = false }
+    return
+  }
+
+  if (e.key === 'Escape') {
+    if (showFilters.value) { e.preventDefault(); showFilters.value = false; return }
+    if (search.value)      { e.preventDefault(); search.value = ''; return }
+    return
+  }
+
+  if (typing) return
+
+  if      (e.key === 'n' || e.key === 'c') { e.preventDefault(); router.push('/erp/orders/create') }
+  else if (e.key === '/')                  { e.preventDefault(); focusSearch() }
+  else if (e.key === 'f')                  { e.preventDefault(); showFilters.value = !showFilters.value }
+  else if (e.key === '?')                  { e.preventDefault(); shortcutsOpen.value = true }
+}
+
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 async function fetchOrders() {
   loading.value = true
