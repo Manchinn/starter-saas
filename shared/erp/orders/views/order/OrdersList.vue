@@ -204,7 +204,7 @@
 </template>
 
 <script setup>
-import { h, ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { h, ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -276,7 +276,10 @@ function onKeydown(e) {
   else if (e.key === '?')                  { e.preventDefault(); shortcutsOpen.value = true }
 }
 
-onMounted(() => document.addEventListener('keydown', onKeydown))
+onMounted(() => {
+  document.addEventListener('keydown', onKeydown)
+  nextTick(() => focusSearch())
+})
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 async function fetchOrders() {
