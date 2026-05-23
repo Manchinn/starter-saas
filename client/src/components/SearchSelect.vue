@@ -20,6 +20,7 @@
       :max-height="maxHeight"
       :option-height="optionHeight"
       open-direction="below"
+      :tabindex="tabIndex"
       :class="['ss', { 'ss--invalid': invalid }]"
       :select-label="''"
       :deselect-label="''"
@@ -57,9 +58,8 @@ const props = defineProps({
   groupLabel: { type: String, default: '' },
   maxHeight:  { type: Number, default: 320 }, // ~10 × 32px
   optionHeight: { type: Number, default: 32 },
-  // Minimum popup width — when the trigger is narrow (e.g. inline pickers),
-  // the popup grows to this width so options stay readable.
   popupMinWidth: { type: Number, default: 220 },
+  tabIndex: { type: Number, default: 0 },
 })
 const emit = defineEmits(['update:modelValue', 'change'])
 

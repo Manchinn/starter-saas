@@ -36,7 +36,7 @@
               <FieldLabel :text="t('erp.orders.customer')" required />
               <div class="flex gap-2 items-start">
                 <div class="flex-1 min-w-0">
-                  <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
+                  <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —" :tab-index="1">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                     <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                   </SearchSelect>
