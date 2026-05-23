@@ -35,7 +35,7 @@
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.orders.customer')" required />
               <div class="flex gap-2 items-start">
-                <div ref="customerFieldRef" class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0">
                   <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                     <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
@@ -612,9 +612,6 @@ const newCustomerError   = ref('')
 const newCustomerSaving  = ref(false)
 const newCustomerNameRef = ref(null)
 
-// Wraps the customer SearchSelect so we can drop initial focus onto its
-// internal `.multiselect__tags` for keyboard-first users.
-const customerFieldRef = ref(null)
 
 // Loaded on mount from /erp/master-data/payment-terms — admins can rename or
 // add terms in /erp/settings/master-data without touching this file.
@@ -698,17 +695,6 @@ const groupedItemOptions = computed(() => {
   return groups
 })
 
-// Land focus on the Customer field once vue-multiselect has rendered so the
-// first Tab/typed character starts shaping the order without a mouse click.
-// The root `.multiselect` carries tabindex=0 — `.multiselect__tags` is just a
-// styled div and ignores focus() — and `.multiselect__input` is the search box
-// that appears when the dropdown is active.
-onMounted(() => {
-  setTimeout(() => {
-    const root = customerFieldRef.value?.querySelector('.multiselect')
-    root?.focus()
-  }, 100)
-})
 
 onMounted(async () => {
   const [customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes, paymentTermsRes] = await Promise.allSettled([
