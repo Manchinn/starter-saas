@@ -36,7 +36,7 @@
               <FieldLabel :text="t('erp.orders.customer')" required />
               <div class="flex gap-2 items-start">
                 <div class="flex-1 min-w-0">
-                  <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —" :tab-index="1">
+                  <SearchSelect ref="customerSelectRef" v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                     <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                   </SearchSelect>
@@ -613,6 +613,8 @@ const newCustomerSaving  = ref(false)
 const newCustomerNameRef = ref(null)
 
 
+const customerSelectRef = ref(null)
+
 // Loaded on mount from /erp/master-data/payment-terms — admins can rename or
 // add terms in /erp/settings/master-data without touching this file.
 const paymentTerms = ref([])
@@ -695,6 +697,8 @@ const groupedItemOptions = computed(() => {
   return groups
 })
 
+
+onMounted(() => nextTick(() => customerSelectRef.value?.focus()))
 
 onMounted(async () => {
   const [customersRes, saleItemsRes, salePackagesRes, storesRes, staffRes, paymentTermsRes] = await Promise.allSettled([

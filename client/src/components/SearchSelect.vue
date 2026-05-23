@@ -65,6 +65,11 @@ const emit = defineEmits(['update:modelValue', 'change'])
 
 const hostEl = ref(null)
 
+function focus() {
+  hostEl.value?.querySelector('.multiselect')?.focus()
+}
+defineExpose({ focus })
+
 const selectedObject = computed(() => {
   if (props.modelValue === '' || props.modelValue == null) return null
   const match = (arr) => arr.find(o => String(o?.[props.trackBy]) === String(props.modelValue))
