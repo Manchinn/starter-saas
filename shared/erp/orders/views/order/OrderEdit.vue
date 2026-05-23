@@ -41,6 +41,15 @@
         <FormCard :title="t('erp.orders.customerInfo')" :icon="UserIcon" icon-color="primary" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
+            <!-- Reference / PO # -->
+            <div>
+              <FieldLabel :text="t('erp.orders.referenceNumber')" />
+              <input ref="referenceInputRef" v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all
+                       placeholder:text-[#9BA7B0]" />
+            </div>
+
             <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.orders.customer')" required />
@@ -62,15 +71,6 @@
               </div>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
               <CustomerChip :customer="selectedCustomer" />
-            </div>
-
-            <!-- Reference / PO # -->
-            <div>
-              <FieldLabel :text="t('erp.orders.referenceNumber')" />
-              <input ref="referenceInputRef" v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all
-                       placeholder:text-[#9BA7B0]" />
             </div>
 
             <!-- Order Date -->
