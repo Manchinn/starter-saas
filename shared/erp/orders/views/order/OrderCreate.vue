@@ -492,10 +492,14 @@
           </div>
           <div class="px-5 py-3 bg-[#F7F9FC] flex items-center justify-end gap-2">
             <button type="button" @click="confirmAnswer(false)"
-              class="px-4 py-2 text-sm font-medium text-[#637381] hover:text-[#1C2434]">{{ t('common.cancel') }}</button>
+              class="px-4 py-2 text-sm font-medium text-[#637381] hover:text-[#1C2434] inline-flex items-center gap-1.5">
+              {{ t('common.cancel') }}
+              <kbd class="px-1 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px] text-[#9BA7B0]">Esc</kbd>
+            </button>
             <button type="button" @click="confirmAnswer(true)"
-              class="px-4 py-2 text-sm font-semibold bg-red-500 text-white hover:bg-red-600 shadow-sm">
+              class="px-4 py-2 text-sm font-semibold bg-red-500 text-white hover:bg-red-600 shadow-sm inline-flex items-center gap-1.5">
               {{ confirmOkLabel }}
+              <kbd class="px-1 py-0.5 border border-red-400 bg-red-600 font-mono text-[10px] text-red-100">Enter</kbd>
             </button>
           </div>
         </div>
@@ -784,12 +788,20 @@ async function saveCustomer() {
 //   Ctrl/⌘+Shift+S    Create Order
 //   Ctrl/⌘+A  /  Alt+I   Open product picker (Add Item)
 //   Alt+C             New Customer slide-over
-//   Esc               Close active modal
+//   Esc               Discard / close active modal
+//   Enter             Confirm (when confirm dialog is open)
 function onPageKeydown(e) {
   const ctrl  = e.ctrlKey || e.metaKey
   const shift = e.shiftKey
   const alt   = e.altKey
   const key   = e.key.toLowerCase()
+
+  // Confirm dialog: Enter = yes, Escape = no — intercept before everything else.
+  if (confirmOpen.value) {
+    if (e.key === 'Enter')  { e.preventDefault(); confirmAnswer(true) }
+    if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
+    return
+  }
 
   // Customer slide-over swallows all shortcuts except Esc so typing inside
   // it can't accidentally trigger Save/Add-item from the underlying page.
