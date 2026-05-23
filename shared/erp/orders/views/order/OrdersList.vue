@@ -21,6 +21,7 @@
           <RouterLink
             v-can="'erp.orders.edit'"
             to="/erp/orders/create"
+            title="New Order (Alt+N)"
             class="btn-primary">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.orders.new') }}
@@ -162,9 +163,9 @@
                 <div class="flex items-center justify-between">
                   <span class="text-[#374151]">New order</span>
                   <div class="flex items-center gap-1">
-                    <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">N</kbd>
+                    <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Alt+N</kbd>
                     <span class="text-[10px] text-[#9BA7B0]">or</span>
-                    <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">C</kbd>
+                    <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Alt+C</kbd>
                   </div>
                 </div>
               </div>
@@ -268,12 +269,17 @@ function onKeydown(e) {
     return
   }
 
+  const alt = e.altKey
+
+  if (alt && (e.key === 'n' || e.key === 'N' || e.key === 'c' || e.key === 'C')) {
+    e.preventDefault(); router.push('/erp/orders/create'); return
+  }
+
   if (typing) return
 
-  if      (e.key === 'n' || e.key === 'c') { e.preventDefault(); router.push('/erp/orders/create') }
-  else if (e.key === '/')                  { e.preventDefault(); focusSearch() }
-  else if (e.key === 'f')                  { e.preventDefault(); showFilters.value = !showFilters.value }
-  else if (e.key === '?')                  { e.preventDefault(); shortcutsOpen.value = true }
+  if      (e.key === '/')  { e.preventDefault(); focusSearch() }
+  else if (e.key === 'f')  { e.preventDefault(); showFilters.value = !showFilters.value }
+  else if (e.key === '?')  { e.preventDefault(); shortcutsOpen.value = true }
 }
 
 onMounted(() => {
