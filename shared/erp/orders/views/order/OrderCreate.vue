@@ -441,6 +441,10 @@
             <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
             <span>item</span>
           </span>
+          <span class="flex items-center gap-1" :title="t('erp.orders.discard')">
+            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Esc</kbd>
+            <span>discard</span>
+          </span>
         </div>
         <span class="lg:hidden md:inline text-[11px] text-[#9BA7B0]">
           <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl</kbd>
@@ -799,6 +803,7 @@ function onPageKeydown(e) {
   else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
   else if (alt  && key === 'i')          { e.preventDefault(); openBulkPicker() }
   else if (alt  && key === 'c')          { e.preventDefault(); openCustomerCreate() }
+  else if (e.key === 'Escape')           { e.preventDefault(); discard() }
 }
 onMounted(() => document.addEventListener('keydown', onPageKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
