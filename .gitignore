@@ -12,4 +12,5 @@ server/logs/
 Thumbs.db
 data/
 tmp/
+test-results/
 

@@ -6,5 +6,18 @@ module.exports = {
   rootDir: '..',
   testEnvironment: 'node',
   testMatch: ['<rootDir>/shared/**/__tests__/**/*.test.js'],
-  clearMocks: true,
+  // resetMocks (not clearMocks) so mockResolvedValueOnce queues don't leak
+  // between tests in the same suite — clearMocks only clears mock.calls,
+  // not pending implementations.
+  resetMocks: true,
+  reporters: [
+    'default',
+    ['jest-html-reporter', {
+      pageTitle: 'starter-saas unit tests',
+      outputPath: '<rootDir>/test-results/unit-tests.html',
+      includeFailureMsg: true,
+      includeSuiteFailure: true,
+      includeConsoleLog: false,
+    }],
+  ],
 }
