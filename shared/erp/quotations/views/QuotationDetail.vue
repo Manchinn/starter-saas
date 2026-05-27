@@ -248,8 +248,8 @@
           </section>
 
           <!-- Totals -->
-          <section class="px-10 pb-6 flex items-end justify-between gap-6">
-            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0">
+          <section class="px-10 pb-6 flex items-start justify-between gap-6">
+            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
               {{ totalInWords }}
             </p>
             <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
