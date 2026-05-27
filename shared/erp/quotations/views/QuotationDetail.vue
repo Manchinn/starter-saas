@@ -269,6 +269,18 @@
             </dl>
           </section>
 
+          <!-- Total in words -->
+          <section v-if="totalInWords" class="px-10 pb-6">
+            <div class="bg-[#FAFBFD] border border-[#E2E8F0] px-4 py-2.5 flex items-baseline gap-3">
+              <span class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] flex-shrink-0">
+                {{ t('erp.quotations.amountInWords') }}
+              </span>
+              <span class="text-[13px] font-semibold text-[#1C2434] italic">
+                {{ totalInWords }}
+              </span>
+            </div>
+          </section>
+
           <!-- Notes -->
           <section v-if="quotation.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
             <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
@@ -372,10 +384,10 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
-import { fmtMoney, fmtDate } from '@/utils/fmt'
+import { fmtMoney, fmtDate, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
 
-const { t }    = useI18n()
+const { t, locale } = useI18n()
 const route    = useRoute()
 const router   = useRouter()
 const auth     = useAuthStore()
@@ -404,6 +416,11 @@ const companyLogoSrc = computed(() => {
 })
 
 const billingAddressDisplay = computed(() => quotation.value?.billingAddress || quotation.value?.customer?.address || '')
+
+const totalInWords = computed(() => {
+  if (!quotation.value) return ''
+  return numToWords(quotation.value.total, locale.value, quotation.value.currency)
+})
 
 const topLevelItems = computed(() => (quotation.value?.items || []).filter(it => !it.parentItemId))
 function childrenOf(parentId) {

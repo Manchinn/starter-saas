@@ -102,6 +102,7 @@ export default {
       docCustomerSignature:    'ลูกค้าลงนาม',
       docFooterThanks:         'ขอบคุณที่ใช้บริการ',
       printDocument:           'พิมพ์เอกสารนี้',
+      amountInWords:           'จำนวนเงินตัวอักษร',
       nextAction:              'การดำเนินการต่อไป',
       nextActionHint:          'เลื่อนสถานะใบเสนอราคาไปยังขั้นถัดไป',
       convertActions:          'สร้าง',

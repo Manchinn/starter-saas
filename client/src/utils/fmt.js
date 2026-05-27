@@ -159,3 +159,131 @@ export function fmtRate(value, precision = 4) {
 export function toFixed(value, precision = 2) {
   return parseFloat(accounting.toFixed(value, precision))
 }
+
+// ── Number → text (Thai baht / English) ─────────────────────────────────
+const TH_DIGITS    = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า']
+const TH_POSITIONS = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน']
+
+function readThai(n, hasHigher = false) {
+  if (n === 0) return ''
+  if (n >= 1_000_000) {
+    const millions = Math.floor(n / 1_000_000)
+    const rest = n % 1_000_000
+    return readThai(millions) + 'ล้าน' + (rest > 0 ? readThai(rest, true) : '')
+  }
+  const str = String(n)
+  const len = str.length
+  let out = ''
+  for (let i = 0; i < len; i++) {
+    const d = +str[i]
+    const pos = len - 1 - i  // 0 = ones, 1 = tens, ...
+    if (d === 0) continue
+    if (pos === 1 && d === 1)                            out += 'สิบ'
+    else if (pos === 1 && d === 2)                       out += 'ยี่สิบ'
+    else if (pos === 0 && d === 1 && (len > 1 || hasHigher)) out += 'เอ็ด'
+    else                                                 out += TH_DIGITS[d] + TH_POSITIONS[pos]
+  }
+  return out
+}
+
+function thaiBahtText(amount) {
+  const v = Math.abs(parseFloat(amount) || 0)
+  const baht = Math.floor(v)
+  const satang = Math.round((v - baht) * 100)
+  if (baht === 0 && satang === 0) return 'ศูนย์บาทถ้วน'
+  const bahtPart = baht > 0 ? readThai(baht) + 'บาท' : ''
+  const satangPart = satang > 0 ? readThai(satang) + 'สตางค์' : 'ถ้วน'
+  return bahtPart + satangPart
+}
+
+const EN_ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+                 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+                 'Seventeen', 'Eighteen', 'Nineteen']
+const EN_TENS = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety']
+const EN_SCALES = ['', 'Thousand', 'Million', 'Billion', 'Trillion']
+
+function readEnglishBelow1000(n) {
+  let r = ''
+  if (n >= 100) {
+    r += EN_ONES[Math.floor(n / 100)] + ' Hundred'
+    n %= 100
+    if (n > 0) r += ' '
+  }
+  if (n >= 20) {
+    r += EN_TENS[Math.floor(n / 10)]
+    if (n % 10 > 0) r += '-' + EN_ONES[n % 10]
+  } else if (n > 0) {
+    r += EN_ONES[n]
+  }
+  return r
+}
+
+function readEnglish(n) {
+  if (n === 0) return 'Zero'
+  let r = ''
+  let scale = 0
+  while (n > 0) {
+    const chunk = n % 1000
+    if (chunk > 0) {
+      const part = readEnglishBelow1000(chunk) + (scale > 0 ? ' ' + EN_SCALES[scale] : '')
+      r = part + (r ? ' ' + r : '')
+    }
+    n = Math.floor(n / 1000)
+    scale++
+  }
+  return r
+}
+
+// `invariant: true` → the noun is not pluralized in English financial usage.
+const CURRENCY_NAMES = {
+  THB: { major: 'Baht',   minor: 'Satang', invariant: true  },
+  USD: { major: 'Dollar', minor: 'Cent',   invariant: false },
+  EUR: { major: 'Euro',   minor: 'Cent',   invariant: false },
+  GBP: { major: 'Pound',  minor: 'Pence',  invariant: false, minorInvariant: true },
+  JPY: { major: 'Yen',    minor: 'Sen',    invariant: true  },
+  CNY: { major: 'Yuan',   minor: 'Fen',    invariant: true  },
+  AUD: { major: 'Dollar', minor: 'Cent',   invariant: false },
+  SGD: { major: 'Dollar', minor: 'Cent',   invariant: false },
+}
+
+function pluralize(word, n, invariant) {
+  if (invariant || n === 1) return word
+  if (word.endsWith('s')) return word
+  return word + 's'
+}
+
+function englishAmountText(amount, currencyCode) {
+  const v = Math.abs(parseFloat(amount) || 0)
+  const whole = Math.floor(v)
+  const frac = Math.round((v - whole) * 100)
+  const code = (currencyCode || 'THB').toUpperCase()
+  const cur = CURRENCY_NAMES[code] || { major: code, minor: '', invariant: true }
+  let s = readEnglish(whole)
+  if (cur.major) s += ' ' + pluralize(cur.major, whole, cur.invariant)
+  if (frac > 0) {
+    if (cur.minor) {
+      const minorInv = cur.minorInvariant ?? cur.invariant
+      s += ' and ' + readEnglish(frac) + ' ' + pluralize(cur.minor, frac, minorInv)
+    } else {
+      s += ' and ' + String(frac).padStart(2, '0') + '/100'
+    }
+  } else {
+    s += ' Only'
+  }
+  return s
+}
+
+/**
+ * Convert an amount to its textual representation in the given locale.
+ * Used on document views (quotations, invoices, etc.) to print the total
+ * in words for legal/clarity purposes.
+ *
+ * @param {number|string} amount
+ * @param {string} locale       'th' or 'en'
+ * @param {string} [currency]   ISO currency code; defaults to THB
+ * @returns {string}
+ */
+export function numToWords(amount, locale = 'en', currency = 'THB') {
+  if (locale === 'th') return thaiBahtText(amount)
+  return englishAmountText(amount, currency)
+}
