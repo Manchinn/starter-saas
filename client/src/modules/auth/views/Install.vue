@@ -288,9 +288,30 @@
             <div class="space-y-2.5">
               <div class="flex items-center justify-between">
                 <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">Database</p>
-                <span class="text-[10px] text-[#94A3B8]">{{ db.dialect === 'sqlite' ? 'No setup needed' : 'Connection required' }}</span>
+                <button v-if="!dbExpanded" type="button" @click="dbExpanded = true"
+                  class="text-[11px] font-semibold text-primary-600 hover:text-primary-700 transition-colors">
+                  Change →
+                </button>
+                <button v-else type="button" @click="resetDbToDefault"
+                  class="text-[11px] font-semibold text-[#94A3B8] hover:text-[#64748B] transition-colors">
+                  Use default
+                </button>
               </div>
 
+              <!-- Collapsed default — SQLite -->
+              <div v-if="!dbExpanded"
+                class="flex items-center gap-3 bg-white border border-[#E2E8F0] px-4 py-3">
+                <span class="text-[18px]">📦</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[13px] font-semibold text-[#374151] leading-tight">SQLite <span class="ml-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5">DEFAULT</span></p>
+                  <p class="text-[11px] text-[#94A3B8] leading-snug mt-0.5">
+                    Embedded file at <code class="text-[10px] bg-[#F8FAFC] px-1 border border-[#E2E8F0]">./data/database.sqlite</code>. No setup needed.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Expanded picker -->
+              <template v-else>
               <!-- Dialect grid -->
               <div class="grid grid-cols-5 gap-2">
                 <button v-for="opt in dbDialects" :key="opt.value" type="button"
@@ -370,6 +391,7 @@
               <div v-else class="bg-[#F8FAFC] border border-[#E2E8F0] px-4 py-3 text-[12px] text-[#64748B] leading-relaxed">
                 Uses an embedded SQLite file at <code class="text-[11px] bg-white px-1 py-0.5 border border-[#E2E8F0]">./data/database.sqlite</code>. Recommended for single-machine self-hosted setups.
               </div>
+              </template>
             </div>
 
             <!-- Setup options -->
@@ -518,10 +540,18 @@ const db = ref({
   username: '',
   password: '',
 })
+const dbExpanded   = ref(false)
 const dbTesting    = ref(false)
 const dbTestResult = ref('')  // '' | 'ok' | 'fail'
 const dbTestError  = ref('')
 const defaultPort  = computed(() => DEFAULT_PORTS[db.value.dialect] || '')
+
+function resetDbToDefault() {
+  db.value.dialect = 'sqlite'
+  dbTestResult.value = ''
+  dbTestError.value = ''
+  dbExpanded.value = false
+}
 
 async function testDb() {
   dbTesting.value = true
