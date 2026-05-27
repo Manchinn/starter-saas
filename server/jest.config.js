@@ -2,6 +2,8 @@
 // cover, under `shared/<module>/__tests__/`. We set rootDir to the repo
 // root so jest can resolve `require('../../../../server/models')` paths
 // used by shared services exactly as they run at runtime.
+const path = require('path')
+
 module.exports = {
   rootDir: '..',
   testEnvironment: 'node',
@@ -13,11 +15,15 @@ module.exports = {
   reporters: [
     'default',
     ['jest-html-reporter', {
-      pageTitle: 'starter-saas unit tests',
+      pageTitle: 'starter-saas — unit test report',
       outputPath: '<rootDir>/test-results/unit-tests.html',
       includeFailureMsg: true,
       includeSuiteFailure: true,
       includeConsoleLog: false,
+      sort: 'titleAsc',
+      // jest-html-reporter does not expand <rootDir> for this option, so
+      // pass an absolute path resolved from this config file's location.
+      styleOverridePath: path.join(__dirname, 'test-report-style.css'),
     }],
   ],
 }
