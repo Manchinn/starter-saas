@@ -248,8 +248,11 @@
           </section>
 
           <!-- Totals -->
-          <section class="px-10 pb-6 flex justify-end">
-            <dl class="w-full sm:w-72 text-[12px] space-y-1.5">
+          <section class="px-10 pb-6 flex items-end justify-between gap-6">
+            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0">
+              {{ totalInWords }}
+            </p>
+            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
               <div class="flex items-center justify-between">
                 <dt class="text-[#637381]">{{ t('erp.quotations.subtotal') }}</dt>
                 <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(quotation.subtotal) }}</dd>
@@ -267,18 +270,6 @@
                 <dd class="text-[16px] font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(quotation.total) }}</dd>
               </div>
             </dl>
-          </section>
-
-          <!-- Total in words -->
-          <section v-if="totalInWords" class="px-10 pb-6">
-            <div class="bg-[#FAFBFD] border border-[#E2E8F0] px-4 py-2.5 flex items-baseline gap-3">
-              <span class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] flex-shrink-0">
-                {{ t('erp.quotations.amountInWords') }}
-              </span>
-              <span class="text-[13px] font-semibold text-[#1C2434] italic">
-                {{ totalInWords }}
-              </span>
-            </div>
           </section>
 
           <!-- Notes -->

@@ -102,7 +102,6 @@ export default {
       docCustomerSignature:    'Customer Signature',
       docFooterThanks:         'Thank you for your business.',
       printDocument:           'Print this document',
-      amountInWords:           'Amount in Words',
       nextAction:              'Next Action',
       nextActionHint:          'Move this quotation forward in the workflow.',
       convertActions:          'Create',
