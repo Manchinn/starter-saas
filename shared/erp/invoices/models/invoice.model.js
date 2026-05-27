@@ -16,6 +16,9 @@ const Invoice = sequelize.define('Invoice', {
   subtotal:    { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
   tax:         { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
   total:       { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
+  // Sum of all confirmed receive-payments, credit-notes, and other applications
+  // against this invoice. balanceDue = total - amountPaid (virtual below).
+  amountPaid:  { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
   notes:        { type: DataTypes.TEXT, allowNull: true },
   currency:     { type: DataTypes.STRING(3), allowNull: true },
   exchangeRate: { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 },
@@ -36,6 +39,13 @@ const Invoice = sequelize.define('Invoice', {
   dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
   createdBy:  { type: DataTypes.UUID, allowNull: true },
   modifiedBy: { type: DataTypes.UUID, allowNull: true },
+
+  balanceDue: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return Math.max(0, Number(this.getDataValue('total') || 0) - Number(this.getDataValue('amountPaid') || 0))
+    },
+  },
 })
 
 module.exports = Invoice

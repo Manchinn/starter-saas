@@ -95,12 +95,23 @@ const updateStatus = async (id, status, userId) => {
     throw { status: 400, message: `Cannot transition from "${receipt.status}" to "${status}"` }
   }
 
+  const round2 = (v) => Math.round(Number(v || 0) * 100) / 100
+
   const previousStatus = receipt.status
   await receipt.update({ status })
   const autoJournal = require('../accounting/services/auto-journal.service')
   if (status === 'confirmed') {
     try {
       await autoJournal.postReceipt(await getById(id), userId)
+      // Apply to linked invoice (single-invoice receipt)
+      if (receipt.invoiceId) {
+        const inv = await Invoice.findByPk(receipt.invoiceId)
+        if (inv) {
+          const newPaid = round2(Number(inv.amountPaid || 0) + Number(receipt.amount))
+          const isFullySettled = newPaid + 0.001 >= Number(inv.total)
+          await inv.update({ amountPaid: newPaid, status: isFullySettled ? 'paid' : inv.status })
+        }
+      }
     } catch (err) {
       await receipt.update({ status: previousStatus })
       throw err
@@ -109,6 +120,14 @@ const updateStatus = async (id, status, userId) => {
   if (status === 'cancelled' && previousStatus === 'confirmed') {
     try {
       await autoJournal.reverseReceipt(receipt, userId, 'receipt cancelled after confirmation')
+      if (receipt.invoiceId) {
+        const inv = await Invoice.findByPk(receipt.invoiceId)
+        if (inv) {
+          const newPaid = round2(Math.max(0, Number(inv.amountPaid || 0) - Number(receipt.amount)))
+          const isFullySettled = newPaid + 0.001 >= Number(inv.total)
+          await inv.update({ amountPaid: newPaid, status: isFullySettled ? 'paid' : 'sent' })
+        }
+      }
     } catch (err) {
       await receipt.update({ status: previousStatus })
       throw err

@@ -390,6 +390,16 @@ const columns = [
      WHERE u.id = audit_logs.userId
    )
    WHERE organizationId IS NULL AND userId IS NOT NULL`,
+
+  // ── Accounting Phase 1: AR partial-payment tracking ──────────────────────────
+  // Invoices: amountPaid lets us track partial payments without flipping status
+  // until fully paid. Backfill: invoices already marked 'paid' get amountPaid=total.
+  `ALTER TABLE Invoices ADD COLUMN amountPaid REAL DEFAULT 0`,
+  `UPDATE Invoices SET amountPaid = total WHERE status = 'paid' AND (amountPaid IS NULL OR amountPaid = 0)`,
+
+  // ReceivePayments: multi-currency + per-line allocation
+  `ALTER TABLE ReceivePayments ADD COLUMN currency     TEXT`,
+  `ALTER TABLE ReceivePayments ADD COLUMN exchangeRate REAL DEFAULT 1`,
 ]
 
 

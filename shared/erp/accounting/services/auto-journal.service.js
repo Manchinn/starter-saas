@@ -224,6 +224,115 @@ const postBillPayment = async (bill, userId) => {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Sales: ReceivePayment confirmed → Dr Cash/Bank / Cr AR (multi-invoice allocator)
+// Mirrors postReceipt but the source doc carries its own ref number + payment
+// method, and the total is the sum of per-invoice allocation lines.
+// ──────────────────────────────────────────────────────────────────────────────
+const postReceivePayment = async (rp, userId) => {
+  const orgId = rp.organizationId || null
+  const existing = await findExisting('ReceivePayment', rp.id)
+  if (existing) return existing
+
+  const ar       = await accounts.getByRole('AR', orgId)
+  const cashBank = await accounts.accountForPaymentMethod(rp.paymentMethod, orgId)
+  const rate      = Number(rp.exchangeRate) || 1
+  const amountDoc = Number(rp.amount || 0)
+  if (!amountDoc) throw { status: 400, message: 'Receive Payment amount is zero — cannot post journal' }
+  const amount = toBase(amountDoc, rate)
+  const fx     = fxContext(amountDoc, rp.currency, rate)
+
+  return postJournal({
+    sourceType:    'ReceivePayment',
+    sourceId:      rp.id,
+    date:          rp.date,
+    description:   `Auto-posted from Receive Payment ${rp.refNo}${fx}`,
+    lines: [
+      { accountId: cashBank.id, debit: amount, credit: 0, description: `Receive Payment ${rp.refNo}${fx}` },
+      { accountId: ar.id,       debit: 0, credit: amount, description: `Receive Payment ${rp.refNo}` },
+    ],
+    userId,
+    organizationId: orgId,
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Sales: CreditNote issued → Dr Revenue (+ Output Tax) / Cr AR
+// Treated as an AR reduction (CN against an invoice). If the CN has no linked
+// invoice, the AR contra is still booked — the customer's overall balance drops.
+// ──────────────────────────────────────────────────────────────────────────────
+const postCreditNote = async (cn, userId) => {
+  const orgId = cn.organizationId || null
+  const existing = await findExisting('CreditNote', cn.id)
+  if (existing) return existing
+
+  const ar       = await accounts.getByRole('AR',      orgId)
+  const revenue  = await accounts.getByRole('REVENUE', orgId)
+  const total    = Number(cn.amount || 0)
+  if (!total) throw { status: 400, message: 'Credit Note amount is zero — cannot post journal' }
+
+  // If the CN row carries explicit tax breakdown, split it. Otherwise treat
+  // the full amount as a sales reduction (no tax adjustment).
+  const taxAmount      = Number(cn.tax || 0)
+  const subtotalAmount = taxAmount > 0 ? Math.max(0, total - taxAmount) : total
+
+  const lines = [
+    { accountId: revenue.id, debit: subtotalAmount, credit: 0, description: `Credit Note ${cn.refNo} — ${cn.reason || ''}`.trim() },
+  ]
+  if (taxAmount > 0) {
+    const outTax = await accounts.getByRole('OUTPUT_TAX', orgId)
+    lines.push({ accountId: outTax.id, debit: taxAmount, credit: 0, description: `Output VAT reversal — ${cn.refNo}` })
+  }
+  lines.push({ accountId: ar.id, debit: 0, credit: total, description: `Credit Note ${cn.refNo}` })
+
+  return postJournal({
+    sourceType:    'CreditNote',
+    sourceId:      cn.id,
+    date:          cn.date,
+    description:   `Auto-posted from Credit Note ${cn.refNo}`,
+    lines,
+    userId,
+    organizationId: orgId,
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Sales: DebitNote issued → Dr AR / Cr Revenue (+ Output Tax)
+// Mirror of CreditNote: a new charge added to the customer's balance.
+// ──────────────────────────────────────────────────────────────────────────────
+const postDebitNote = async (dn, userId) => {
+  const orgId = dn.organizationId || null
+  const existing = await findExisting('DebitNote', dn.id)
+  if (existing) return existing
+
+  const ar      = await accounts.getByRole('AR',      orgId)
+  const revenue = await accounts.getByRole('REVENUE', orgId)
+  const total   = Number(dn.amount || 0)
+  if (!total) throw { status: 400, message: 'Debit Note amount is zero — cannot post journal' }
+
+  const taxAmount      = Number(dn.tax || 0)
+  const subtotalAmount = taxAmount > 0 ? Math.max(0, total - taxAmount) : total
+
+  const lines = [
+    { accountId: ar.id, debit: total, credit: 0, description: `Debit Note ${dn.refNo}` },
+    { accountId: revenue.id, debit: 0, credit: subtotalAmount, description: `Debit Note ${dn.refNo} — ${dn.reason || ''}`.trim() },
+  ]
+  if (taxAmount > 0) {
+    const outTax = await accounts.getByRole('OUTPUT_TAX', orgId)
+    lines.push({ accountId: outTax.id, debit: 0, credit: taxAmount, description: `Output VAT — ${dn.refNo}` })
+  }
+
+  return postJournal({
+    sourceType:    'DebitNote',
+    sourceId:      dn.id,
+    date:          dn.date,
+    description:   `Auto-posted from Debit Note ${dn.refNo}`,
+    lines,
+    userId,
+    organizationId: orgId,
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Reversal: create a mirror journal with debits/credits swapped.
 // Idempotent: the reversal itself uses sourceType `${origSourceType}.reversal`
 // so re-running won't duplicate.
@@ -260,10 +369,13 @@ const reverseFor = async (sourceType, sourceId, userId, reason) => {
   })
 }
 
-const reverseInvoice    = (invoice, userId, reason = 'invoice cancelled')      => reverseFor('Invoice',           invoice.id, userId, reason)
-const reverseReceipt    = (receipt, userId, reason = 'receipt cancelled')      => reverseFor('Receipt',           receipt.id, userId, reason)
-const reverseVendorBill = (bill,    userId, reason = 'vendor bill cancelled')  => reverseFor('VendorBill',        bill.id,    userId, reason)
-const reverseBillPayment = (bill,   userId, reason = 'bill payment cancelled') => reverseFor('VendorBillPayment', bill.id,    userId, reason)
+const reverseInvoice        = (invoice, userId, reason = 'invoice cancelled')         => reverseFor('Invoice',           invoice.id, userId, reason)
+const reverseReceipt        = (receipt, userId, reason = 'receipt cancelled')         => reverseFor('Receipt',           receipt.id, userId, reason)
+const reverseReceivePayment = (rp,      userId, reason = 'receive payment cancelled') => reverseFor('ReceivePayment',    rp.id,      userId, reason)
+const reverseCreditNote     = (cn,      userId, reason = 'credit note cancelled')     => reverseFor('CreditNote',        cn.id,      userId, reason)
+const reverseDebitNote      = (dn,      userId, reason = 'debit note cancelled')      => reverseFor('DebitNote',         dn.id,      userId, reason)
+const reverseVendorBill     = (bill,    userId, reason = 'vendor bill cancelled')     => reverseFor('VendorBill',        bill.id,    userId, reason)
+const reverseBillPayment    = (bill,    userId, reason = 'bill payment cancelled')    => reverseFor('VendorBillPayment', bill.id,    userId, reason)
 
 // Wrap a hook with safe error handling so callers can decide policy
 const safeRun = async (fn, context) => {
@@ -276,12 +388,18 @@ const safeRun = async (fn, context) => {
 }
 
 module.exports = {
-  postInvoice:        (inv, uid)         => safeRun(() => postInvoice(inv, uid),               `Invoice ${inv.invoiceNumber}`),
-  postReceipt:        (rec, uid)         => safeRun(() => postReceipt(rec, uid),               `Receipt ${rec.receiptNumber}`),
-  postVendorBill:     (bill, uid)        => safeRun(() => postVendorBill(bill, uid),           `VendorBill ${bill.billNumber}`),
-  postBillPayment:    (bill, uid)        => safeRun(() => postBillPayment(bill, uid),          `BillPayment ${bill.billNumber}`),
-  reverseInvoice:     (inv, uid, r)      => safeRun(() => reverseInvoice(inv, uid, r),         `Reverse Invoice ${inv.invoiceNumber}`),
-  reverseReceipt:     (rec, uid, r)      => safeRun(() => reverseReceipt(rec, uid, r),         `Reverse Receipt ${rec.receiptNumber}`),
-  reverseVendorBill:  (bill, uid, r)     => safeRun(() => reverseVendorBill(bill, uid, r),     `Reverse VendorBill ${bill.billNumber}`),
-  reverseBillPayment: (bill, uid, r)     => safeRun(() => reverseBillPayment(bill, uid, r),    `Reverse BillPayment ${bill.billNumber}`),
+  postInvoice:           (inv, uid)      => safeRun(() => postInvoice(inv, uid),                  `Invoice ${inv.invoiceNumber}`),
+  postReceipt:           (rec, uid)      => safeRun(() => postReceipt(rec, uid),                  `Receipt ${rec.receiptNumber}`),
+  postReceivePayment:    (rp,  uid)      => safeRun(() => postReceivePayment(rp, uid),            `ReceivePayment ${rp.refNo}`),
+  postCreditNote:        (cn,  uid)      => safeRun(() => postCreditNote(cn, uid),                `CreditNote ${cn.refNo}`),
+  postDebitNote:         (dn,  uid)      => safeRun(() => postDebitNote(dn, uid),                 `DebitNote ${dn.refNo}`),
+  postVendorBill:        (bill, uid)     => safeRun(() => postVendorBill(bill, uid),              `VendorBill ${bill.billNumber}`),
+  postBillPayment:       (bill, uid)     => safeRun(() => postBillPayment(bill, uid),             `BillPayment ${bill.billNumber}`),
+  reverseInvoice:        (inv, uid, r)   => safeRun(() => reverseInvoice(inv, uid, r),            `Reverse Invoice ${inv.invoiceNumber}`),
+  reverseReceipt:        (rec, uid, r)   => safeRun(() => reverseReceipt(rec, uid, r),            `Reverse Receipt ${rec.receiptNumber}`),
+  reverseReceivePayment: (rp,  uid, r)   => safeRun(() => reverseReceivePayment(rp, uid, r),      `Reverse ReceivePayment ${rp.refNo}`),
+  reverseCreditNote:     (cn,  uid, r)   => safeRun(() => reverseCreditNote(cn, uid, r),          `Reverse CreditNote ${cn.refNo}`),
+  reverseDebitNote:      (dn,  uid, r)   => safeRun(() => reverseDebitNote(dn, uid, r),           `Reverse DebitNote ${dn.refNo}`),
+  reverseVendorBill:     (bill, uid, r)  => safeRun(() => reverseVendorBill(bill, uid, r),        `Reverse VendorBill ${bill.billNumber}`),
+  reverseBillPayment:    (bill, uid, r)  => safeRun(() => reverseBillPayment(bill, uid, r),       `Reverse BillPayment ${bill.billNumber}`),
 }

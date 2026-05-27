@@ -20,6 +20,7 @@ const DEFAULTS = {
   BN:  { name: 'Billing Note',          format: 'BN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   DN:  { name: 'Debit Note',            format: 'DN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   CN:  { name: 'Credit Note',           format: 'CN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  BILL:{ name: 'Vendor Bill',           format: 'BILL{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   // Entity / master-data codes — fixed (never reset)
   CUS: { name: 'Customer Code',         format: 'CUS{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },
   CGP: { name: 'Customer Group Code',   format: 'CGP{####}',         initialValue: 1, maxValue: 99999, reseedPeriod: 'F' },

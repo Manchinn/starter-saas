@@ -1,9 +1,9 @@
-﻿const { DebitNote, Invoice, Customer } = require('../../../../server/models')
+const { DebitNote, Invoice, Customer } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const { getNext } = require('../../settings/services/sequence.service')
 
 const customerAttrs = ['id', 'name', 'company', 'email', 'phone']
-const invoiceAttrs  = ['id', 'invoiceNumber', 'invoiceDate', 'dueDate', 'total', 'status']
+const invoiceAttrs  = ['id', 'invoiceNumber', 'invoiceDate', 'dueDate', 'total', 'amountPaid', 'status']
 
 const baseInclude = [
   { model: Customer, as: 'customer', attributes: customerAttrs },
@@ -67,11 +67,21 @@ const create = async ({ date, customerId, invoiceId, reason, amount, notes, user
   return getById(dn.id)
 }
 
+// Issuing a DN: post Dr AR / Cr Revenue (+ Output Tax). Unlike CN, a DN does
+// NOT modify the linked invoice's amountPaid — it's a new, additional receivable.
 const issue = async (id, userId) => {
   const dn = await DebitNote.findByPk(id)
   if (!dn)                   throw { status: 404, message: 'Debit Note not found' }
   if (dn.status !== 'draft') throw { status: 400, message: 'Only draft debit notes can be issued' }
+  await require('./tax-period.service').assertOpen(dn.date, dn.organizationId)
+
   await dn.update({ status: 'issued', modifiedBy: userId || null })
+  try {
+    await require('./auto-journal.service').postDebitNote(await getById(id), userId)
+  } catch (err) {
+    await dn.update({ status: 'draft' })
+    throw err
+  }
   return getById(id)
 }
 
@@ -79,7 +89,20 @@ const cancel = async (id, userId) => {
   const dn = await DebitNote.findByPk(id)
   if (!dn)                                      throw { status: 404, message: 'Debit Note not found' }
   if (!['draft', 'issued'].includes(dn.status)) throw { status: 400, message: 'Cannot cancel an already cancelled debit note' }
+  const previousStatus = dn.status
+  if (previousStatus === 'issued') {
+    await require('./tax-period.service').assertOpen(dn.date, dn.organizationId)
+  }
+
   await dn.update({ status: 'cancelled', modifiedBy: userId || null })
+  if (previousStatus === 'issued') {
+    try {
+      await require('./auto-journal.service').reverseDebitNote(dn, userId, `debit note cancelled from "${previousStatus}"`)
+    } catch (err) {
+      await dn.update({ status: previousStatus })
+      throw err
+    }
+  }
   return getById(id)
 }
 
@@ -91,4 +114,3 @@ const remove = async (id) => {
 }
 
 module.exports = { list, getById, customerInvoices, create, issue, cancel, remove }
-

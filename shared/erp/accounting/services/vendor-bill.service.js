@@ -2,6 +2,7 @@ const { VendorBill, VendorBillItem, Vendor, PurchaseOrder, GoodReceive } = requi
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { toFixed } = require('../../../../server/utils/fmt')
+const { getNext } = require('../../settings/services/sequence.service')
 
 const vendorAttrs = ['id', 'name', 'code']
 const poAttrs     = ['id', 'refNo', 'date']
@@ -9,10 +10,9 @@ const grAttrs     = ['id', 'refNo', 'date']
 
 const itemInclude = { model: VendorBillItem, as: 'items' }
 
-const generateBillNumber = async () => {
-  const count = await VendorBill.count()
-  return `BILL-${String(count + 1).padStart(5, '0')}`
-}
+// Atomic, race-free numbering via the per-user Sequence table — replaces the
+// old count()+1 scheme which could collide under concurrent creates.
+const generateBillNumber = (userId) => getNext('BILL', userId)
 
 const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
@@ -47,7 +47,7 @@ const getById = async (id) => {
 const create = async ({ vendorId, purchaseOrderId, goodReceiveId, vendorInvoiceNo, billDate, dueDate, notes, items = [], taxRate = 0, currency, exchangeRate, userId, organizationId }) => {
   if (!items.length) throw { status: 400, message: 'Bill must have at least one item' }
   await require('./tax-period.service').assertOpen(billDate || new Date(), organizationId)
-  const billNumber = await generateBillNumber()
+  const billNumber = await generateBillNumber(userId)
   const subtotal = items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.unitPrice || 0), 0)
   const tax   = toFixed(subtotal * (Number(taxRate) / 100), 2)
   const total = toFixed(subtotal + tax, 2)
