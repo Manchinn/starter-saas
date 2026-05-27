@@ -216,8 +216,11 @@
           </section>
 
           <!-- Total -->
-          <section class="px-10 pb-6 flex justify-end">
-            <dl class="w-full sm:w-72 text-[12px] space-y-1.5">
+          <section class="px-10 pb-6 flex items-start justify-between gap-6">
+            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
+              {{ totalInWords }}
+            </p>
+            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
               <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
                 <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">Total Received</dt>
                 <dd class="text-[16px] font-extrabold text-green-600 tabular-nums">{{ fmtMoney(rp.amount) }}</dd>
@@ -299,6 +302,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeftIcon, ChevronRightIcon, BanknotesIcon,
@@ -307,13 +311,15 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
-import { fmtDate, fmtMoney } from '@/utils/fmt'
+import { fmtDate, fmtMoney, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
 
+const { locale }     = useI18n()
 const route          = useRoute()
 const router         = useRouter()
 const auth           = useAuthStore()
 const rp             = ref(null)
+const totalInWords   = computed(() => rp.value ? numToWords(rp.value.amount, locale.value, rp.value.currency) : '')
 const loading        = ref(true)
 const notFound       = ref(false)
 const updatingStatus = ref(false)

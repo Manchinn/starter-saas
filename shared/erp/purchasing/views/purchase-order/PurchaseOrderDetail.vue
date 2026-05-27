@@ -227,8 +227,11 @@
           </section>
 
           <!-- Totals -->
-          <section class="px-10 pb-6 flex justify-end">
-            <dl class="w-full sm:w-72 text-[12px] space-y-1.5">
+          <section class="px-10 pb-6 flex items-start justify-between gap-6">
+            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
+              {{ totalInWords }}
+            </p>
+            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
               <div class="flex items-center justify-between">
                 <dt class="text-[#637381]">{{ t('erp.po.totalItems') }}</dt>
                 <dd class="font-semibold text-[#1C2434] tabular-nums">{{ totalQty }}</dd>
@@ -361,10 +364,10 @@ import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import api from '@/api'
-import { fmtDate, fmtMoney } from '@/utils/fmt'
+import { fmtDate, fmtMoney, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
 
-const { t }   = useI18n()
+const { t, locale } = useI18n()
 const route   = useRoute()
 const router  = useRouter()
 const auth    = useAuthStore()
@@ -495,6 +498,7 @@ const grandTotal = computed(() =>
   (po.value?.items || []).reduce((s, i) => s + Number(i.qty) * Number(i.unitPrice), 0)
 )
 const grandTotalFmt = computed(() => fmtMoney(grandTotal.value))
+const totalInWords  = computed(() => po.value ? numToWords(grandTotal.value, locale.value, po.value.currency) : '')
 
 async function changeStatus(status) {
   actionError.value = ''

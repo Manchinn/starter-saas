@@ -221,8 +221,11 @@
           </section>
 
           <!-- Total -->
-          <section class="px-10 pb-6 flex justify-end">
-            <dl class="w-full sm:w-72 text-[12px] space-y-1.5">
+          <section class="px-10 pb-6 flex items-start justify-between gap-6">
+            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
+              {{ totalInWords }}
+            </p>
+            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
               <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
                 <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">{{ t('erp.creditNotes.creditAmount') }}</dt>
                 <dd class="text-[16px] font-extrabold text-green-600 tabular-nums">−{{ fmtMoney(cn.amount) }}</dd>
@@ -304,14 +307,15 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
-import { fmtDate, fmtMoney } from '@/utils/fmt'
+import { fmtDate, fmtMoney, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route          = useRoute()
 const router         = useRouter()
 const auth           = useAuthStore()
 const cn             = ref(null)
+const totalInWords   = computed(() => cn.value ? numToWords(cn.value.amount, locale.value, cn.value.currency) : '')
 const loading        = ref(true)
 const notFound       = ref(false)
 const updatingStatus = ref(false)
