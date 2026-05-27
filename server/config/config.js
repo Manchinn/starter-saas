@@ -4,9 +4,17 @@ module.exports = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT) || 3000,
   db: {
-    storage: process.env.DB_STORAGE || './data/database.sqlite',
-    dialect: 'sqlite',
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    // Supported Sequelize dialects: sqlite | postgres | mysql | mariadb | mssql
+    dialect:  process.env.DB_DIALECT  || 'sqlite',
+    // sqlite-only
+    storage:  process.env.DB_STORAGE  || './data/database.sqlite',
+    // shared by non-sqlite dialects
+    host:     process.env.DB_HOST     || 'localhost',
+    port:     process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : undefined,
+    database: process.env.DB_NAME     || '',
+    username: process.env.DB_USER     || '',
+    password: process.env.DB_PASSWORD || '',
+    logging:  process.env.NODE_ENV === 'development' ? console.log : false,
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'fallback-secret-change-in-production',

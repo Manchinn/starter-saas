@@ -284,6 +284,94 @@
               <FieldError :error="confirmMismatch ? t('auth.passwordsNoMatch') : ''" />
             </div>
 
+            <!-- Database -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">Database</p>
+                <span class="text-[10px] text-[#94A3B8]">{{ db.dialect === 'sqlite' ? 'No setup needed' : 'Connection required' }}</span>
+              </div>
+
+              <!-- Dialect grid -->
+              <div class="grid grid-cols-5 gap-2">
+                <button v-for="opt in dbDialects" :key="opt.value" type="button"
+                  @click="db.dialect = opt.value"
+                  :class="[
+                    'px-2 py-2 text-[11px] font-semibold border transition-all duration-150 flex flex-col items-center justify-center gap-1',
+                    db.dialect === opt.value
+                      ? 'border-primary-400 bg-primary-50 text-primary-700 ring-1 ring-primary-200'
+                      : 'border-[#E2E8F0] bg-white text-[#64748B] hover:border-primary-300 hover:bg-primary-50/30'
+                  ]">
+                  <span class="text-[14px]">{{ opt.icon }}</span>
+                  <span>{{ opt.label }}</span>
+                </button>
+              </div>
+
+              <!-- Connection fields (non-sqlite) -->
+              <div v-if="db.dialect !== 'sqlite'"
+                class="bg-white border border-[#E2E8F0] p-4 space-y-3">
+                <div class="grid grid-cols-3 gap-2.5">
+                  <div class="col-span-2">
+                    <label class="block text-[10px] font-semibold text-[#637381] uppercase tracking-wider mb-1">Host</label>
+                    <input v-model="db.host" type="text" placeholder="localhost"
+                      class="w-full px-3 py-2 bg-white border border-[#E2E8F0] text-[13px] text-[#0F172A] placeholder-[#CBD5E1]
+                             focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-[#637381] uppercase tracking-wider mb-1">Port</label>
+                    <input v-model="db.port" type="number" :placeholder="String(defaultPort)"
+                      class="w-full px-3 py-2 bg-white border border-[#E2E8F0] text-[13px] text-[#0F172A] placeholder-[#CBD5E1]
+                             focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-[#637381] uppercase tracking-wider mb-1">Database</label>
+                  <input v-model="db.database" type="text" placeholder="starter_saas"
+                    class="w-full px-3 py-2 bg-white border border-[#E2E8F0] text-[13px] text-[#0F172A] placeholder-[#CBD5E1]
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label class="block text-[10px] font-semibold text-[#637381] uppercase tracking-wider mb-1">Username</label>
+                    <input v-model="db.username" type="text" autocomplete="off"
+                      class="w-full px-3 py-2 bg-white border border-[#E2E8F0] text-[13px] text-[#0F172A] placeholder-[#CBD5E1]
+                             focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-[#637381] uppercase tracking-wider mb-1">Password</label>
+                    <input v-model="db.password" type="password" autocomplete="new-password"
+                      class="w-full px-3 py-2 bg-white border border-[#E2E8F0] text-[13px] text-[#0F172A] placeholder-[#CBD5E1]
+                             focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                  </div>
+                </div>
+
+                <!-- Test connection -->
+                <div class="flex items-center justify-between pt-1">
+                  <button type="button" @click="testDb" :disabled="dbTesting"
+                    class="px-3 py-1.5 text-[12px] font-semibold border transition-colors disabled:opacity-60
+                           border-[#E2E8F0] bg-white text-[#475569] hover:bg-[#F8FAFC]
+                           flex items-center gap-1.5">
+                    <svg v-if="dbTesting" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>{{ dbTesting ? 'Testing…' : 'Test connection' }}</span>
+                  </button>
+                  <span v-if="dbTestResult === 'ok'" class="text-[12px] font-semibold text-emerald-600 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Connected
+                  </span>
+                  <span v-else-if="dbTestResult === 'fail'" class="text-[12px] text-red-600">{{ dbTestError }}</span>
+                </div>
+              </div>
+
+              <!-- Sqlite path (advanced) -->
+              <div v-else class="bg-[#F8FAFC] border border-[#E2E8F0] px-4 py-3 text-[12px] text-[#64748B] leading-relaxed">
+                Uses an embedded SQLite file at <code class="text-[11px] bg-white px-1 py-0.5 border border-[#E2E8F0]">./data/database.sqlite</code>. Recommended for single-machine self-hosted setups.
+              </div>
+            </div>
+
             <!-- Setup options -->
             <div class="space-y-2.5">
               <p class="text-[11px] font-semibold text-[#637381] uppercase tracking-wider">Setup options</p>
@@ -413,6 +501,74 @@ const seedDemo      = ref(false)
 const confirmMismatch = ref(false)
 const { fieldErrors, setFromError, reset: resetFieldErrors, errorOf } = useFieldErrors()
 
+// ── Database selection ───────────────────────────────────────────────────────
+const dbDialects = [
+  { value: 'sqlite',   label: 'SQLite',     icon: '📦' },
+  { value: 'postgres', label: 'Postgres',   icon: '🐘' },
+  { value: 'mysql',    label: 'MySQL',      icon: '🐬' },
+  { value: 'mariadb',  label: 'MariaDB',    icon: '🦭' },
+  { value: 'mssql',    label: 'SQL Server', icon: '🪟' },
+]
+const DEFAULT_PORTS = { postgres: 5432, mysql: 3306, mariadb: 3306, mssql: 1433 }
+const db = ref({
+  dialect:  'sqlite',
+  host:     'localhost',
+  port:     '',
+  database: 'starter_saas',
+  username: '',
+  password: '',
+})
+const dbTesting    = ref(false)
+const dbTestResult = ref('')  // '' | 'ok' | 'fail'
+const dbTestError  = ref('')
+const defaultPort  = computed(() => DEFAULT_PORTS[db.value.dialect] || '')
+
+async function testDb() {
+  dbTesting.value = true
+  dbTestResult.value = ''
+  dbTestError.value = ''
+  try {
+    await api.post('/system/db/test', dbPayload())
+    dbTestResult.value = 'ok'
+  } catch (err) {
+    dbTestResult.value = 'fail'
+    dbTestError.value = err.response?.data?.message || 'Connection failed'
+  } finally {
+    dbTesting.value = false
+  }
+}
+
+function dbPayload() {
+  const d = db.value
+  if (d.dialect === 'sqlite') return { dialect: 'sqlite' }
+  return {
+    dialect:  d.dialect,
+    host:     d.host,
+    port:     d.port ? Number(d.port) : DEFAULT_PORTS[d.dialect],
+    database: d.database,
+    username: d.username,
+    password: d.password,
+  }
+}
+
+// Poll /api/health until the server is back up after the configure-induced
+// restart. Resolves on first 200, rejects after the timeout window so we
+// don't loop forever on a misconfigured environment.
+async function waitForServerReady({ timeoutMs = 30000, intervalMs = 750 } = {}) {
+  const deadline = Date.now() + timeoutMs
+  let lastErr = null
+  while (Date.now() < deadline) {
+    try {
+      await api.get('/health')
+      return
+    } catch (err) {
+      lastErr = err
+      await new Promise(r => setTimeout(r, intervalMs))
+    }
+  }
+  throw lastErr || new Error('Server did not become ready in time')
+}
+
 const setupItems = computed(() => [
   'Administrator account with full access',
   'Default roles & permission sets',
@@ -437,6 +593,35 @@ async function handleInstall() {
   loading.value = true
   loadingPhase.value = t('auth.installing')
   try {
+    // 1. If user picked a non-default DB, persist it and wait for the server
+    // to come back up. The server self-terminates (process.exit(0)) so the
+    // process manager — nodemon in dev, pm2/systemd in prod — restarts it
+    // under the new .env. We swallow the inevitable connection error from
+    // the configure call itself and poll /health instead.
+    if (db.value.dialect !== 'sqlite') {
+      loadingPhase.value = 'Configuring database…'
+      try {
+        await api.post('/system/db/configure', dbPayload())
+      } catch (err) {
+        const msg = err.response?.data?.message
+        if (msg) { errors.value = [msg]; return }
+        // Network error here usually means the server already started shutting
+        // down before sending the response. Continue and let the health poll
+        // verify the new boot.
+      }
+      loadingPhase.value = 'Restarting server…'
+      try {
+        await waitForServerReady()
+      } catch {
+        errors.value = ['Server did not come back online. Check the console for the new database connection error.']
+        return
+      }
+    }
+
+    // 2. Create the admin / seed defaults against whatever DB the server is
+    // now bound to (either the original sqlite, or the freshly-restarted
+    // selection from step 1).
+    loadingPhase.value = t('auth.installing')
     await auth.install(form.value.name, form.value.email, form.value.password)
     if (seedSequences.value) {
       loadingPhase.value = 'Seeding sequence numbers…'
