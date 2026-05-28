@@ -15,7 +15,8 @@ const list = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    res.json({ data: { deliveryOrder: await svc.getById(req.params.id) } })
+    const organizationId = req.user?.organizationId || req.user?.id
+    res.json({ data: { deliveryOrder: await svc.getById(req.params.id, organizationId) } })
   } catch (err) { next(err) }
 }
 
@@ -33,7 +34,8 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const doc = await svc.update(req.params.id, req.body, req.user?.id)
+    const organizationId = req.user?.organizationId || req.user?.id
+    const doc = await svc.update(req.params.id, req.body, req.user?.id, organizationId)
     res.json({ data: { deliveryOrder: doc } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
@@ -43,31 +45,36 @@ const update = async (req, res, next) => {
 
 const confirm = async (req, res, next) => {
   try {
-    res.json({ data: { deliveryOrder: await svc.confirm(req.params.id, req.user?.id) } })
+    const organizationId = req.user?.organizationId || req.user?.id
+    res.json({ data: { deliveryOrder: await svc.confirm(req.params.id, req.user?.id, organizationId) } })
   } catch (err) { next(err) }
 }
 
 const ship = async (req, res, next) => {
   try {
-    res.json({ data: { deliveryOrder: await svc.ship(req.params.id, req.user?.id) } })
+    const organizationId = req.user?.organizationId || req.user?.id
+    res.json({ data: { deliveryOrder: await svc.ship(req.params.id, req.user?.id, organizationId) } })
   } catch (err) { next(err) }
 }
 
 const deliver = async (req, res, next) => {
   try {
-    res.json({ data: { deliveryOrder: await svc.deliver(req.params.id, req.user?.id) } })
+    const organizationId = req.user?.organizationId || req.user?.id
+    res.json({ data: { deliveryOrder: await svc.deliver(req.params.id, req.user?.id, organizationId) } })
   } catch (err) { next(err) }
 }
 
 const cancel = async (req, res, next) => {
   try {
-    res.json({ data: { deliveryOrder: await svc.cancel(req.params.id, req.user?.id) } })
+    const organizationId = req.user?.organizationId || req.user?.id
+    res.json({ data: { deliveryOrder: await svc.cancel(req.params.id, req.user?.id, organizationId) } })
   } catch (err) { next(err) }
 }
 
 const remove = async (req, res, next) => {
   try {
-    await svc.remove(req.params.id)
+    const organizationId = req.user?.organizationId || req.user?.id
+    await svc.remove(req.params.id, organizationId)
     res.json({ data: { message: 'Deleted' } })
   } catch (err) { next(err) }
 }

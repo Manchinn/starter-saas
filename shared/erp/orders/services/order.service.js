@@ -1,6 +1,7 @@
 const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, SalePackage, Store, StoreStock, StockMovement, User, sequelize } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../../server/utils/fmt')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const generateOrderNumber = async () => {
   const count = await Order.count()
@@ -25,8 +26,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, orders: rows }
 }
 
-const getById = async (id) => {
-  const order = await Order.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const order = await findByPkScoped(Order, id, organizationId, {
     include: [
       { model: Customer, as: 'customer' },
       { model: User, as: 'salesperson', attributes: ['id', 'name', 'email'] },
@@ -161,8 +162,8 @@ const create = async ({
   return getById(createdId)
 }
 
-const updateStatus = async (id, status, userId) => {
-  const order = await Order.findByPk(id, {
+const updateStatus = async (id, status, userId, organizationId) => {
+  const order = await findByPkScoped(Order, id, organizationId, {
     include: [{
       model: SalesOrderItem, as: 'items',
       include: [{ model: SaleItem, as: 'saleItem', attributes: ['id', 'productId'] }],
@@ -292,7 +293,7 @@ const updateStatus = async (id, status, userId) => {
   return getById(id)
 }
 
-const update = async (id, payload, userId) => {
+const update = async (id, payload, userId, organizationId) => {
   const {
     customerId, orderDate, notes, currency, exchangeRate, items,
     referenceNumber, expectedDeliveryDate, paymentTerms, salespersonId,
@@ -300,7 +301,7 @@ const update = async (id, payload, userId) => {
     discountType, discountValue,
   } = payload || {}
 
-  const order = await Order.findByPk(id)
+  const order = await findByPkScoped(Order, id, organizationId)
   if (!order) throw { status: 404, message: 'Order not found' }
   if (order.status !== 'draft') throw { status: 400, message: 'Only draft orders can be edited' }
 
@@ -357,8 +358,8 @@ const update = async (id, payload, userId) => {
   return getById(id)
 }
 
-const remove = async (id) => {
-  const order = await Order.findByPk(id)
+const remove = async (id, organizationId) => {
+  const order = await findByPkScoped(Order, id, organizationId)
   if (!order) throw { status: 404, message: 'Order not found' }
   if (order.status !== 'draft') throw { status: 400, message: 'Only draft orders can be deleted' }
   await order.destroy()
@@ -387,8 +388,8 @@ const listItems = async ({ page = 1, limit = 50, search = '' }) => {
   return { total: count, items: rows }
 }
 
-const getItemById = async (id) => {
-  const item = await SalesOrderItem.findByPk(id, {
+const getItemById = async (id, organizationId) => {
+  const item = await findByPkScoped(SalesOrderItem, id, organizationId, {
     include: [
       { model: Order, as: 'order', attributes: ['id', 'orderNumber', 'status', 'orderDate'] },
       { model: Product, as: 'product', attributes: ['id', 'name', 'sku', 'stock'] },
@@ -407,8 +408,8 @@ const recalcOrderTotals = async (orderId, t) => {
   await order.update({ subtotal: toFixed(subtotal, 2), tax: toFixed(tax, 2), total: toFixed(total, 2) }, { transaction: t })
 }
 
-const updateItem = async (id, { productId, productName, quantity, unitPrice, taxRate }) => {
-  const item = await SalesOrderItem.findByPk(id, {
+const updateItem = async (id, { productId, productName, quantity, unitPrice, taxRate }, organizationId) => {
+  const item = await findByPkScoped(SalesOrderItem, id, organizationId, {
     include: [{ model: Order, as: 'order', attributes: ['id', 'status'] }],
   })
   if (!item) throw { status: 404, message: 'Order item not found' }
@@ -448,8 +449,8 @@ const updateItem = async (id, { productId, productName, quantity, unitPrice, tax
   })
 }
 
-const deleteItem = async (id) => {
-  const item = await SalesOrderItem.findByPk(id, {
+const deleteItem = async (id, organizationId) => {
+  const item = await findByPkScoped(SalesOrderItem, id, organizationId, {
     include: [{ model: Order, as: 'order', attributes: ['id', 'status'] }],
   })
   if (!item) throw { status: 404, message: 'Order item not found' }
@@ -463,7 +464,7 @@ const deleteItem = async (id) => {
 }
 
 const createDeliveryOrder = async (id, userId, organizationId) => {
-  const order = await getById(id)
+  const order = await getById(id, organizationId)
   if (!['confirmed', 'shipped', 'delivered'].includes(order.status)) {
     throw { status: 400, message: 'Only confirmed orders can generate a delivery order' }
   }
@@ -528,7 +529,7 @@ const createDeliveryOrder = async (id, userId, organizationId) => {
 }
 
 const createInvoice = async (id, userId, organizationId) => {
-  const order = await getById(id)
+  const order = await getById(id, organizationId)
   if (!['confirmed', 'shipped', 'delivered'].includes(order.status)) {
     throw { status: 400, message: 'Only confirmed orders can generate an invoice' }
   }

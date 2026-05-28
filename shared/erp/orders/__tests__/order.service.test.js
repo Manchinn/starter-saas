@@ -7,8 +7,8 @@
 // would need a fragile full sequelize.transaction stand-in.
 
 jest.mock('../../../../server/models', () => ({
-  Order:           { findAndCountAll: jest.fn(), findByPk: jest.fn(), count: jest.fn() },
-  SalesOrderItem:  { findAndCountAll: jest.fn(), findByPk: jest.fn(), destroy: jest.fn() },
+  Order:           { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), count: jest.fn() },
+  SalesOrderItem:  { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), destroy: jest.fn() },
   Customer:        {},
   Product:         { findByPk: jest.fn() },
   Item:            {},
@@ -144,7 +144,7 @@ describe('order.listItems / getItemById', () => {
 
 describe('order.createDeliveryOrder', () => {
   test('refuses when order is in draft/cancelled', async () => {
-    Order.findByPk.mockResolvedValue({ id: 'o1', status: 'draft', toJSON() { return { id: 'o1', status: 'draft' } } })
+    Order.findOne.mockResolvedValue({ id: 'o1', status: 'draft', toJSON() { return { id: 'o1', status: 'draft' } } })
     DeliveryOrder.findOne.mockResolvedValue(null)
     Invoice.findOne.mockResolvedValue(null)
     await expect(service.createDeliveryOrder('o1', 'u', 'org'))
@@ -152,7 +152,7 @@ describe('order.createDeliveryOrder', () => {
   })
 
   test('refuses when a delivery order already exists, naming it in the error', async () => {
-    Order.findByPk.mockResolvedValue({ id: 'o1', status: 'confirmed', items: [], toJSON() { return { id: 'o1', status: 'confirmed' } } })
+    Order.findOne.mockResolvedValue({ id: 'o1', status: 'confirmed', items: [], toJSON() { return { id: 'o1', status: 'confirmed' } } })
     // First call: getById's linkedDeliveryOrder join. Second: existence guard.
     DeliveryOrder.findOne
       .mockResolvedValueOnce({ id: 'do', refNo: 'DO-9' })
@@ -165,7 +165,7 @@ describe('order.createDeliveryOrder', () => {
 
 describe('order.createInvoice', () => {
   test('refuses when order is in draft', async () => {
-    Order.findByPk.mockResolvedValue({ id: 'o1', status: 'draft', toJSON() { return { id: 'o1', status: 'draft' } } })
+    Order.findOne.mockResolvedValue({ id: 'o1', status: 'draft', toJSON() { return { id: 'o1', status: 'draft' } } })
     DeliveryOrder.findOne.mockResolvedValue(null)
     Invoice.findOne.mockResolvedValue(null)
     await expect(service.createInvoice('o1', 'u', 'org'))
@@ -173,7 +173,7 @@ describe('order.createInvoice', () => {
   })
 
   test('refuses when an invoice already exists, naming it in the error', async () => {
-    Order.findByPk.mockResolvedValue({ id: 'o1', status: 'confirmed', items: [], toJSON() { return { id: 'o1', status: 'confirmed' } } })
+    Order.findOne.mockResolvedValue({ id: 'o1', status: 'confirmed', items: [], toJSON() { return { id: 'o1', status: 'confirmed' } } })
     Invoice.findOne
       .mockResolvedValueOnce({ id: 'inv', invoiceNumber: 'INV-7' }) // getById join
       .mockResolvedValueOnce({ id: 'inv', invoiceNumber: 'INV-7' }) // existence guard
@@ -201,7 +201,7 @@ describe('order.createInvoice', () => {
       orderNumber: 'ORD-1',
       toJSON() { return { ...this } },
     }
-    Order.findByPk.mockResolvedValue(ord)
+    Order.findOne.mockResolvedValue(ord)
     Invoice.findOne.mockResolvedValue(null)
     DeliveryOrder.findOne.mockResolvedValue(null)
     invoiceSvc.create.mockResolvedValue({ id: 'inv-new' })

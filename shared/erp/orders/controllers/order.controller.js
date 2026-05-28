@@ -15,7 +15,8 @@ module.exports = {
 
   async getById(req, res) {
     try {
-      const order = await service.getById(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const order = await service.getById(req.params.id, orgId)
       return ok(res, { order })
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -34,7 +35,8 @@ module.exports = {
 
   async update(req, res) {
     try {
-      const order = await service.update(req.params.id, req.body, req.user?.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const order = await service.update(req.params.id, req.body, req.user?.id, orgId)
       return ok(res, { order }, 'Order updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -43,7 +45,8 @@ module.exports = {
 
   async updateStatus(req, res) {
     try {
-      const order = await service.updateStatus(req.params.id, req.body.status, req.user?.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const order = await service.updateStatus(req.params.id, req.body.status, req.user?.id, orgId)
       return ok(res, { order }, 'Order status updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -52,7 +55,8 @@ module.exports = {
 
   async remove(req, res) {
     try {
-      await service.remove(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      await service.remove(req.params.id, orgId)
       return ok(res, null, 'Order deleted')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -71,7 +75,8 @@ module.exports = {
 
   async getItemById(req, res) {
     try {
-      const item = await service.getItemById(req.params.itemId)
+      const orgId = req.user?.organizationId || req.user?.id
+      const item = await service.getItemById(req.params.itemId, orgId)
       return ok(res, { item })
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -80,7 +85,8 @@ module.exports = {
 
   async updateItem(req, res) {
     try {
-      const item = await service.updateItem(req.params.itemId, req.body)
+      const orgId = req.user?.organizationId || req.user?.id
+      const item = await service.updateItem(req.params.itemId, req.body, orgId)
       return ok(res, { item }, 'Order item updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -89,7 +95,8 @@ module.exports = {
 
   async deleteItem(req, res) {
     try {
-      await service.deleteItem(req.params.itemId)
+      const orgId = req.user?.organizationId || req.user?.id
+      await service.deleteItem(req.params.itemId, orgId)
       return ok(res, null, 'Order item deleted')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

@@ -5,6 +5,7 @@ const {
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { getNext } = require('../../settings/services/sequence.service')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const customerAttrs = ['id', 'name', 'company', 'email', 'phone', 'address']
 const orderAttrs    = ['id', 'orderNumber', 'orderDate', 'status']
@@ -45,8 +46,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', dateFrom =
 }
 
 // ── Get by id ─────────────────────────────────────────────────────────────────
-const getById = async (id) => {
-  const doc = await DeliveryOrder.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const doc = await findByPkScoped(DeliveryOrder, id, organizationId, {
     include: [
       itemInclude,
       { model: Customer, as: 'customer', attributes: customerAttrs },
@@ -170,14 +171,14 @@ const create = async ({
 }
 
 // ── Update (draft only) ───────────────────────────────────────────────────────
-const update = async (id, payload, userId) => {
+const update = async (id, payload, userId, organizationId) => {
   const {
     date, deliveryDate, orderId, customerId,
     referenceNumber, paymentTerms, salespersonId, shippingAddress, billingAddress,
     address, notes, items,
   } = payload || {}
 
-  const doc = await DeliveryOrder.findByPk(id)
+  const doc = await findByPkScoped(DeliveryOrder, id, organizationId)
   if (!doc) throw { status: 404, message: 'Delivery Order not found' }
   if (doc.status !== 'draft') throw { status: 400, message: 'Only draft delivery orders can be edited' }
 
@@ -232,8 +233,8 @@ const TRANSITIONS = {
   cancelled: [],
 }
 
-async function transition(id, userId, from, to, errorMsg) {
-  const doc = await DeliveryOrder.findByPk(id)
+async function transition(id, userId, from, to, errorMsg, organizationId) {
+  const doc = await findByPkScoped(DeliveryOrder, id, organizationId)
   if (!doc) throw { status: 404, message: 'Delivery Order not found' }
   if (doc.status !== from) throw { status: 400, message: errorMsg }
   await doc.update({ status: to, modifiedBy: userId || null })
@@ -241,12 +242,12 @@ async function transition(id, userId, from, to, errorMsg) {
   return getById(id)
 }
 
-const confirm = (id, userId) => transition(id, userId, 'draft',     'confirmed', 'Only draft delivery orders can be confirmed')
-const ship    = (id, userId) => transition(id, userId, 'confirmed', 'shipped',   'Only confirmed delivery orders can be marked as shipped')
-const deliver = (id, userId) => transition(id, userId, 'shipped',   'delivered', 'Only shipped delivery orders can be marked as delivered')
+const confirm = (id, userId, organizationId) => transition(id, userId, 'draft',     'confirmed', 'Only draft delivery orders can be confirmed', organizationId)
+const ship    = (id, userId, organizationId) => transition(id, userId, 'confirmed', 'shipped',   'Only confirmed delivery orders can be marked as shipped', organizationId)
+const deliver = (id, userId, organizationId) => transition(id, userId, 'shipped',   'delivered', 'Only shipped delivery orders can be marked as delivered', organizationId)
 
-const cancel = async (id, userId) => {
-  const doc = await DeliveryOrder.findByPk(id)
+const cancel = async (id, userId, organizationId) => {
+  const doc = await findByPkScoped(DeliveryOrder, id, organizationId)
   if (!doc) throw { status: 404, message: 'Delivery Order not found' }
   if (!TRANSITIONS[doc.status]?.includes('cancelled')) throw { status: 400, message: 'Cannot cancel a delivered or already cancelled order' }
   const previous = doc.status
@@ -255,15 +256,15 @@ const cancel = async (id, userId) => {
   return getById(id)
 }
 
-const remove = async (id) => {
-  const doc = await DeliveryOrder.findByPk(id)
+const remove = async (id, organizationId) => {
+  const doc = await findByPkScoped(DeliveryOrder, id, organizationId)
   if (!doc)                   throw { status: 404, message: 'Delivery Order not found' }
   if (doc.status !== 'draft') throw { status: 400, message: 'Only draft delivery orders can be deleted' }
   await doc.destroy()
 }
 
 const createInvoice = async (id, userId, organizationId) => {
-  const doc = await getById(id)
+  const doc = await getById(id, organizationId)
   if (!['shipped', 'delivered'].includes(doc.status)) {
     throw { status: 400, message: 'Only shipped or delivered orders can be invoiced' }
   }

@@ -159,14 +159,14 @@ describe('delivery-order.remove', () => {
 
 describe('delivery-order.createInvoice', () => {
   test('refuses when DO is draft / confirmed', async () => {
-    DeliveryOrder.findByPk.mockResolvedValue({ id: 'd1', status: 'draft', toJSON() { return { id: 'd1', status: 'draft', items: [] } } })
+    DeliveryOrder.findOne.mockResolvedValue({ id: 'd1', status: 'draft', toJSON() { return { id: 'd1', status: 'draft', items: [] } } })
     Invoice.findOne.mockResolvedValue(null)
     await expect(service.createInvoice('d1', 'u', 'o'))
       .rejects.toEqual({ status: 400, message: 'Only shipped or delivered orders can be invoiced' })
   })
 
   test('refuses when invoice already exists, naming it in the error', async () => {
-    DeliveryOrder.findByPk.mockResolvedValue({ id: 'd1', status: 'shipped', items: [], toJSON() { return { id: 'd1', status: 'shipped', items: [] } } })
+    DeliveryOrder.findOne.mockResolvedValue({ id: 'd1', status: 'shipped', items: [], toJSON() { return { id: 'd1', status: 'shipped', items: [] } } })
     Invoice.findOne
       .mockResolvedValueOnce({ id: 'inv', invoiceNumber: 'INV-7' }) // getById join
       .mockResolvedValueOnce({ id: 'inv', invoiceNumber: 'INV-7' }) // existence guard
@@ -176,7 +176,7 @@ describe('delivery-order.createInvoice', () => {
   })
 
   test('happy path: pulls unit prices from the source SO and forwards items to invoice.create', async () => {
-    DeliveryOrder.findByPk.mockResolvedValue({
+    DeliveryOrder.findOne.mockResolvedValue({
       id: 'd1', status: 'shipped',
       customerId: 'c', orderId: 'so-1',
       items: [
@@ -210,7 +210,7 @@ describe('delivery-order.createInvoice', () => {
   })
 
   test('falls back to 0 unit price when no SO match found', async () => {
-    DeliveryOrder.findByPk.mockResolvedValue({
+    DeliveryOrder.findOne.mockResolvedValue({
       id: 'd1', status: 'shipped',
       customerId: 'c', orderId: null,
       items: [{ productId: 'p-x', productName: 'X', qty: 2 }],
