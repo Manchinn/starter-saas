@@ -1,5 +1,6 @@
 const { UOMConversion, UOM } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const uomInclude = [
   { model: UOM, as: 'fromUom', attributes: ['id', 'name', 'abbreviation'] },
@@ -27,8 +28,8 @@ const create = async ({ fromUomId, toUomId, factor, notes, createdBy, organizati
   return UOMConversion.findByPk(conv.id, { include: uomInclude })
 }
 
-const update = async (id, { fromUomId, toUomId, factor, notes }, userId) => {
-  const conv = await UOMConversion.findByPk(id)
+const update = async (id, { fromUomId, toUomId, factor, notes }, userId, organizationId) => {
+  const conv = await findByPkScoped(UOMConversion, id, organizationId)
   if (!conv) throw { status: 404, message: 'Conversion not found' }
   if (fromUomId === toUomId) throw { status: 400, message: 'From and To UOM must be different' }
   if (factor !== undefined && parseFloat(factor) <= 0) throw { status: 400, message: 'Factor must be greater than 0' }
@@ -42,8 +43,8 @@ const update = async (id, { fromUomId, toUomId, factor, notes }, userId) => {
   return UOMConversion.findByPk(id, { include: uomInclude })
 }
 
-const remove = async (id) => {
-  const conv = await UOMConversion.findByPk(id)
+const remove = async (id, organizationId) => {
+  const conv = await findByPkScoped(UOMConversion, id, organizationId)
   if (!conv) throw { status: 404, message: 'Conversion not found' }
   await conv.destroy()
 }

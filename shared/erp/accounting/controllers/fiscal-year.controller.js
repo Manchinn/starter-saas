@@ -10,7 +10,8 @@ const list = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    res.json({ data: { fiscalYear: await svc.getById(req.params.id) } })
+    const organizationId = req.user?.organizationId || req.user?.id
+    res.json({ data: { fiscalYear: await svc.getById(req.params.id, organizationId) } })
   } catch (err) { next(err) }
 }
 
@@ -25,20 +26,23 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const doc = await svc.update(req.params.id, { ...req.body, userId: req.user?.id })
+    const organizationId = req.user?.organizationId || req.user?.id
+    const doc = await svc.update(req.params.id, { ...req.body, userId: req.user?.id }, organizationId)
     res.json({ data: { fiscalYear: doc } })
   } catch (err) { next(err) }
 }
 
 const close = async (req, res, next) => {
   try {
-    res.json({ data: { fiscalYear: await svc.close(req.params.id, req.user?.id) } })
+    const organizationId = req.user?.organizationId || req.user?.id
+    res.json({ data: { fiscalYear: await svc.close(req.params.id, req.user?.id, organizationId) } })
   } catch (err) { next(err) }
 }
 
 const remove = async (req, res, next) => {
   try {
-    await svc.remove(req.params.id)
+    const organizationId = req.user?.organizationId || req.user?.id
+    await svc.remove(req.params.id, organizationId)
     res.json({ data: { message: 'Deleted' } })
   } catch (err) { next(err) }
 }

@@ -21,12 +21,14 @@ router.post('/', requirePermission('erp.uom.edit'), wrap(async (req, res) => {
 }))
 
 router.put('/:id', requirePermission('erp.uom.edit'), wrap(async (req, res) => {
-  const conv = await svc.update(req.params.id, req.body, req.user?.id)
+  const orgId = req.user?.organizationId || req.user?.id
+  const conv = await svc.update(req.params.id, req.body, req.user?.id, orgId)
   res.json({ data: { conversion: conv } })
 }))
 
 router.delete('/:id', requirePermission('erp.uom.delete'), wrap(async (req, res) => {
-  await svc.remove(req.params.id)
+  const orgId = req.user?.organizationId || req.user?.id
+  await svc.remove(req.params.id, orgId)
   res.json({ message: 'Deleted' })
 }))
 

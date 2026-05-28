@@ -16,11 +16,11 @@ const createCurrency = async (req, res, next) => {
   catch (err) { handleErr(err, res, next) }
 }
 const updateCurrency = async (req, res, next) => {
-  try { res.json({ data: { currency: await svc.updateCurrency(req.params.id, req.body, req.user?.id) } }) }
+  try { res.json({ data: { currency: await svc.updateCurrency(req.params.id, req.body, req.user?.id, orgFrom(req)) } }) }
   catch (err) { handleErr(err, res, next) }
 }
 const removeCurrency = async (req, res, next) => {
-  try { await svc.removeCurrency(req.params.id); res.json({ data: { message: 'Deleted' } }) }
+  try { await svc.removeCurrency(req.params.id, orgFrom(req)); res.json({ data: { message: 'Deleted' } }) }
   catch (err) { handleErr(err, res, next) }
 }
 
@@ -34,7 +34,7 @@ const createRate = async (req, res, next) => {
   catch (err) { handleErr(err, res, next) }
 }
 const removeRate = async (req, res, next) => {
-  try { await svc.removeRate(req.params.id); res.json({ data: { message: 'Deleted' } }) }
+  try { await svc.removeRate(req.params.id, orgFrom(req)); res.json({ data: { message: 'Deleted' } }) }
   catch (err) { handleErr(err, res, next) }
 }
 

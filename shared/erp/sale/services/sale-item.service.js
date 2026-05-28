@@ -1,5 +1,6 @@
 const { SaleItem, Product, Pricing } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const includes = [
   { model: Product, as: 'product', attributes: ['id', 'name', 'sku'] },
@@ -26,8 +27,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, items: rows }
 }
 
-const getById = async (id) => {
-  const item = await SaleItem.findByPk(id, { include: includes })
+const getById = async (id, organizationId) => {
+  const item = await findByPkScoped(SaleItem, id, organizationId, { include: includes })
   if (!item) throw { status: 404, message: 'Sale item not found' }
   return item
 }
@@ -52,8 +53,8 @@ const create = async ({ code, name, productId, status = 'active', autoCode, user
   return getById(item.id)
 }
 
-const update = async (id, { code, name, productId, status }, userId) => {
-  const item = await SaleItem.findByPk(id)
+const update = async (id, { code, name, productId, status }, userId, organizationId) => {
+  const item = await findByPkScoped(SaleItem, id, organizationId)
   if (!item) throw { status: 404, message: 'Sale item not found' }
 
   if (code?.trim() && code.trim() !== item.code) {
@@ -71,8 +72,8 @@ const update = async (id, { code, name, productId, status }, userId) => {
   return getById(id)
 }
 
-const remove = async (id) => {
-  const item = await SaleItem.findByPk(id)
+const remove = async (id, organizationId) => {
+  const item = await findByPkScoped(SaleItem, id, organizationId)
   if (!item) throw { status: 404, message: 'Sale item not found' }
   await item.destroy()
 }

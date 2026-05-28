@@ -1,5 +1,6 @@
 ﻿const { FiscalYear } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const list = async ({ page = 1, limit = 20, search = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
@@ -14,8 +15,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, fiscalYears: rows }
 }
 
-const getById = async (id) => {
-  const fy = await FiscalYear.findByPk(id)
+const getById = async (id, organizationId) => {
+  const fy = await findByPkScoped(FiscalYear, id, organizationId)
   if (!fy) throw { status: 404, message: 'Fiscal Year not found' }
   return fy
 }
@@ -39,8 +40,8 @@ const create = async ({ name, startDate, endDate, notes, userId, organizationId 
   return getById(fy.id)
 }
 
-const update = async (id, { name, startDate, endDate, notes, userId }) => {
-  const fy = await FiscalYear.findByPk(id)
+const update = async (id, { name, startDate, endDate, notes, userId }, organizationId) => {
+  const fy = await findByPkScoped(FiscalYear, id, organizationId)
   if (!fy)                  throw { status: 404, message: 'Fiscal Year not found' }
   if (fy.status === 'closed') throw { status: 400, message: 'Closed fiscal years cannot be edited' }
 
@@ -58,16 +59,16 @@ const update = async (id, { name, startDate, endDate, notes, userId }) => {
   })
   return getById(id)
 }
-const close = async (id, userId) => {
-  const fy = await FiscalYear.findByPk(id)
+const close = async (id, userId, organizationId) => {
+  const fy = await findByPkScoped(FiscalYear, id, organizationId)
   if (!fy)                  throw { status: 404, message: 'Fiscal Year not found' }
   if (fy.status === 'closed') throw { status: 400, message: 'Fiscal Year is already closed' }
   await fy.update({ status: 'closed', modifiedBy: userId || null })
   return getById(id)
 }
 
-const remove = async (id) => {
-  const fy = await FiscalYear.findByPk(id)
+const remove = async (id, organizationId) => {
+  const fy = await findByPkScoped(FiscalYear, id, organizationId)
   if (!fy)                  throw { status: 404, message: 'Fiscal Year not found' }
   if (fy.status === 'closed') throw { status: 400, message: 'Closed fiscal years cannot be deleted' }
   await fy.destroy()

@@ -1,5 +1,6 @@
 const { Currency, ExchangeRate } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 // ── Currencies ─────────────────────────────────────────────────────────
 const listCurrencies = ({ organizationId } = {}) =>
@@ -8,8 +9,8 @@ const listCurrencies = ({ organizationId } = {}) =>
     order: [['isBase', 'DESC'], ['code', 'ASC']],
   })
 
-const getCurrency = async (id) => {
-  const c = await Currency.findByPk(id)
+const getCurrency = async (id, organizationId) => {
+  const c = await findByPkScoped(Currency, id, organizationId)
   if (!c) throw { status: 404, message: 'Currency not found' }
   return c
 }
@@ -43,8 +44,8 @@ const createCurrency = async ({ code, name, symbol, decimals = 2, isBase = false
   })
 }
 
-const updateCurrency = async (id, { name, symbol, decimals, isBase, isActive }, userId) => {
-  const c = await getCurrency(id)
+const updateCurrency = async (id, { name, symbol, decimals, isBase, isActive }, userId, organizationId) => {
+  const c = await getCurrency(id, organizationId)
   if (isBase && !c.isBase) {
     await Currency.update(
       { isBase: false },
@@ -62,8 +63,8 @@ const updateCurrency = async (id, { name, symbol, decimals, isBase, isActive }, 
   return c
 }
 
-const removeCurrency = async (id) => {
-  const c = await getCurrency(id)
+const removeCurrency = async (id, organizationId) => {
+  const c = await getCurrency(id, organizationId)
   if (c.isBase) throw { status: 400, message: 'Cannot delete the base currency' }
   await c.destroy()
 }
@@ -90,8 +91,8 @@ const createRate = async ({ currencyCode, rate, asOfDate, source, notes, userId,
   })
 }
 
-const removeRate = async (id) => {
-  const r = await ExchangeRate.findByPk(id)
+const removeRate = async (id, organizationId) => {
+  const r = await findByPkScoped(ExchangeRate, id, organizationId)
   if (!r) throw { status: 404, message: 'Exchange rate not found' }
   await r.destroy()
 }
