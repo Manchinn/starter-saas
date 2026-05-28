@@ -4,6 +4,7 @@ const { Sequelize } = require('sequelize')
 const config = require('../../config/config')
 const { User } = require('../../models')
 const sequelize = require('../../config/database')
+const cache = require('../../config/redis')
 
 // `dotenv` is loaded from process.cwd() by app.js, and npm runs the workspace
 // scripts with cwd = server/. So .env lives at server/.env (not the repo root).
@@ -163,4 +164,113 @@ function dbStatus() {
   }
 }
 
-module.exports = { testConnection, configureDb, dbStatus, SUPPORTED_DIALECTS }
+// ── Redis / cache ─────────────────────────────────────────────────────────────
+const REDIS_ENV_KEYS = ['REDIS_ENABLED', 'REDIS_HOST', 'REDIS_PORT', 'REDIS_PASSWORD', 'REDIS_DB']
+
+function validateRedisPayload(p) {
+  const enabled = p?.enabled === true || p?.enabled === 'true'
+  if (!enabled) return { enabled: false }
+  const port = p.port ? parseInt(p.port, 10) : 6379
+  if (!Number.isInteger(port) || port <= 0) throw { status: 400, message: 'Invalid Redis port' }
+  return {
+    enabled:  true,
+    host:     (p.host || '').trim() || '127.0.0.1',
+    port,
+    password: p.password || '',
+    db:       p.db ? parseInt(p.db, 10) : 0,
+  }
+}
+
+// Merge install-supplied connection details with the non-user-facing defaults
+// (key prefix, default TTL) so the cache module gets a complete config.
+function toCacheCfg(cfg) {
+  return cfg.enabled
+    ? { ...cfg, keyPrefix: config.redis.keyPrefix, ttl: config.redis.ttl }
+    : { enabled: false }
+}
+
+function redisPayloadToEnvMap(cfg) {
+  if (!cfg.enabled) return { REDIS_ENABLED: 'false' }
+  return {
+    REDIS_ENABLED:  'true',
+    REDIS_HOST:     cfg.host,
+    REDIS_PORT:     String(cfg.port),
+    REDIS_PASSWORD: cfg.password || '',
+    REDIS_DB:       String(cfg.db || 0),
+  }
+}
+
+function applyRedisProcessEnv(cfg) {
+  const map = redisPayloadToEnvMap(cfg)
+  for (const k of REDIS_ENV_KEYS) {
+    if (map[k] === undefined) delete process.env[k]
+    else process.env[k] = map[k]
+  }
+}
+
+/** Open a throwaway client and PING, failing fast (no retries). */
+async function probeRedis(cacheCfg) {
+  const client = cache.buildRedisClient(cacheCfg, {
+    lazyConnect:          true,
+    maxRetriesPerRequest: 1,
+    retryStrategy:        () => null,
+    connectTimeout:       4000,
+  })
+  client.on('error', () => {}) // prevent unhandled 'error' from crashing the process
+  try {
+    await client.connect()
+    await client.ping()
+  } catch (err) {
+    throw { status: 400, message: `Connection failed: ${err.message}` }
+  } finally {
+    try { client.disconnect() } catch {}
+  }
+}
+
+async function testRedis(payload) {
+  await assertPreInstall()
+  const cfg = validateRedisPayload(payload)
+  if (!cfg.enabled) throw { status: 400, message: 'Redis is disabled — nothing to test.' }
+  await probeRedis(toCacheCfg(cfg))
+  return { message: 'Connection successful' }
+}
+
+/**
+ * Persist the Redis selection and apply it live. Unlike the DB switch, the
+ * cache backend can be re-pointed at runtime, so we update .env + process.env
+ * and call cache.reconfigure() — no server restart required.
+ */
+async function configureRedis(payload) {
+  await assertPreInstall()
+  const cfg = validateRedisPayload(payload)
+  if (cfg.enabled) await probeRedis(toCacheCfg(cfg))
+
+  const env = readEnv()
+  for (const k of Object.keys(env)) if (k.startsWith('REDIS_')) delete env[k]
+  Object.assign(env, redisPayloadToEnvMap(cfg))
+  writeEnv(env)
+
+  applyRedisProcessEnv(cfg)
+  try {
+    await cache.reconfigure(toCacheCfg(cfg))
+  } catch (err) {
+    throw { status: 400, message: `Connection failed: ${err.message}` }
+  }
+
+  return {
+    enabled: cfg.enabled,
+    message: cfg.enabled ? 'Redis enabled.' : 'Redis disabled; using in-memory cache.',
+  }
+}
+
+function redisStatus() {
+  return {
+    enabled:   process.env.REDIS_ENABLED === 'true',
+    connected: cache.isRedis(),
+  }
+}
+
+module.exports = {
+  testConnection, configureDb, dbStatus, SUPPORTED_DIALECTS,
+  testRedis, configureRedis, redisStatus,
+}

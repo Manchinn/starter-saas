@@ -22,4 +22,26 @@ module.exports = {
   dbStatus(req, res) {
     res.json({ success: true, data: service.dbStatus() })
   },
+
+  async testRedis(req, res) {
+    try {
+      const result = await service.testRedis(req.body)
+      res.json({ success: true, data: result })
+    } catch (err) {
+      res.status(err.status || 500).json({ success: false, message: err.message || 'Connection failed' })
+    }
+  },
+
+  async configureRedis(req, res) {
+    try {
+      const result = await service.configureRedis(req.body)
+      res.json({ success: true, data: result })
+    } catch (err) {
+      res.status(err.status || 500).json({ success: false, message: err.message || 'Configuration failed' })
+    }
+  },
+
+  redisStatus(req, res) {
+    res.json({ success: true, data: service.redisStatus() })
+  },
 }

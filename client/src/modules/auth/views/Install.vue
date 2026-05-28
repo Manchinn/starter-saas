@@ -170,6 +170,67 @@
               </div>
             </div>
 
+            <!-- ── Cache (Redis) ─────────────────────────────────────────────── -->
+            <div class="space-y-4 pt-1">
+              <p class="section-label px-0">{{ t('auth.cacheSection') }}</p>
+
+              <label class="flex items-start gap-3 cursor-pointer select-none border bg-white px-4 py-3.5 transition-all duration-150 hover:border-primary-300"
+                :class="redis.enabled ? 'border-primary-300 bg-primary-50/30' : 'border-[#E2E8F0]'">
+                <input v-model="redis.enabled" type="checkbox" class="sr-only" @change="redisTestResult = ''" />
+                <span class="mt-0.5 w-4 h-4 border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all"
+                  :class="redis.enabled ? 'bg-primary-500 border-primary-500' : 'bg-white border-[#CBD5E1]'">
+                  <svg v-if="redis.enabled" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                <span>
+                  <span class="block text-[13px] font-semibold text-[#374151] leading-snug">{{ t('auth.redisEnable') }}</span>
+                  <span class="block text-[12px] text-[#94A3B8] mt-0.5 leading-relaxed">{{ t('auth.redisEnableHint') }}</span>
+                </span>
+              </label>
+
+              <div v-if="redis.enabled" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div class="sm:col-span-2">
+                    <label class="label">{{ t('auth.dbHost') }}</label>
+                    <input v-model="redis.host" type="text" placeholder="127.0.0.1" class="input" @input="redisTestResult = ''" />
+                  </div>
+                  <div>
+                    <label class="label">{{ t('auth.dbPort') }}</label>
+                    <input v-model="redis.port" type="number" :placeholder="String(REDIS_DEFAULT_PORT)" class="input" @input="redisTestResult = ''" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div class="sm:col-span-2">
+                    <label class="label">{{ t('auth.password') }}</label>
+                    <input v-model="redis.password" type="password" autocomplete="new-password" class="input" @input="redisTestResult = ''" />
+                  </div>
+                  <div>
+                    <label class="label">{{ t('auth.redisDbIndex') }}</label>
+                    <input v-model="redis.db" type="number" placeholder="0" class="input" @input="redisTestResult = ''" />
+                  </div>
+                </div>
+
+                <!-- Test connection -->
+                <div class="flex items-center gap-3">
+                  <button type="button" @click="testRedis" :disabled="redisTesting" class="btn-secondary">
+                    <svg v-if="redisTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    {{ redisTesting ? t('auth.dbTesting') : t('auth.dbTest') }}
+                  </button>
+                  <span v-if="redisTestResult === 'ok'" class="text-[13px] font-semibold text-emerald-600 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {{ t('auth.dbConnected') }}
+                  </span>
+                  <span v-else-if="redisTestResult === 'fail'" class="text-[13px] text-red-600">{{ redisTestError }}</span>
+                </div>
+              </div>
+            </div>
+
             <!-- ── Setup options ─────────────────────────────────────────────── -->
             <div class="space-y-3 pt-1">
               <p class="section-label px-0">{{ t('auth.setupOptions') }}</p>
@@ -321,6 +382,44 @@ const needsDbConfigure = computed(() => {
   return path !== '' && path !== DEFAULT_SQLITE_PATH
 })
 
+// ── Cache (Redis) ─────────────────────────────────────────────────────────────
+const REDIS_DEFAULT_PORT = 6379
+const redis = ref({ enabled: false, host: '127.0.0.1', port: '', password: '', db: 0 })
+const redisTesting    = ref(false)
+const redisTestResult = ref('')  // '' | 'ok' | 'fail'
+const redisTestError  = ref('')
+
+// Default is the in-memory cache (disabled); only an explicit opt-in needs to
+// be persisted + applied on the server.
+const needsRedisConfigure = computed(() => redis.value.enabled === true)
+
+function redisPayload() {
+  const r = redis.value
+  if (!r.enabled) return { enabled: false }
+  return {
+    enabled:  true,
+    host:     (r.host || '').trim() || '127.0.0.1',
+    port:     r.port ? Number(r.port) : REDIS_DEFAULT_PORT,
+    password: r.password,
+    db:       r.db ? Number(r.db) : 0,
+  }
+}
+
+async function testRedis() {
+  redisTesting.value = true
+  redisTestResult.value = ''
+  redisTestError.value = ''
+  try {
+    await api.post('/system/redis/test', redisPayload())
+    redisTestResult.value = 'ok'
+  } catch (err) {
+    redisTestResult.value = 'fail'
+    redisTestError.value = err.response?.data?.message || t('auth.dbConnectionFailed')
+  } finally {
+    redisTesting.value = false
+  }
+}
+
 async function testDb() {
   dbTesting.value = true
   dbTestResult.value = ''
@@ -402,6 +501,18 @@ async function handleInstall() {
         await waitForServerReady()
       } catch {
         errors.value = [t('auth.serverNotBack')]
+        return
+      }
+    }
+
+    // 1b. Apply the cache selection. The backend swaps the cache backend live,
+    // so unlike the DB switch there's no restart/poll — it returns immediately.
+    if (needsRedisConfigure.value) {
+      loadingPhase.value = t('auth.configuringCache')
+      try {
+        await api.post('/system/redis/configure', redisPayload())
+      } catch (err) {
+        errors.value = [err.response?.data?.message || t('auth.dbConnectionFailed')]
         return
       }
     }

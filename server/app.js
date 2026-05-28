@@ -8,6 +8,7 @@ const moduleLoader = require('./core/module.loader')
 const migrator = require('./core/migrator')
 const { seedSequences } = require('./core/seed')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
+const cache = require('./config/redis')
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
 
@@ -36,6 +37,9 @@ async function bootstrap() {
   await migrator.up(sequelize)
   await seedSequences()
   logger.info('Database connected and synced', { label: 'db' })
+
+  // Initialise the cache (Redis when enabled, in-memory fallback otherwise).
+  await cache.init()
 
   // Load all HMVC modules (auto-discovers server/modules/*/*.module.js)
   await moduleLoader.loadAll(app)

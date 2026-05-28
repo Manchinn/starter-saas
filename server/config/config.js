@@ -22,6 +22,18 @@ module.exports = {
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
+  redis: {
+    // When disabled the cache transparently falls back to an in-process store,
+    // so callers use the same API regardless of whether Redis is configured.
+    enabled:   process.env.REDIS_ENABLED === 'true',
+    host:      process.env.REDIS_HOST     || '127.0.0.1',
+    port:      parseInt(process.env.REDIS_PORT, 10) || 6379,
+    password:  process.env.REDIS_PASSWORD || '',
+    db:        parseInt(process.env.REDIS_DB, 10) || 0,
+    keyPrefix: process.env.REDIS_KEY_PREFIX || 'starter:',
+    // Default expiry (seconds) applied when a caller omits a TTL.
+    ttl:       parseInt(process.env.REDIS_TTL, 10) || 3600,
+  },
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   appName: process.env.APP_NAME || 'Starter SaaS',
   smtp: {

@@ -80,6 +80,12 @@ export default {
     dbConnected:     'Connected',
     dbConnectionFailed: 'Connection failed',
 
+    // ── Install: cache (Redis) ───────────────────────────────────────────────────
+    cacheSection:    'Cache',
+    redisEnable:     'Use Redis cache',
+    redisEnableHint: 'Use an external Redis server for caching. Leave this off to use the built-in in-memory cache.',
+    redisDbIndex:    'DB index',
+
     // ── Install: setup options ───────────────────────────────────────────────────
     setupOptions:      'Setup options',
     seedSequencesTitle:'Seed sequence numbers',
@@ -89,6 +95,7 @@ export default {
 
     // ── Install: progress & notices ──────────────────────────────────────────────
     configuringDb:     'Configuring database…',
+    configuringCache:  'Configuring cache…',
     restartingServer:  'Restarting server…',
     serverNotBack:     'Server did not come back online. Check the console for the new database connection error.',
     seedingSequences:  'Seeding sequence numbers…',
