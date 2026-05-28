@@ -49,6 +49,12 @@ async function send({ to, subject, text, html }) {
 
 // ── Templates ────────────────────────────────────────────────────────────────
 
+// Escape user-controlled values before interpolating into HTML email bodies so
+// a crafted display name can't inject markup/links into the message.
+const escapeHtml = (s) =>
+  String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+
 function wrapHtml(title, bodyHtml) {
   return `<!doctype html>
 <html><head><meta charset="utf-8"><title>${title}</title></head>
@@ -76,7 +82,7 @@ ${resetUrl}
 
 If you didn't request this, you can safely ignore this email.`
   const html = wrapHtml(subject, `
-    <p>Hi ${name},</p>
+    <p>Hi ${escapeHtml(name)},</p>
     <p>Someone requested a password reset for your ${config.appName} account. Click the button below to choose a new password — the link expires in ${expiresMinutes} minutes.</p>
     ${button(resetUrl, 'Reset password')}
     <p style="font-size:13px;color:#637381;">If the button doesn't work, copy and paste this URL: <br><span style="word-break:break-all;">${resetUrl}</span></p>
@@ -93,7 +99,7 @@ Welcome to ${config.appName}! Please verify your email address by clicking the l
 
 ${verifyUrl}`
   const html = wrapHtml(subject, `
-    <p>Hi ${name},</p>
+    <p>Hi ${escapeHtml(name)},</p>
     <p>Welcome to ${config.appName}! Please confirm your email address by clicking the button below. The link expires in ${expiresHours} hours.</p>
     ${button(verifyUrl, 'Verify email')}
     <p style="font-size:13px;color:#637381;">If the button doesn't work, copy and paste this URL: <br><span style="word-break:break-all;">${verifyUrl}</span></p>

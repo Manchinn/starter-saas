@@ -25,7 +25,8 @@ const create = async (req, res, next) => {
 
 const download = async (req, res, next) => {
   try {
-    const att = await svc.getById(req.params.id)
+    const orgId = req.user?.organizationId || req.user?.id
+    const att = await svc.getByIdScoped(req.params.id, orgId)
     const { path, mimeType, filename } = svc.streamFile(att)
     res.setHeader('Content-Type', mimeType)
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`)
@@ -38,7 +39,8 @@ const download = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   try {
-    await svc.remove(req.params.id)
+    const orgId = req.user?.organizationId || req.user?.id
+    await svc.remove(req.params.id, orgId)
     res.json({ data: { message: 'Deleted' } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })

@@ -3,6 +3,45 @@ const path = require('path')
 const crypto = require('crypto')
 const { User, Module, Role, Permission } = require('../../models')
 const { Op } = require('sequelize')
+const { resolvePermissions } = require('../../middleware/permission')
+
+// ── Privilege-escalation guards ───────────────────────────────────────────────
+// `organizations.edit` is a delegable permission, so without these guards a
+// non-admin holding it could mint a system admin (role='admin' ⇒ wildcard '*')
+// or assign themselves a role carrying permissions they don't already have.
+
+// `actor` is the authenticated user from the HTTP layer (the only untrusted
+// entry point). When it's absent the call is internal/trusted (seeders, tests,
+// programmatic setup) and the guards are skipped.
+
+function assertCanSetAdminRole(actor, role) {
+  if (!actor) return
+  if (role === 'admin' && actor.role !== 'admin') {
+    throw { status: 403, message: 'Only system administrators can grant the admin role.' }
+  }
+}
+
+async function assertCanAssignRoles(actor, roleIds) {
+  if (!actor) return
+  if (!roleIds || !roleIds.length) return
+  if (actor.role === 'admin') return // system admin may assign any role
+  const actorPerms = await resolvePermissions(actor)
+  if (actorPerms.has('*')) return
+  const roles = await Role.findAll({
+    where: { id: roleIds },
+    include: [{ model: Permission, as: 'permissions', attributes: ['slug'] }],
+  })
+  for (const role of roles) {
+    for (const p of role.permissions || []) {
+      if (!actorPerms.has(p.slug)) {
+        throw {
+          status: 403,
+          message: `You cannot assign the "${role.name}" role — it grants permissions you do not have.`,
+        }
+      }
+    }
+  }
+}
 
 // Logos live in the root uploads/ dir alongside attachments.
 // Served publicly from /uploads/logos/* (see server/app.js).
@@ -31,7 +70,10 @@ const organizationIncludes = [
   { model: User, as: 'children', attributes: ['id', 'name', 'email', 'isActive'] },
 ]
 
-const create = async ({ name, email, password, role = 'user', defaultPage = null, roleIds = [], organizationId = null, parentId = null }) => {
+const create = async ({ name, email, password, role = 'user', defaultPage = null, roleIds = [], organizationId = null, parentId = null }, actor) => {
+  assertCanSetAdminRole(actor, role)
+  await assertCanAssignRoles(actor, roleIds)
+
   const exists = await User.findOne({ where: { email } })
   if (exists) throw { status: 409, message: 'Email already registered' }
 
@@ -81,7 +123,7 @@ const getById = async (id) => {
   return organization
 }
 
-const update = async (id, data) => {
+const update = async (id, data, actor) => {
   const organization = await User.findByPk(id)
   if (!organization) throw { status: 404, message: 'Organization not found' }
   const allowed = [
@@ -90,6 +132,7 @@ const update = async (id, data) => {
     'companyName', 'address', 'phone', 'taxId', 'website',
   ]
   const patch = Object.fromEntries(Object.entries(data).filter(([k]) => allowed.includes(k)))
+  if ('role' in patch) assertCanSetAdminRole(actor, patch.role)
   if ('parentId' in patch) patch.parentId = patch.parentId || null
   await organization.update(patch)
   return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
@@ -154,9 +197,10 @@ const assignModules = async (organizationId, moduleIds) => {
   return getById(organizationId)
 }
 
-const assignRoles = async (organizationId, roleIds) => {
+const assignRoles = async (organizationId, roleIds, actor) => {
   const organization = await User.findByPk(organizationId)
   if (!organization) throw { status: 404, message: 'Organization not found' }
+  await assertCanAssignRoles(actor, roleIds)
   const roles = await Role.findAll({ where: { id: roleIds } })
   await organization.setRoles(roles)
   return getById(organizationId)

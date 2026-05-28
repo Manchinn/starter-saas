@@ -4,7 +4,7 @@ const organizationService = require('./organization.service')
 module.exports = {
   async create(req, res) {
     try {
-      const organization = await organizationService.create(req.body)
+      const organization = await organizationService.create(req.body, req.user)
       return created(res, { organization }, 'Organization created')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -32,7 +32,7 @@ module.exports = {
 
   async update(req, res) {
     try {
-      const organization = await organizationService.update(req.params.id, req.body)
+      const organization = await organizationService.update(req.params.id, req.body, req.user)
       return ok(res, { organization }, 'Organization updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -80,7 +80,7 @@ module.exports = {
 
   async assignRoles(req, res) {
     try {
-      const organization = await organizationService.assignRoles(req.params.id, req.body.roleIds || [])
+      const organization = await organizationService.assignRoles(req.params.id, req.body.roleIds || [], req.user)
       return ok(res, { organization }, 'Roles assigned')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

@@ -1,4 +1,17 @@
 require('dotenv').config()
+const crypto = require('crypto')
+
+// Never ship a known, hardcoded signing secret. In production a missing secret
+// is fatal (fail-fast on boot); in dev/test we generate an ephemeral random one
+// per process so tokens are never signed with a guessable constant. Restarting
+// the dev server invalidates existing tokens, which is fine for local work.
+function resolveSecret(name, value) {
+  if (value) return value
+  if ((process.env.NODE_ENV || 'development') === 'production') {
+    throw new Error(`${name} environment variable is required in production`)
+  }
+  return crypto.randomBytes(48).toString('hex')
+}
 
 module.exports = {
   env: process.env.NODE_ENV || 'development',
@@ -17,9 +30,9 @@ module.exports = {
     logging:  process.env.NODE_ENV === 'development' ? console.log : false,
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'fallback-secret-change-in-production',
+    secret: resolveSecret('JWT_SECRET', process.env.JWT_SECRET),
     expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret',
+    refreshSecret: resolveSecret('JWT_REFRESH_SECRET', process.env.JWT_REFRESH_SECRET),
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
   redis: {

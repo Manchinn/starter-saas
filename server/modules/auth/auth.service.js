@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
+const bcrypt = require('bcryptjs')
 const config = require('../../config/config')
 const { User, Role, Permission, RefreshToken, MasterDataCategory, MasterDataValue } = require('../../models')
 const { Op } = require('sequelize')
@@ -8,6 +9,10 @@ const mailer = require('../../core/mailer')
 // ── Token generation (random, opaque, URL-safe) ──────────────────────────────
 const generateRawToken = () => crypto.randomBytes(32).toString('hex')
 const hashToken = (raw) => crypto.createHash('sha256').update(raw).digest('hex')
+
+// A valid bcrypt hash used to equalise login timing when the account doesn't
+// exist, so response time can't be used to enumerate registered emails.
+const DUMMY_HASH = bcrypt.hashSync('timing-equalisation-placeholder', 12)
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 
@@ -137,10 +142,12 @@ const register = async ({ name, email, password }, meta = {}) => {
 
 const login = async ({ email, password }, meta = {}) => {
   const user = await User.scope('withPassword').findOne({ where: { email } })
-  if (!user || !user.isActive) throw { status: 401, message: 'Invalid credentials' }
-
-  const valid = await user.comparePassword(password)
-  if (!valid) throw { status: 401, message: 'Invalid credentials' }
+  // Always run one bcrypt comparison (against a dummy hash when the user is
+  // missing) so timing doesn't reveal whether the email is registered.
+  const valid = user
+    ? await user.comparePassword(password)
+    : await bcrypt.compare(password, DUMMY_HASH)
+  if (!user || !user.isActive || !valid) throw { status: 401, message: 'Invalid credentials' }
 
   if (config.auth.requireEmailVerification && !user.emailVerifiedAt) {
     throw { status: 403, message: 'Please verify your email address before signing in.' }
@@ -189,11 +196,17 @@ const logout = async (token) => {
 
 const getMe = async (userId) => resolveSession(userId)
 
-const changePassword = async (userId, { currentPassword, newPassword }) => {
+const changePassword = async (userId, { currentPassword, newPassword }, currentRefreshToken = null) => {
   const user = await User.scope('withPassword').findByPk(userId)
   const valid = await user.comparePassword(currentPassword)
   if (!valid) throw { status: 400, message: 'Current password is incorrect' }
   await user.update({ password: newPassword })
+  // Revoke other sessions so a changed password kicks out any other device
+  // (e.g. a suspected-compromised one). Keep the caller's current session alive
+  // when it identifies itself via its refresh token.
+  const where = { userId, isRevoked: false }
+  if (currentRefreshToken) where.token = { [Op.ne]: currentRefreshToken }
+  await RefreshToken.update({ isRevoked: true }, { where })
 }
 
 const getInstallStatus = async () => {

@@ -58,7 +58,8 @@ module.exports = {
 
   async changePassword(req, res) {
     try {
-      await authService.changePassword(req.user.id, req.body)
+      const currentRefreshToken = req.get('x-refresh-token') || req.body?.refreshToken || null
+      await authService.changePassword(req.user.id, req.body, currentRefreshToken)
       return ok(res, null, 'Password changed successfully')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

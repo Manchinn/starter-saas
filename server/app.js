@@ -14,6 +14,23 @@ const requestLogger = require('./middleware/request-logger')
 
 const app = express()
 
+// Don't advertise the framework.
+app.disable('x-powered-by')
+
+// Baseline security headers. CSP is intentionally omitted here — the SPA is
+// served separately (Vite/static host), so its CSP belongs with that host.
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('Referrer-Policy', 'no-referrer')
+  res.setHeader('X-DNS-Prefetch-Control', 'off')
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+  if (config.env === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  }
+  next()
+})
+
 // Core middleware
 app.use(cors({ origin: config.clientUrl, credentials: true }))
 // Logos are uploaded as base64; the JSON body cap needs to be larger than a

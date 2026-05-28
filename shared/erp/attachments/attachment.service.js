@@ -48,6 +48,17 @@ const getById = async (id) => {
   return att
 }
 
+// Org-scoped lookup — used by download/remove so a user can only reach
+// attachments belonging to their own organization. A mismatch is reported as
+// 404 (not 403) so we don't confirm the existence of other orgs' files.
+const getByIdScoped = async (id, organizationId) => {
+  const att = await Attachment.findByPk(id)
+  if (!att || String(att.organizationId) !== String(organizationId)) {
+    throw { status: 404, message: 'Attachment not found' }
+  }
+  return att
+}
+
 const create = async ({ refType, refId, originalName, contentType, dataBase64, userId, organizationId }) => {
   if (!refType || !refId)   throw { status: 400, message: 'refType and refId are required' }
   if (!originalName)        throw { status: 400, message: 'File name is required' }
@@ -86,11 +97,11 @@ const streamFile = (att) => {
   return { path: fullPath, mimeType: att.mimeType || 'application/octet-stream', filename: att.originalName }
 }
 
-const remove = async (id) => {
-  const att = await getById(id)
+const remove = async (id, organizationId) => {
+  const att = await getByIdScoped(id, organizationId)
   const fullPath = path.join(STORAGE_ROOT, att.storedName)
   try { if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath) } catch (_) { /* ignore */ }
   await att.destroy()
 }
 
-module.exports = { list, getById, create, streamFile, remove, MAX_SIZE_BYTES, ALLOWED_MIME }
+module.exports = { list, getById, getByIdScoped, create, streamFile, remove, MAX_SIZE_BYTES, ALLOWED_MIME }
