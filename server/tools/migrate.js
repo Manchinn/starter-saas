@@ -2,11 +2,14 @@
 /**
  * Migration CLI.
  *
- *   node tools/migrate.js up              apply all pending migrations
- *   node tools/migrate.js down [n]        roll back the last n (default 1)
- *   node tools/migrate.js status          list every migration + applied state
+ *   node tools/migrate.js up               apply all pending migrations
+ *   node tools/migrate.js up <name>        apply one migration (exact or unique substring)
+ *   node tools/migrate.js down [n]         roll back the last n (default 1)
+ *   node tools/migrate.js down <name>      roll back one specific migration
+ *   node tools/migrate.js status           list every migration + applied state
  *
- * Run from the server workspace, e.g. `npm run migrate -- down 2`.
+ * Run from the server workspace, e.g. `npm run migrate:down -- 2` or
+ * `npm run migrate -- orders_header`.
  */
 require('dotenv').config()
 const { sequelize } = require('../models')
@@ -19,10 +22,12 @@ async function main() {
 
   switch (cmd) {
     case 'up':
-      await migrator.up(sequelize)
+      await migrator.up(sequelize, arg ? { only: arg } : {})
       break
     case 'down':
-      await migrator.down(sequelize, Math.max(1, parseInt(arg, 10) || 1))
+      if (!arg) await migrator.down(sequelize, { steps: 1 })
+      else if (/^\d+$/.test(arg)) await migrator.down(sequelize, { steps: parseInt(arg, 10) })
+      else await migrator.down(sequelize, { name: arg })
       break
     case 'status': {
       const rows = await migrator.status(sequelize)
@@ -32,7 +37,7 @@ async function main() {
       break
     }
     default:
-      console.log('Usage: migrate.js <up | down [n] | status>')
+      console.log('Usage: migrate.js <up [name] | down [n|name] | status>')
       process.exitCode = 1
   }
 }

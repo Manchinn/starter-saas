@@ -77,6 +77,17 @@ function collectMigrationFiles() {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
+// Resolve a user-supplied query to a single migration: exact name first, then
+// a unique substring match. Throws on no match or an ambiguous one.
+function resolveMigration(query, migrations = collectMigrationFiles()) {
+  const exact = migrations.find((m) => m.name === query)
+  if (exact) return exact
+  const matches = migrations.filter((m) => m.name.includes(query))
+  if (matches.length === 1) return matches[0]
+  if (matches.length === 0) throw new Error(`No migration matches "${query}"`)
+  throw new Error(`"${query}" is ambiguous — matches: ${matches.map((m) => m.name).join(', ')}`)
+}
+
 // ── Idempotent helper context ───────────────────────────────────────────────
 
 function makeContext(sequelize) {
@@ -198,11 +209,20 @@ async function recordReverted(sequelize, name) {
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
-async function up(sequelize) {
+async function up(sequelize, { only } = {}) {
   await ensureTrackingTable(sequelize)
   const applied = await appliedNames(sequelize)
   const ctx = makeContext(sequelize)
-  const migrations = collectMigrationFiles()
+  let migrations = collectMigrationFiles()
+
+  if (only) {
+    const target = resolveMigration(only, migrations)
+    if (applied.has(target.name)) {
+      log.info(`Already applied: ${target.name}`)
+      return 0
+    }
+    migrations = [target]
+  }
 
   let count = 0
   for (const { name, file } of migrations) {
@@ -226,11 +246,24 @@ async function up(sequelize) {
   return count
 }
 
-async function down(sequelize, steps = 1) {
+async function down(sequelize, { steps = 1, name } = {}) {
   await ensureTrackingTable(sequelize)
   const ctx = makeContext(sequelize)
-  const byName = new Map(collectMigrationFiles().map((m) => [m.name, m.file]))
-  const toRevert = (await appliedNamesDesc(sequelize)).slice(0, steps)
+  const all = collectMigrationFiles()
+  const byName = new Map(all.map((m) => [m.name, m.file]))
+
+  let toRevert
+  if (name) {
+    const target = resolveMigration(name, all)
+    const applied = await appliedNames(sequelize)
+    if (!applied.has(target.name)) {
+      log.info(`Not applied, nothing to roll back: ${target.name}`)
+      return 0
+    }
+    toRevert = [target.name]
+  } else {
+    toRevert = (await appliedNamesDesc(sequelize)).slice(0, steps)
+  }
 
   let count = 0
   for (const name of toRevert) {

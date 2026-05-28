@@ -7,7 +7,9 @@
     "dev": "nodemon app.js",
     "seed": "node tools/seed.js",
     "seed:core": "node tools/seed.js core",
+    "seed:file": "node tools/seed.js --only",
     "migrate": "node tools/migrate.js up",
+    "migrate:up": "node tools/migrate.js up",
     "migrate:down": "node tools/migrate.js down",
     "migrate:status": "node tools/migrate.js status",
     "test": "jest"

@@ -64,6 +64,17 @@ function collectSeeds() {
   return seeds.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
 }
 
+// Resolve a query to a single seed: exact name first, then a unique substring
+// match. Throws on no match or an ambiguous one.
+function resolveSeed(query, seeds = collectSeeds()) {
+  const exact = seeds.find((s) => s.name === query)
+  if (exact) return exact
+  const matches = seeds.filter((s) => s.name.includes(query))
+  if (matches.length === 1) return matches[0]
+  if (matches.length === 0) throw new Error(`No seed matches "${query}"`)
+  throw new Error(`"${query}" is ambiguous — matches: ${matches.map((s) => s.name).join(', ')}`)
+}
+
 // ── Context bag ───────────────────────────────────────────────────────────────
 
 function makeContext(sequelize) {
@@ -84,14 +95,13 @@ function makeContext(sequelize) {
 /**
  * Run seeds for the requested tiers.
  * @param {Sequelize} sequelize
- * @param {{ tiers?: string[], reset?: boolean }} options
+ * @param {{ tiers?: string[], reset?: boolean, only?: string }} options
  *   tiers — which tiers to run (default ['core']). 'demo' implies 'core'.
  *   reset — when true, sync({ force: true }) drops & recreates all tables first.
+ *   only  — run a single named seed (exact or unique substring). A single seed
+ *           gets no cross-seed context refs, so it suits independent seeds.
  */
-async function run(sequelize, { tiers = ['core'], reset = false } = {}) {
-  const active = new Set(tiers)
-  if (active.has('demo')) active.add('core') // demo seeds depend on core refs
-
+async function run(sequelize, { tiers = ['core'], reset = false, only } = {}) {
   if (reset) {
     log.warn('Resetting database (sync force: true) — all data will be dropped')
     // SQLite enforces FKs, so dropping referenced tables (e.g. Customers) fails;
@@ -103,13 +113,24 @@ async function run(sequelize, { tiers = ['core'], reset = false } = {}) {
   }
 
   const ctx = makeContext(sequelize)
-  const seeds = collectSeeds().filter((s) => active.has(s.tier))
+
+  let seeds
+  let label
+  if (only) {
+    seeds = [resolveSeed(only)]
+    label = `seed: ${seeds[0].name}`
+  } else {
+    const active = new Set(tiers)
+    if (active.has('demo')) active.add('core') // demo seeds depend on core refs
+    seeds = collectSeeds().filter((s) => active.has(s.tier))
+    label = `${seeds.length} seed(s) for tier(s): ${[...active].join(', ')}`
+  }
 
   for (const seed of seeds) {
     await seed.run(ctx)
     log.info(`Seeded: ${seed.name}`)
   }
-  log.info(`Done — ran ${seeds.length} seed(s) for tier(s): ${[...active].join(', ')}`)
+  log.info(`Done — ran ${label}`)
   return ctx
 }
 
