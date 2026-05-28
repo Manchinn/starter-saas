@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs')
 const winston = require('winston')
-const DailyRotateFile = require('winston-daily-rotate-file')
 
 const projectRoot = path.resolve(__dirname, '..', '..')
 const logsDir = process.env.LOG_DIR
@@ -13,6 +12,8 @@ fs.mkdirSync(logsDir, { recursive: true })
 
 const isProduction = process.env.NODE_ENV === 'production'
 const level = process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug')
+
+const MAX_SIZE = 20 * 1024 * 1024 // 20 MB per file before rotating
 
 // ── Formats ──────────────────────────────────────────────────────────────────
 const consoleFormat = winston.format.combine(
@@ -33,27 +34,26 @@ const fileFormat = winston.format.combine(
 )
 
 // ── Transports ───────────────────────────────────────────────────────────────
+// Size-based rotation via winston's built-in File transport. `tailable` keeps
+// the newest entries in the base filename and shifts older ones to app1.log,
+// app2.log, … — no audit manifest files are written.
 const transports = [
   new winston.transports.Console({ format: consoleFormat, level }),
-  new DailyRotateFile({
-    dirname:        logsDir,
-    filename:       'app-%DATE%.log',
-    datePattern:    'YYYY-MM-DD',
-    maxSize:        '20m',
-    maxFiles:       '14d',
-    zippedArchive:  true,
+  new winston.transports.File({
+    filename: path.join(logsDir, 'app.log'),
+    maxsize:  MAX_SIZE,
+    maxFiles: 14,
+    tailable: true,
     level,
-    format:         fileFormat,
+    format:   fileFormat,
   }),
-  new DailyRotateFile({
-    dirname:        logsDir,
-    filename:       'error-%DATE%.log',
-    datePattern:    'YYYY-MM-DD',
-    maxSize:        '20m',
-    maxFiles:       '30d',
-    zippedArchive:  true,
-    level:          'error',
-    format:         fileFormat,
+  new winston.transports.File({
+    filename: path.join(logsDir, 'error.log'),
+    maxsize:  MAX_SIZE,
+    maxFiles: 30,
+    tailable: true,
+    level:    'error',
+    format:   fileFormat,
   }),
 ]
 
@@ -65,24 +65,20 @@ const logger = winston.createLogger({
 })
 
 // Catch unhandled exceptions and rejections (file only — don't change process behaviour)
-logger.exceptions.handle(new DailyRotateFile({
-  dirname:        logsDir,
-  filename:       'exceptions-%DATE%.log',
-  datePattern:    'YYYY-MM-DD',
-  maxSize:        '20m',
-  maxFiles:       '60d',
-  zippedArchive:  true,
-  format:         fileFormat,
+logger.exceptions.handle(new winston.transports.File({
+  filename: path.join(logsDir, 'exceptions.log'),
+  maxsize:  MAX_SIZE,
+  maxFiles: 5,
+  tailable: true,
+  format:   fileFormat,
 }))
 
-logger.rejections.handle(new DailyRotateFile({
-  dirname:        logsDir,
-  filename:       'rejections-%DATE%.log',
-  datePattern:    'YYYY-MM-DD',
-  maxSize:        '20m',
-  maxFiles:       '60d',
-  zippedArchive:  true,
-  format:         fileFormat,
+logger.rejections.handle(new winston.transports.File({
+  filename: path.join(logsDir, 'rejections.log'),
+  maxsize:  MAX_SIZE,
+  maxFiles: 5,
+  tailable: true,
+  format:   fileFormat,
 }))
 
 /**
