@@ -16,7 +16,7 @@
 jest.mock('../../../../server/models', () => {
   const mockSequelize = { transaction: jest.fn() }
   return {
-    Invoice:        { findAndCountAll: jest.fn(), findByPk: jest.fn(), count: jest.fn(), create: jest.fn() },
+    Invoice:        { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), count: jest.fn(), create: jest.fn() },
     InvoiceItem:    { destroy: jest.fn(), create: jest.fn() },
     Customer:       {},
     Order:          {},
@@ -212,14 +212,14 @@ describe('invoice.remove', () => {
 
 describe('invoice.createReceipt', () => {
   test('refuses invoices in draft or cancelled status', async () => {
-    Invoice.findByPk.mockResolvedValue({ id: 'i1', status: 'draft', deliveryOrderId: null, toJSON() { return { id: 'i1', status: 'draft' } } })
+    Invoice.findOne.mockResolvedValue({ id: 'i1', status: 'draft', deliveryOrderId: null, toJSON() { return { id: 'i1', status: 'draft' } } })
     Receipt.findOne.mockResolvedValue(null)
     await expect(service.createReceipt('i1', 'u', 'o'))
       .rejects.toEqual({ status: 400, message: 'Only sent or paid invoices can record a payment' })
   })
 
   test('refuses when a receipt already exists, naming it in the error', async () => {
-    Invoice.findByPk.mockResolvedValue({ id: 'i1', status: 'sent', deliveryOrderId: null, toJSON() { return { id: 'i1', status: 'sent' } } })
+    Invoice.findOne.mockResolvedValue({ id: 'i1', status: 'sent', deliveryOrderId: null, toJSON() { return { id: 'i1', status: 'sent' } } })
     // First Receipt.findOne is for the getById join; second is the duplicate check.
     Receipt.findOne
       .mockResolvedValueOnce({ id: 'r1', receiptNumber: 'R-9' })
@@ -231,7 +231,7 @@ describe('invoice.createReceipt', () => {
   })
 
   test('happy path: creates a receipt from the invoice total', async () => {
-    Invoice.findByPk.mockResolvedValue({
+    Invoice.findOne.mockResolvedValue({
       id: 'i1', status: 'sent', invoiceNumber: 'INV-1',
       customerId: 'c1', total: '125.75', deliveryOrderId: null,
       toJSON() { return { id: 'i1', status: 'sent', invoiceNumber: 'INV-1', customerId: 'c1', total: '125.75' } },

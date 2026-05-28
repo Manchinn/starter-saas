@@ -6,6 +6,7 @@ const {
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../server/utils/fmt')
 const { getNext } = require('../settings/services/sequence.service')
+const { findByPkScoped } = require('../../../server/core/tenant')
 
 const itemIncludes = [
   { model: SaleItem,    as: 'saleItem',    attributes: ['id', 'name', 'code'] },
@@ -41,8 +42,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', dateFrom =
   return { total: count, page, limit, quotations: rows }
 }
 
-const getById = async (id) => {
-  const q = await Quotation.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const q = await findByPkScoped(Quotation, id, organizationId, {
     include: [
       { model: Customer, as: 'customer' },
       { model: User,     as: 'salesperson', attributes: ['id', 'name', 'email'] },
@@ -164,14 +165,14 @@ const create = async ({
   return getById(createdId)
 }
 
-const update = async (id, payload, userId) => {
+const update = async (id, payload, userId, organizationId) => {
   const {
     customerId, quotationDate, validUntil, notes, currency, exchangeRate, items,
     referenceNumber, paymentTerms, salespersonId, shippingAddress, billingAddress,
     discountType, discountValue,
   } = payload || {}
 
-  const q = await Quotation.findByPk(id)
+  const q = await findByPkScoped(Quotation, id, organizationId)
   if (!q) throw { status: 404, message: 'Quotation not found' }
   if (q.status !== 'draft') throw { status: 400, message: 'Only draft quotations can be edited' }
 
@@ -242,8 +243,8 @@ const VALID_TRANSITIONS = {
   converted: [],
 }
 
-const updateStatus = async (id, status, userId) => {
-  const q = await Quotation.findByPk(id)
+const updateStatus = async (id, status, userId, organizationId) => {
+  const q = await findByPkScoped(Quotation, id, organizationId)
   if (!q) throw { status: 404, message: 'Quotation not found' }
   const oldStatus = q.status
   if (oldStatus === status) return getById(id)
@@ -268,7 +269,7 @@ const updateStatus = async (id, status, userId) => {
 }
 
 const convertToOrder = async (id, userId, organizationId) => {
-  const q = await getById(id)
+  const q = await getById(id, organizationId)
   if (q.status !== 'accepted') throw { status: 400, message: 'Only accepted quotations can be converted to an order' }
   if (q.convertedToOrderId) throw { status: 400, message: 'This quotation has already been converted to an order' }
 
@@ -328,8 +329,8 @@ const convertToOrder = async (id, userId, organizationId) => {
   return { quotation: await getById(id), orderId: orderResult.id }
 }
 
-const remove = async (id) => {
-  const q = await Quotation.findByPk(id)
+const remove = async (id, organizationId) => {
+  const q = await findByPkScoped(Quotation, id, organizationId)
   if (!q) throw { status: 404, message: 'Quotation not found' }
   if (q.status !== 'draft') throw { status: 400, message: 'Only draft quotations can be deleted' }
   await q.destroy()

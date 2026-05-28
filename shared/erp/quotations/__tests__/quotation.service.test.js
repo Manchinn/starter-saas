@@ -6,7 +6,7 @@
 // tree-ordered hand-off from convertToOrder() to orders.create.
 
 jest.mock('../../../../server/models', () => ({
-  Quotation:     { findAndCountAll: jest.fn(), findByPk: jest.fn(), create: jest.fn() },
+  Quotation:     { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), create: jest.fn() },
   QuotationItem: { destroy: jest.fn(), create: jest.fn() },
   Customer:      {},
   Product:       {},
@@ -137,13 +137,13 @@ describe('quotation.updateStatus — transitions', () => {
 
 describe('quotation.convertToOrder', () => {
   test('refuses non-accepted status', async () => {
-    Quotation.findByPk.mockResolvedValue({ id: 'q1', status: 'sent', items: [] })
+    Quotation.findOne.mockResolvedValue({ id: 'q1', status: 'sent', items: [] })
     await expect(service.convertToOrder('q1', 'u', 'o'))
       .rejects.toEqual({ status: 400, message: 'Only accepted quotations can be converted to an order' })
   })
 
   test('refuses when already converted', async () => {
-    Quotation.findByPk.mockResolvedValue({ id: 'q1', status: 'accepted', convertedToOrderId: 'order-old', items: [] })
+    Quotation.findOne.mockResolvedValue({ id: 'q1', status: 'accepted', convertedToOrderId: 'order-old', items: [] })
     await expect(service.convertToOrder('q1', 'u', 'o'))
       .rejects.toEqual({ status: 400, message: 'This quotation has already been converted to an order' })
   })
@@ -166,8 +166,8 @@ describe('quotation.convertToOrder', () => {
       ],
     }
     const dbRow = { id: 'q1', update: jest.fn().mockResolvedValue() }
+    Quotation.findOne.mockResolvedValueOnce(q) // initial getById (org-scoped)
     Quotation.findByPk
-      .mockResolvedValueOnce(q)         // initial getById
       .mockResolvedValueOnce(dbRow)     // dbRow for update
       .mockResolvedValueOnce({ id: 'q1', status: 'converted', convertedToOrderId: 'order-new' }) // final getById
     orderSvc.create.mockResolvedValue({ id: 'order-new' })
@@ -198,8 +198,8 @@ describe('quotation.convertToOrder', () => {
       id: 'q1', status: 'accepted', convertedToOrderId: null,
       items: [{ id: 'p', productName: 'A', quantity: 1, unitPrice: 10, taxRate: 0, parentItemId: null }],
     }
+    Quotation.findOne.mockResolvedValueOnce(q)
     Quotation.findByPk
-      .mockResolvedValueOnce(q)
       .mockResolvedValueOnce({ id: 'q1', update: jest.fn().mockResolvedValue() })
       .mockResolvedValueOnce({ id: 'q1', status: 'converted' })
     orderSvc.create.mockResolvedValue({ id: 'order-new' })

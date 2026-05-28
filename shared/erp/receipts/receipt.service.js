@@ -1,5 +1,6 @@
 const { Receipt, Customer, Invoice } = require('../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../server/core/tenant')
 
 const generateReceiptNumber = async () => {
   const count = await Receipt.count()
@@ -23,8 +24,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, receipts: rows }
 }
 
-const getById = async (id) => {
-  const receipt = await Receipt.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const receipt = await findByPkScoped(Receipt, id, organizationId, {
     include: [
       { model: Customer, as: 'customer' },
       { model: Invoice,  as: 'invoice',  attributes: ['id', 'invoiceNumber', 'total'] },
@@ -60,8 +61,8 @@ const create = async ({ customerId, invoiceId, receiptDate, paymentMethod, amoun
   return getById(receipt.id)
 }
 
-const update = async (id, { customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes }, userId) => {
-  const receipt = await Receipt.findByPk(id)
+const update = async (id, { customerId, invoiceId, receiptDate, paymentMethod, amount, reference, notes }, userId, organizationId) => {
+  const receipt = await findByPkScoped(Receipt, id, organizationId)
   if (!receipt) throw { status: 404, message: 'Receipt not found' }
   if (receipt.status !== 'draft') throw { status: 400, message: 'Only draft receipts can be edited' }
   if (amount !== undefined && amount <= 0) throw { status: 400, message: 'Amount must be greater than zero' }
@@ -81,8 +82,8 @@ const update = async (id, { customerId, invoiceId, receiptDate, paymentMethod, a
   return getById(id)
 }
 
-const updateStatus = async (id, status, userId) => {
-  const receipt = await Receipt.findByPk(id)
+const updateStatus = async (id, status, userId, organizationId) => {
+  const receipt = await findByPkScoped(Receipt, id, organizationId)
   if (!receipt) throw { status: 404, message: 'Receipt not found' }
   if (receipt.status === status) return getById(id)
 
@@ -138,8 +139,8 @@ const updateStatus = async (id, status, userId) => {
   return getById(id)
 }
 
-const remove = async (id) => {
-  const receipt = await Receipt.findByPk(id)
+const remove = async (id, organizationId) => {
+  const receipt = await findByPkScoped(Receipt, id, organizationId)
   if (!receipt) throw { status: 404, message: 'Receipt not found' }
   if (receipt.status !== 'draft') throw { status: 400, message: 'Only draft receipts can be deleted' }
   await receipt.destroy()

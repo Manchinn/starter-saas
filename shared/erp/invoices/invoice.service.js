@@ -5,6 +5,7 @@ const {
 } = require('../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../server/utils/fmt')
+const { findByPkScoped } = require('../../../server/core/tenant')
 
 const itemIncludes = [
   { model: SaleItem,    as: 'saleItem',    attributes: ['id', 'name', 'code'] },
@@ -40,8 +41,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', dateFrom =
   return { total: count, page, limit, invoices: rows }
 }
 
-const getById = async (id) => {
-  const invoice = await Invoice.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const invoice = await findByPkScoped(Invoice, id, organizationId, {
     include: [
       { model: Customer, as: 'customer' },
       { model: Order,    as: 'order',    attributes: ['id', 'orderNumber'] },
@@ -207,7 +208,7 @@ const create = async ({
   return getById(createdId)
 }
 
-const update = async (id, payload, userId) => {
+const update = async (id, payload, userId, organizationId) => {
   const {
     customerId, orderId, invoiceDate, dueDate, notes, items, taxRate,
     currency, exchangeRate,
@@ -215,7 +216,7 @@ const update = async (id, payload, userId) => {
     discountType, discountValue,
   } = payload || {}
 
-  const invoice = await Invoice.findByPk(id)
+  const invoice = await findByPkScoped(Invoice, id, organizationId)
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
   if (invoice.status !== 'draft') throw { status: 400, message: 'Only draft invoices can be edited' }
   await require('../accounting/services/tax-period.service').assertOpen(invoiceDate || invoice.invoiceDate, invoice.organizationId)
@@ -279,8 +280,8 @@ const update = async (id, payload, userId) => {
   return getById(id)
 }
 
-const updateStatus = async (id, status, userId) => {
-  const invoice = await Invoice.findByPk(id)
+const updateStatus = async (id, status, userId, organizationId) => {
+  const invoice = await findByPkScoped(Invoice, id, organizationId)
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
   if (invoice.status === status) return getById(id)
 
@@ -318,15 +319,15 @@ const updateStatus = async (id, status, userId) => {
   return getById(id)
 }
 
-const remove = async (id) => {
-  const invoice = await Invoice.findByPk(id)
+const remove = async (id, organizationId) => {
+  const invoice = await findByPkScoped(Invoice, id, organizationId)
   if (!invoice) throw { status: 404, message: 'Invoice not found' }
   if (invoice.status !== 'draft') throw { status: 400, message: 'Only draft invoices can be deleted' }
   await invoice.destroy()
 }
 
 const createReceipt = async (id, userId, organizationId) => {
-  const invoice = await getById(id)
+  const invoice = await getById(id, organizationId)
   if (!['sent', 'paid'].includes(invoice.status)) {
     throw { status: 400, message: 'Only sent or paid invoices can record a payment' }
   }
