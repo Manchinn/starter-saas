@@ -5,7 +5,8 @@ const cors = require('cors')
 const config = require('./config/config')
 const { sequelize } = require('./models')
 const moduleLoader = require('./core/module.loader')
-const { runMigrations, seedSequences } = require('./migrations')
+const migrator = require('./core/migrator')
+const { seedSequences } = require('./core/seed')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
@@ -32,7 +33,7 @@ async function bootstrap() {
   // Sync database
   await sequelize.authenticate()
   await sequelize.sync()
-  await runMigrations(sequelize)
+  await migrator.up(sequelize)
   await seedSequences()
   logger.info('Database connected and synced', { label: 'db' })
 
