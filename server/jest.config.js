@@ -7,7 +7,10 @@ const path = require('path')
 module.exports = {
   rootDir: '..',
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/shared/**/__tests__/**/*.test.js'],
+  testMatch: [
+    '<rootDir>/shared/**/__tests__/**/*.test.js',
+    '<rootDir>/server/**/__tests__/**/*.test.js',
+  ],
   // resetMocks (not clearMocks) so mockResolvedValueOnce queues don't leak
   // between tests in the same suite — clearMocks only clears mock.calls,
   // not pending implementations.
