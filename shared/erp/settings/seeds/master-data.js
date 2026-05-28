@@ -1,6 +1,19 @@
 // Global system master-data categories + values (org-independent reference data).
 const MASTER_DATA_SEED = [
   {
+    slug: 'payment-terms', name: 'Payment Terms',
+    description: 'Customer / vendor payment terms used on orders, invoices, and bills.', isSystem: true,
+    values: [
+      { code: 'cod',     name: 'COD (Cash on Delivery)', sortOrder: 10 },
+      { code: 'prepaid', name: 'Prepaid',                sortOrder: 20 },
+      { code: 'net7',    name: 'Net 7',                  sortOrder: 30 },
+      { code: 'net15',   name: 'Net 15',                 sortOrder: 40 },
+      { code: 'net30',   name: 'Net 30',                 sortOrder: 50 },
+      { code: 'net60',   name: 'Net 60',                 sortOrder: 60 },
+      { code: 'net90',   name: 'Net 90',                 sortOrder: 70 },
+    ],
+  },
+  {
     slug: 'payment-methods', name: 'Payment Methods',
     description: 'Available payment methods for receipts', isSystem: true,
     values: [
