@@ -1,5 +1,6 @@
 const { TaxPeriod, FiscalYear } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const fmtDate = (d) => {
   if (!d) return null
@@ -14,8 +15,8 @@ const list = async ({ status, organizationId } = {}) => {
   return TaxPeriod.findAll({ where, order: [['startDate', 'DESC']] })
 }
 
-const getById = async (id) => {
-  const p = await TaxPeriod.findByPk(id)
+const getById = async (id, organizationId) => {
+  const p = await findByPkScoped(TaxPeriod, id, organizationId)
   if (!p) throw { status: 404, message: 'Tax period not found' }
   return p
 }
@@ -34,8 +35,8 @@ const create = async ({ name, startDate, endDate, notes, userId, organizationId 
   })
 }
 
-const update = async (id, { name, startDate, endDate, notes }, userId) => {
-  const p = await getById(id)
+const update = async (id, { name, startDate, endDate, notes }, userId, organizationId) => {
+  const p = await getById(id, organizationId)
   if (p.status === 'closed') throw { status: 400, message: 'Closed periods cannot be edited' }
   const newStart = startDate || p.startDate
   const newEnd   = endDate   || p.endDate
@@ -50,22 +51,22 @@ const update = async (id, { name, startDate, endDate, notes }, userId) => {
   return p
 }
 
-const close = async (id, userId) => {
-  const p = await getById(id)
+const close = async (id, userId, organizationId) => {
+  const p = await getById(id, organizationId)
   if (p.status === 'closed') return p
   await p.update({ status: 'closed', closedBy: userId || null, closedAt: new Date(), modifiedBy: userId || null })
   return p
 }
 
-const reopen = async (id, userId) => {
-  const p = await getById(id)
+const reopen = async (id, userId, organizationId) => {
+  const p = await getById(id, organizationId)
   if (p.status === 'open') return p
   await p.update({ status: 'open', closedBy: null, closedAt: null, modifiedBy: userId || null })
   return p
 }
 
-const remove = async (id) => {
-  const p = await getById(id)
+const remove = async (id, organizationId) => {
+  const p = await getById(id, organizationId)
   if (p.status === 'closed') throw { status: 400, message: 'Closed periods cannot be deleted' }
   await p.destroy()
 }
@@ -116,7 +117,7 @@ const assertOpen = async (date, organizationId) => {
  * Input  VAT (asset, debit balance):       amount = debit − credit
  */
 const getVatReport = async (periodId, organizationId) => {
-  const period = await getById(periodId)
+  const period = await getById(periodId, organizationId)
   const { Journal, JournalLine, ChartOfAccount } = require('../../../../server/models')
   const accountsSvc = require('./account-mapping.service')
 

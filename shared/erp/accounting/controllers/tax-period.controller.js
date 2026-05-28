@@ -12,7 +12,7 @@ const list = async (req, res, next) => {
 }
 
 const getById = async (req, res, next) => {
-  try { res.json({ data: { period: await svc.getById(req.params.id) } }) }
+  try { res.json({ data: { period: await svc.getById(req.params.id, orgFrom(req)) } }) }
   catch (err) { handleErr(err, res, next) }
 }
 
@@ -22,22 +22,22 @@ const create = async (req, res, next) => {
 }
 
 const update = async (req, res, next) => {
-  try { res.json({ data: { period: await svc.update(req.params.id, req.body, req.user?.id) } }) }
+  try { res.json({ data: { period: await svc.update(req.params.id, req.body, req.user?.id, orgFrom(req)) } }) }
   catch (err) { handleErr(err, res, next) }
 }
 
 const close = async (req, res, next) => {
-  try { res.json({ data: { period: await svc.close(req.params.id, req.user?.id) } }) }
+  try { res.json({ data: { period: await svc.close(req.params.id, req.user?.id, orgFrom(req)) } }) }
   catch (err) { handleErr(err, res, next) }
 }
 
 const reopen = async (req, res, next) => {
-  try { res.json({ data: { period: await svc.reopen(req.params.id, req.user?.id) } }) }
+  try { res.json({ data: { period: await svc.reopen(req.params.id, req.user?.id, orgFrom(req)) } }) }
   catch (err) { handleErr(err, res, next) }
 }
 
 const remove = async (req, res, next) => {
-  try { await svc.remove(req.params.id); res.json({ data: { message: 'Deleted' } }) }
+  try { await svc.remove(req.params.id, orgFrom(req)); res.json({ data: { message: 'Deleted' } }) }
   catch (err) { handleErr(err, res, next) }
 }
 

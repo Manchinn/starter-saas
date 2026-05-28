@@ -1,5 +1,6 @@
 ﻿const { ChartOfAccount } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const normalBalanceFor = {
   asset:     'debit',
@@ -41,8 +42,8 @@ const listAll = async (organizationId) => {
   return accounts
 }
 
-const getById = async (id) => {
-  const account = await ChartOfAccount.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const account = await findByPkScoped(ChartOfAccount, id, organizationId, {
     include: [{ model: ChartOfAccount, as: 'parent', attributes: ['id', 'code', 'name'] }],
   })
   if (!account) throw { status: 404, message: 'Account not found' }
@@ -81,8 +82,8 @@ const create = async ({ code, name, accountType, normalBalance, description, par
   })
 }
 
-const update = async (id, data, userId) => {
-  const account = await ChartOfAccount.findByPk(id)
+const update = async (id, data, userId, organizationId) => {
+  const account = await findByPkScoped(ChartOfAccount, id, organizationId)
   if (!account) throw { status: 404, message: 'Account not found' }
 
   if (data.code && data.code !== account.code) {
@@ -109,8 +110,8 @@ const update = async (id, data, userId) => {
   return account.reload({ include: [{ model: ChartOfAccount, as: 'parent', attributes: ['id', 'code', 'name'] }] })
 }
 
-const remove = async (id) => {
-  const account = await ChartOfAccount.findByPk(id)
+const remove = async (id, organizationId) => {
+  const account = await findByPkScoped(ChartOfAccount, id, organizationId)
   if (!account) throw { status: 404, message: 'Account not found' }
   const children = await ChartOfAccount.count({ where: { parentId: id } })
   if (children > 0) throw { status: 400, message: 'Cannot delete an account that has sub-accounts' }

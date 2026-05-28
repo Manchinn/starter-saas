@@ -1,6 +1,7 @@
 const { SalePackage, SalePackageItem, SaleItem } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const itemInclude = {
   model: SalePackageItem,
@@ -30,8 +31,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, items: rows }
 }
 
-const getById = async (id) => {
-  const pkg = await SalePackage.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const pkg = await findByPkScoped(SalePackage, id, organizationId, {
     include: [itemInclude],
   })
   if (!pkg) throw { status: 404, message: 'Sale package not found' }
@@ -78,8 +79,8 @@ const create = async ({ code, name, description, status = 'active', autoCode, it
   return getById(createdId)
 }
 
-const update = async (id, { code, name, description, status, items }, userId) => {
-  const pkg = await SalePackage.findByPk(id)
+const update = async (id, { code, name, description, status, items }, userId, organizationId) => {
+  const pkg = await findByPkScoped(SalePackage, id, organizationId)
   if (!pkg) throw { status: 404, message: 'Sale package not found' }
 
   if (code?.trim() && code.trim() !== pkg.code) {
@@ -117,8 +118,8 @@ const update = async (id, { code, name, description, status, items }, userId) =>
   return getById(id)
 }
 
-const remove = async (id) => {
-  const pkg = await SalePackage.findByPk(id)
+const remove = async (id, organizationId) => {
+  const pkg = await findByPkScoped(SalePackage, id, organizationId)
   if (!pkg) throw { status: 404, message: 'Sale package not found' }
   await pkg.destroy()
 }

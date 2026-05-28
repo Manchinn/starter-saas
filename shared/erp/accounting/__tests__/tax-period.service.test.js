@@ -94,7 +94,7 @@ describe('tax-period.assertOpen', () => {
 
 describe('tax-period.getVatReport', () => {
   test('returns zeros with a hint when the VAT accounts are not seeded', async () => {
-    TaxPeriod.findByPk.mockResolvedValue({ id: 'p', startDate: '2025-01-01', endDate: '2025-01-31' })
+    TaxPeriod.findOne.mockResolvedValue({ id: 'p', startDate: '2025-01-01', endDate: '2025-01-31' })
     accountsSvc.getByCode.mockResolvedValue(null)
     const out = await service.getVatReport('p', 'org')
     expect(out.outputTax.total).toBe(0)
@@ -104,7 +104,7 @@ describe('tax-period.getVatReport', () => {
   })
 
   test('aggregates posted journal lines into output (credit-debit) and input (debit-credit) buckets', async () => {
-    TaxPeriod.findByPk.mockResolvedValue({ id: 'p', startDate: '2025-01-01', endDate: '2025-01-31' })
+    TaxPeriod.findOne.mockResolvedValue({ id: 'p', startDate: '2025-01-01', endDate: '2025-01-31' })
     accountsSvc.getByCode
       .mockResolvedValueOnce({ id: 'out', code: '2140' })
       .mockResolvedValueOnce({ id: 'inp', code: '1160' })

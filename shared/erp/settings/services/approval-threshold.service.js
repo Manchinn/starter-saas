@@ -1,6 +1,7 @@
 const { ApprovalThreshold } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const { resolvePermissions } = require('../../../../server/middleware/permission')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const list = async ({ docType = '', organizationId } = {}) => {
   const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
@@ -8,8 +9,8 @@ const list = async ({ docType = '', organizationId } = {}) => {
   return ApprovalThreshold.findAll({ where, order: [['docType', 'ASC'], ['amount', 'ASC']] })
 }
 
-const getById = async (id) => {
-  const t = await ApprovalThreshold.findByPk(id)
+const getById = async (id, organizationId) => {
+  const t = await findByPkScoped(ApprovalThreshold, id, organizationId)
   if (!t) throw { status: 404, message: 'Approval threshold not found' }
   return t
 }
@@ -29,8 +30,8 @@ const create = async ({ docType, amount, requiredPermission, notes, userId, orga
   })
 }
 
-const update = async (id, { amount, requiredPermission, notes }, userId) => {
-  const t = await getById(id)
+const update = async (id, { amount, requiredPermission, notes }, userId, organizationId) => {
+  const t = await getById(id, organizationId)
   await t.update({
     ...(amount             !== undefined && { amount }),
     ...(requiredPermission !== undefined && { requiredPermission }),
@@ -40,8 +41,8 @@ const update = async (id, { amount, requiredPermission, notes }, userId) => {
   return t
 }
 
-const remove = async (id) => {
-  const t = await getById(id)
+const remove = async (id, organizationId) => {
+  const t = await getById(id, organizationId)
   await t.destroy()
 }
 

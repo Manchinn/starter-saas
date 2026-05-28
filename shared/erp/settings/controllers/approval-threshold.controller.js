@@ -10,7 +10,8 @@ const list = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    res.json({ data: { threshold: await svc.getById(req.params.id) } })
+    const orgId = req.user?.organizationId || req.user?.id
+    res.json({ data: { threshold: await svc.getById(req.params.id, orgId) } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
     next(err)
@@ -30,7 +31,8 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    res.json({ data: { threshold: await svc.update(req.params.id, req.body, req.user?.id) } })
+    const orgId = req.user?.organizationId || req.user?.id
+    res.json({ data: { threshold: await svc.update(req.params.id, req.body, req.user?.id, orgId) } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
     next(err)
@@ -39,7 +41,8 @@ const update = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   try {
-    await svc.remove(req.params.id)
+    const orgId = req.user?.organizationId || req.user?.id
+    await svc.remove(req.params.id, orgId)
     res.json({ data: { message: 'Deleted' } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
