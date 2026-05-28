@@ -13,7 +13,8 @@ module.exports = {
 
   async listStoreStocks(req, res) {
     try {
-      const result = await service.listStoreStocks(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const result = await service.listStoreStocks(req.params.id, orgId)
       return ok(res, result)
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -33,7 +34,8 @@ module.exports = {
 
   async getById(req, res) {
     try {
-      const product = await service.getById(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const product = await service.getById(req.params.id, orgId)
       return ok(res, { product })
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -52,7 +54,8 @@ module.exports = {
 
   async update(req, res) {
     try {
-      const product = await service.update(req.params.id, req.body, req.user?.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const product = await service.update(req.params.id, req.body, req.user?.id, orgId)
       return ok(res, { product }, 'Product updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -61,7 +64,8 @@ module.exports = {
 
   async remove(req, res) {
     try {
-      await service.remove(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      await service.remove(req.params.id, orgId)
       return ok(res, null, 'Product deleted')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

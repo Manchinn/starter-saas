@@ -1,5 +1,6 @@
 const { Product, Store, UOM, StoreStock, Vendor } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const includes = [
   { model: Store,  as: 'stores',       attributes: ['id', 'name', 'code'],        through: { attributes: [] } },
@@ -33,8 +34,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom
   return { total: count, page, limit, products: rows }
 }
 
-const getById = async (id) => {
-  const product = await Product.findByPk(id, { include: includes })
+const getById = async (id, organizationId) => {
+  const product = await findByPkScoped(Product, id, organizationId, { include: includes })
   if (!product) throw { status: 404, message: 'Product not found' }
   return product
 }
@@ -51,11 +52,11 @@ const create = async ({ name, sku, description, cost, category, sellingUomId, pu
   const product = await Product.create({ name: name.trim(), sku: sku?.trim() || null, description, price: 0, cost, stock: 0, category, sellingUomId: sellingUomId || null, purchasingUomId: purchasingUomId || null, status, activeFrom: activeFrom || null, activeTo: activeTo || null, reorderPoint: reorderPoint != null && reorderPoint !== '' ? reorderPoint : null, reorderQty: reorderQty != null && reorderQty !== '' ? reorderQty : null, organizationId: organizationId || null, createdBy: userId || null })
   if (storeIds.length)  await product.setStores(storeIds)
   if (vendorIds.length) await product.setVendors(vendorIds)
-  return getById(product.id)
+  return getById(product.id) // re-read of the row we just created (already owned)
 }
 
-const update = async (id, data, userId) => {
-  const product = await Product.findByPk(id)
+const update = async (id, data, userId, organizationId) => {
+  const product = await findByPkScoped(Product, id, organizationId)
   if (!product) throw { status: 404, message: 'Product not found' }
   if (data.sku?.trim()) {
     const existing = await Product.findOne({ where: { sku: data.sku.trim(), createdBy: product.createdBy } })
@@ -73,11 +74,11 @@ const update = async (id, data, userId) => {
   await product.update(patch)
   if (data.storeIds  !== undefined) await product.setStores(data.storeIds)
   if (data.vendorIds !== undefined) await product.setVendors(data.vendorIds)
-  return getById(id)
+  return getById(id) // re-read of the row we just updated (already org-verified above)
 }
 
-const remove = async (id) => {
-  const product = await Product.findByPk(id)
+const remove = async (id, organizationId) => {
+  const product = await findByPkScoped(Product, id, organizationId)
   if (!product) throw { status: 404, message: 'Product not found' }
   if (product.stock > 0) throw { status: 400, message: `Cannot delete "${product.name}" — it has ${product.stock} unit(s) on hand. Adjust stock to zero first.` }
   await product.destroy()
@@ -87,8 +88,8 @@ const listStores = async () => {
   return Store.findAll({ where: { status: 'active' }, attributes: ['id', 'name', 'code'], order: [['name', 'ASC']] })
 }
 
-const listStoreStocks = async (productId) => {
-  const product = await Product.findByPk(productId)
+const listStoreStocks = async (productId, organizationId) => {
+  const product = await findByPkScoped(Product, productId, organizationId)
   if (!product) throw { status: 404, message: 'Product not found' }
   const storeStocks = await StoreStock.findAll({
     where: { productId },

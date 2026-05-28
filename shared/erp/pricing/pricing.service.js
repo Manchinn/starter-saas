@@ -1,5 +1,6 @@
 const { Pricing, CustomerGroup, SaleItem } = require('../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../server/core/tenant')
 
 const list = async ({ page = 1, limit = 20, search = '', status = '', customerGroupId = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
@@ -21,8 +22,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', customerGr
   return { total: count, page, limit, pricings: rows }
 }
 
-const getById = async (id) => {
-  const pricing = await Pricing.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const pricing = await findByPkScoped(Pricing, id, organizationId, {
     include: [
       { model: CustomerGroup, as: 'customerGroup', attributes: ['id', 'name'] },
       { model: SaleItem,      as: 'saleItem',      attributes: ['id', 'code', 'name'] },
@@ -43,8 +44,8 @@ const create = async ({ name, code, description, unitPrice, currency = 'USD', st
   return Pricing.create({ name, code: code?.trim() || null, description, unitPrice, currency, status, activeFrom: activeFrom || null, activeTo: activeTo || null, saleItemId: saleItemId || null, customerGroupId: customerGroupId || null, organizationId: organizationId || null, createdBy: userId || null })
 }
 
-const update = async (id, { name, code, description, unitPrice, currency, status, activeFrom, activeTo, saleItemId, customerGroupId }, userId) => {
-  const pricing = await Pricing.findByPk(id)
+const update = async (id, { name, code, description, unitPrice, currency, status, activeFrom, activeTo, saleItemId, customerGroupId }, userId, organizationId) => {
+  const pricing = await findByPkScoped(Pricing, id, organizationId)
   if (!pricing) throw { status: 404, message: 'Pricing not found' }
   if (code?.trim()) {
     const existing = await Pricing.findOne({ where: { code: code.trim(), createdBy: pricing.createdBy } })
@@ -66,8 +67,8 @@ const update = async (id, { name, code, description, unitPrice, currency, status
   return pricing
 }
 
-const remove = async (id) => {
-  const pricing = await Pricing.findByPk(id)
+const remove = async (id, organizationId) => {
+  const pricing = await findByPkScoped(Pricing, id, organizationId)
   if (!pricing) throw { status: 404, message: 'Pricing not found' }
   await pricing.destroy()
 }

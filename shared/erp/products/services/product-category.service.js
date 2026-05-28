@@ -1,5 +1,6 @@
 const { ProductCategory } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const parentInclude = { model: ProductCategory, as: 'parent', attributes: ['id', 'name'] }
 
@@ -29,8 +30,8 @@ const listAll = async (organizationId) => {
   })
 }
 
-const getById = async (id) => {
-  const cat = await ProductCategory.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const cat = await findByPkScoped(ProductCategory, id, organizationId, {
     include: [
       parentInclude,
       { model: ProductCategory, as: 'children', attributes: ['id', 'name', 'status'] },
@@ -57,8 +58,8 @@ const create = async ({ code, name, description, parentId, status = 'active', ac
   return ProductCategory.create({ code: code?.trim() || null, name: name.trim(), description, parentId: parentId || null, status, activeFrom: activeFrom || null, activeTo: activeTo || null, organizationId: organizationId || null, createdBy: userId || null })
 }
 
-const update = async (id, { code, name, description, parentId, status, activeFrom, activeTo }, userId) => {
-  const cat = await ProductCategory.findByPk(id)
+const update = async (id, { code, name, description, parentId, status, activeFrom, activeTo }, userId, organizationId) => {
+  const cat = await findByPkScoped(ProductCategory, id, organizationId)
   if (!cat) throw { status: 404, message: 'Product category not found' }
   if (code?.trim()) {
     const existing = await ProductCategory.findOne({ where: { code: code.trim(), createdBy: cat.createdBy } })
@@ -85,11 +86,11 @@ const update = async (id, { code, name, description, parentId, status, activeFro
     ...(activeTo    !== undefined && { activeTo: activeTo || null }),
     modifiedBy: userId || null,
   })
-  return getById(id)
+  return getById(id) // re-read of the row we just updated (already org-verified above)
 }
 
-const remove = async (id) => {
-  const cat = await ProductCategory.findByPk(id)
+const remove = async (id, organizationId) => {
+  const cat = await findByPkScoped(ProductCategory, id, organizationId)
   if (!cat) throw { status: 404, message: 'Product category not found' }
   const childCount = await ProductCategory.count({ where: { parentId: id } })
   if (childCount > 0) throw { status: 400, message: 'Cannot delete a category that has sub-categories' }
