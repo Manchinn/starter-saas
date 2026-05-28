@@ -49,6 +49,8 @@ export default {
 
     setupTitle:      'First-time setup',
     setupDesc:       'Create the initial administrator account for your platform.',
+    defaultLanguage:     'Default language',
+    defaultLanguageHint: 'Used across your new workspace. You can change it anytime.',
     orgName:         'Organization',
     orgNamePh:       'e.g. Acme Corporation',
     yourNamePh:      'Your name',
@@ -57,6 +59,41 @@ export default {
     repeatPh:        'Repeat your password',
     installing:      'Installing…',
     createAdmin:     'Create admin account',
+    createWorkspace: 'Create your workspace',
+
+    // ── Install: database ──────────────────────────────────────────────────────
+    dbSection:       'Database',
+    dbEngine:        'Engine',
+    dbSqlite:        'SQLite (embedded file)',
+    dbPostgres:      'PostgreSQL',
+    dbMysql:         'MySQL',
+    dbMariadb:       'MariaDB',
+    dbMssql:         'SQL Server',
+    dbSqlitePath:    'SQLite file path',
+    dbSqlitePathHint:'Relative paths resolve from the project root. Leave the default unless you want the file elsewhere.',
+    dbHost:          'Host',
+    dbPort:          'Port',
+    dbName:          'Database name',
+    dbUsername:      'Username',
+    dbTest:          'Test connection',
+    dbTesting:       'Testing…',
+    dbConnected:     'Connected',
+    dbConnectionFailed: 'Connection failed',
+
+    // ── Install: setup options ───────────────────────────────────────────────────
+    setupOptions:      'Setup options',
+    seedSequencesTitle:'Seed sequence numbers',
+    seedSequencesDesc: 'Default auto-number sequences for orders, customers, products, and more.',
+    seedDemoTitle:     'Seed demo data',
+    seedDemoDesc:      'Sample products, customers, vendors, employees, and master data.',
+
+    // ── Install: progress & notices ──────────────────────────────────────────────
+    configuringDb:     'Configuring database…',
+    restartingServer:  'Restarting server…',
+    serverNotBack:     'Server did not come back online. Check the console for the new database connection error.',
+    seedingSequences:  'Seeding sequence numbers…',
+    seedingDemo:       'Seeding demo data…',
+    setupOnce:         'This setup runs only once',
 
     passwordsNoMatch:     'Passwords do not match',
     loginFailed:          'Login failed. Please try again.',
