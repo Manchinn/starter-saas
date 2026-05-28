@@ -1,5 +1,6 @@
 const { CustomerGroup } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
@@ -23,8 +24,8 @@ const listAll = async (organizationId) => {
   return CustomerGroup.findAll({ where: { status: 'active', organizationId: organizationId || null }, order: [['name', 'ASC']] })
 }
 
-const getById = async (id) => {
-  const group = await CustomerGroup.findByPk(id)
+const getById = async (id, organizationId) => {
+  const group = await findByPkScoped(CustomerGroup, id, organizationId)
   if (!group) throw { status: 404, message: 'Customer group not found' }
   return group
 }
@@ -41,8 +42,8 @@ const create = async ({ name, code, autoCode, description, status = 'active', ac
   return CustomerGroup.create({ name: name.trim(), code: code?.trim() || null, description, status, activeFrom: activeFrom || null, activeTo: activeTo || null, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null })
 }
 
-const update = async (id, data, userId) => {
-  const group = await CustomerGroup.findByPk(id)
+const update = async (id, data, userId, organizationId) => {
+  const group = await findByPkScoped(CustomerGroup, id, organizationId)
   if (!group) throw { status: 404, message: 'Customer group not found' }
   const allowed = ['name', 'code', 'description', 'status', 'activeFrom', 'activeTo']
   const patch = Object.fromEntries(
@@ -55,8 +56,8 @@ const update = async (id, data, userId) => {
   return group.reload()
 }
 
-const remove = async (id) => {
-  const group = await CustomerGroup.findByPk(id)
+const remove = async (id, organizationId) => {
+  const group = await findByPkScoped(CustomerGroup, id, organizationId)
   if (!group) throw { status: 404, message: 'Customer group not found' }
   await group.destroy()
 }

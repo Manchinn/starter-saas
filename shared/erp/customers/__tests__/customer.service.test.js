@@ -65,18 +65,18 @@ describe('customer.service.list', () => {
 })
 
 describe('customer.service.getById', () => {
-  test('returns the customer when found', async () => {
-    Customer.findByPk.mockResolvedValue({ id: '1', name: 'Acme' })
-    const out = await service.getById('1')
+  test('returns the customer when found, scoped to the org', async () => {
+    Customer.findOne.mockResolvedValue({ id: '1', name: 'Acme' })
+    const out = await service.getById('1', 'org-1')
     expect(out).toEqual({ id: '1', name: 'Acme' })
-    expect(Customer.findByPk).toHaveBeenCalledWith('1', expect.objectContaining({
-      include: expect.any(Array),
-    }))
+    const args = Customer.findOne.mock.calls[0][0]
+    expect(args.where).toMatchObject({ id: '1', organizationId: 'org-1' })
+    expect(args.include).toEqual(expect.any(Array))
   })
 
-  test('throws 404 when not found', async () => {
-    Customer.findByPk.mockResolvedValue(null)
-    await expect(service.getById('missing')).rejects.toEqual({ status: 404, message: 'Customer not found' })
+  test('throws 404 when not found (incl. another org\'s id)', async () => {
+    Customer.findOne.mockResolvedValue(null)
+    await expect(service.getById('missing', 'org-1')).rejects.toEqual({ status: 404, message: 'Customer not found' })
   })
 })
 
@@ -131,8 +131,8 @@ describe('customer.service.create', () => {
 
 describe('customer.service.update', () => {
   test('throws 404 when the row is missing', async () => {
-    Customer.findByPk.mockResolvedValue(null)
-    await expect(service.update('missing', { name: 'x' })).rejects.toEqual({ status: 404, message: 'Customer not found' })
+    Customer.findOne.mockResolvedValue(null)
+    await expect(service.update('missing', { name: 'x' }, 'u2', 'org-1')).rejects.toEqual({ status: 404, message: 'Customer not found' })
   })
 
   test('only applies allowed fields and ignores undefined values', async () => {
@@ -141,14 +141,14 @@ describe('customer.service.update', () => {
       update: jest.fn().mockResolvedValue(),
       reload: jest.fn().mockResolvedValue(reloaded),
     }
-    Customer.findByPk.mockResolvedValue(customer)
+    Customer.findOne.mockResolvedValue(customer)
 
     const result = await service.update('1', {
       name: 'New name',
       email: 'a@b.com',
       hacker: 'should be stripped',
       notes: undefined, // undefined should be filtered out
-    }, 'u2')
+    }, 'u2', 'org-1')
 
     const patch = customer.update.mock.calls[0][0]
     expect(patch.name).toBe('New name')
@@ -164,8 +164,8 @@ describe('customer.service.update', () => {
       update: jest.fn().mockResolvedValue(),
       reload: jest.fn().mockResolvedValue({}),
     }
-    Customer.findByPk.mockResolvedValue(customer)
-    await service.update('1', { customerGroupId: '', activeFrom: '', activeTo: '' }, 'u2')
+    Customer.findOne.mockResolvedValue(customer)
+    await service.update('1', { customerGroupId: '', activeFrom: '', activeTo: '' }, 'u2', 'org-1')
     const patch = customer.update.mock.calls[0][0]
     expect(patch.customerGroupId).toBeNull()
     expect(patch.activeFrom).toBeNull()
@@ -176,13 +176,13 @@ describe('customer.service.update', () => {
 describe('customer.service.remove', () => {
   test('destroys the row when present', async () => {
     const customer = { destroy: jest.fn().mockResolvedValue() }
-    Customer.findByPk.mockResolvedValue(customer)
-    await service.remove('1')
+    Customer.findOne.mockResolvedValue(customer)
+    await service.remove('1', 'org-1')
     expect(customer.destroy).toHaveBeenCalled()
   })
 
   test('throws 404 when missing', async () => {
-    Customer.findByPk.mockResolvedValue(null)
-    await expect(service.remove('missing')).rejects.toEqual({ status: 404, message: 'Customer not found' })
+    Customer.findOne.mockResolvedValue(null)
+    await expect(service.remove('missing', 'org-1')).rejects.toEqual({ status: 404, message: 'Customer not found' })
   })
 })

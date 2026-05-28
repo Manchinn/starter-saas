@@ -1,5 +1,6 @@
 const { Store, StoreStock } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
@@ -12,8 +13,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom
   return { total: count, page, limit, stores: rows }
 }
 
-const getById = async (id) => {
-  const store = await Store.findByPk(id)
+const getById = async (id, organizationId) => {
+  const store = await findByPkScoped(Store, id, organizationId)
   if (!store) throw { status: 404, message: 'Store not found' }
   return store
 }
@@ -30,8 +31,8 @@ const create = async ({ name, code, address, phone, email, status = 'active', ac
   return Store.create({ name: name.trim(), code: code?.trim() || null, address, phone, email, status, activeFrom: activeFrom || null, activeTo: activeTo || null, organizationId: organizationId || null, createdBy: userId || null })
 }
 
-const update = async (id, data, userId) => {
-  const store = await Store.findByPk(id)
+const update = async (id, data, userId, organizationId) => {
+  const store = await findByPkScoped(Store, id, organizationId)
   if (!store) throw { status: 404, message: 'Store not found' }
   if (data.code?.trim()) {
     const existing = await Store.findOne({ where: { code: data.code.trim(), createdBy: store.createdBy } })
@@ -46,8 +47,8 @@ const update = async (id, data, userId) => {
   return store.reload()
 }
 
-const remove = async (id) => {
-  const store = await Store.findByPk(id)
+const remove = async (id, organizationId) => {
+  const store = await findByPkScoped(Store, id, organizationId)
   if (!store) throw { status: 404, message: 'Store not found' }
   const stockOnHand = await StoreStock.sum('stock', { where: { storeId: id } })
   if (stockOnHand > 0) throw { status: 400, message: `Cannot delete "${store.name}" — it has ${stockOnHand} unit(s) of stock on hand. Transfer or adjust stock to zero first.` }

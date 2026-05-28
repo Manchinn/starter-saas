@@ -1,5 +1,6 @@
 const { Vendor } = require('../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../server/core/tenant')
 
 const list = async ({ page = 1, limit = 20, search = '', status = '', typeFilter = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
@@ -21,8 +22,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', typeFilter
   return { total: count, page, limit, vendors: rows }
 }
 
-const getById = async (id) => {
-  const vendor = await Vendor.findByPk(id)
+const getById = async (id, organizationId) => {
+  const vendor = await findByPkScoped(Vendor, id, organizationId)
   if (!vendor) throw { status: 404, message: 'Vendor not found' }
   return vendor
 }
@@ -39,8 +40,8 @@ const create = async ({ name, code, contactPerson, email, phone, address, notes,
   return Vendor.create({ name: name.trim(), code: code?.trim() || null, contactPerson, email, phone, address, notes, vendorTypes: vendorTypes || [], status, activeFrom: activeFrom || null, activeTo: activeTo || null, organizationId: organizationId || null, createdBy: userId || null })
 }
 
-const update = async (id, { name, code, contactPerson, email, phone, address, notes, vendorTypes, status, activeFrom, activeTo }, userId) => {
-  const vendor = await Vendor.findByPk(id)
+const update = async (id, { name, code, contactPerson, email, phone, address, notes, vendorTypes, status, activeFrom, activeTo }, userId, organizationId) => {
+  const vendor = await findByPkScoped(Vendor, id, organizationId)
   if (!vendor) throw { status: 404, message: 'Vendor not found' }
   if (code?.trim()) {
     const existing = await Vendor.findOne({ where: { code: code.trim(), createdBy: vendor.createdBy } })
@@ -63,8 +64,8 @@ const update = async (id, { name, code, contactPerson, email, phone, address, no
   return vendor
 }
 
-const remove = async (id) => {
-  const vendor = await Vendor.findByPk(id)
+const remove = async (id, organizationId) => {
+  const vendor = await findByPkScoped(Vendor, id, organizationId)
   if (!vendor) throw { status: 404, message: 'Vendor not found' }
   await vendor.destroy()
 }

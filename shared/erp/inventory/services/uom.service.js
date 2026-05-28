@@ -1,5 +1,6 @@
 const { UOM } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
@@ -12,8 +13,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom
   return { total: count, page, limit, uoms: rows }
 }
 
-const getById = async (id) => {
-  const uom = await UOM.findByPk(id)
+const getById = async (id, organizationId) => {
+  const uom = await findByPkScoped(UOM, id, organizationId)
   if (!uom) throw { status: 404, message: 'UOM not found' }
   return uom
 }
@@ -26,8 +27,8 @@ const create = async ({ name, abbreviation, description, status = 'active', acti
   return UOM.create({ name: name.trim(), abbreviation: abbreviation.trim(), description, status, activeFrom: activeFrom || null, activeTo: activeTo || null, organizationId: organizationId || null, createdBy: userId || null })
 }
 
-const update = async (id, data, userId) => {
-  const uom = await UOM.findByPk(id)
+const update = async (id, data, userId, organizationId) => {
+  const uom = await findByPkScoped(UOM, id, organizationId)
   if (!uom) throw { status: 404, message: 'UOM not found' }
   if (data.abbreviation?.trim()) {
     const existing = await UOM.findOne({ where: { abbreviation: data.abbreviation.trim(), createdBy: uom.createdBy } })
@@ -42,8 +43,8 @@ const update = async (id, data, userId) => {
   return uom.reload()
 }
 
-const remove = async (id) => {
-  const uom = await UOM.findByPk(id)
+const remove = async (id, organizationId) => {
+  const uom = await findByPkScoped(UOM, id, organizationId)
   if (!uom) throw { status: 404, message: 'UOM not found' }
   await uom.destroy()
 }

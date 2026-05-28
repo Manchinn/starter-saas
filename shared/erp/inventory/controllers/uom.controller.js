@@ -15,7 +15,8 @@ module.exports = {
 
   async getById(req, res) {
     try {
-      const uom = await service.getById(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const uom = await service.getById(req.params.id, orgId)
       return ok(res, { uom })
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -34,7 +35,8 @@ module.exports = {
 
   async update(req, res) {
     try {
-      const uom = await service.update(req.params.id, req.body, req.user?.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const uom = await service.update(req.params.id, req.body, req.user?.id, orgId)
       return ok(res, { uom }, 'UOM updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -43,7 +45,8 @@ module.exports = {
 
   async remove(req, res) {
     try {
-      await service.remove(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      await service.remove(req.params.id, orgId)
       return ok(res, null, 'UOM deleted')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

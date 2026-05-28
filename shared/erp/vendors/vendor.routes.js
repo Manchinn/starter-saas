@@ -21,7 +21,8 @@ router.get('/', wrap(async (req, res) => {
 }))
 
 router.get('/:id', wrap(async (req, res) => {
-  const vendor = await svc.getById(req.params.id)
+  const orgId = req.user?.organizationId || req.user?.id
+  const vendor = await svc.getById(req.params.id, orgId)
   res.json({ data: { vendor } })
 }))
 
@@ -32,12 +33,14 @@ router.post('/', wrap(async (req, res) => {
 }))
 
 router.put('/:id', wrap(async (req, res) => {
-  const vendor = await svc.update(req.params.id, req.body, req.user?.id)
+  const orgId = req.user?.organizationId || req.user?.id
+  const vendor = await svc.update(req.params.id, req.body, req.user?.id, orgId)
   res.json({ data: { vendor } })
 }))
 
 router.delete('/:id', wrap(async (req, res) => {
-  await svc.remove(req.params.id)
+  const orgId = req.user?.organizationId || req.user?.id
+  await svc.remove(req.params.id, orgId)
   res.json({ message: 'Deleted' })
 }))
 

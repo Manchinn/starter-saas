@@ -1,5 +1,6 @@
 const { Customer, CustomerGroup } = require('../../../../server/models')
 const { Op } = require('sequelize')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const list = async ({ page = 1, limit = 20, search = '', groupId = '', status = '', activeFrom = '', activeTo = '', organizationId }) => {
   const offset = (page - 1) * limit
@@ -27,8 +28,8 @@ const list = async ({ page = 1, limit = 20, search = '', groupId = '', status = 
   return { total: count, page, limit, customers: rows }
 }
 
-const getById = async (id) => {
-  const customer = await Customer.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const customer = await findByPkScoped(Customer, id, organizationId, {
     include: [{ model: CustomerGroup, as: 'group', attributes: ['id', 'name'] }],
   })
   if (!customer) throw { status: 404, message: 'Customer not found' }
@@ -49,8 +50,8 @@ const create = async ({ name, code, autoCode, email, phone, company, address, no
   return Customer.create({ code: customerCode, name: name.trim(), email, phone, company, address, notes, status, activeFrom: activeFrom || null, activeTo: activeTo || null, customerGroupId: customerGroupId || null, organizationId: organizationId || null, createdBy: userId || null, modifiedBy: userId || null })
 }
 
-const update = async (id, data, userId) => {
-  const customer = await Customer.findByPk(id)
+const update = async (id, data, userId, organizationId) => {
+  const customer = await findByPkScoped(Customer, id, organizationId)
   if (!customer) throw { status: 404, message: 'Customer not found' }
   const allowed = ['code', 'name', 'email', 'phone', 'company', 'address', 'notes', 'status', 'activeFrom', 'activeTo', 'customerGroupId']
   const patch = Object.fromEntries(
@@ -64,8 +65,8 @@ const update = async (id, data, userId) => {
   return customer.reload()
 }
 
-const remove = async (id) => {
-  const customer = await Customer.findByPk(id)
+const remove = async (id, organizationId) => {
+  const customer = await findByPkScoped(Customer, id, organizationId)
   if (!customer) throw { status: 404, message: 'Customer not found' }
   await customer.destroy()
 }

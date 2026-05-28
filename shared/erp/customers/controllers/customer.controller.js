@@ -1,4 +1,5 @@
 const { ok, created, fail, serverError } = require('../../../../server/core/response')
+const { orgIdOf } = require('../../../../server/core/tenant')
 const service = require('../services/customer.service')
 
 module.exports = {
@@ -15,7 +16,7 @@ module.exports = {
 
   async getById(req, res) {
     try {
-      const customer = await service.getById(req.params.id)
+      const customer = await service.getById(req.params.id, orgIdOf(req))
       return ok(res, { customer })
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -34,7 +35,7 @@ module.exports = {
 
   async update(req, res) {
     try {
-      const customer = await service.update(req.params.id, req.body, req.user?.id)
+      const customer = await service.update(req.params.id, req.body, req.user?.id, orgIdOf(req))
       return ok(res, { customer }, 'Customer updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -43,7 +44,7 @@ module.exports = {
 
   async remove(req, res) {
     try {
-      await service.remove(req.params.id)
+      await service.remove(req.params.id, orgIdOf(req))
       return ok(res, null, 'Customer deleted')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

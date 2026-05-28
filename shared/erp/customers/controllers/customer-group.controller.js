@@ -25,7 +25,8 @@ module.exports = {
 
   async getById(req, res) {
     try {
-      const group = await service.getById(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const group = await service.getById(req.params.id, orgId)
       return ok(res, { group })
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -44,7 +45,8 @@ module.exports = {
 
   async update(req, res) {
     try {
-      const group = await service.update(req.params.id, req.body, req.user?.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      const group = await service.update(req.params.id, req.body, req.user?.id, orgId)
       return ok(res, { group }, 'Customer group updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -53,7 +55,8 @@ module.exports = {
 
   async remove(req, res) {
     try {
-      await service.remove(req.params.id)
+      const orgId = req.user?.organizationId || req.user?.id
+      await service.remove(req.params.id, orgId)
       return ok(res, null, 'Customer group deleted')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
