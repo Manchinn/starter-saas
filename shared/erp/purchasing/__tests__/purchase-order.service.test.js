@@ -155,14 +155,14 @@ describe('purchase-order.remove', () => {
 
 describe('purchase-order.createGoodReceive', () => {
   test('refuses pre-confirmed status', async () => {
-    PurchaseOrder.findByPk.mockResolvedValue({ id: 'po1', status: 'draft', items: [], toJSON() { return { id: 'po1', status: 'draft', items: [] } } })
+    PurchaseOrder.findOne.mockResolvedValue({ id: 'po1', status: 'draft', items: [], toJSON() { return { id: 'po1', status: 'draft', items: [] } } })
     GoodReceive.findOne.mockResolvedValue(null)
     await expect(service.createGoodReceive('po1', 'u', 'o'))
       .rejects.toEqual({ status: 400, message: 'Only confirmed or received purchase orders can generate a Good Receive' })
   })
 
   test('refuses POs whose items have no productId (description-only)', async () => {
-    PurchaseOrder.findByPk.mockResolvedValue({
+    PurchaseOrder.findOne.mockResolvedValue({
       id: 'po1', status: 'confirmed',
       items: [{ description: 'Service', productId: null }],
       toJSON() { return { id: 'po1', status: 'confirmed', items: [{ description: 'Service', productId: null }] } },
@@ -173,7 +173,7 @@ describe('purchase-order.createGoodReceive', () => {
   })
 
   test('refuses when a Good Receive already exists, naming it', async () => {
-    PurchaseOrder.findByPk.mockResolvedValue({
+    PurchaseOrder.findOne.mockResolvedValue({
       id: 'po1', status: 'confirmed',
       items: [{ productId: 'p1', qty: 1 }],
       toJSON() { return { id: 'po1', status: 'confirmed', items: [{ productId: 'p1', qty: 1 }] } },
@@ -187,7 +187,7 @@ describe('purchase-order.createGoodReceive', () => {
   })
 
   test('falls back to first store when storeId not supplied; rejects when no store exists', async () => {
-    PurchaseOrder.findByPk.mockResolvedValue({
+    PurchaseOrder.findOne.mockResolvedValue({
       id: 'po1', status: 'confirmed',
       items: [{ productId: 'p1', qty: 1, unitPrice: 5 }],
       refNo: 'PO-1', vendor: { name: 'AlphaCo' },
@@ -200,7 +200,7 @@ describe('purchase-order.createGoodReceive', () => {
   })
 
   test('happy path: forwards items + computed subtotal to good-receive.create', async () => {
-    PurchaseOrder.findByPk.mockResolvedValue({
+    PurchaseOrder.findOne.mockResolvedValue({
       id: 'po1', status: 'confirmed', refNo: 'PO-1',
       vendor: { name: 'AlphaCo' },
       items: [
@@ -237,7 +237,7 @@ describe('purchase-order.createGoodReceive', () => {
   })
 
   test('uses caller-supplied storeId without looking up a default', async () => {
-    PurchaseOrder.findByPk.mockResolvedValue({
+    PurchaseOrder.findOne.mockResolvedValue({
       id: 'po1', status: 'confirmed', refNo: 'PO-1',
       vendor: { name: 'AlphaCo' },
       items: [{ productId: 'p1', qty: 1, unitPrice: 5 }],

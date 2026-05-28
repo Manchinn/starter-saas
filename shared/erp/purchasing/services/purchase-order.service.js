@@ -2,6 +2,7 @@ const { PurchaseOrder, PurchaseOrderItem, Product, Vendor, PurchaseRequisition }
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { getNext } = require('../../settings/services/sequence.service')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const productAttrs = ['id', 'name', 'sku']
 const vendorAttrs  = ['id', 'name', 'code']
@@ -34,8 +35,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, orders: rows }
 }
 
-const getById = async (id) => {
-  const po = await PurchaseOrder.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const po = await findByPkScoped(PurchaseOrder, id, organizationId, {
     include: [
       itemInclude,
       { model: Vendor, as: 'vendor', attributes: vendorAttrs },
@@ -98,8 +99,8 @@ const create = async ({ date, deliveryDate, vendorId, requisitionId, notes, item
 // mirrors create()'s validation so the saved doc stays consistent. Editing
 // a confirmed/received PO would invalidate downstream Good Receives, so we
 // block it.
-const update = async (id, { date, deliveryDate, vendorId, requisitionId, notes, items = [], currency, exchangeRate, userId }) => {
-  const po = await PurchaseOrder.findByPk(id)
+const update = async (id, { date, deliveryDate, vendorId, requisitionId, notes, items = [], currency, exchangeRate, userId }, organizationId) => {
+  const po = await findByPkScoped(PurchaseOrder, id, organizationId)
   if (!po)                   throw { status: 404, message: 'Purchase Order not found' }
   if (po.status !== 'draft') throw { status: 400, message: 'Only draft orders can be edited' }
   if (!date)         throw { status: 400, message: 'Date is required' }
@@ -150,8 +151,8 @@ const update = async (id, { date, deliveryDate, vendorId, requisitionId, notes, 
   }
 }
 
-const confirm = async (id, userId, user) => {
-  const po = await PurchaseOrder.findByPk(id, {
+const confirm = async (id, userId, user, organizationId) => {
+  const po = await findByPkScoped(PurchaseOrder, id, organizationId, {
     include: [{ model: PurchaseOrderItem, as: 'items' }],
   })
   if (!po)                    throw { status: 404, message: 'Purchase Order not found' }
@@ -168,8 +169,8 @@ const confirm = async (id, userId, user) => {
   return getById(id)
 }
 
-const receive = async (id, userId) => {
-  const po = await PurchaseOrder.findByPk(id)
+const receive = async (id, userId, organizationId) => {
+  const po = await findByPkScoped(PurchaseOrder, id, organizationId)
   if (!po)                        throw { status: 404, message: 'Purchase Order not found' }
   if (po.status !== 'confirmed')  throw { status: 400, message: 'Only confirmed orders can be marked as received' }
   await po.update({ status: 'received', modifiedBy: userId || null })
@@ -177,8 +178,8 @@ const receive = async (id, userId) => {
   return getById(id)
 }
 
-const cancel = async (id, userId) => {
-  const po = await PurchaseOrder.findByPk(id)
+const cancel = async (id, userId, organizationId) => {
+  const po = await findByPkScoped(PurchaseOrder, id, organizationId)
   if (!po)                          throw { status: 404, message: 'Purchase Order not found' }
   if (po.status === 'received')     throw { status: 400, message: 'Received orders cannot be cancelled' }
   if (po.status === 'cancelled')    throw { status: 400, message: 'Already cancelled' }
@@ -187,15 +188,15 @@ const cancel = async (id, userId) => {
   return getById(id)
 }
 
-const remove = async (id) => {
-  const po = await PurchaseOrder.findByPk(id)
+const remove = async (id, organizationId) => {
+  const po = await findByPkScoped(PurchaseOrder, id, organizationId)
   if (!po)                    throw { status: 404, message: 'Purchase Order not found' }
   if (po.status !== 'draft')  throw { status: 400, message: 'Only draft orders can be deleted' }
   await po.destroy()
 }
 
 const createGoodReceive = async (id, userId, organizationId, { storeId } = {}) => {
-  const po = await getById(id)
+  const po = await getById(id, organizationId)
   if (!['confirmed', 'received'].includes(po.status)) {
     throw { status: 400, message: 'Only confirmed or received purchase orders can generate a Good Receive' }
   }

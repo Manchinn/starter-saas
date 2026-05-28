@@ -11,7 +11,8 @@ const list = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    const doc = await svc.getById(req.params.id)
+    const organizationId = req.user?.organizationId || req.user?.id
+    const doc = await svc.getById(req.params.id, organizationId)
     res.json({ data: { order: doc } })
   } catch (err) { next(err) }
 }
@@ -28,7 +29,8 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const userId = req.user?.id
-    const doc = await svc.update(req.params.id, { ...req.body, userId })
+    const organizationId = req.user?.organizationId || req.user?.id
+    const doc = await svc.update(req.params.id, { ...req.body, userId }, organizationId)
     res.json({ data: { order: doc } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
@@ -38,7 +40,8 @@ const update = async (req, res, next) => {
 
 const confirm = async (req, res, next) => {
   try {
-    const doc = await svc.confirm(req.params.id, req.user?.id, req.user)
+    const organizationId = req.user?.organizationId || req.user?.id
+    const doc = await svc.confirm(req.params.id, req.user?.id, req.user, organizationId)
     res.json({ data: { order: doc } })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ message: err.message })
@@ -48,21 +51,24 @@ const confirm = async (req, res, next) => {
 
 const receive = async (req, res, next) => {
   try {
-    const doc = await svc.receive(req.params.id, req.user?.id)
+    const organizationId = req.user?.organizationId || req.user?.id
+    const doc = await svc.receive(req.params.id, req.user?.id, organizationId)
     res.json({ data: { order: doc } })
   } catch (err) { next(err) }
 }
 
 const cancel = async (req, res, next) => {
   try {
-    const doc = await svc.cancel(req.params.id, req.user?.id)
+    const organizationId = req.user?.organizationId || req.user?.id
+    const doc = await svc.cancel(req.params.id, req.user?.id, organizationId)
     res.json({ data: { order: doc } })
   } catch (err) { next(err) }
 }
 
 const remove = async (req, res, next) => {
   try {
-    await svc.remove(req.params.id)
+    const organizationId = req.user?.organizationId || req.user?.id
+    await svc.remove(req.params.id, organizationId)
     res.json({ data: { message: 'Deleted' } })
   } catch (err) { next(err) }
 }

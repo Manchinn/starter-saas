@@ -2,6 +2,7 @@ const { PurchaseRequisition, PurchaseRequisitionItem, PurchaseOrder, Product, Ve
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { getNext } = require('../../settings/services/sequence.service')
+const { findByPkScoped } = require('../../../../server/core/tenant')
 
 const productAttrs = ['id', 'name', 'sku']
 const vendorAttrs  = ['id', 'name', 'code']
@@ -35,8 +36,8 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
   return { total: count, page, limit, requisitions: rows }
 }
 
-const getById = async (id) => {
-  const req = await PurchaseRequisition.findByPk(id, {
+const getById = async (id, organizationId) => {
+  const req = await findByPkScoped(PurchaseRequisition, id, organizationId, {
     include: [
       itemInclude,
       { model: Vendor, as: 'vendor', attributes: vendorAttrs },
@@ -82,8 +83,8 @@ const create = async ({ date, requestedBy, department, vendorId, notes, items = 
 
 // Edit a draft requisition. Header + items both replaced atomically; mirrors
 // create()'s validation so the saved doc stays consistent.
-const update = async (id, { date, requestedBy, department, vendorId, notes, items = [], currency, exchangeRate, userId }) => {
-  const req = await PurchaseRequisition.findByPk(id)
+const update = async (id, { date, requestedBy, department, vendorId, notes, items = [], currency, exchangeRate, userId }, organizationId) => {
+  const req = await findByPkScoped(PurchaseRequisition, id, organizationId)
   if (!req)                   throw { status: 404, message: 'Purchase Requisition not found' }
   if (req.status !== 'draft') throw { status: 400, message: 'Only draft requisitions can be edited' }
   if (!date)         throw { status: 400, message: 'Date is required' }
@@ -128,8 +129,8 @@ const update = async (id, { date, requestedBy, department, vendorId, notes, item
   }
 }
 
-const approve = async (id, userId) => {
-  const req = await PurchaseRequisition.findByPk(id)
+const approve = async (id, userId, organizationId) => {
+  const req = await findByPkScoped(PurchaseRequisition, id, organizationId)
   if (!req)                       throw { status: 404, message: 'Purchase Requisition not found' }
   if (req.status !== 'draft')     throw { status: 400, message: 'Only draft requisitions can be approved' }
   await req.update({ status: 'approved', modifiedBy: userId || null })
@@ -137,8 +138,8 @@ const approve = async (id, userId) => {
   return getById(id)
 }
 
-const reject = async (id, userId) => {
-  const req = await PurchaseRequisition.findByPk(id)
+const reject = async (id, userId, organizationId) => {
+  const req = await findByPkScoped(PurchaseRequisition, id, organizationId)
   if (!req)                       throw { status: 404, message: 'Purchase Requisition not found' }
   if (req.status !== 'draft')     throw { status: 400, message: 'Only draft requisitions can be rejected' }
   await req.update({ status: 'rejected', modifiedBy: userId || null })
@@ -146,23 +147,23 @@ const reject = async (id, userId) => {
   return getById(id)
 }
 
-const remove = async (id) => {
-  const req = await PurchaseRequisition.findByPk(id)
+const remove = async (id, organizationId) => {
+  const req = await findByPkScoped(PurchaseRequisition, id, organizationId)
   if (!req)                       throw { status: 404, message: 'Purchase Requisition not found' }
   if (req.status !== 'draft')     throw { status: 400, message: 'Cannot delete an approved or rejected requisition' }
   await req.destroy()
 }
 
-const listOrders = async (requisitionId) => {
+const listOrders = async (requisitionId, organizationId) => {
   return PurchaseOrder.findAll({
-    where: { requisitionId },
+    where: { requisitionId, ...(organizationId != null ? { organizationId } : {}) },
     include: [{ model: Vendor, as: 'vendor', attributes: vendorAttrs }],
     order: [['createdAt', 'DESC']],
   })
 }
 
 const createOrder = async (id, userId, organizationId) => {
-  const req = await getById(id)
+  const req = await getById(id, organizationId)
   if (req.status !== 'approved') throw { status: 400, message: 'Only approved requisitions can be converted to a purchase order' }
   if (!req.vendorId)             throw { status: 400, message: 'Requisition has no vendor — set a vendor before converting' }
   if (!req.items?.length)        throw { status: 400, message: 'Requisition has no items' }

@@ -112,25 +112,25 @@ describe('purchase-requisition.listOrders', () => {
 
 describe('purchase-requisition.createOrder', () => {
   test('refuses when requisition is not approved', async () => {
-    PurchaseRequisition.findByPk.mockResolvedValue({ id: 'pr1', status: 'draft', items: [] })
+    PurchaseRequisition.findOne.mockResolvedValue({ id: 'pr1', status: 'draft', items: [] })
     await expect(service.createOrder('pr1', 'u', 'o'))
       .rejects.toEqual({ status: 400, message: 'Only approved requisitions can be converted to a purchase order' })
   })
 
   test('refuses approved requisition with no vendor', async () => {
-    PurchaseRequisition.findByPk.mockResolvedValue({ id: 'pr1', status: 'approved', items: [{ qty: 1 }], vendorId: null })
+    PurchaseRequisition.findOne.mockResolvedValue({ id: 'pr1', status: 'approved', items: [{ qty: 1 }], vendorId: null })
     await expect(service.createOrder('pr1', 'u', 'o'))
       .rejects.toEqual({ status: 400, message: 'Requisition has no vendor — set a vendor before converting' })
   })
 
   test('refuses approved requisition with no items', async () => {
-    PurchaseRequisition.findByPk.mockResolvedValue({ id: 'pr1', status: 'approved', items: [], vendorId: 'v' })
+    PurchaseRequisition.findOne.mockResolvedValue({ id: 'pr1', status: 'approved', items: [], vendorId: 'v' })
     await expect(service.createOrder('pr1', 'u', 'o'))
       .rejects.toEqual({ status: 400, message: 'Requisition has no items' })
   })
 
   test('refuses when a PO already exists, naming it in the error', async () => {
-    PurchaseRequisition.findByPk.mockResolvedValue({
+    PurchaseRequisition.findOne.mockResolvedValue({
       id: 'pr1', status: 'approved', vendorId: 'v', refNo: 'PR-1',
       items: [{ qty: 1, productId: 'p' }],
     })
@@ -141,7 +141,7 @@ describe('purchase-requisition.createOrder', () => {
   })
 
   test('happy path: forwards items to purchase-order.create with unitPrice defaulted to 0', async () => {
-    PurchaseRequisition.findByPk.mockResolvedValue({
+    PurchaseRequisition.findOne.mockResolvedValue({
       id: 'pr1', status: 'approved', vendorId: 'v', refNo: 'PR-1',
       items: [
         { qty: 5, productId: 'p1', description: 'A', unitPrice: 12.50, notes: 'priority' },
