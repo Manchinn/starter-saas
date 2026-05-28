@@ -1,4 +1,4 @@
-const { ok, created, fail, serverError } = require('../../../../server/core/response')
+const { ok, created, fail, serverError } = require('../../../server/core/response')
 const service = require('../services/employee.service')
 
 module.exports = {

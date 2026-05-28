@@ -5,24 +5,24 @@
 // link is unique, and the departments junction is only touched when the
 // caller explicitly passes departmentIds.
 
-jest.mock('../../../../server/models', () => ({
+jest.mock('../../../server/models', () => ({
   Employee:   { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), create: jest.fn() },
   User:       { findByPk: jest.fn() },
   Department: {},
 }))
 
-jest.mock('../../settings/services/sequence.service', () => ({
+jest.mock('../../erp/settings/services/sequence.service', () => ({
   getNext: jest.fn(),
 }), { virtual: true })
 
-jest.mock('../../../../server/modules/organizations/organization.service', () => ({
+jest.mock('../../../server/modules/organizations/organization.service', () => ({
   create: jest.fn(),
 }), { virtual: true })
 
 const { Op } = require('sequelize')
-const { Employee, User } = require('../../../../server/models')
-const seqService = require('../../settings/services/sequence.service')
-const organizationService = require('../../../../server/modules/organizations/organization.service')
+const { Employee, User } = require('../../../server/models')
+const seqService = require('../../erp/settings/services/sequence.service')
+const organizationService = require('../../../server/modules/organizations/organization.service')
 const service = require('../services/employee.service')
 
 describe('employee.list', () => {

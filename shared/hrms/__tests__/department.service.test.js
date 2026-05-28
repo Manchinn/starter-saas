@@ -1,4 +1,4 @@
-jest.mock('../../../../server/models', () => ({
+jest.mock('../../../server/models', () => ({
   Department: {
     findAndCountAll: jest.fn(),
     findOne:         jest.fn(),
@@ -7,7 +7,7 @@ jest.mock('../../../../server/models', () => ({
 }))
 
 const { Op } = require('sequelize')
-const { Department } = require('../../../../server/models')
+const { Department } = require('../../../server/models')
 const service = require('../services/department.service')
 
 describe('department.list', () => {

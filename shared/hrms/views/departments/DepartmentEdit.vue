@@ -3,7 +3,7 @@
     <div class="space-y-6">
 
       <div class="flex items-center gap-3">
-        <RouterLink to="/erp/hrms/departments" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
+        <RouterLink to="/hrms/departments" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
         <div>
@@ -70,7 +70,7 @@
         </div>
 
         <div class="flex justify-end gap-3">
-          <RouterLink to="/erp/hrms/departments" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
+          <RouterLink to="/hrms/departments" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
             {{ t('common.cancel') }}
           </RouterLink>
           <button @click="save" :disabled="saving"
@@ -123,7 +123,7 @@ const form = ref({
 
 onMounted(async () => {
   try {
-    const { data } = await api.get(`/erp/hrms/departments/${id}`)
+    const { data } = await api.get(`/hrms/departments/${id}`)
     const d = data.data
     form.value = {
       name: d.name,
@@ -156,8 +156,8 @@ async function save() {
 
   saving.value = true
   try {
-    await api.put(`/erp/hrms/departments/${id}`, form.value)
-    router.push('/erp/hrms/departments')
+    await api.put(`/hrms/departments/${id}`, form.value)
+    router.push('/hrms/departments')
   } catch (err) {
     const had = setFromError(err)
     if (!had) error.value = parseApiError(err, 'Failed to save changes')

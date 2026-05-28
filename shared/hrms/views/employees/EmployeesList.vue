@@ -7,7 +7,7 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.employees.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} employee{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink to="/erp/hrms/employees/create"
+        <RouterLink to="/hrms/employees/create"
           class="btn-primary">
           <PlusIcon class="w-4 h-4" />
           {{ t('erp.employees.new') }}
@@ -191,7 +191,7 @@ const deptLabel = computed(() => departments.value.find(d => d.id === filterDept
 
 async function fetchDepartments() {
   try {
-    const { data } = await api.get('/erp/departments', { params: { limit: 100 } })
+    const { data } = await api.get('/hrms/departments', { params: { limit: 100 } })
     departments.value = data.data.departments
   } catch (err) { console.error(err.message) }
 }
@@ -199,7 +199,7 @@ async function fetchDepartments() {
 async function load() {
   loading.value = true
   try {
-    const { data } = await api.get('/erp/hrms/employees', {
+    const { data } = await api.get('/hrms/employees', {
       params: {
         page: page.value, limit, search: search.value,
         status: filterStatus.value || undefined,
@@ -231,7 +231,7 @@ function confirmDelete(emp) { deleteModal.emp = emp; deleteModal.error = ''; del
 async function doDelete() {
   deleteModal.saving = true; deleteModal.error = ''
   try {
-    await api.delete(`/erp/hrms/employees/${deleteModal.emp.id}`)
+    await api.delete(`/hrms/employees/${deleteModal.emp.id}`)
     deleteModal.open = false
     load()
   } catch (err) {
@@ -317,7 +317,7 @@ const columns = [
     meta: { thClass: 'w-20', tdClass: '' },
     cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
       h(RouterLink, {
-        to: `/erp/hrms/employees/${info.row.original.id}/edit`,
+        to: `/hrms/employees/${info.row.original.id}/edit`,
         class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
         title: 'Edit',
       }, () => h(PencilIcon, { class: 'w-4 h-4' })),

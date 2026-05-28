@@ -32,8 +32,6 @@ module.exports = defineModule({
     'erp.stock.list', 'erp.stock.edit', 'erp.stock.delete',
     'erp.quotations.list', 'erp.quotations.edit', 'erp.quotations.delete',
     'erp.sale-items.list', 'erp.sale-items.manage',
-    'erp.hrms.list', 'erp.hrms.edit', 'erp.hrms.delete',
-    'erp.departments.list', 'erp.departments.edit', 'erp.departments.delete',
     'erp.invoices.list', 'erp.invoices.edit', 'erp.invoices.delete',
     'erp.receipts.list', 'erp.receipts.edit', 'erp.receipts.delete',
     'erp.accounting.list', 'erp.accounting.edit', 'erp.accounting.delete',

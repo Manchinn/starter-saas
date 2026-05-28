@@ -7,7 +7,7 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.departments.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} department{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink v-can="'erp.departments.edit'" to="/erp/hrms/departments/create" class="btn-primary">
+        <RouterLink v-can="'hrms.departments.edit'" to="/hrms/departments/create" class="btn-primary">
           <PlusIcon class="w-4 h-4" />
           {{ t('erp.departments.new') }}
         </RouterLink>
@@ -177,7 +177,7 @@ const columns = [
       const d = row.original
       return h('div', { class: 'flex items-center justify-end gap-1' }, [
         h(RouterLink, {
-          to: `/erp/hrms/departments/${d.id}/edit`,
+          to: `/hrms/departments/${d.id}/edit`,
           class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
           title: 'Edit',
         }, () => h(PencilIcon, { class: 'w-4 h-4' })),
@@ -194,7 +194,7 @@ const columns = [
 async function fetchDepartments() {
   loading.value = true
   try {
-    const { data } = await api.get('/erp/hrms/departments', {
+    const { data } = await api.get('/hrms/departments', {
       params: { page: page.value, limit, search: search.value, isActive: filterStatus.value || undefined, activeFrom: filterActiveFrom.value || undefined, activeTo: filterActiveTo.value || undefined }
     })
     departments.value = data.data.departments
@@ -210,7 +210,7 @@ function clearFilters() { filterStatus.value = ''; filterActiveFrom.value = ''; 
 async function confirmDelete(row) {
   if (!confirm(`Delete department "${row.name}"? This cannot be undone.`)) return
   try {
-    await api.delete(`/erp/hrms/departments/${row.id}`)
+    await api.delete(`/hrms/departments/${row.id}`)
     fetchDepartments()
   } catch (err) {
     alert(err.response?.data?.message || 'Delete failed')

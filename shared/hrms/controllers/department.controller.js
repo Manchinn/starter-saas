@@ -1,6 +1,6 @@
-const { ok, created, fail, notFound, serverError } = require('../../../../server/core/response')
+const { ok, created, fail, notFound, serverError } = require('../../../server/core/response')
 const departmentService = require('../services/department.service')
-const { getNext } = require('../../settings/services/sequence.service')
+const { getNext } = require('../../erp/settings/services/sequence.service')
 
 module.exports = {
   async list(req, res) {

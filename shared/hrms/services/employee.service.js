@@ -1,7 +1,7 @@
-const { Employee, User, Department } = require('../../../../server/models')
+const { Employee, User, Department } = require('../../../server/models')
 const { Op } = require('sequelize')
-const seqService  = require('../../settings/services/sequence.service')
-const organizationService = require('../../../../server/modules/organizations/organization.service')
+const seqService  = require('../../erp/settings/services/sequence.service')
+const organizationService = require('../../../server/modules/organizations/organization.service')
 
 const USER_ATTRS = ['id', 'name', 'email', 'isActive', 'role', 'lastLoginAt']
 

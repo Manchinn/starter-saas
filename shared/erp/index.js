@@ -73,7 +73,6 @@ export default {
           m('accounting').vendorBillsNavItem,
         ].filter(Boolean),
       },
-      ...(m('hrms').navChildren || []),
       {
         label: 'nav.settings',
         icon: Cog6ToothIcon,

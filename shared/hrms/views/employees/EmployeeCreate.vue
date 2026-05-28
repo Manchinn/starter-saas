@@ -3,7 +3,7 @@
     <div class="space-y-6">
 
       <div class="flex items-center gap-3">
-        <RouterLink to="/erp/hrms/employees" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
+        <RouterLink to="/hrms/employees" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
           <ArrowLeftIcon class="w-5 h-5" />
         </RouterLink>
         <div>
@@ -151,7 +151,7 @@
       </div>
 
       <div class="flex justify-end gap-3">
-        <RouterLink to="/erp/hrms/employees" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
+        <RouterLink to="/hrms/employees" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
           {{ t('common.cancel') }}
         </RouterLink>
         <button @click="save" :disabled="saving"
@@ -218,7 +218,7 @@ onMounted(async () => {
   try {
     const [staffRes, deptRes] = await Promise.all([
       api.get('/organizations/staff', { params: { limit: 500 } }),
-      api.get('/erp/hrms/departments', { params: { limit: 1000 } }),
+      api.get('/hrms/departments', { params: { limit: 1000 } }),
     ])
     users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
@@ -246,8 +246,8 @@ async function save() {
       credentialMode: createAccount.value ? 'new' : 'existing'
     }
     if (autoCode.enabled.value) { payload.autoCode = true; payload.employeeCode = null }
-    await api.post('/erp/hrms/employees', payload)
-    router.push('/erp/hrms/employees')
+    await api.post('/hrms/employees', payload)
+    router.push('/hrms/employees')
   } catch (err) {
     const had = setFromError(err)
     if (!had) error.value = parseApiError(err, 'Failed to create employee')

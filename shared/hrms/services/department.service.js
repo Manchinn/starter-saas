@@ -1,4 +1,4 @@
-const { Department } = require('../../../../server/models')
+const { Department } = require('../../../server/models')
 const { Op } = require('sequelize')
 
 const list = async ({ organizationId, page = 1, limit = 20, search = '', isActive, activeFrom = '', activeTo = '' }) => {

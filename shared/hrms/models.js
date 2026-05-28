@@ -1,14 +1,11 @@
 /**
- * ERP model registry — auto-loaded.
+ * HRMS model registry — auto-loaded.
  *
  *  • Every `**\/*.model.js` is required and registered by its Sequelize
  *    model name (Model.name) into a flat registry.
- *  • Every `**\/*Associations.js` is required and invoked with the registry,
- *    wiring intra-ERP associations.
- *
- * Cross-domain associations that reference core server models (e.g. User)
- * live in association files listed in CROSS_DOMAIN_ASSOCIATIONS and are
- * invoked by server/models/index.js after the merge.
+ *  • Every `**\/*.association.js` is required and invoked with the registry,
+ *    except cross-domain files that reference core server models (e.g. User),
+ *    which are invoked by server/models/index.js after the full merge.
  */
 
 const fs = require('fs')
@@ -16,9 +13,11 @@ const path = require('path')
 
 const ROOT = __dirname
 
-// Association files that depend on core (non-ERP) models — skipped here,
+// Association files that depend on core (non-HRMS) models — skipped here,
 // invoked by server/models/index.js after the full registry is built.
-const CROSS_DOMAIN_ASSOCIATIONS = new Set([])
+const CROSS_DOMAIN_ASSOCIATIONS = new Set([
+  'hrms.association.js',
+])
 
 const findFiles = (dir, suffix) => {
   const out = []
@@ -30,25 +29,25 @@ const findFiles = (dir, suffix) => {
   return out
 }
 
-const erpModels = {}
+const hrmsModels = {}
 for (const file of findFiles(ROOT, '.model.js')) {
   const M = require(file)
   if (!M || !M.name) {
-    throw new Error(`ERP model ${path.relative(ROOT, file)} must export a Sequelize model`)
+    throw new Error(`HRMS model ${path.relative(ROOT, file)} must export a Sequelize model`)
   }
-  if (erpModels[M.name]) {
-    throw new Error(`ERP model name conflict on "${M.name}": ${path.relative(ROOT, file)}`)
+  if (hrmsModels[M.name]) {
+    throw new Error(`HRMS model name conflict on "${M.name}": ${path.relative(ROOT, file)}`)
   }
-  erpModels[M.name] = M
+  hrmsModels[M.name] = M
 }
 
 for (const file of findFiles(ROOT, '.association.js')) {
   if (CROSS_DOMAIN_ASSOCIATIONS.has(path.basename(file))) continue
   const associate = require(file)
   if (typeof associate !== 'function') {
-    throw new Error(`ERP association ${path.relative(ROOT, file)} must export a function`)
+    throw new Error(`HRMS association ${path.relative(ROOT, file)} must export a function`)
   }
-  associate(erpModels)
+  associate(hrmsModels)
 }
 
-module.exports = erpModels
+module.exports = hrmsModels

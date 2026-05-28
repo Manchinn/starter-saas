@@ -11,8 +11,9 @@ const RolePermission = require('./role-permission.model')
 const RoleModule     = require('./role-module.model')
 const UserRole       = require('./user-role.model')
 
-// ── ERP models (shared layer) ─────────────────────────────────────────────────
-const erpModels = require('../../shared/erp/models')
+// ── Shared-layer models ───────────────────────────────────────────────────────
+const erpModels  = require('../../shared/erp/models')
+const hrmsModels = require('../../shared/hrms/models')
 
 // ── Full model registry ───────────────────────────────────────────────────────
 const models = {
@@ -20,13 +21,14 @@ const models = {
   User, Module, UserModule, RefreshToken,
   Role, Permission, RolePermission, RoleModule, UserRole,
   ...erpModels,
+  ...hrmsModels,
 }
 
 // ── Core associations (auth / roles / permissions) ────────────────────────────
 require('./coreAssociations')(models)
 
 // ── Cross-domain associations (HRMS ↔ core User) ─────────────────────────────
-require('../../shared/erp/hrms/models/hrms.association')(models)
+require('../../shared/hrms/models/hrms.association')(models)
 
 // ── Sales order ↔ core User (salesperson) ────────────────────────────────────
 models.Order.belongsTo(models.User, { foreignKey: 'salespersonId', as: 'salesperson' })
