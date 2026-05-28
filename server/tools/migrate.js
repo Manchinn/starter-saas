@@ -2,9 +2,9 @@
 /**
  * Migration CLI.
  *
- *   node scripts/migrate.js up              apply all pending migrations
- *   node scripts/migrate.js down [n]        roll back the last n (default 1)
- *   node scripts/migrate.js status          list every migration + applied state
+ *   node tools/migrate.js up              apply all pending migrations
+ *   node tools/migrate.js down [n]        roll back the last n (default 1)
+ *   node tools/migrate.js status          list every migration + applied state
  *
  * Run from the server workspace, e.g. `npm run migrate -- down 2`.
  */

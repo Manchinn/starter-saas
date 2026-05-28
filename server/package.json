@@ -5,11 +5,11 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "seed": "node scripts/seed.js",
-    "seed:core": "node scripts/seed.js core",
-    "migrate": "node scripts/migrate.js up",
-    "migrate:down": "node scripts/migrate.js down",
-    "migrate:status": "node scripts/migrate.js status",
+    "seed": "node tools/seed.js",
+    "seed:core": "node tools/seed.js core",
+    "migrate": "node tools/migrate.js up",
+    "migrate:down": "node tools/migrate.js down",
+    "migrate:status": "node tools/migrate.js status",
     "test": "jest"
   },
   "dependencies": {

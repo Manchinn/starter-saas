@@ -2,10 +2,10 @@
 /**
  * Seed CLI (data lives in per-module seeds/ folders, run by ../core/seeder).
  *
- *   node scripts/seed.js              reset DB, then run core + demo seeds
- *   node scripts/seed.js core         run core (reference) seeds only, no reset
- *   node scripts/seed.js demo         run core + demo seeds (no reset, additive)
- *   node scripts/seed.js --no-reset   full seed without dropping tables
+ *   node tools/seed.js              reset DB, then run core + demo seeds
+ *   node tools/seed.js core         run core (reference) seeds only, no reset
+ *   node tools/seed.js demo         run core + demo seeds (no reset, additive)
+ *   node tools/seed.js --no-reset   full seed without dropping tables
  *
  * Tiers: core = idempotent reference data (permissions, roles, master data);
  * demo = sample data (users, ERP catalog & transactions). demo always runs
