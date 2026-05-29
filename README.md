@@ -27,6 +27,55 @@ starter-saas/
 └── package.json   workspace root
 ```
 
+## ERP module structure
+
+Each ERP feature under `shared/erp/` is a self-contained HMVC module that bundles its
+backend (controllers/services/models/routes/migrations) and frontend (Vue views + i18n)
+together. Using `products` as a concrete example:
+
+```
+shared/erp/products/
+├── controllers/        Thin HTTP handlers — read req, call service, shape response
+│   ├── product.controller.js
+│   └── product-category.controller.js
+├── services/           Business logic: transactions, validation, org-scoped queries
+│   ├── product.service.js
+│   └── product-category.service.js
+├── routes/             Express routers; each exports { mountPath, router }
+│   ├── product.routes.js            → mountPath: '/item-master'
+│   └── product-category.routes.js   → mountPath: '/product-categories'
+├── models/             Sequelize models + association wiring
+│   ├── product.model.js
+│   ├── product-category.model.js
+│   └── product.association.js
+├── migrations/         Schema migrations (run automatically on boot)
+├── seeds/              Optional seed data
+├── validators/         express-validator rule sets
+├── views/              Vue 3 SPA pages (lists + dedicated create/edit pages)
+│   ├── products/        ProductsList.vue, ProductCreate.vue, ProductEdit.vue
+│   └── categories/      ProductCategoriesList.vue, …Create.vue, …Edit.vue
+├── i18n/               Per-module locale messages
+│   ├── en.js
+│   └── th.js
+├── __tests__/          Jest unit tests for services
+└── index.js            Client entry: exports `routes` + `navChildren` for the SPA
+```
+
+How the pieces get wired up automatically:
+
+- **Backend routes** — `shared/erp/erp.module.js` recursively discovers every `*.routes.js`
+  file and mounts its router under the `/api/erp` prefix (so `product.routes.js` with
+  `mountPath: '/item-master'` is served at `/api/erp/item-master`). Routes are protected by
+  the `authenticate` middleware and per-action permissions.
+- **Frontend routes & nav** — `shared/erp/index.js` eager-loads each submodule's `index.js`
+  via `import.meta.glob`, flat-merges their `routes`, and assembles the ERP navigation tree
+  from their `navChildren`.
+- **Multi-tenancy** — services scope every read/update/delete to the caller's organization
+  using the helpers in `server/core/tenant.js`, so one org can never reach another's records.
+
+To add a new ERP module, create a folder under `shared/erp/<feature>/` following the same
+layout — no central registry edits are needed; the route/nav auto-discovery picks it up.
+
 ## Prerequisites
 
 - Node.js 18+ and npm 9+
