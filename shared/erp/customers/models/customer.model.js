@@ -50,9 +50,7 @@ const Customer = sequelize.define('Customer', {
   createdBy:      { type: DataTypes.UUID, allowNull: true },
   modifiedBy:     { type: DataTypes.UUID, allowNull: true },
   createdAt:      { type: DataTypes.DATE, allowNull: true },
-  modifiedAt:     { type: DataTypes.DATE, allowNull: true },
-}, {
-  updatedAt: 'modifiedAt',
+  updatedAt:      { type: DataTypes.DATE, allowNull: true },
 })
 
 module.exports = Customer
