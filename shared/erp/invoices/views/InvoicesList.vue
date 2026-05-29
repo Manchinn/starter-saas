@@ -1,20 +1,16 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-5">
 
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.invoices.title') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ total }} invoice{{ total !== 1 ? 's' : '' }}</p>
-        </div>
-        <RouterLink
-          v-can="'erp.invoices.edit'"
-          to="/erp/invoices/create"
-          class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.invoices.new') }}
-        </RouterLink>
-      </div>
+      <PageHeader :title="t('erp.invoices.title')"
+        :breadcrumb="[{ label: `${total} invoice${total !== 1 ? 's' : ''}` }]">
+        <template #actions>
+          <RouterLink v-can="'erp.invoices.edit'" to="/erp/invoices/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.invoices.new') }}
+          </RouterLink>
+        </template>
+      </PageHeader>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="invoices" :loading="loading" :total="total"
@@ -47,15 +43,15 @@
                 <div class="px-5 py-4">
                   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.status') }}</label>
+                      <FieldLabel :text="t('common.status')" />
                       <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateFrom') }}</label>
+                      <FieldLabel :text="t('common.dateFrom')" />
                       <DateInput v-model="filterDateFrom" @change="onFilterChange" class="input text-sm" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('common.dateTo') }}</label>
+                      <FieldLabel :text="t('common.dateTo')" />
                       <DateInput v-model="filterDateTo" @change="onFilterChange" class="input text-sm" />
                     </div>
                   </div>
@@ -97,19 +93,10 @@
           </template>
 
           <template #empty>
-            <div class="flex flex-col items-center gap-3 py-4">
-              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
-                <DocumentTextIcon class="w-5 h-5 text-[#9BA7B0]" />
-              </div>
-              <div class="text-center">
-                <p class="text-sm font-medium text-[#637381]">{{ t('erp.invoices.noFound') }}</p>
-                <p v-if="activeFilterCount > 0" class="text-xs text-[#9BA7B0] mt-1">{{ t('common.tryAdjustingFilters') }}</p>
-              </div>
-              <button v-if="activeFilterCount > 0" @click="clearFilters"
-                class="text-xs text-primary-500 hover:text-primary-700 font-medium underline">
-                {{ t('common.clearAll') }}
-              </button>
-            </div>
+            <EmptyState :icon="DocumentTextIcon" :title="t('erp.invoices.noFound')"
+              :subtitle="activeFilterCount > 0 ? t('common.tryAdjustingFilters') : ''"
+              :action-label="activeFilterCount > 0 ? t('common.clearAll') : ''"
+              padding="md" @action="clearFilters" />
           </template>
         </DataTable>
 
@@ -131,6 +118,9 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import EmptyState from '@/components/form/EmptyState.vue'
 import api from '@/api'
 import { fmtMoney, fmtDate } from '@/utils/fmt'
 

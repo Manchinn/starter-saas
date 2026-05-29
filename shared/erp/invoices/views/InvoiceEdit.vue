@@ -26,9 +26,7 @@
         </template>
       </PageHeader>
 
-      <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
-      </div>
+      <LoadingSpinner v-if="loading" />
 
       <ErrorBanner v-else-if="loadError" :message="loadError" />
 
@@ -435,6 +433,7 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'

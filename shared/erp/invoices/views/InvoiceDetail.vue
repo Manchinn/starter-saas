@@ -71,9 +71,7 @@
       </div>
 
       <!-- Loading -->
-      <div v-if="loading" class="flex items-center justify-center py-20 print:hidden">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
-      </div>
+      <LoadingSpinner v-if="loading" class="print:hidden" />
 
       <!-- Not found -->
       <div v-else-if="notFound"
@@ -393,6 +391,7 @@ import {
   PrinterIcon, BanknotesIcon, ShoppingCartIcon, TruckIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
