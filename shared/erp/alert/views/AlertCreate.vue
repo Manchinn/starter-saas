@@ -9,7 +9,7 @@
         <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.alerts.new') }}</h1>
       </div>
 
-      <div class="bg-white border border-[#E2E8F0] p-6 space-y-5 max-w-2xl">
+      <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <AlertForm v-model="form" :options="options" :errors="fieldErrors" />
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>

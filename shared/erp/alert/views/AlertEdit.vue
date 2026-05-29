@@ -11,7 +11,7 @@
 
       <div v-if="loadError" class="bg-red-50 text-red-700 text-sm px-4 py-3 max-w-2xl">{{ t('erp.alerts.notFound') }}</div>
 
-      <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5 max-w-2xl">
+      <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <AlertForm v-model="form" :options="options" :errors="fieldErrors" />
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
