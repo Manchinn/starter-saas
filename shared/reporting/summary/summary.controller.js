@@ -5,7 +5,8 @@ module.exports = {
   async erp(req, res) {
     try {
       const orgId = req.user?.organizationId || req.user?.id
-      const data = await service.getSummary(orgId)
+      const { from, to } = req.query
+      const data = await service.getSummary(orgId, { from, to })
       return ok(res, data)
     } catch (err) {
       return serverError(res)

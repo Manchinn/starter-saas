@@ -23,6 +23,34 @@
         </div>
       </div>
 
+      <!-- ── Date range filter ───────────────────────────────────────────────── -->
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-3 bg-white border border-[#E2E8F0] shadow-sm px-4 py-3">
+        <span class="text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">
+          {{ t('reporting.erpSummary.filter.period') }}
+        </span>
+        <div class="flex items-center gap-1">
+          <button v-for="p in presets" :key="p.days" @click="applyPreset(p.days)"
+            class="px-2.5 py-1 text-xs font-medium border transition-colors"
+            :class="activeDays === p.days
+              ? 'bg-primary-50 text-primary-600 border-primary-200'
+              : 'text-[#637381] border-[#E2E8F0] hover:bg-[#F7F9FC]'">
+            {{ p.label }}
+          </button>
+        </div>
+        <div class="h-5 w-px bg-[#E2E8F0]" />
+        <div class="flex items-center gap-2">
+          <input type="date" v-model="from" :max="to" @change="onDateChange"
+            class="px-2 py-1 text-xs text-[#374151] border border-[#E2E8F0] focus:border-primary-300 focus:outline-none" />
+          <span class="text-xs text-[#9BA7B0]">–</span>
+          <input type="date" v-model="to" :min="from" :max="todayInput" @change="onDateChange"
+            class="px-2 py-1 text-xs text-[#374151] border border-[#E2E8F0] focus:border-primary-300 focus:outline-none" />
+          <button @click="load" :disabled="loading"
+            class="px-3 py-1 text-xs font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 transition-colors">
+            {{ t('reporting.erpSummary.filter.apply') }}
+          </button>
+        </div>
+      </div>
+
       <!-- ── KPI Row ─────────────────────────────────────────────────────────── -->
       <div class="grid grid-cols-2 xl:grid-cols-6 gap-4">
         <div v-for="kpi in kpiCards" :key="kpi.key"
@@ -133,6 +161,29 @@ const summary = ref(null)
 const loading = ref(true)
 const lastUpdated = ref('')
 
+// ── Date range filter (defaults to the last 30 days) ───────────────────────
+const pad = (n) => String(n).padStart(2, '0')
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return ymd(d) }
+
+const todayInput = ymd(new Date())
+const from = ref(daysAgo(29))
+const to = ref(todayInput)
+const activeDays = ref(30)
+const presets = [
+  { days: 7,  label: t('reporting.erpSummary.filter.last7') },
+  { days: 30, label: t('reporting.erpSummary.filter.last30') },
+  { days: 90, label: t('reporting.erpSummary.filter.last90') },
+]
+
+function applyPreset(days) {
+  activeDays.value = days
+  to.value = todayInput
+  from.value = daysAgo(days - 1)
+  load()
+}
+function onDateChange() { activeDays.value = null }
+
 const C = {
   indigo: '#6366f1', emerald: '#10b981', amber: '#f59e0b', blue: '#3b82f6',
   violet: '#8b5cf6', red: '#ef4444', orange: '#fb923c', teal: '#14b8a6',
@@ -144,7 +195,7 @@ const todayLabel = new Date().toLocaleDateString()
 async function load() {
   loading.value = true
   try {
-    const { data } = await api.get('/reporting/summary/erp')
+    const { data } = await api.get('/reporting/summary/erp', { params: { from: from.value, to: to.value } })
     summary.value = data.data
     lastUpdated.value = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
   } catch (err) {
@@ -159,8 +210,10 @@ onMounted(load)
 const kpiCards = computed(() => {
   const k = summary.value?.kpis || {}
   return [
-    { key: 'salesMtd', label: t('reporting.erpSummary.kpis.salesMtd'), desc: t('reporting.erpSummary.kpis.salesMtdDesc'),
-      value: fmtMoney(k.salesMtd || 0), icon: ArrowTrendingUpIcon, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+    { key: 'salesInPeriod', label: t('reporting.erpSummary.kpis.salesInPeriod'), desc: t('reporting.erpSummary.kpis.salesInPeriodDesc'),
+      value: fmtMoney(k.salesInPeriod || 0), icon: ArrowTrendingUpIcon, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+    { key: 'invoicesInPeriod', label: t('reporting.erpSummary.kpis.invoicesInPeriod'), desc: t('reporting.erpSummary.kpis.invoicesInPeriodDesc'),
+      value: fmtNumber(k.invoicesInPeriod || 0, 0), icon: DocumentTextIcon, iconBg: 'bg-violet-50', iconColor: 'text-violet-600' },
     { key: 'ar', label: t('reporting.erpSummary.kpis.outstandingAR'), desc: t('reporting.erpSummary.kpis.arDesc'),
       value: fmtMoney(k.arOutstanding || 0), icon: CurrencyDollarIcon, iconBg: 'bg-blue-50', iconColor: 'text-blue-600' },
     { key: 'ap', label: t('reporting.erpSummary.kpis.outstandingAP'), desc: t('reporting.erpSummary.kpis.apDesc'),
@@ -169,14 +222,16 @@ const kpiCards = computed(() => {
       value: fmtNumber(k.activeProducts || 0, 0), icon: CubeIcon, iconBg: 'bg-indigo-50', iconColor: 'text-indigo-600' },
     { key: 'stock', label: t('reporting.erpSummary.kpis.stockOnHand'), desc: t('reporting.erpSummary.kpis.stockOnHandDesc'),
       value: fmtNumber(k.totalStock || 0, 0), icon: ArchiveBoxIcon, iconBg: 'bg-teal-50', iconColor: 'text-teal-600' },
-    { key: 'sent', label: t('reporting.erpSummary.kpis.sentInvoices'), desc: t('reporting.erpSummary.kpis.sentInvoicesDesc'),
-      value: fmtNumber(k.sentInvoices || 0, 0), icon: DocumentTextIcon, iconBg: 'bg-violet-50', iconColor: 'text-violet-600' },
   ]
 })
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 const sum = (arr) => arr.reduce((s, n) => s + (Number(n) || 0), 0)
-function monthLabel(key) {
+// Trend keys are 'YYYY-MM-DD' for daily ranges and 'YYYY-MM' for monthly ones.
+function trendLabel(key) {
+  if (summary.value?.salesTrend?.granularity === 'day') {
+    return new Date(`${key}T00:00:00`).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
+  }
   const [y, m] = String(key).split('-')
   return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString(undefined, { month: 'short' })
 }
@@ -191,7 +246,7 @@ function fmtCompact(n) {
 const salesTrendData = computed(() => {
   const tr = summary.value?.salesTrend || { labels: [], data: [] }
   return {
-    labels: tr.labels.map(monthLabel),
+    labels: tr.labels.map(trendLabel),
     datasets: [{
       label: t('reporting.erpSummary.legend.revenue'),
       data: tr.data,
@@ -302,7 +357,10 @@ const lineOpts = {
     legend: { display: false },
     tooltip: { callbacks: { label: (c) => fmtMoney(c.parsed.y) } },
   },
-  scales: { x: noGridX, y: { ...gridY, ticks: { ...gridY.ticks, callback: (v) => fmtCompact(v) } } },
+  scales: {
+    x: { ...noGridX, ticks: { ...noGridX.ticks, autoSkip: true, maxTicksLimit: 12, maxRotation: 0 } },
+    y: { ...gridY, ticks: { ...gridY.ticks, callback: (v) => fmtCompact(v) } },
+  },
 }
 
 const countBarOpts = {

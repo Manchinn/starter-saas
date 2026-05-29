@@ -2,49 +2,87 @@ const { Invoice } = require('../../../server/models')
 const { Op, fn, col } = require('sequelize')
 const erpDashboard = require('../../erp/dashboard/dashboard.service')
 
-const MONTHS_BACK = 12
+const DEFAULT_DAYS = 30
+// Above this window the trend switches from daily to monthly buckets so the
+// x-axis stays readable.
+const DAILY_MAX_DAYS = 92
 
-// Fold a doc row into org base currency (total × exchangeRate), matching the
-// rest of the ERP (see shared/erp/dashboard/dashboard.service.js).
+// Fold a doc row into org base currency (total × exchangeRate).
 const baseOf = (r) => (Number(r.total) || 0) * (Number(r.exchangeRate) || 1)
-const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 
-// Invoiced revenue per month (base currency) for the last MONTHS_BACK months.
-// Bucketed in JS so the query stays portable across SQLite/Postgres.
-const buildSalesTrend = async (scope) => {
-  const start = new Date()
-  start.setHours(0, 0, 0, 0)
-  start.setDate(1)
-  start.setMonth(start.getMonth() - (MONTHS_BACK - 1))
+const pad = (n) => String(n).padStart(2, '0')
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+// Parse a 'YYYY-MM-DD' as local midnight so bucketing never drifts a day in
+// negative-offset timezones.
+const parseLocal = (s) => new Date(`${s}T00:00:00`)
+const isYmd = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)
 
-  const rows = await Invoice.findAll({
-    where: {
-      ...scope,
-      status: { [Op.ne]: 'cancelled' },
-      invoiceDate: { [Op.gte]: start.toISOString().slice(0, 10) },
-    },
-    attributes: ['invoiceDate', 'total', 'exchangeRate'],
-  })
-
-  const keys = []
-  const buckets = new Map()
-  for (let i = 0; i < MONTHS_BACK; i++) {
-    const d = new Date(start.getFullYear(), start.getMonth() + i, 1)
-    const key = monthKey(d)
-    keys.push(key)
-    buckets.set(key, 0)
+// Resolve an inclusive [from, to] window, defaulting to the last 30 days.
+const resolveRange = ({ from, to } = {}) => {
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  let f = isYmd(from) ? from : null
+  let t = isYmd(to) ? to : null
+  if (!f && !t) {
+    const start = new Date(today); start.setDate(start.getDate() - (DEFAULT_DAYS - 1))
+    f = ymd(start); t = ymd(today)
+  } else if (f && !t) {
+    t = ymd(today)
+  } else if (!f && t) {
+    const start = parseLocal(t); start.setDate(start.getDate() - (DEFAULT_DAYS - 1))
+    f = ymd(start)
   }
-  for (const r of rows) {
-    const key = String(r.invoiceDate).slice(0, 7)
-    if (buckets.has(key)) buckets.set(key, buckets.get(key) + baseOf(r))
-  }
-  return { labels: keys, data: keys.map((k) => buckets.get(k)) }
+  if (f > t) { const tmp = f; f = t; t = tmp }
+  const days = Math.round((parseLocal(t) - parseLocal(f)) / 86400000) + 1
+  const granularity = days <= DAILY_MAX_DAYS ? 'day' : 'month'
+  return { from: f, to: t, days, granularity }
 }
 
-// Count of invoices by lifecycle status, for a doughnut breakdown.
-const buildInvoiceStatus = async (scope) => {
+const dayKeys = (from, to) => {
+  const keys = []
+  const cur = parseLocal(from)
+  const last = parseLocal(to)
+  while (cur <= last) { keys.push(ymd(cur)); cur.setDate(cur.getDate() + 1) }
+  return keys
+}
+
+const monthKeys = (from, to) => {
+  const keys = []
+  const start = parseLocal(from)
+  const end = parseLocal(to)
+  let y = start.getFullYear()
+  let m = start.getMonth()
+  while (y < end.getFullYear() || (y === end.getFullYear() && m <= end.getMonth())) {
+    keys.push(`${y}-${pad(m + 1)}`)
+    m++
+    if (m > 11) { m = 0; y++ }
+  }
+  return keys
+}
+
+// Invoiced revenue (base currency) bucketed across the window — daily for short
+// ranges, monthly for long ones. Returns the period total alongside the series.
+const buildSalesTrend = async (scope, from, to, granularity) => {
   const rows = await Invoice.findAll({
-    where: { ...scope },
+    where: { ...scope, status: { [Op.ne]: 'cancelled' }, invoiceDate: { [Op.between]: [from, to] } },
+    attributes: ['invoiceDate', 'total', 'exchangeRate'],
+  })
+  const keys = granularity === 'day' ? dayKeys(from, to) : monthKeys(from, to)
+  const sliceLen = granularity === 'day' ? 10 : 7
+  const buckets = new Map(keys.map((k) => [k, 0]))
+  let total = 0
+  for (const r of rows) {
+    const base = baseOf(r)
+    total += base
+    const key = String(r.invoiceDate).slice(0, sliceLen)
+    if (buckets.has(key)) buckets.set(key, buckets.get(key) + base)
+  }
+  return { granularity, labels: keys, data: keys.map((k) => buckets.get(k)), total }
+}
+
+// Count of invoices issued in the window, by lifecycle status.
+const buildInvoiceStatus = async (scope, from, to) => {
+  const rows = await Invoice.findAll({
+    where: { ...scope, invoiceDate: { [Op.between]: [from, to] } },
     attributes: ['status', [fn('COUNT', col('id')), 'count']],
     group: ['status'],
     raw: true,
@@ -56,15 +94,13 @@ const buildInvoiceStatus = async (scope) => {
   return out
 }
 
-// Outstanding AR (sent invoices) split into ageing buckets by dueDate, in base
-// currency. Invoices with no due date are treated as current.
-const buildArAging = async (scope) => {
+// Outstanding AR for invoices issued in the window, aged by dueDate vs today.
+const buildArAging = async (scope, from, to) => {
   const rows = await Invoice.findAll({
-    where: { ...scope, status: 'sent' },
+    where: { ...scope, status: 'sent', invoiceDate: { [Op.between]: [from, to] } },
     attributes: ['total', 'exchangeRate', 'dueDate'],
   })
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
   const out = { current: 0, d1_30: 0, d31_60: 0, d60plus: 0 }
   for (const r of rows) {
     const base = baseOf(r)
@@ -79,27 +115,32 @@ const buildArAging = async (scope) => {
   return out
 }
 
-// Aggregate ERP data into a chart-ready summary. Snapshot KPIs and per-store
-// stock reuse the (already tested) ERP dashboard service; the time-series and
-// breakdown widgets below are computed here.
-const getSummary = async (organizationId = null) => {
+// Aggregate ERP data into a chart-ready summary. Invoice-based analytics are
+// scoped to the [from, to] window; inventory and open-document tiles reuse the
+// (already tested) ERP dashboard service and reflect the current snapshot.
+const getSummary = async (organizationId = null, opts = {}) => {
   const scope = organizationId ? { organizationId } : {}
+  const range = resolveRange(opts)
 
   const [stats, salesTrend, invoiceStatus, arAging] = await Promise.all([
     erpDashboard.getStats(organizationId),
-    buildSalesTrend(scope),
-    buildInvoiceStatus(scope),
-    buildArAging(scope),
+    buildSalesTrend(scope, range.from, range.to, range.granularity),
+    buildInvoiceStatus(scope, range.from, range.to),
+    buildArAging(scope, range.from, range.to),
   ])
 
+  const invoicesInPeriod =
+    invoiceStatus.draft + invoiceStatus.sent + invoiceStatus.paid + invoiceStatus.cancelled
+
   return {
+    range,
     kpis: {
-      salesMtd:       stats.finance.salesMtd,
-      arOutstanding:  stats.finance.arOutstanding,
-      apOutstanding:  stats.finance.apOutstanding,
-      activeProducts: stats.products.active,
-      totalStock:     stats.products.totalStock,
-      sentInvoices:   stats.invoices.sentCount,
+      salesInPeriod:    salesTrend.total,
+      invoicesInPeriod,
+      arOutstanding:    stats.finance.arOutstanding,
+      apOutstanding:    stats.finance.apOutstanding,
+      activeProducts:   stats.products.active,
+      totalStock:       stats.products.totalStock,
     },
     salesTrend,
     invoiceStatus,
