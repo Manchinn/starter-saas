@@ -8,6 +8,7 @@
       <div v-if="searchable" class="relative flex-1 min-w-0">
         <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
         <input
+          ref="searchInputEl"
           v-model="searchInput"
           @input="onSearchInput"
           type="search"
@@ -83,9 +84,12 @@
         <!-- Rows -->
         <template v-else>
           <tr
-            v-for="row in table.getRowModel().rows"
+            v-for="(row, i) in table.getRowModel().rows"
             :key="row.id"
-            class="hover:bg-[#F7F9FC] transition-colors group"
+            :class="[
+              'hover:bg-[#F7F9FC] transition-colors group',
+              i === selectedRowIndex && 'bg-primary-50 ring-1 ring-inset ring-primary-200',
+            ]"
           >
             <td
               v-for="cell in row.getVisibleCells()"
@@ -154,9 +158,13 @@ const props = defineProps({
   globalFilter:      { type: String,  default: '' },
   searchPlaceholder: { type: String,  default: 'Search…' },
   searchDebounce:    { type: Number,  default: 350 },
+  selectedRowIndex:  { type: Number,  default: -1 },
 })
 
 const emit = defineEmits(['update:page', 'update:globalFilter'])
+
+const searchInputEl = ref(null)
+defineExpose({ focusSearch: () => searchInputEl.value?.focus() })
 
 const sorting = ref([...props.initialSorting])
 
