@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../../server/config/database')
+const { auditFields } = require('../../../model-fields')
 
 const StockReturnItem = sequelize.define('StockReturnItem', {
   id:            { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -10,8 +11,7 @@ const StockReturnItem = sequelize.define('StockReturnItem', {
   batchId:       { type: DataTypes.STRING, allowNull: true },
   expiryDate:    { type: DataTypes.DATEONLY, allowNull: true },
   reason:         { type: DataTypes.TEXT, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  ...auditFields,
 })
 
 module.exports = StockReturnItem

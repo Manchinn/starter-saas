@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../../server/config/database')
+const { auditFields } = require('../../../model-fields')
 
 const GoodReceiveItem = sequelize.define('GoodReceiveItem', {
   id:            { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -24,8 +25,7 @@ const GoodReceiveItem = sequelize.define('GoodReceiveItem', {
   stockQty:      { type: DataTypes.DECIMAL(12, 4), allowNull: true, defaultValue: 0 },
 
   comments:       { type: DataTypes.TEXT, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  ...auditFields,
 })
 
 module.exports = GoodReceiveItem

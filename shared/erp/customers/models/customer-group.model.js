@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const CustomerGroup = sequelize.define('CustomerGroup', {
   id: {
@@ -22,10 +23,7 @@ const CustomerGroup = sequelize.define('CustomerGroup', {
   status:     { type: DataTypes.ENUM('active', 'inactive'), defaultValue: 'active' },
   activeFrom: { type: DataTypes.DATEONLY, allowNull: true },
   activeTo:   { type: DataTypes.DATEONLY, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
-  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 })
 
 module.exports = CustomerGroup

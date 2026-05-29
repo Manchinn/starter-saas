@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const Product = sequelize.define('Product', {
   id: {
@@ -65,10 +66,7 @@ const Product = sequelize.define('Product', {
   },
   activeFrom: { type: DataTypes.DATEONLY, allowNull: true },
   activeTo:   { type: DataTypes.DATEONLY, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:  { type: DataTypes.UUID, allowNull: true },
-  modifiedBy: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 })
 
 module.exports = Product

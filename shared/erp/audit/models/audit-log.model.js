@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const AuditLog = sequelize.define('AuditLog', {
   id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -9,7 +10,7 @@ const AuditLog = sequelize.define('AuditLog', {
   entityType:     { type: DataTypes.STRING, allowNull: false },
   entityId:       { type: DataTypes.UUID,   allowNull: true },
   summary:        { type: DataTypes.JSON,   allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, {
   tableName: 'audit_logs',
   updatedAt: false,

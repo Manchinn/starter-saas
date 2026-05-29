@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const PurchaseOrderItem = sequelize.define('PurchaseOrderItem', {
   id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -9,7 +10,7 @@ const PurchaseOrderItem = sequelize.define('PurchaseOrderItem', {
   qty:            { type: DataTypes.DECIMAL(12, 4), allowNull: false, defaultValue: 1 },
   unitPrice:      { type: DataTypes.DECIMAL(15, 4), allowNull: false, defaultValue: 0 },
   notes:          { type: DataTypes.TEXT, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, { tableName: 'PurchaseOrderItems', timestamps: true })
 
 module.exports = PurchaseOrderItem

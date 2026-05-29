@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const Attachment = sequelize.define('Attachment', {
   id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -10,8 +11,7 @@ const Attachment = sequelize.define('Attachment', {
   mimeType:       { type: DataTypes.STRING, allowNull: true },
   size:           { type: DataTypes.INTEGER, allowNull: true },
   uploadedBy:     { type: DataTypes.UUID, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  ...auditFields,
 }, {
   tableName: 'attachments',
   indexes: [{ fields: ['refType', 'refId'] }],

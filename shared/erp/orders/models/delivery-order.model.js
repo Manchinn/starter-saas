@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const DeliveryOrder = sequelize.define('DeliveryOrder', {
   id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -21,10 +22,7 @@ const DeliveryOrder = sequelize.define('DeliveryOrder', {
 
   notes:          { type: DataTypes.TEXT, allowNull: true },
   status:         { type: DataTypes.ENUM('draft', 'confirmed', 'shipped', 'delivered', 'cancelled'), defaultValue: 'draft' },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
-  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, { tableName: 'DeliveryOrders', timestamps: true })
 
 module.exports = DeliveryOrder

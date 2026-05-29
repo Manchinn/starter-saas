@@ -1,5 +1,6 @@
 ﻿const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const ReceivePayment = sequelize.define('ReceivePayment', {
   id:            { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -13,10 +14,7 @@ const ReceivePayment = sequelize.define('ReceivePayment', {
   exchangeRate:   { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 },
   notes:          { type: DataTypes.TEXT, allowNull: true },
   status:         { type: DataTypes.ENUM('draft', 'confirmed', 'cancelled'), defaultValue: 'draft' },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
-  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, { tableName: 'ReceivePayments', timestamps: true })
 
 module.exports = ReceivePayment

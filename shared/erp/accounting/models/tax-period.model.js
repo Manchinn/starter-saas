@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const TaxPeriod = sequelize.define('TaxPeriod', {
   id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -10,10 +11,7 @@ const TaxPeriod = sequelize.define('TaxPeriod', {
   notes:          { type: DataTypes.TEXT, allowNull: true },
   closedBy:       { type: DataTypes.UUID, allowNull: true },
   closedAt:       { type: DataTypes.DATE, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
-  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, {
   tableName: 'tax_periods',
   indexes: [

@@ -1,5 +1,6 @@
 ﻿const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const Journal = sequelize.define('Journal', {
   id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -10,10 +11,7 @@ const Journal = sequelize.define('Journal', {
   status:         { type: DataTypes.ENUM('draft', 'posted', 'voided'), defaultValue: 'draft' },
   sourceType:     { type: DataTypes.STRING, allowNull: true },
   sourceId:       { type: DataTypes.UUID, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
-  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, { tableName: 'Journals', timestamps: true })
 
 module.exports = Journal

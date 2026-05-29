@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const MasterDataValue = sequelize.define('MasterDataValue', {
   id:          { type: DataTypes.UUID,    defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -9,10 +10,7 @@ const MasterDataValue = sequelize.define('MasterDataValue', {
   description: { type: DataTypes.TEXT,   allowNull: true },
   sortOrder:   { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   isActive:    { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:  { type: DataTypes.UUID, allowNull: true },
-  modifiedBy: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, { tableName: 'MasterDataValues' })
 
 module.exports = MasterDataValue

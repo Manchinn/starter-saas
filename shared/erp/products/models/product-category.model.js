@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const ProductCategory = sequelize.define('ProductCategory', {
   id: {
@@ -29,13 +30,7 @@ const ProductCategory = sequelize.define('ProductCategory', {
   },
   activeFrom: { type: DataTypes.DATEONLY, allowNull: true },
   activeTo:   { type: DataTypes.DATEONLY, allowNull: true },
-  organizationId: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
-  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:  { type: DataTypes.UUID, allowNull: true },
-  modifiedBy: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 })
 
 module.exports = ProductCategory

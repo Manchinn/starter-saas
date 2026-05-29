@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../../server/config/database')
+const { auditFields } = require('../../../model-fields')
 
 const StockCountItem = sequelize.define('StockCountItem', {
   id:           { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -7,8 +8,7 @@ const StockCountItem = sequelize.define('StockCountItem', {
   productId:    { type: DataTypes.UUID, allowNull: false },
   systemQty:    { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   countedQty:     { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  ...auditFields,
 })
 
 module.exports = StockCountItem

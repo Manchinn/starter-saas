@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const ExchangeRate = sequelize.define('ExchangeRate', {
   id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -8,8 +9,7 @@ const ExchangeRate = sequelize.define('ExchangeRate', {
   asOfDate:       { type: DataTypes.DATEONLY, allowNull: false },
   source:         { type: DataTypes.STRING, allowNull: true, defaultValue: 'manual' },
   notes:          { type: DataTypes.STRING, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, {
   tableName: 'exchange_rates',
   indexes: [

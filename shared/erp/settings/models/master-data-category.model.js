@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const MasterDataCategory = sequelize.define('MasterDataCategory', {
   id:          { type: DataTypes.UUID,    defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -8,10 +9,7 @@ const MasterDataCategory = sequelize.define('MasterDataCategory', {
   description: { type: DataTypes.TEXT,   allowNull: true },
   isSystem:    { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   isActive:    { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:  { type: DataTypes.UUID, allowNull: true },
-  modifiedBy: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, { tableName: 'MasterDataCategories' })
 
 module.exports = MasterDataCategory

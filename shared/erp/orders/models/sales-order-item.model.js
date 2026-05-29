@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const SalesOrderItem = sequelize.define('SalesOrderItem', {
   id: {
@@ -56,10 +57,7 @@ const SalesOrderItem = sequelize.define('SalesOrderItem', {
   taxRate:        { type: DataTypes.DECIMAL(5, 2),  allowNull: false, defaultValue: 0 },
   taxAmount:      { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   total:          { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
-  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, {
   tableName: 'sales_order_items',
 })

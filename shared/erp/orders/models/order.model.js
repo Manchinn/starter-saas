@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const Order = sequelize.define('Order', {
   id: {
@@ -53,10 +54,7 @@ const Order = sequelize.define('Order', {
   discountType:  { type: DataTypes.ENUM('percent', 'fixed'), allowNull: true },
   discountValue: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   discountAmount:{ type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
-  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 })
 
 module.exports = Order

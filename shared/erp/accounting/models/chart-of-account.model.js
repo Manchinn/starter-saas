@@ -1,5 +1,6 @@
 ﻿const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const ChartOfAccount = sequelize.define('ChartOfAccount', {
   id: {
@@ -39,10 +40,7 @@ const ChartOfAccount = sequelize.define('ChartOfAccount', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:      { type: DataTypes.UUID, allowNull: true },
-  modifiedBy:     { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 })
 
 module.exports = ChartOfAccount

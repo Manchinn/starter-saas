@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const SaleItem = sequelize.define('SaleItem', {
   id: {
@@ -23,13 +24,7 @@ const SaleItem = sequelize.define('SaleItem', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
-  organizationId: {
-    type: DataTypes.UUID,
-    allowNull: true,
-  },
-  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:  { type: DataTypes.UUID, allowNull: true },
-  modifiedBy: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 }, {
   tableName: 'sale_items',
 })

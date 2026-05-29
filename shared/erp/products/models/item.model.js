@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const Item = sequelize.define('Item', {
   id: {
@@ -24,8 +25,7 @@ const Item = sequelize.define('Item', {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
   },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag: { type: DataTypes.INTEGER, defaultValue: 1 },
+  ...auditFields,
 })
 
 module.exports = Item

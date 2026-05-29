@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../../server/config/database')
+const { auditFields } = require('../../../model-fields')
 
 const StockMovement = sequelize.define('StockMovement', {
   id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -13,8 +14,7 @@ const StockMovement = sequelize.define('StockMovement', {
   storeId:     { type: DataTypes.UUID, allowNull: true },
   refNo:       { type: DataTypes.STRING, allowNull: true },
   notes:          { type: DataTypes.TEXT, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:       { type: DataTypes.INTEGER, defaultValue: 1 },
+  ...auditFields,
 })
 
 module.exports = StockMovement

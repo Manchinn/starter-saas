@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { auditFields } = require('../../model-fields')
 
 const UOMConversion = sequelize.define('UOMConversion', {
   id: {
@@ -25,10 +26,7 @@ const UOMConversion = sequelize.define('UOMConversion', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  organizationId: { type: DataTypes.UUID, allowNull: true },
-  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:  { type: DataTypes.UUID, allowNull: true },
-  modifiedBy: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 })
 
 module.exports = UOMConversion
