@@ -35,9 +35,7 @@
             <div>
               <FieldLabel :text="t('erp.orders.referenceNumber')" />
               <input ref="referenceInputRef" v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all placeholder:text-[#9BA7B0]" />
+                class="input" />
             </div>
 
             <!-- Customer -->
@@ -59,26 +57,21 @@
                   <kbd class="hidden lg:inline px-1.5 py-0.5 bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Alt+C</kbd>
                 </button>
               </div>
-              <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
+              <FieldError :error="errors.customerId" />
               <CustomerChip :customer="selectedCustomer" />
             </div>
 
             <!-- Order Date -->
             <div>
               <FieldLabel :text="t('erp.orders.orderDate')" required />
-              <DateInput v-model="form.orderDate"
-                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.orderDate ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-              <p v-if="errors.orderDate" class="mt-1 text-[11px] text-red-500">{{ errors.orderDate }}</p>
+              <DateInput v-model="form.orderDate" :class="['input', errors.orderDate && 'input-error']" />
+              <FieldError :error="errors.orderDate" />
             </div>
 
             <!-- Expected delivery date -->
             <div>
               <FieldLabel :text="t('erp.orders.expectedDelivery')" />
-              <DateInput v-model="form.expectedDeliveryDate"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+              <DateInput v-model="form.expectedDeliveryDate" class="input" />
             </div>
 
             <!-- Currency -->
@@ -90,9 +83,7 @@
             <!-- Payment terms (values from /erp/master-data/payment-terms) -->
             <div>
               <FieldLabel :text="t('erp.orders.paymentTerms')" />
-              <select v-model="form.paymentTerms"
-                class="w-full px-3 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434] bg-white
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
+              <select v-model="form.paymentTerms" class="input">
                 <option value="">—</option>
                 <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
               </select>
@@ -125,11 +116,8 @@
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <FieldLabel :text="t('erp.orders.shippingAddress')" />
-              <textarea v-model="form.shippingAddress" rows="3"
-                placeholder="Ship to address…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+              <textarea v-model="form.shippingAddress" rows="3" placeholder="Ship to address…"
+                class="input resize-none" />
             </div>
             <div>
               <div class="flex items-center justify-between">
@@ -139,13 +127,9 @@
                   {{ t('erp.orders.sameAsShipping') }}
                 </label>
               </div>
-              <textarea v-model="form.billingAddress" rows="3"
-                :disabled="billingSameAsShipping"
+              <textarea v-model="form.billingAddress" rows="3" :disabled="billingSameAsShipping"
                 placeholder="Bill to address…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]
-                       disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+                class="input resize-none disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
             </div>
           </div>
         </FormCard>
@@ -364,9 +348,7 @@
             <div class="flex flex-col text-left">
               <FieldLabel :text="t('erp.orders.notes')" />
               <textarea v-model="form.notes" placeholder="Order notes or special instructions…"
-                class="flex-1 w-full min-h-[10rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+                class="input resize-none flex-1 min-h-[10rem]" />
             </div>
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
@@ -597,35 +579,25 @@
             <div>
               <FieldLabel :text="t('erp.customers.name')" required />
               <input v-model="newCustomer.name" type="text" placeholder="Customer name"
-                ref="newCustomerNameRef"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+                ref="newCustomerNameRef" class="input" />
             </div>
             <div>
               <FieldLabel :text="t('erp.customers.company')" />
-              <input v-model="newCustomer.company" type="text"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+              <input v-model="newCustomer.company" type="text" class="input" />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <FieldLabel :text="t('erp.customers.email')" />
-                <input v-model="newCustomer.email" type="email"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+                <input v-model="newCustomer.email" type="email" class="input" />
               </div>
               <div>
                 <FieldLabel :text="t('erp.customers.phone')" />
-                <input v-model="newCustomer.phone" type="text"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+                <input v-model="newCustomer.phone" type="text" class="input" />
               </div>
             </div>
             <div>
               <FieldLabel :text="t('erp.customers.address')" />
-              <textarea v-model="newCustomer.address" rows="3"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 resize-none" />
+              <textarea v-model="newCustomer.address" rows="3" class="input resize-none" />
             </div>
             <p v-if="newCustomerError" class="text-[12px] text-red-600">{{ newCustomerError }}</p>
           </div>
@@ -653,7 +625,7 @@ import {
   PlusIcon, TrashIcon, XMarkIcon,
   CheckIcon, ShoppingCartIcon,
   ArrowPathIcon, UserIcon, ClipboardDocumentListIcon,
-  CalculatorIcon, LightBulbIcon, ExclamationTriangleIcon,
+  CalculatorIcon, ExclamationTriangleIcon,
   Bars3Icon, CubeIcon, ChevronDownIcon, ChevronRightIcon,
   MapPinIcon, BookmarkSquareIcon,
 } from '@heroicons/vue/24/outline'
@@ -669,6 +641,7 @@ import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney, toFixed } from '@/utils/fmt'

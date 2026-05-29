@@ -46,18 +46,14 @@
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.referenceNumber')" />
               <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                class="input" />
             </div>
 
             <!-- Date -->
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
               <DateInput v-model="form.date"
-                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('date') && 'input-error']" />
+                :class="['input', (errors.date || errorOf('date')) && 'input-error']" />
               <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
               <FieldError name="date" :errors="fieldErrors" />
             </div>
@@ -65,9 +61,7 @@
             <!-- Delivery Date -->
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.deliveryDate')" />
-              <DateInput v-model="form.deliveryDate"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+              <DateInput v-model="form.deliveryDate" class="input" />
             </div>
 
             <!-- Reference Sales Order -->
@@ -79,9 +73,7 @@
             <!-- Payment terms -->
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.paymentTerms')" />
-              <select v-model="form.paymentTerms"
-                class="w-full px-3 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434] bg-white
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
+              <select v-model="form.paymentTerms" class="input">
                 <option value="">—</option>
                 <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
               </select>
@@ -114,11 +106,8 @@
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.shippingAddress')" />
-              <textarea v-model="form.shippingAddress" rows="3"
-                placeholder="Ship to address…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+              <textarea v-model="form.shippingAddress" rows="3" placeholder="Ship to address…"
+                class="input resize-none" />
             </div>
             <div>
               <div class="flex items-center justify-between">
@@ -128,13 +117,9 @@
                   {{ t('erp.deliveryOrders.sameAsShipping') }}
                 </label>
               </div>
-              <textarea v-model="form.billingAddress" rows="3"
-                :disabled="billingSameAsShipping"
+              <textarea v-model="form.billingAddress" rows="3" :disabled="billingSameAsShipping"
                 placeholder="Bill to address…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]
-                       disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+                class="input resize-none disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
             </div>
           </div>
         </FormCard>
@@ -282,9 +267,7 @@
             <div class="flex flex-col text-left">
               <FieldLabel :text="t('erp.common.notes')" />
               <textarea v-model="form.notes" placeholder="Handling instructions or remarks…"
-                class="flex-1 w-full min-h-[8rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
+                class="input resize-none flex-1 min-h-[8rem]" />
             </div>
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">

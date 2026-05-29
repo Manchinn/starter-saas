@@ -26,9 +26,7 @@
         </template>
       </PageHeader>
 
-      <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent animate-spin"></div>
-      </div>
+      <LoadingSpinner v-if="loading" />
 
       <ErrorBanner v-else-if="loadError" :message="loadError" />
 
@@ -51,26 +49,20 @@
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.referenceNumber')" />
               <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+                class="input" />
             </div>
 
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
               <DateInput v-model="form.date"
-                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('date') && 'input-error']" />
+                :class="['input', (errors.date || errorOf('date')) && 'input-error']" />
               <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
               <FieldError name="date" :errors="fieldErrors" />
             </div>
 
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.deliveryDate')" />
-              <DateInput v-model="form.deliveryDate"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
+              <DateInput v-model="form.deliveryDate" class="input" />
             </div>
 
             <div>
@@ -80,9 +72,7 @@
 
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.paymentTerms')" />
-              <select v-model="form.paymentTerms"
-                class="w-full px-3 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434] bg-white
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
+              <select v-model="form.paymentTerms" class="input">
                 <option value="">—</option>
                 <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
               </select>
@@ -113,10 +103,7 @@
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <FieldLabel :text="t('erp.deliveryOrders.shippingAddress')" />
-              <textarea v-model="form.shippingAddress" rows="3"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none" />
+              <textarea v-model="form.shippingAddress" rows="3" class="input resize-none" />
             </div>
             <div>
               <div class="flex items-center justify-between">
@@ -126,11 +113,8 @@
                   {{ t('erp.deliveryOrders.sameAsShipping') }}
                 </label>
               </div>
-              <textarea v-model="form.billingAddress" rows="3"
-                :disabled="billingSameAsShipping"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
+              <textarea v-model="form.billingAddress" rows="3" :disabled="billingSameAsShipping"
+                class="input resize-none disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0]" />
             </div>
           </div>
         </FormCard>
@@ -255,10 +239,7 @@
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             <div class="flex flex-col text-left">
               <FieldLabel :text="t('erp.common.notes')" />
-              <textarea v-model="form.notes"
-                class="flex-1 w-full min-h-[8rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none" />
+              <textarea v-model="form.notes" class="input resize-none flex-1 min-h-[8rem]" />
             </div>
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
@@ -351,6 +332,7 @@ import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
 import FieldError from '@/components/form/FieldError.vue'
+import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
