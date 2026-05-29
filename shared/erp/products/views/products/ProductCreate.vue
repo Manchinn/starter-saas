@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
@@ -23,89 +23,40 @@
 
             <!-- SKU / Auto-code -->
             <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.codeSku') }}</label>
-              <input v-if="!autoCode.enabled.value" v-model="form.sku" type="text" placeholder="SKU-001"
-                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              <input v-else :value="autoCode.preview.value" type="text" readonly
-                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+              <FormField name="sku" :label="t('erp.products.codeSku')" :errors="fieldErrors">
+                <template #default="{ id }">
+                  <input v-if="!autoCode.enabled.value" :id="id" v-model="form.sku" type="text" placeholder="SKU-001" class="input" />
+                  <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+                </template>
+              </FormField>
               <label class="mt-1.5 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
+                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" />
                 {{ t('erp.common.autoGenerate') }}
               </label>
             </div>
 
-            <!-- Name -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('erp.products.name') }} <span class="text-red-500">*</span>
-              </label>
-              <input v-model="form.name" type="text" placeholder="Product name"
-                :class="['w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('name') && 'input-error']" />
-              <FieldError name="name" :errors="fieldErrors" />
-            </div>
+            <FormField v-model="form.name" name="name" :label="t('erp.products.name')" placeholder="Product name" required :errors="fieldErrors" />
 
-            <!-- Category -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.category') }}</label>
-              <SearchSelect v-model="form.category" :options="categoryOptions" track-by="name" label-key="name" placeholder="— None —" />
-            </div>
+            <SearchSelectWithLabel v-model="form.category" :label="t('erp.products.category')" :options="categoryOptions" track-by="name" label-key="name" placeholder="— None —" />
 
-            <!-- Cost -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.costPrice') }}</label>
-              <input v-model="form.cost" type="number" min="0" step="0.01" placeholder="0.00"
-                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-            </div>
+            <FormField v-model="form.cost" name="cost" type="number" :label="t('erp.products.costPrice')" placeholder="0.00" :errors="fieldErrors" min="0" step="0.01" />
 
-            <!-- Reorder point + qty -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.reorderPoint') }}</label>
-              <input v-model.number="form.reorderPoint" type="number" min="0" step="1" :placeholder="t('erp.products.reorderPointPh')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderPointHint') }}</p>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.reorderQty') }}</label>
-              <input v-model.number="form.reorderQty" type="number" min="0" step="1" :placeholder="t('erp.products.reorderQtyPh')"
-                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              <p class="text-[11px] text-[#9BA7B0] mt-1">{{ t('erp.products.reorderQtyHint') }}</p>
-            </div>
+            <FormField v-model="form.reorderPoint" name="reorderPoint" type="number" :label="t('erp.products.reorderPoint')" :placeholder="t('erp.products.reorderPointPh')" :hint="t('erp.products.reorderPointHint')" :errors="fieldErrors" min="0" step="1" />
 
-            <!-- Description -->
-            <div class="col-span-2">
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.description') }}</label>
-              <textarea v-model="form.description" rows="3" placeholder="Optional description…"
-                class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none" />
-            </div>
+            <FormField v-model="form.reorderQty" name="reorderQty" type="number" :label="t('erp.products.reorderQty')" :placeholder="t('erp.products.reorderQtyPh')" :hint="t('erp.products.reorderQtyHint')" :errors="fieldErrors" min="0" step="1" />
 
-            <!-- Selling UOM -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.sellingUom') }}</label>
-              <SearchSelect v-model="form.sellingUomId" :options="uomOptions" placeholder="— None —" />
-            </div>
+            <FormField v-model="form.description" name="description" textarea :rows="3" :label="t('erp.products.description')" placeholder="Optional description…" :errors="fieldErrors" wrapper-class="col-span-2" />
 
-            <!-- Purchasing UOM -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.purchasingUom') }}</label>
-              <SearchSelect v-model="form.purchasingUomId" :options="uomOptions" placeholder="— None —" />
-            </div>
+            <SearchSelectWithLabel v-model="form.sellingUomId" :label="t('erp.products.sellingUom')" :options="uomOptions" placeholder="— None —" />
 
-            <!-- Active Period -->
+            <SearchSelectWithLabel v-model="form.purchasingUomId" :label="t('erp.products.purchasingUom')" :options="uomOptions" placeholder="— None —" />
+
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeFrom') }}</label>
-                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.common.activeTo') }}</label>
-                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              </div>
+              <DateInputWithLabel v-model="form.activeFrom" :label="t('erp.common.activeFrom')" />
+              <DateInputWithLabel v-model="form.activeTo" :label="t('erp.common.activeTo')" />
             </div>
-            <!-- Status -->
-            <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.products.status') }}</label>
-              <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
-            </div>
+
+            <SearchSelectWithLabel v-model="form.status" :label="t('erp.products.status')" :options="statusOptions" :allow-empty="false" />
 
           </div>
         </div>
@@ -123,10 +74,7 @@
           <div class="px-6 py-5 space-y-4">
             <div class="flex gap-2">
               <div class="flex-1"><SearchSelect v-model="selectedStoreId" :options="availableStoreOptions" :placeholder="t('erp.common.selectStore')" /></div>
-              <button @click="addStore" :disabled="!selectedStoreId"
-                class="px-4 py-2 bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-40 transition text-sm font-medium">
-                {{ t('erp.common.add') }}
-              </button>
+              <AppButton @click="addStore" :disabled="!selectedStoreId" variant="primary">{{ t('erp.common.add') }}</AppButton>
             </div>
             <div class="space-y-2 min-h-[40px]">
               <div v-if="!linkedStores.length" class="text-sm text-[#9BA7B0] text-center py-4">{{ t('erp.products.noLinkedStores') }}</div>
@@ -153,10 +101,7 @@
           <div class="px-6 py-5 space-y-4">
             <div class="flex gap-2">
               <div class="flex-1"><SearchSelect v-model="selectedVendorId" :options="availableVendorOptions" :placeholder="`— ${t('erp.common.selectVendor')} —`" /></div>
-              <button @click="addVendor" :disabled="!selectedVendorId"
-                class="px-4 py-2 bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-40 transition text-sm font-medium">
-                {{ t('erp.common.add') }}
-              </button>
+              <AppButton @click="addVendor" :disabled="!selectedVendorId" variant="primary">{{ t('erp.common.add') }}</AppButton>
             </div>
             <div class="space-y-2 min-h-[40px]">
               <div v-if="!linkedVendors.length" class="text-sm text-[#9BA7B0] text-center py-4">{{ t('erp.products.noLinkedVendors') }}</div>
@@ -184,16 +129,10 @@
 
       <!-- Actions -->
       <div class="flex justify-end gap-3">
-        <RouterLink to="/erp/item-master"
-          class="px-4 py-2.5 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition text-[#637381]">
-          {{ t('common.cancel') }}
-        </RouterLink>
-        <button @click="save" :disabled="saving"
-          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                 bg-primary-500 text-white hover:bg-primary-700
-                 disabled:opacity-50 transition shadow-sm">
+        <AppButton to="/erp/item-master" variant="secondary">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="save" :loading="saving">
           {{ saving ? t('erp.common.creating') : t('erp.products.create') }}
-        </button>
+        </AppButton>
       </div>
 
     </div>
@@ -206,8 +145,11 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, XMarkIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import AppButton from '@/components/AppButton.vue'
+import FormField from '@/components/form/FormField.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
+import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
@@ -232,7 +174,7 @@ const selectedStoreId  = ref('')
 const selectedVendorId = ref('')
 const error  = ref('')
 const saving = ref(false)
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const availableStores  = computed(() => stores.value.filter(s => !linkedStores.value.some(l => l.id === s.id)))
 const availableVendors = computed(() => vendors.value.filter(v => !linkedVendors.value.some(l => l.id === v.id)))

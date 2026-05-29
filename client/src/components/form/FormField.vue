@@ -5,12 +5,26 @@
       <span v-if="required" class="text-red-500 ml-0.5">*</span>
     </label>
 
-    <div v-if="$slots.default || $slots.prefix || $slots.suffix" class="relative">
+    <div class="relative">
       <div v-if="$slots.prefix" class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
         <slot name="prefix" />
       </div>
       <slot :id="fieldId" :hasError="hasError" :errorClass="hasError ? 'input-error' : ''">
+        <textarea
+          v-if="textarea"
+          :id="fieldId"
+          :value="modelValue"
+          v-bind="$attrs"
+          @input="onInput"
+          @blur="$emit('blur', $event)"
+          :placeholder="placeholder"
+          :disabled="disabled"
+          :readonly="readonly"
+          :rows="rows"
+          :class="['input resize-none', hasError && 'input-error', inputClass]"
+        />
         <input
+          v-else
           :id="fieldId"
           :type="type"
           :value="modelValue"
@@ -50,6 +64,8 @@ const props = defineProps({
   modelValue:   { default: '' },
   label:        { type: String, default: '' },
   type:         { type: String, default: 'text' },
+  textarea:     { type: Boolean, default: false },
+  rows:         { type: [Number, String], default: 3 },
   placeholder:  { type: String, default: '' },
   autocomplete: { type: String, default: '' },
   required:     { type: Boolean, default: false },

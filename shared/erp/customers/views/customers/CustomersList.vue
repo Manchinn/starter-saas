@@ -11,10 +11,10 @@
             <template v-else>Loading…</template>
           </p>
         </div>
-        <RouterLink v-can="'erp.customers.edit'" to="/erp/customers/create" class="btn-primary">
+        <AppButton v-can="'erp.customers.edit'" to="/erp/customers/create" variant="primary">
           <PlusIcon class="w-4 h-4" />
           {{ t('erp.customers.new') }}
-        </RouterLink>
+        </AppButton>
       </div>
 
       <!-- Table card -->
@@ -48,22 +48,10 @@
               <div v-if="showFilters" class="border-b border-[#E2E8F0] bg-slate-50">
                 <div class="px-5 py-4">
                   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
-                      <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
-                    </div>
-                    <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.customers.colGroup') }}</label>
-                      <SearchSelect v-model="filterGroup" :options="groups" :placeholder="t('erp.customers.allGroups')" @change="onFilterChange" />
-                    </div>
-                    <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.activeFrom') }}</label>
-                      <DateInput v-model="filterActiveFrom" @change="onFilterChange" class="input text-sm" />
-                    </div>
-                    <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.activeTo') }}</label>
-                      <DateInput v-model="filterActiveTo" @change="onFilterChange" class="input text-sm" />
-                    </div>
+                    <SearchSelectWithLabel v-model="filterStatus" :label="t('erp.common.status')" :label-class="FILTER_LABEL" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
+                    <SearchSelectWithLabel v-model="filterGroup" :label="t('erp.customers.colGroup')" :label-class="FILTER_LABEL" :options="groups" :placeholder="t('erp.customers.allGroups')" @change="onFilterChange" />
+                    <DateInputWithLabel v-model="filterActiveFrom" :label="t('erp.common.activeFrom')" :label-class="FILTER_LABEL" input-class="text-sm" @change="onFilterChange" />
+                    <DateInputWithLabel v-model="filterActiveTo" :label="t('erp.common.activeTo')" :label-class="FILTER_LABEL" input-class="text-sm" @change="onFilterChange" />
                   </div>
                   <div class="mt-3 flex justify-end">
                     <button @click="clearFilters" class="text-xs text-[#9BA7B0] hover:text-red-500 transition-colors font-medium">
@@ -141,9 +129,13 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
-import SearchSelect from '@/components/SearchSelect.vue'
+import AppButton from '@/components/AppButton.vue'
+import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
+import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
+
+const FILTER_LABEL = 'block text-xs font-medium text-[#637381] mb-1.5'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -211,6 +203,12 @@ async function confirmDelete(c) {
 
 const columnHelper = createColumnHelper()
 const columns = [
+  columnHelper.accessor('code', {
+    header: () => t('erp.customers.colCode'),
+    cell: info => info.getValue()
+      ? h('span', { class: 'font-mono text-sm text-[#374151]' }, info.getValue())
+      : h('span', { class: 'text-[#9BA7B0] text-xs' }, '—'),
+  }),
   columnHelper.accessor('name', {
     header: () => t('erp.customers.colName'),
     cell: info => h('div', [

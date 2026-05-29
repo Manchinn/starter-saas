@@ -12,63 +12,30 @@
       <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.code') }}</label>
-            <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" :placeholder="t('erp.vendors.code')"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            <input v-else :value="autoCode.preview.value" type="text" readonly
-              class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+            <FormField name="code" :label="t('erp.vendors.code')" :errors="fieldErrors">
+              <template #default="{ id }">
+                <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text" :placeholder="t('erp.vendors.code')" class="input" />
+                <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+              </template>
+            </FormField>
             <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
+              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" />
               {{ t('erp.common.autoGenerate') }}
             </label>
           </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.name') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" :placeholder="t('erp.vendors.name')"
-              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-            <FieldError name="name" :errors="fieldErrors" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.contactPerson') }}</label>
-            <input v-model="form.contactPerson" type="text" :placeholder="t('erp.vendors.contactPerson')"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.email') }}</label>
-            <input v-model="form.email" type="email" :placeholder="t('erp.vendors.email')"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.phone') }}</label>
-            <input v-model="form.phone" type="text" :placeholder="t('erp.vendors.phone')"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.address') }}</label>
-            <textarea v-model="form.address" rows="2" :placeholder="t('erp.vendors.address')"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.notes') }}</label>
-            <textarea v-model="form.notes" rows="2" :placeholder="t('erp.vendors.notes')"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
-          </div>
+          <FormField v-model="form.name" name="name" :label="t('erp.vendors.name')" :placeholder="t('erp.vendors.name')" required :errors="fieldErrors" wrapper-class="col-span-2" />
+          <FormField v-model="form.contactPerson" name="contactPerson" :label="t('erp.vendors.contactPerson')" :placeholder="t('erp.vendors.contactPerson')" :errors="fieldErrors" />
+          <FormField v-model="form.email" name="email" type="email" :label="t('erp.vendors.email')" :placeholder="t('erp.vendors.email')" :errors="fieldErrors" />
+          <FormField v-model="form.phone" name="phone" :label="t('erp.vendors.phone')" :placeholder="t('erp.vendors.phone')" :errors="fieldErrors" />
+          <FormField v-model="form.address" name="address" textarea :rows="2" :label="t('erp.vendors.address')" :placeholder="t('erp.vendors.address')" :errors="fieldErrors" wrapper-class="col-span-2" />
+          <FormField v-model="form.notes" name="notes" textarea :rows="2" :label="t('erp.vendors.notes')" :placeholder="t('erp.vendors.notes')" :errors="fieldErrors" wrapper-class="col-span-2" />
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
+            <DateInputWithLabel v-model="form.activeFrom" :label="t('erp.common.activeFrom')" />
+            <DateInputWithLabel v-model="form.activeTo" :label="t('erp.common.activeTo')" />
           </div>
+          <SearchSelectWithLabel v-model="form.status" :label="t('erp.vendors.status')" :options="statusOptions" :allow-empty="false" />
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.vendors.status') }}</label>
-            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-2">{{ t('erp.vendors.vendorType') }}</label>
+            <label class="label">{{ t('erp.vendors.vendorType') }}</label>
             <div class="flex flex-col gap-2">
               <label v-for="vt in vendorTypeOptions" :key="vt.id"
                 class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer select-none">
@@ -83,11 +50,10 @@
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
         <div class="flex justify-end gap-3 pt-2">
-          <RouterLink to="/erp/vendors" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">Cancel</RouterLink>
-          <button @click="save" :disabled="saving"
-            class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
+          <AppButton to="/erp/vendors" variant="secondary">{{ t('common.cancel') }}</AppButton>
+          <AppButton @click="save" :loading="saving">
             {{ saving ? t('erp.common.saving') : t('erp.vendors.create') }}
-          </button>
+          </AppButton>
         </div>
       </div>
 
@@ -101,8 +67,10 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
-import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import AppButton from '@/components/AppButton.vue'
+import FormField from '@/components/form/FormField.vue'
+import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
+import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
@@ -120,7 +88,7 @@ const form    = ref({ name: '', code: '', contactPerson: '', email: '', phone: '
 const error   = ref('')
 const saving  = ref(false)
 const autoCode = useAutoCode('VND')
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 onMounted(async () => {
   const { data } = await api.get('/erp/master-data/by-name/Vendor Types')

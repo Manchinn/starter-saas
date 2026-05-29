@@ -17,61 +17,29 @@
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
 
         <div class="grid grid-cols-2 gap-4">
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.name') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-            <FieldError name="name" :errors="fieldErrors" />
-          </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.company') }}</label>
-            <input v-model="form.company" type="text" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.email') }}</label>
-            <input v-model="form.email" type="email" :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('email') && 'input-error']" />
-            <FieldError name="email" :errors="fieldErrors" />
-          </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.phone') }}</label>
-            <input v-model="form.phone" type="text" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.address') }}</label>
-            <textarea v-model="form.address" rows="2" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.notes') }}</label>
-            <textarea v-model="form.notes" rows="3" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
-          </div>
+          <FormField v-model="form.name" name="name" :label="t('erp.customers.name')" required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.company" name="company" :label="t('erp.customers.company')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.email" name="email" type="email" :label="t('erp.customers.email')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.phone" name="phone" :label="t('erp.customers.phone')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.address" name="address" textarea :rows="2" :label="t('erp.customers.address')" :errors="fieldErrors" wrapper-class="col-span-2" />
+          <FormField v-model="form.notes" name="notes" textarea :rows="3" :label="t('erp.customers.notes')" :errors="fieldErrors" wrapper-class="col-span-2" />
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
+            <DateInputWithLabel v-model="form.activeFrom" :label="t('erp.common.activeFrom')" />
+            <DateInputWithLabel v-model="form.activeTo" :label="t('erp.common.activeTo')" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.status') }}</label>
-            <SearchSelect v-model="form.status" :options="STATUS_OPTIONS" :allow-empty="false" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.customers.group') }}</label>
-            <SearchSelect v-model="form.customerGroupId" :options="groups" placeholder="— None —" />
-          </div>
+          <SearchSelectWithLabel v-model="form.status" :label="t('erp.customers.status')" :options="STATUS_OPTIONS" :allow-empty="false" />
+          <SearchSelectWithLabel v-model="form.customerGroupId" :label="t('erp.customers.group')" :options="groups" placeholder="— None —" />
         </div>
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
         <div class="flex justify-between items-center pt-2">
-          <button v-can="'erp.customers.delete'" @click="confirmDelete" class="px-4 py-2 text-sm text-red-500 border border-red-200 hover:bg-red-50 transition">{{ t('erp.customers.deleteCustomer') }}</button>
+          <AppButton v-can="'erp.customers.delete'" variant="danger" @click="confirmDelete">{{ t('erp.customers.deleteCustomer') }}</AppButton>
           <div class="flex gap-3">
-            <RouterLink to="/erp/customers" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">Cancel</RouterLink>
-            <button @click="save" :disabled="saving" class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
+            <AppButton to="/erp/customers" variant="secondary">{{ t('common.cancel') }}</AppButton>
+            <AppButton @click="save" :loading="saving">
               {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
-            </button>
+            </AppButton>
           </div>
         </div>
 
@@ -86,8 +54,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
-import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import AppButton from '@/components/AppButton.vue'
+import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
+import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
+import FormField from '@/components/form/FormField.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
@@ -105,7 +75,7 @@ const loading  = ref(true)
 const notFound = ref(false)
 const error    = ref('')
 const saving   = ref(false)
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 onMounted(async () => {
   const [groupsRes] = await Promise.allSettled([

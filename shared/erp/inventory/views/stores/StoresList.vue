@@ -7,10 +7,10 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.stores.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} store{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink to="/erp/stores/create" class="btn-primary">
+        <AppButton to="/erp/stores/create" variant="primary">
           <PlusIcon class="w-4 h-4" />
           {{ t('erp.stores.new') }}
-        </RouterLink>
+        </AppButton>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
@@ -43,18 +43,9 @@
               <div v-if="showFilters" class="border-b border-[#E2E8F0] bg-slate-50">
                 <div class="px-5 py-4">
                   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
-                      <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
-                    </div>
-                    <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.activeFrom') }}</label>
-                      <DateInput v-model="filterActiveFrom" @change="onFilterChange" class="input text-sm" />
-                    </div>
-                    <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.activeTo') }}</label>
-                      <DateInput v-model="filterActiveTo" @change="onFilterChange" class="input text-sm" />
-                    </div>
+                    <SearchSelectWithLabel v-model="filterStatus" :label="t('erp.common.status')" :label-class="FILTER_LABEL" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
+                    <DateInputWithLabel v-model="filterActiveFrom" :label="t('erp.common.activeFrom')" :label-class="FILTER_LABEL" input-class="text-sm" @change="onFilterChange" />
+                    <DateInputWithLabel v-model="filterActiveTo" :label="t('erp.common.activeTo')" :label-class="FILTER_LABEL" input-class="text-sm" @change="onFilterChange" />
                   </div>
                   <div class="mt-3 flex justify-end">
                     <button @click="clearFilters" class="text-xs text-[#9BA7B0] hover:text-red-500 transition-colors font-medium">
@@ -126,10 +117,14 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
-import SearchSelect from '@/components/SearchSelect.vue'
+import AppButton from '@/components/AppButton.vue'
+import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
+import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+
+const FILTER_LABEL = 'block text-xs font-medium text-[#637381] mb-1.5'
 
 const statusOptions = computed(() => [
   { id: 'active',   name: t('common.active')   },

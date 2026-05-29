@@ -12,61 +12,35 @@
       <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.code') }}</label>
-            <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" placeholder="e.g. WH-001"
-              class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            <input v-else :value="autoCode.preview.value" type="text" readonly
-              class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+            <FormField name="code" :label="t('erp.stores.code')" :errors="fieldErrors">
+              <template #default="{ id }">
+                <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text" placeholder="e.g. WH-001" class="input font-mono" />
+                <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+              </template>
+            </FormField>
             <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
+              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" />
               {{ t('erp.common.autoGenerate') }}
             </label>
           </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.name') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" placeholder="e.g. Main Warehouse"
-              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-            <FieldError name="name" :errors="fieldErrors" />
-          </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.phone') }}</label>
-            <input v-model="form.phone" type="text" placeholder="+1 555 000 0000"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.email') }}</label>
-            <input v-model="form.email" type="email" placeholder="store@example.com"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.address') }}</label>
-            <textarea v-model="form.address" rows="2" placeholder="Street, City, Country"
-              class="w-full px-3 py-2 border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
+          <FormField v-model="form.name" name="name" :label="t('erp.stores.name')" placeholder="e.g. Main Warehouse" required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.phone" name="phone" :label="t('erp.stores.phone')" placeholder="+1 555 000 0000" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.email" name="email" type="email" :label="t('erp.stores.email')" placeholder="store@example.com" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.address" name="address" textarea :rows="2" :label="t('erp.stores.address')" placeholder="Street, City, Country" :errors="fieldErrors" wrapper-class="col-span-2" />
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
+            <DateInputWithLabel v-model="form.activeFrom" :label="t('erp.common.activeFrom')" />
+            <DateInputWithLabel v-model="form.activeTo" :label="t('erp.common.activeTo')" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.stores.status') }}</label>
-            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
-          </div>
+          <SearchSelectWithLabel v-model="form.status" :label="t('erp.stores.status')" :options="statusOptions" :allow-empty="false" />
         </div>
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
         <div class="flex justify-end gap-3 pt-2">
-          <RouterLink to="/erp/stores" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
-          <button @click="save" :disabled="saving"
-            class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
+          <AppButton to="/erp/stores" variant="secondary">{{ t('common.cancel') }}</AppButton>
+          <AppButton @click="save" :loading="saving">
             {{ saving ? t('erp.common.creating') : t('erp.stores.create') }}
-          </button>
+          </AppButton>
         </div>
       </div>
 
@@ -80,8 +54,10 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
-import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import AppButton from '@/components/AppButton.vue'
+import FormField from '@/components/form/FormField.vue'
+import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
+import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
@@ -98,7 +74,7 @@ const form     = ref({ name: '', code: '', phone: '', email: '', address: '', st
 const error    = ref('')
 const saving   = ref(false)
 const autoCode = useAutoCode('WHS')
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 async function save() {
   error.value = ''
