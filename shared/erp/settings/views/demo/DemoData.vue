@@ -22,14 +22,23 @@
               </p>
             </div>
           </div>
-          <button @click="seed" :disabled="seeding || resetting"
-            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold flex-shrink-0
-                   bg-primary-500 text-white hover:bg-primary-700
-                   disabled:opacity-50 transition-colors shadow-sm">
-            <SparklesIcon v-if="!seeding" class="w-4 h-4" />
-            <ArrowPathIcon v-else class="w-4 h-4 animate-spin" />
-            {{ seeding ? t('erp.settings.seeding') : t('erp.settings.seedDemo') }}
-          </button>
+          <div class="flex items-center gap-3 flex-shrink-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs text-[#637381] hidden sm:inline">{{ t('erp.settings.seedLanguage') }}</span>
+              <select v-model="seedLang" :disabled="seeding || resetting"
+                class="text-sm border border-[#E2E8F0] bg-white px-2 py-2 disabled:opacity-50">
+                <option v-for="opt in langOptions" :key="opt.code" :value="opt.code">{{ opt.flag }} {{ opt.label }}</option>
+              </select>
+            </div>
+            <button @click="seed" :disabled="seeding || resetting"
+              class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
+                     bg-primary-500 text-white hover:bg-primary-700
+                     disabled:opacity-50 transition-colors shadow-sm">
+              <SparklesIcon v-if="!seeding" class="w-4 h-4" />
+              <ArrowPathIcon v-else class="w-4 h-4 animate-spin" />
+              {{ seeding ? t('erp.settings.seeding') : t('erp.settings.seedDemo') }}
+            </button>
+          </div>
         </div>
 
         <!-- Domain sections -->
@@ -39,7 +48,7 @@
           <div class="px-6 py-5">
             <div class="flex items-center gap-2 mb-4">
               <CubeIcon class="w-4 h-4 text-indigo-500" />
-              <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Foundation</span>
+              <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">{{ preview.foundation?.title }}</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div v-for="item in SECTION_FOUNDATION" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
@@ -61,7 +70,7 @@
           <div class="px-6 py-5">
             <div class="flex items-center gap-2 mb-4">
               <UsersIcon class="w-4 h-4 text-sky-500" />
-              <span class="text-xs font-bold text-sky-600 uppercase tracking-widest">Parties</span>
+              <span class="text-xs font-bold text-sky-600 uppercase tracking-widest">{{ preview.parties?.title }}</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div v-for="item in SECTION_PARTIES" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
@@ -83,7 +92,7 @@
           <div class="px-6 py-5">
             <div class="flex items-center gap-2 mb-4">
               <IdentificationIcon class="w-4 h-4 text-violet-500" />
-              <span class="text-xs font-bold text-violet-600 uppercase tracking-widest">HRMS</span>
+              <span class="text-xs font-bold text-violet-600 uppercase tracking-widest">{{ preview.hrms?.title }}</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div v-for="item in SECTION_HRMS" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
@@ -105,7 +114,7 @@
           <div class="px-6 py-5">
             <div class="flex items-center gap-2 mb-4">
               <ShoppingCartIcon class="w-4 h-4 text-emerald-500" />
-              <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Sales Cycle</span>
+              <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">{{ preview.sales?.title }}</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               <div v-for="item in SECTION_SALES" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
@@ -127,7 +136,7 @@
           <div class="px-6 py-5">
             <div class="flex items-center gap-2 mb-4">
               <ShoppingBagIcon class="w-4 h-4 text-amber-500" />
-              <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Purchasing</span>
+              <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">{{ preview.purchasing?.title }}</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div v-for="item in SECTION_PURCHASING" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
@@ -149,7 +158,7 @@
           <div class="px-6 py-5">
             <div class="flex items-center gap-2 mb-4">
               <ArrowsRightLeftIcon class="w-4 h-4 text-teal-500" />
-              <span class="text-xs font-bold text-teal-600 uppercase tracking-widest">Inventory Transactions</span>
+              <span class="text-xs font-bold text-teal-600 uppercase tracking-widest">{{ preview.inventory?.title }}</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
               <div v-for="item in SECTION_INVENTORY" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
@@ -171,7 +180,7 @@
           <div class="px-6 py-5">
             <div class="flex items-center gap-2 mb-4">
               <CalculatorIcon class="w-4 h-4 text-rose-500" />
-              <span class="text-xs font-bold text-rose-600 uppercase tracking-widest">Accounting</span>
+              <span class="text-xs font-bold text-rose-600 uppercase tracking-widest">{{ preview.accounting?.title }}</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
               <div v-for="item in SECTION_ACCOUNTING" :key="item.label" class="border border-[#E2E8F0] bg-[#F7F9FC] px-4 py-3">
@@ -302,7 +311,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
 
-const { t } = useI18n()
+const { t, locale, getLocaleMessage } = useI18n()
 
 const seeding      = ref(false)
 const resetting    = ref(false)
@@ -310,67 +319,35 @@ const confirmReset = ref(false)
 const successMsg   = ref('')
 const errorMsg     = ref('')
 
-const SECTION_FOUNDATION = [
-  { label: 'UOM',              count: 4,  rows: ['Unit', 'Kilogram', 'Liter', 'Box'] },
-  { label: 'Categories',       count: 3,  rows: ['Electronics', 'Food & Beverage', 'Office Supplies'] },
-  { label: 'Products',         count: 7,  rows: ['Wireless Mouse', 'USB-C Hub', 'Keyboard', 'Water 1L', 'Coffee', 'A4 Paper', 'Pen'] },
-  { label: 'Stores',           count: 2,  rows: ['Main Warehouse', 'North Branch'] },
-  { label: 'Sale Items',       count: 7,  rows: ['SI-0001 → SI-0007', 'One per product'] },
-  { label: 'Price Lists',      count: 10, rows: ['5 Retail prices', '5 Wholesale prices'] },
+// The seed language is chosen here (defaulting to the active UI locale) and
+// drives both the preview cards and the language the records are seeded in.
+const langOptions = [
+  { code: 'en', flag: '🇺🇸', label: 'English' },
+  { code: 'th', flag: '🇹🇭', label: 'ภาษาไทย' },
 ]
+const seedLang = ref(locale.value === 'th' ? 'th' : 'en')
 
-const SECTION_PARTIES = [
-  { label: 'Customer Groups',  count: 2,  rows: ['Retail', 'Wholesale'] },
-  { label: 'Customers',        count: 5,  rows: ['Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Lee', 'Eva Martinez'] },
-  { label: 'Vendors',          count: 6,  rows: ['TechSource Global', 'FoodLink Supplies', 'OfficeWorld Dist.', 'CleanPro Services', 'SwiftLogistics Co.', 'UniTrade Partners'] },
-]
-
-const SECTION_HRMS = [
-  { label: 'Departments',      count: 5,  rows: ['Sales', 'Operations', 'Finance', 'HR', 'IT'] },
-  { label: 'Employees',        count: 5,  rows: ['John Smith (Sales)', 'Jane Doe (Ops)', 'Mike Johnson (Fin)', 'Sara Lee (HR)', 'Tom Brown (IT)'] },
-]
-
-const SECTION_SALES = [
-  { label: 'Quotations',       count: 3,  rows: ['QT-2026-0001 sent', 'QT-2026-0002 draft', 'QT-2026-0003 confirmed'] },
-  { label: 'Sales Orders',     count: 3,  rows: ['SO-2026-0001 confirmed', 'SO-2026-0002 shipped', 'SO-2026-0003 draft'] },
-  { label: 'Deliveries',       count: 3,  rows: ['DO-2026-0001 confirmed', 'DO-2026-0002 shipped', 'DO-2026-0003 draft'] },
-  { label: 'Invoices',         count: 5,  rows: ['INV-0001 paid', 'INV-0002 sent', 'INV-0003 sent', 'INV-0004 draft', 'INV-0005 sent'] },
-  { label: 'Receipts',         count: 3,  rows: ['RCT-0001 confirmed', 'RCT-0002 confirmed', 'RCT-0003 draft'] },
-  { label: 'Billing Notes',    count: 1,  rows: ['BN-2026-0001'] },
-  { label: 'Recv. Payments',   count: 2,  rows: ['RP-2026-0001', 'RP-2026-0002'] },
-  { label: 'Debit / Credit',   count: 2,  rows: ['DN-2026-0001', 'CN-2026-0001'] },
-]
-
-const SECTION_PURCHASING = [
-  { label: 'Purchase Reqs.',   count: 2,  rows: ['PR-2026-0001 confirmed', 'PR-2026-0002 draft'] },
-  { label: 'Purchase Orders',  count: 2,  rows: ['PO-2026-0001 confirmed', 'PO-2026-0002 draft'] },
-]
-
-const SECTION_INVENTORY = [
-  { label: 'Good Receives',    count: 3,  rows: ['GR-0001 confirmed', 'GR-0002 confirmed', 'GR-0003 draft'] },
-  { label: 'Adjustments',      count: 2,  rows: ['SA-0001 confirmed', 'SA-0002 draft'] },
-  { label: 'Stock Counts',     count: 2,  rows: ['SC-0001 confirmed', 'SC-0002 draft'] },
-  { label: 'Transfers',        count: 2,  rows: ['SR-0001 confirmed', 'SR-0002 draft'] },
-  { label: 'Returns',          count: 1,  rows: ['RT-0001 confirmed'] },
-  { label: 'Issues',           count: 1,  rows: ['SI-0001 confirmed'] },
-  { label: 'Movements',        count: 16, rows: ['GR / SA / SR', 'DO / RT / Issue'] },
-  { label: 'Store Stock',      count: 12, rows: ['Main Whs: 7 SKUs', 'North Branch: 5 SKUs'] },
-]
-
-const SECTION_ACCOUNTING = [
-  { label: 'Chart of Accounts', count: 40, rows: ['Assets', 'Liabilities', 'Equity', 'Revenue', 'Expenses'] },
-  { label: 'Fiscal Years',      count: 2,  rows: ['FY 2025 (closed)', 'FY 2026 (active)'] },
-  { label: 'Journal Entries',   count: 10, rows: ['JE-0001 posted', 'JE-0002 posted', 'JE-0003 posted', 'JE-0004–0006 posted', 'JE-0007 posted', 'JE-0008–0010 draft'] },
-]
-
-const TOTAL_RECORDS = computed(() => {
-  const counts = [
-    ...SECTION_FOUNDATION, ...SECTION_PARTIES, ...SECTION_HRMS,
-    ...SECTION_SALES, ...SECTION_PURCHASING, ...SECTION_INVENTORY,
-    ...SECTION_ACCOUNTING,
-  ].reduce((sum, item) => sum + item.count, 0)
-  return counts
+// Pull the demo preview structure for the selected seed language straight from
+// the i18n messages, so the cards mirror what will actually be seeded even when
+// the UI is displayed in a different language.
+const preview = computed(() => {
+  const msgs = getLocaleMessage(seedLang.value) || {}
+  return msgs?.erp?.settings?.demoPreview || {}
 })
+const SECTION_FOUNDATION = computed(() => preview.value.foundation?.items || [])
+const SECTION_PARTIES    = computed(() => preview.value.parties?.items    || [])
+const SECTION_HRMS       = computed(() => preview.value.hrms?.items       || [])
+const SECTION_SALES      = computed(() => preview.value.sales?.items      || [])
+const SECTION_PURCHASING = computed(() => preview.value.purchasing?.items || [])
+const SECTION_INVENTORY  = computed(() => preview.value.inventory?.items  || [])
+const SECTION_ACCOUNTING = computed(() => preview.value.accounting?.items || [])
+
+const TOTAL_RECORDS = computed(() =>
+  Object.values(preview.value).reduce(
+    (sum, section) => sum + (section.items || []).reduce((s, item) => s + (item.count || 0), 0),
+    0,
+  ),
+)
 
 const RESET_GROUPS = [
   {
@@ -419,7 +396,7 @@ async function seed() {
   clearMessages()
   seeding.value = true
   try {
-    const { data } = await api.post('/erp/settings/demo-data/seed')
+    const { data } = await api.post('/erp/settings/demo-data/seed', { lang: seedLang.value })
     successMsg.value = data.message || 'Demo data seeded successfully.'
     setTimeout(() => { successMsg.value = '' }, 5000)
   } catch (err) {

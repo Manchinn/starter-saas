@@ -528,7 +528,7 @@ async function handleInstall() {
     }
     if (seedDemo.value) {
       loadingPhase.value = t('auth.seedingDemo')
-      await api.post('/erp/settings/demo-data/seed')
+      await api.post('/erp/settings/demo-data/seed', { lang: defaultLang.value })
     }
     resetInstallCache()
     router.push('/dashboard')

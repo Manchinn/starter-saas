@@ -75,6 +75,77 @@ export default {
       yesReset:     'Yes, Reset Everything',
       seeding:      'Seeding…',
       resetting:    'Resetting…',
+      seedLanguage: 'Seed language',
+
+      demoPreview: {
+        foundation: {
+          title: 'Foundation',
+          items: [
+            { label: 'UOM',         count: 4,  rows: ['Unit', 'Kilogram', 'Liter', 'Box'] },
+            { label: 'Categories',  count: 3,  rows: ['Electronics', 'Food & Beverage', 'Office Supplies'] },
+            { label: 'Products',    count: 7,  rows: ['Wireless Mouse', 'USB-C Hub', 'Keyboard', 'Water 1L', 'Coffee', 'A4 Paper', 'Pen'] },
+            { label: 'Stores',      count: 2,  rows: ['Main Warehouse', 'North Branch'] },
+            { label: 'Sale Items',  count: 7,  rows: ['SI-0001 → SI-0007', 'One per product'] },
+            { label: 'Price Lists', count: 10, rows: ['5 Retail prices', '5 Wholesale prices'] },
+          ],
+        },
+        parties: {
+          title: 'Parties',
+          items: [
+            { label: 'Customer Groups', count: 2, rows: ['Retail', 'Wholesale'] },
+            { label: 'Customers',       count: 5, rows: ['Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Lee', 'Eva Martinez'] },
+            { label: 'Vendors',         count: 6, rows: ['TechSource Global', 'FoodLink Supplies', 'OfficeWorld Dist.', 'CleanPro Services', 'SwiftLogistics Co.', 'UniTrade Partners'] },
+          ],
+        },
+        hrms: {
+          title: 'HRMS',
+          items: [
+            { label: 'Departments', count: 5, rows: ['IT', 'Sales', 'HR', 'Finance', 'Operations'] },
+            { label: 'Employees',   count: 5, rows: ['John Smith (IT)', 'Jane Doe (Sales)', 'Mike Johnson (HR)', 'Sarah Williams (Finance)', 'Tom Brown (Ops)'] },
+          ],
+        },
+        sales: {
+          title: 'Sales Cycle',
+          items: [
+            { label: 'Quotations',     count: 3, rows: ['QT-2026-0001 accepted', 'QT-2026-0002 sent', 'QT-2026-0003 draft'] },
+            { label: 'Sales Orders',   count: 3, rows: ['SO-2026-0001 delivered', 'SO-2026-0002 confirmed', 'SO-2026-0003 draft'] },
+            { label: 'Deliveries',     count: 3, rows: ['DO-2026-0001 delivered', 'DO-2026-0002 confirmed', 'DO-2026-0003 draft'] },
+            { label: 'Invoices',       count: 5, rows: ['INV-0001 sent', 'INV-0002 sent', 'INV-0003 paid', 'INV-0004 draft', 'INV-0005 sent'] },
+            { label: 'Receipts',       count: 3, rows: ['RCT-0001 confirmed', 'RCT-0002 confirmed', 'RCT-0003 draft'] },
+            { label: 'Billing Notes',  count: 1, rows: ['BN-2026-0001'] },
+            { label: 'Recv. Payments', count: 2, rows: ['RCP-2026-0001', 'RCP-2026-0002'] },
+            { label: 'Debit / Credit', count: 2, rows: ['DN-2026-0001', 'CN-2026-0001'] },
+          ],
+        },
+        purchasing: {
+          title: 'Purchasing',
+          items: [
+            { label: 'Purchase Reqs.',  count: 2, rows: ['PR-2026-0001 approved', 'PR-2026-0002 draft'] },
+            { label: 'Purchase Orders', count: 2, rows: ['PO-2026-0001 confirmed', 'PO-2026-0002 draft'] },
+          ],
+        },
+        inventory: {
+          title: 'Inventory Transactions',
+          items: [
+            { label: 'Good Receives', count: 3,  rows: ['GR-0001 confirmed', 'GR-0002 confirmed', 'GR-0003 draft'] },
+            { label: 'Adjustments',   count: 2,  rows: ['SA-0001 confirmed', 'SA-0002 draft'] },
+            { label: 'Stock Counts',  count: 2,  rows: ['SC-0001 confirmed', 'SC-0002 draft'] },
+            { label: 'Transfers',     count: 2,  rows: ['SR-0001 confirmed', 'SR-0002 draft'] },
+            { label: 'Returns',       count: 1,  rows: ['RT-0001 confirmed'] },
+            { label: 'Issues',        count: 1,  rows: ['SI-0001 confirmed'] },
+            { label: 'Movements',     count: 16, rows: ['GR / SA / SR', 'DO / RT / Issue'] },
+            { label: 'Store Stock',   count: 12, rows: ['Main Whs: 7 SKUs', 'North Branch: 5 SKUs'] },
+          ],
+        },
+        accounting: {
+          title: 'Accounting',
+          items: [
+            { label: 'Chart of Accounts', count: 40, rows: ['Assets', 'Liabilities', 'Equity', 'Revenue', 'Expenses'] },
+            { label: 'Fiscal Years',      count: 2,  rows: ['FY 2025 (closed)', 'FY 2026 (active)'] },
+            { label: 'Journal Entries',   count: 10, rows: ['JE-0001 → JE-0007 posted', 'JE-0008 posted', 'JE-0009 → JE-0010 draft'] },
+          ],
+        },
+      },
     },
 
     masterData: {

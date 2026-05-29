@@ -7,7 +7,8 @@ module.exports = {
   async seed(req, res) {
     try {
       const orgId = req.user.organizationId || req.user.id
-      const result = await service.seedDemo(req.user?.id, orgId)
+      const lang = ['en', 'th'].includes(req.body?.lang) ? req.body.lang : 'en'
+      const result = await service.seedDemo(req.user?.id, orgId, lang)
       return ok(res, result, result.message)
     } catch (err) {
       logger.error('seed error', { error: err.message, stack: err.stack })
