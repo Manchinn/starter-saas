@@ -290,3 +290,28 @@ describe('dashboard.getStats — straight counts', () => {
     expect(out.todayGoodReceives).toBe(2)
   })
 })
+
+describe('dashboard.getStats — org scoping', () => {
+  test('scopes every aggregate to the organization when one is supplied', async () => {
+    await service.getStats('org-9')
+
+    expect(m.Product.count.mock.calls[0][0].where.organizationId).toBe('org-9')
+    expect(m.Invoice.sum.mock.calls[0][1].where.organizationId).toBe('org-9')
+    expect(m.VendorBill.findAll.mock.calls[0][0].where.organizationId).toBe('org-9')
+    expect(m.StockMovement.findAll.mock.calls[0][0].where.organizationId).toBe('org-9')
+
+    // StoreStock has no organizationId — it's scoped through an inner join on Store
+    const storeInclude = m.StoreStock.findAll.mock.calls[0][0].include[0]
+    expect(storeInclude.where.organizationId).toBe('org-9')
+    expect(storeInclude.required).toBe(true)
+  })
+
+  test('omits the org filter (and Store join stays optional) when no org is supplied', async () => {
+    await service.getStats()
+
+    expect(m.Product.count.mock.calls[0][0].where).not.toHaveProperty('organizationId')
+    const storeInclude = m.StoreStock.findAll.mock.calls[0][0].include[0]
+    expect(storeInclude.where).toBeUndefined()
+    expect(storeInclude.required).toBe(false)
+  })
+})

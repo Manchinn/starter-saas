@@ -23,6 +23,13 @@ const getStats = async (organizationId = null) => {
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
   const isoToday   = today.toISOString().slice(0, 10)
 
+  // Scope every aggregate to the caller's organization, matching the rest of
+  // the ERP (see server/core/tenant.js). When no org is supplied (internal
+  // calls / tests) the filter is omitted. StoreStock carries no organizationId
+  // of its own, so it's scoped through its Store association instead.
+  const scope = organizationId ? { organizationId } : {}
+  const storeScope = organizationId ? { organizationId } : undefined
+
   const [
     totalProducts,
     activeProducts,
@@ -50,15 +57,16 @@ const getStats = async (organizationId = null) => {
     apApprovedRows,
     currentTaxPeriod,
   ] = await Promise.all([
-    Product.count(),
-    Product.count({ where: { status: 'active' } }),
-    Product.sum('stock') || 0,
-    Product.count({ where: { stock: { [Op.lte]: 0 }, status: 'active' } }),
-    GoodReceive.count({ where: { status: 'draft' } }),
-    StockRequest.count({ where: { status: 'draft' } }),
-    StockAdjust.count({ where: { status: 'draft' } }),
-    GoodReceive.count({ where: { createdAt: { [Op.gte]: today, [Op.lt]: tomorrow } } }),
+    Product.count({ where: { ...scope } }),
+    Product.count({ where: { ...scope, status: 'active' } }),
+    Product.sum('stock', { where: { ...scope } }) || 0,
+    Product.count({ where: { ...scope, stock: { [Op.lte]: 0 }, status: 'active' } }),
+    GoodReceive.count({ where: { ...scope, status: 'draft' } }),
+    StockRequest.count({ where: { ...scope, status: 'draft' } }),
+    StockAdjust.count({ where: { ...scope, status: 'draft' } }),
+    GoodReceive.count({ where: { ...scope, createdAt: { [Op.gte]: today, [Op.lt]: tomorrow } } }),
     StockMovement.findAll({
+      where: { ...scope },
       include: [
         { model: Product, as: 'product', attributes: ['id', 'name', 'sku'] },
         { model: Store,   as: 'store',   attributes: ['id', 'name'] },
@@ -68,6 +76,7 @@ const getStats = async (organizationId = null) => {
     }),
     Product.findAll({
       where: {
+        ...scope,
         status: 'active',
         [Op.or]: [
           // Per-product reorder point set
@@ -80,26 +89,29 @@ const getStats = async (organizationId = null) => {
       order: [['stock', 'ASC']],
       limit: 10,
     }),
+    // StoreStock has no organizationId — scope through its Store (inner join
+    // when an org is supplied) so only this org's stores are summed.
     StoreStock.findAll({
       attributes: ['storeId', [fn('SUM', col('stock')), 'totalStock']],
-      include: [{ model: Store, as: 'store', attributes: ['id', 'name'] }],
+      include: [{ model: Store, as: 'store', attributes: ['id', 'name'], where: storeScope, required: !!organizationId }],
       group: ['storeId', 'store.id'],
       order: [[fn('SUM', col('stock')), 'DESC']],
     }),
     // Sales
-    Quotation.count({ where: { status: { [Op.in]: ['draft', 'sent'] } } }),
-    Order.count({ where: { status: { [Op.in]: ['confirmed', 'shipped'] } } }),
-    DeliveryOrder.count({ where: { status: { [Op.in]: ['confirmed', 'shipped'] } } }),
+    Quotation.count({ where: { ...scope, status: { [Op.in]: ['draft', 'sent'] } } }),
+    Order.count({ where: { ...scope, status: { [Op.in]: ['confirmed', 'shipped'] } } }),
+    DeliveryOrder.count({ where: { ...scope, status: { [Op.in]: ['confirmed', 'shipped'] } } }),
     // Billing / AR
-    Invoice.count({ where: { status: 'sent' } }),
-    Invoice.sum('total', { where: { status: 'sent' } }),
+    Invoice.count({ where: { ...scope, status: 'sent' } }),
+    Invoice.sum('total', { where: { ...scope, status: 'sent' } }),
     // Purchasing
-    PurchaseRequisition.count({ where: { status: 'draft' } }),
-    PurchaseOrder.count({ where: { status: 'confirmed' } }),
+    PurchaseRequisition.count({ where: { ...scope, status: 'draft' } }),
+    PurchaseOrder.count({ where: { ...scope, status: 'confirmed' } }),
     // Accounting
-    Journal.count({ where: { status: 'draft' } }),
+    Journal.count({ where: { ...scope, status: 'draft' } }),
     // Recent invoices
     Invoice.findAll({
+      where: { ...scope },
       include: [{ model: Customer, as: 'customer', attributes: ['id', 'name'] }],
       order: [['createdAt', 'DESC']],
       limit: 6,
@@ -107,6 +119,7 @@ const getStats = async (organizationId = null) => {
     // Sales MTD: all non-cancelled invoices this month
     Invoice.findAll({
       where: {
+        ...scope,
         status: { [Op.ne]: 'cancelled' },
         invoiceDate: { [Op.gte]: monthStart },
       },
@@ -114,22 +127,22 @@ const getStats = async (organizationId = null) => {
     }),
     // Outstanding AR: sent invoices
     Invoice.findAll({
-      where: { status: 'sent' },
+      where: { ...scope, status: 'sent' },
       attributes: ['total', 'exchangeRate', 'dueDate'],
     }),
     // Outstanding AP: approved (unpaid) vendor bills
     VendorBill.findAll({
-      where: { status: 'approved' },
+      where: { ...scope, status: 'approved' },
       attributes: ['total', 'exchangeRate'],
     }),
     // Current open tax period containing today
     TaxPeriod.findOne({
       where: {
+        ...scope,
         status: 'open',
         dataFlag: { [Op.ne]: 2 },
         startDate: { [Op.lte]: isoToday },
         endDate:   { [Op.gte]: isoToday },
-        ...(organizationId ? { organizationId } : {}),
       },
     }),
   ])
