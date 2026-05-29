@@ -12,8 +12,14 @@
  *   adminNavItem {object}  – shown only to admins (injected into Core section)
  */
 
+// Local modules: src/modules/<slug>/index.js
 const localModuleFiles  = import.meta.glob('../modules/**/index.js', { eager: true })
-const sharedModuleFiles = import.meta.glob('../../../shared/{erp,items,hrms,reporting}/index.js', { eager: true })
+// Shared modules: every top-level folder under shared/ that exposes an index.js
+// is auto-registered by its folder name — drop in a folder, no edit here needed.
+// Single-segment `*` (not `**`) so submodule indexes like
+// shared/erp/dashboard/index.js aren't picked up as top-level modules; the
+// parent (e.g. shared/erp/index.js) aggregates those itself.
+const sharedModuleFiles = import.meta.glob('../../../shared/*/index.js', { eager: true })
 const moduleFiles = { ...localModuleFiles, ...sharedModuleFiles }
 
 const registry = []
