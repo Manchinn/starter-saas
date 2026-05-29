@@ -1,17 +1,16 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-5">
 
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.stores.title') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ total }} store{{ total !== 1 ? 's' : '' }}</p>
-        </div>
-        <AppButton to="/erp/stores/create" variant="primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.stores.new') }}
-        </AppButton>
-      </div>
+      <PageHeader :title="t('erp.stores.title')"
+        :breadcrumb="[{ label: `${total} store${total !== 1 ? 's' : ''}` }]">
+        <template #actions>
+          <AppButton to="/erp/stores/create" variant="primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.stores.new') }}
+          </AppButton>
+        </template>
+      </PageHeader>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="stores" :loading="loading" :total="total"
@@ -43,9 +42,18 @@
               <div v-if="showFilters" class="border-b border-[#E2E8F0] bg-slate-50">
                 <div class="px-5 py-4">
                   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <SearchSelectWithLabel v-model="filterStatus" :label="t('erp.common.status')" :label-class="FILTER_LABEL" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
-                    <DateInputWithLabel v-model="filterActiveFrom" :label="t('erp.common.activeFrom')" :label-class="FILTER_LABEL" input-class="text-sm" @change="onFilterChange" />
-                    <DateInputWithLabel v-model="filterActiveTo" :label="t('erp.common.activeTo')" :label-class="FILTER_LABEL" input-class="text-sm" @change="onFilterChange" />
+                    <div>
+                      <FieldLabel :text="t('erp.common.status')" />
+                      <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
+                    </div>
+                    <div>
+                      <FieldLabel :text="t('erp.common.activeFrom')" />
+                      <DateInput v-model="filterActiveFrom" @change="onFilterChange" class="input text-sm" />
+                    </div>
+                    <div>
+                      <FieldLabel :text="t('erp.common.activeTo')" />
+                      <DateInput v-model="filterActiveTo" @change="onFilterChange" class="input text-sm" />
+                    </div>
                   </div>
                   <div class="mt-3 flex justify-end">
                     <button @click="clearFilters" class="text-xs text-[#9BA7B0] hover:text-red-500 transition-colors font-medium">
@@ -85,19 +93,10 @@
           </template>
 
           <template #empty>
-            <div class="flex flex-col items-center gap-3 py-4">
-              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
-                <BuildingStorefrontIcon class="w-5 h-5 text-[#9BA7B0]" />
-              </div>
-              <div class="text-center">
-                <p class="text-sm font-medium text-[#637381]">{{ t('erp.stores.noFound') }}</p>
-                <p v-if="activeFilterCount > 0" class="text-xs text-[#9BA7B0] mt-1">Try adjusting your filters</p>
-              </div>
-              <button v-if="activeFilterCount > 0" @click="clearFilters"
-                class="text-xs text-primary-500 hover:text-primary-700 font-medium underline">
-                Clear all filters
-              </button>
-            </div>
+            <EmptyState :icon="BuildingStorefrontIcon" :title="t('erp.stores.noFound')"
+              :subtitle="activeFilterCount > 0 ? 'Try adjusting your filters' : ''"
+              :action-label="activeFilterCount > 0 ? 'Clear all filters' : ''"
+              padding="md" @action="clearFilters" />
           </template>
         </DataTable>
 
@@ -118,13 +117,13 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import AppButton from '@/components/AppButton.vue'
-import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
-import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import EmptyState from '@/components/form/EmptyState.vue'
 import api from '@/api'
 
 const { t } = useI18n()
-
-const FILTER_LABEL = 'block text-xs font-medium text-[#637381] mb-1.5'
 
 const statusOptions = computed(() => [
   { id: 'active',   name: t('common.active')   },

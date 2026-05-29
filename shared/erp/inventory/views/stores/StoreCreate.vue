@@ -1,13 +1,8 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/stores" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.stores.new') }}</h1>
-      </div>
+      <PageHeader :title="t('erp.stores.new')" back-to="/erp/stores" />
 
       <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
@@ -28,13 +23,22 @@
           <FormField v-model="form.email" name="email" type="email" :label="t('erp.stores.email')" placeholder="store@example.com" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.address" name="address" textarea :rows="2" :label="t('erp.stores.address')" placeholder="Street, City, Country" :errors="fieldErrors" wrapper-class="col-span-2" />
           <div class="grid grid-cols-2 gap-4">
-            <DateInputWithLabel v-model="form.activeFrom" :label="t('erp.common.activeFrom')" />
-            <DateInputWithLabel v-model="form.activeTo" :label="t('erp.common.activeTo')" />
+            <div>
+              <FieldLabel :text="t('erp.common.activeFrom')" />
+              <DateInput v-model="form.activeFrom" class="input text-sm" />
+            </div>
+            <div>
+              <FieldLabel :text="t('erp.common.activeTo')" />
+              <DateInput v-model="form.activeTo" class="input text-sm" />
+            </div>
           </div>
-          <SearchSelectWithLabel v-model="form.status" :label="t('erp.stores.status')" :options="statusOptions" :allow-empty="false" />
+          <div>
+            <FieldLabel :text="t('erp.stores.status')" />
+            <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
+          </div>
         </div>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
+        <ErrorBanner :message="error" />
 
         <div class="flex justify-end gap-3 pt-2">
           <AppButton to="/erp/stores" variant="secondary">{{ t('common.cancel') }}</AppButton>
@@ -52,12 +56,13 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
 import FormField from '@/components/form/FormField.vue'
-import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
-import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'

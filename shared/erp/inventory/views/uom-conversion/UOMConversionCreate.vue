@@ -1,52 +1,28 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <!-- Header -->
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/uom-conversion" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.uomConversion.newTitle') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ t('erp.uomConversion.newDesc') }}</p>
-        </div>
-      </div>
+      <PageHeader :title="t('erp.uomConversion.newTitle')" back-to="/erp/uom-conversion"
+        :breadcrumb="[{ label: t('erp.uomConversion.newDesc') }]" />
 
-      <!-- Form card -->
-      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#E2E8F0]">
-          <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.uomConversion.conversionDetails') }}</h2>
-        </div>
-        <div class="px-6 py-5 space-y-5">
+      <FormCard :title="t('erp.uomConversion.conversionDetails')">
+        <div class="space-y-5">
 
           <div class="grid grid-cols-2 gap-5">
-
-            <!-- From UOM -->
             <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('erp.uomConversion.fromUom') }} <span class="text-red-500">*</span>
-              </label>
+              <FieldLabel :text="t('erp.uomConversion.fromUom')" required />
               <SearchSelect v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
               <FieldError name="fromUomId" :errors="fieldErrors" />
             </div>
-
-            <!-- To UOM -->
             <div>
-              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-                {{ t('erp.uomConversion.toUom') }} <span class="text-red-500">*</span>
-              </label>
+              <FieldLabel :text="t('erp.uomConversion.toUom')" required />
               <SearchSelect v-model="form.toUomId" :options="uomOptions" :invalid="!!errorOf('toUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
               <FieldError name="toUomId" :errors="fieldErrors" />
             </div>
-
           </div>
 
-          <!-- Factor -->
           <div class="max-w-xs">
-            <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
-              {{ t('erp.uomConversion.factor') }} <span class="text-red-500">*</span>
-            </label>
+            <FieldLabel :text="t('erp.uomConversion.factor')" required />
             <input v-model.number="form.factor" type="number" min="0.000001" step="any" placeholder="e.g. 12"
               :class="['w-full px-3 py-2 border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent', errorOf('factor') && 'input-error']" />
             <FieldError name="factor" :errors="fieldErrors" />
@@ -58,35 +34,22 @@
             </p>
           </div>
 
-          <!-- Notes -->
           <div>
-            <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.uomConversion.notes') }}</label>
+            <FieldLabel :text="t('erp.uomConversion.notes')" />
             <input v-model="form.notes" type="text" :placeholder="t('erp.uomConversion.notesPlaceholder')"
               class="w-full px-3 py-2 border border-[#E2E8F0] text-sm
                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
           </div>
 
         </div>
-      </div>
+      </FormCard>
 
-      <!-- Error -->
-      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-        <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
-        {{ error }}
-      </div>
+      <ErrorBanner :message="error" />
 
-      <!-- Actions -->
       <div class="flex justify-end gap-3">
-        <RouterLink to="/erp/uom-conversion"
-          class="px-4 py-2.5 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition text-[#637381]">
-          {{ t('common.cancel') }}
-        </RouterLink>
-        <button @click="save" :disabled="saving"
-          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
-                 bg-primary-500 text-white hover:bg-primary-700
-                 disabled:opacity-50 transition shadow-sm">
-          {{ saving ? t('erp.common.saving') : t('erp.uomConversion.create') }}
-        </button>
+        <HeaderSaveActions cancel-to="/erp/uom-conversion" :cancel-label="t('common.cancel')"
+          :save-label="t('erp.uomConversion.create')" :saving-label="t('erp.common.saving')"
+          :saving="saving" @save="save" />
       </div>
 
     </div>
@@ -97,10 +60,14 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
 import FieldError from '@/components/form/FieldError.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'

@@ -1,57 +1,42 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/uom" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.uom.new') }}</h1>
-      </div>
+      <PageHeader :title="t('erp.uom.new')" back-to="/erp/uom" />
 
       <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.code') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.abbreviation" type="text" placeholder="e.g. kg"
-              :class="['w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('abbreviation') && 'input-error']" />
-            <FieldError name="abbreviation" :errors="fieldErrors" />
-          </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.name') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" placeholder="e.g. Kilogram"
-              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-            <FieldError name="name" :errors="fieldErrors" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.description') }}</label>
-            <textarea v-model="form.description" rows="2" placeholder="Optional description…"
-              class="w-full px-3 py-2 border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
+          <FormField v-model="form.abbreviation" name="abbreviation" :label="t('erp.uom.code')"
+            placeholder="e.g. kg" required :errors="fieldErrors" input-class="font-mono"
+            wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.name" name="name" :label="t('erp.uom.name')"
+            placeholder="e.g. Kilogram" required :errors="fieldErrors"
+            wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField v-model="form.description" name="description" :label="t('erp.uom.description')"
+            textarea :rows="2" placeholder="Optional description…" :errors="fieldErrors"
+            wrapper-class="col-span-2" />
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <FieldLabel :text="t('erp.common.activeFrom')" />
+              <DateInput v-model="form.activeFrom" class="input text-sm" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <FieldLabel :text="t('erp.common.activeTo')" />
+              <DateInput v-model="form.activeTo" class="input text-sm" />
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.uom.status') }}</label>
+            <FieldLabel :text="t('erp.uom.status')" />
             <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
           </div>
         </div>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
+        <ErrorBanner :message="error" />
 
         <div class="flex justify-end gap-3 pt-2">
-          <RouterLink to="/erp/uom" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
-          <button @click="save" :disabled="saving"
-            class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
-            {{ saving ? t('erp.common.creating') : t('erp.uom.create') }}
-          </button>
+          <HeaderSaveActions cancel-to="/erp/uom" :cancel-label="t('common.cancel')"
+            :save-label="t('erp.uom.create')" :saving-label="t('erp.common.creating')"
+            :saving="saving" @save="save" />
         </div>
       </div>
 
@@ -63,10 +48,13 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import FormField from '@/components/form/FormField.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
@@ -81,7 +69,7 @@ const router = useRouter()
 const form   = ref({ name: '', abbreviation: '', description: '', status: 'active', activeFrom: '', activeTo: '' })
 const error  = ref('')
 const saving = ref(false)
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 async function save() {
   error.value = ''

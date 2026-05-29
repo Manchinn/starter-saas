@@ -1,18 +1,16 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-5">
 
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.uom.title') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ total }} UOM{{ total !== 1 ? 's' : '' }}</p>
-        </div>
-        <RouterLink to="/erp/uom/create"
-          class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.uom.new') }}
-        </RouterLink>
-      </div>
+      <PageHeader :title="t('erp.uom.title')"
+        :breadcrumb="[{ label: `${total} UOM${total !== 1 ? 's' : ''}` }]">
+        <template #actions>
+          <RouterLink to="/erp/uom/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.uom.new') }}
+          </RouterLink>
+        </template>
+      </PageHeader>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="uoms" :loading="loading" :total="total"
@@ -45,15 +43,15 @@
                 <div class="px-5 py-4">
                   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.status') }}</label>
+                      <FieldLabel :text="t('erp.common.status')" />
                       <SearchSelect v-model="filterStatus" :options="statusOptions" :placeholder="t('common.all')" @change="onFilterChange" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.activeFrom') }}</label>
+                      <FieldLabel :text="t('erp.common.activeFrom')" />
                       <DateInput v-model="filterActiveFrom" @change="onFilterChange" class="input text-sm" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-[#637381] mb-1.5">{{ t('erp.common.activeTo') }}</label>
+                      <FieldLabel :text="t('erp.common.activeTo')" />
                       <DateInput v-model="filterActiveTo" @change="onFilterChange" class="input text-sm" />
                     </div>
                   </div>
@@ -95,12 +93,7 @@
           </template>
 
           <template #empty>
-            <div class="flex flex-col items-center gap-2">
-              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
-                <ScaleIcon class="w-5 h-5 text-[#9BA7B0]" />
-              </div>
-              <p class="text-sm text-[#9BA7B0] font-medium">{{ t('erp.uom.noFound') }}</p>
-            </div>
+            <EmptyState :icon="ScaleIcon" :title="t('erp.uom.noFound')" padding="sm" />
           </template>
         </DataTable>
 
@@ -118,6 +111,9 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import EmptyState from '@/components/form/EmptyState.vue'
 import api from '@/api'
 
 const { t } = useI18n()

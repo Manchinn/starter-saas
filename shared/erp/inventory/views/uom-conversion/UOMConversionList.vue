@@ -1,21 +1,19 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-5">
 
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.uomConversion.title') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ total }} record{{ total !== 1 ? 's' : '' }}</p>
-        </div>
-        <RouterLink to="/erp/uom-conversion/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.uomConversion.new') }}
-        </RouterLink>
-      </div>
+      <PageHeader :title="t('erp.uomConversion.title')"
+        :breadcrumb="[{ label: `${total} record${total !== 1 ? 's' : ''}` }]">
+        <template #actions>
+          <RouterLink to="/erp/uom-conversion/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.uomConversion.new') }}
+          </RouterLink>
+        </template>
+      </PageHeader>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
 
-        <!-- ── Toolbar ─────────────────────────────────────────────── -->
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
           <div class="relative flex-1 min-w-0">
             <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
@@ -27,15 +25,8 @@
         <DataTable :columns="columns" :data="filtered" :loading="loading" :total="filtered.length"
           v-model:page="page" :page-size="20">
           <template #empty>
-            <div class="flex flex-col items-center gap-3 py-4">
-              <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
-                <ArrowsRightLeftIcon class="w-5 h-5 text-[#9BA7B0]" />
-              </div>
-              <div class="text-center">
-                <p class="text-sm font-medium text-[#637381]">{{ t('erp.uomConversion.noFound') }}</p>
-                <p v-if="search" class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.uomConversion.tryDifferentSearch') }}</p>
-              </div>
-            </div>
+            <EmptyState :icon="ArrowsRightLeftIcon" :title="t('erp.uomConversion.noFound')"
+              :subtitle="search ? t('erp.uomConversion.tryDifferentSearch') : ''" padding="md" />
           </template>
         </DataTable>
 
@@ -53,9 +44,7 @@
               {{ deleteModal.item?.fromUom?.abbreviation }} → {{ deleteModal.item?.toUom?.abbreviation }}
             </span>
           </p>
-          <div v-if="deleteModal.error" class="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
-            {{ deleteModal.error }}
-          </div>
+          <ErrorBanner :message="deleteModal.error" />
           <div class="flex justify-end gap-3">
             <button @click="deleteModal.open = false"
               class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
@@ -82,6 +71,9 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import EmptyState from '@/components/form/EmptyState.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import api from '@/api'
 
 const { t } = useI18n()
