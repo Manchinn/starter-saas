@@ -90,33 +90,6 @@
           </div>
         </div>
 
-        <!-- Testimonial -->
-        <div class="flex-shrink-0 p-5"
-          style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
-          <!-- Quote icon -->
-          <svg class="w-6 h-6 mb-3 text-primary-500 opacity-50" fill="currentColor" viewBox="0 0 32 32">
-            <path d="M10 8C5.6 8 2 11.6 2 16s3.6 8 8 8c4.4 0 8-3.6 8-8 0-1-.2-1.9-.5-2.8L14 16H10V8zm16 0c-4.4 0-8 3.6-8 8s3.6 8 8 8c4.4 0 8-3.6 8-8 0-1-.2-1.9-.5-2.8L30 16H26V8z" />
-          </svg>
-          <p class="text-[13px] leading-relaxed mb-4 text-[#7D8FA8] italic">
-            {{ t('auth.testimonialText') }}
-          </p>
-          <div class="flex items-center gap-3">
-            <div class="flex gap-0.5 mr-1">
-              <svg v-for="i in 5" :key="i" class="w-3 h-3 fill-amber-400" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-              </svg>
-            </div>
-            <div class="w-7 h-7 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-              style="background: linear-gradient(135deg, #465fff, #2D35CF);">
-              SC
-            </div>
-            <div>
-              <p class="text-[12px] font-semibold text-white leading-none">{{ t('auth.testimonialName') }}</p>
-              <p class="text-[11px] mt-0.5 text-[#475569]">{{ t('auth.testimonialRole') }}</p>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
