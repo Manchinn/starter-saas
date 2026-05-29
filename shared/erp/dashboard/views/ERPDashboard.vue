@@ -25,16 +25,19 @@
         </div>
       </div>
 
-      <!-- ── Alert Banner ────────────────────────────────────────────────────── -->
+      <!-- ── Alert Banner — compact inline strip of clickable, localized alerts ── -->
       <div v-if="!loading && criticalAlerts.length > 0"
-        class="flex items-start gap-3 bg-red-50 border border-red-200 px-5 py-4">
-        <ExclamationTriangleIcon class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-semibold text-red-800">{{ t('erp.dashboard.actionRequired') }}</p>
-          <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-            <span v-for="alert in criticalAlerts" :key="alert" class="text-xs text-red-600">· {{ alert }}</span>
-          </div>
-        </div>
+        class="flex items-center flex-wrap gap-x-2 gap-y-1.5 bg-red-50 border border-red-200 px-4 py-2.5">
+        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-800 mr-1">
+          <ExclamationTriangleIcon class="w-4 h-4 text-red-500 flex-shrink-0" />
+          {{ t('erp.dashboard.actionRequired') }}
+        </span>
+        <RouterLink v-for="alert in criticalAlerts" :key="alert.key" :to="alert.to"
+          class="inline-flex items-center gap-1 text-xs font-medium text-red-700 bg-white/70 border border-red-200
+                 px-2 py-0.5 hover:bg-white hover:border-red-300 transition-colors">
+          {{ alert.label }}
+          <ChevronRightIcon class="w-3 h-3 text-red-400" />
+        </RouterLink>
       </div>
 
       <!-- ── Finance Row: GL-backed metrics in base currency ─────────────────── -->
@@ -722,15 +725,20 @@ const totalPending = computed(() =>
   + (stats.value.pending?.purchaseOrders     ?? 0)
 )
 
+// Each critical condition becomes a localized, clickable chip that deep-links
+// to the page where it's resolved. Only conditions with a count > 0 surface.
 const criticalAlerts = computed(() => {
-  const alerts = []
-  const zero = stats.value.products?.zeroStock ?? 0
-  if (zero > 0) alerts.push(`${zero} product${zero > 1 ? 's' : ''} out of stock`)
-  const ar = stats.value.invoices?.sentCount ?? 0
-  if (ar > 0) alerts.push(`${ar} unpaid invoice${ar > 1 ? 's' : ''} (AR)`)
-  const prs = stats.value.pending?.purchaseRequisitions ?? 0
-  if (prs > 0) alerts.push(`${prs} purchase requisition${prs > 1 ? 's' : ''} awaiting approval`)
-  return alerts
+  const s = stats.value
+  const out = []
+  const push = (count, key, to) => {
+    if ((count ?? 0) > 0) out.push({ key, to, label: t(`erp.dashboard.alerts.${key}`, { n: count }) })
+  }
+  push(s.products?.zeroStock,           'outOfStock',      '/erp/item-master')
+  push(s.finance?.arOverdueCount,       'overdueInvoices', '/erp/invoices?status=sent')
+  push(s.pending?.purchaseRequisitions, 'pendingPR',       '/erp/purchasing/requisitions')
+  push(s.pending?.goodReceives,         'pendingGR',       '/erp/good-receive')
+  push(s.draftJournals,                 'draftJournals',   '/erp/accounting/journals')
+  return out
 })
 
 async function loadStats() {

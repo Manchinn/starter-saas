@@ -7,6 +7,13 @@ export default {
       greetEvening:     'สวัสดีตอนเย็น',
       refresh:          'รีเฟรช',
       actionRequired:   'รอดำเนินการ',
+      alerts: {
+        outOfStock:      'สินค้าหมดสต็อก {n} รายการ',
+        overdueInvoices: 'ใบแจ้งหนี้เกินกำหนด {n} รายการ',
+        pendingPR:       'ใบขอซื้อรออนุมัติ {n} รายการ',
+        draftJournals:   'รายการบัญชียังไม่ผ่านรายการ {n} รายการ',
+        pendingGR:       'ใบรับสินค้ารอยืนยัน {n} รายการ',
+      },
       activeProducts:   'สินค้าที่ใช้งาน',
       stockOnHand:      'ยอดคงเหลือ',
       acrossAllStores:  'รวมทุกคลัง',

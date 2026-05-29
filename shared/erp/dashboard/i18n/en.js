@@ -7,6 +7,13 @@ export default {
       greetEvening:     'Good evening',
       refresh:          'Refresh',
       actionRequired:   'Action Required',
+      alerts: {
+        outOfStock:      '{n} product out of stock | {n} products out of stock',
+        overdueInvoices: '{n} overdue invoice | {n} overdue invoices',
+        pendingPR:       '{n} requisition awaiting approval | {n} requisitions awaiting approval',
+        draftJournals:   '{n} unposted journal | {n} unposted journals',
+        pendingGR:       '{n} goods receipt to confirm | {n} goods receipts to confirm',
+      },
       activeProducts:   'Active Products',
       stockOnHand:      'Stock on Hand',
       acrossAllStores:  'across all stores',
