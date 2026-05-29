@@ -13,7 +13,7 @@
  */
 
 const localModuleFiles  = import.meta.glob('../modules/**/index.js', { eager: true })
-const sharedModuleFiles = import.meta.glob('../../../shared/{erp,items,hrms}/index.js', { eager: true })
+const sharedModuleFiles = import.meta.glob('../../../shared/{erp,items,hrms,reporting}/index.js', { eager: true })
 const moduleFiles = { ...localModuleFiles, ...sharedModuleFiles }
 
 const registry = []
