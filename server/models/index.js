@@ -25,7 +25,7 @@ const models = {
 }
 
 // ── Core associations (auth / roles / permissions) ────────────────────────────
-require('./coreAssociations')(models)
+require('./core.associations')(models)
 
 // ── Cross-domain associations (HRMS ↔ core User) ─────────────────────────────
 require('../../shared/hrms/models/hrms.association')(models)
