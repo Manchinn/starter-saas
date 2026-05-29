@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../server/config/database')
+const { auditFields } = require('../../erp/model-fields')
 
 const Department = sequelize.define('Department', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -9,10 +10,7 @@ const Department = sequelize.define('Department', {
   isActive:   { type: DataTypes.BOOLEAN, defaultValue: true },
   activeFrom: { type: DataTypes.DATEONLY, allowNull: true },
   activeTo:   { type: DataTypes.DATEONLY, allowNull: true },
-  organizationId: { type: DataTypes.UUID, allowNull: false },
-  dataFlag:   { type: DataTypes.INTEGER, defaultValue: 1 },
-  createdBy:  { type: DataTypes.UUID, allowNull: true },
-  modifiedBy: { type: DataTypes.UUID, allowNull: true },
+  ...auditFields,
 })
 
 module.exports = Department
