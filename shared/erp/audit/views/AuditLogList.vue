@@ -1,29 +1,25 @@
 ﻿<template>
   <AppLayout>
     <div class="space-y-5">
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.audit.title') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ total }} record{{ total !== 1 ? 's' : '' }}</p>
-        </div>
-      </div>
+      <PageHeader :title="t('erp.audit.title')"
+        :breadcrumb="[{ label: `${total} record${total !== 1 ? 's' : ''}` }]" />
 
       <!-- Filters -->
       <div class="bg-white border border-[#E2E8F0] p-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div>
-          <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('erp.audit.entityType') }}</label>
+          <FieldLabel :text="t('erp.audit.entityType')" />
           <SearchSelect v-model="filterEntityType" :options="entityTypeOptions" :placeholder="t('common.all')" @change="onFilter" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('erp.audit.action') }}</label>
+          <FieldLabel :text="t('erp.audit.action')" />
           <input v-model="filterAction" @input="onSearch" type="search" :placeholder="t('erp.audit.actionPh')" class="input text-sm" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('common.dateFrom') }}</label>
+          <FieldLabel :text="t('common.dateFrom')" />
           <DateInput v-model="filterDateFrom" @change="onFilter" class="input text-sm" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-[#637381] mb-1">{{ t('common.dateTo') }}</label>
+          <FieldLabel :text="t('common.dateTo')" />
           <DateInput v-model="filterDateTo" @change="onFilter" class="input text-sm" />
         </div>
       </div>
@@ -42,10 +38,12 @@
           </thead>
           <tbody class="divide-y divide-[#E2E8F0]">
             <tr v-if="loading">
-              <td colspan="5" class="py-8 text-center text-[#9BA7B0]">{{ t('common.loading') }}</td>
+              <td colspan="5"><LoadingSpinner size="sm" padding="sm" /></td>
             </tr>
             <tr v-else-if="!logs.length">
-              <td colspan="5" class="py-8 text-center text-[#9BA7B0]">{{ t('erp.audit.noLogs') }}</td>
+              <td colspan="5">
+                <EmptyState :icon="ClipboardDocumentListIcon" :title="t('erp.audit.noLogs')" padding="md" />
+              </td>
             </tr>
             <tr v-for="l in logs" :key="l.id" class="hover:bg-[#F7F9FC]">
               <td class="px-4 py-2 text-xs text-[#637381] tabular-nums">{{ fmtDateTime(l.createdAt) }}</td>
@@ -83,9 +81,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ClipboardDocumentListIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
+import EmptyState from '@/components/form/EmptyState.vue'
 import api from '@/api'
 import { fmtDateTime } from '@/utils/fmt'
 
