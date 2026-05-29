@@ -1,10 +1,12 @@
 # Starter SaaS
 
-A multi-tenant ERP/SaaS starter built as an npm-workspaces monorepo: an Express + Sequelize REST API and a Vue 3 single-page app, sharing a modular (HMVC) ERP layer. It ships with a guided install wizard, JWT auth, per-organization data isolation, and a full set of ERP modules (sales, purchasing, inventory, accounting, HRMS).
+A multi-tenant ERP/SaaS starter built as an npm-workspaces monorepo: an Express + Sequelize REST API and a Vue 3 single-page app, sharing a modular (HMVC) ERP layer. It ships with a guided install wizard, JWT auth, per-organization data isolation, realtime in-app alerts, and a full set of ERP modules (sales, purchasing, inventory, accounting, HRMS).
+
+![Starter SaaS — ERP dashboard with the realtime notification bell open](screenshot.png)
 
 ## Tech stack
 
-- **Backend:** Node.js, Express, Sequelize ORM, JWT (access + refresh), bcrypt, express-validator, Winston logging
+- **Backend:** Node.js, Express, Sequelize ORM, JWT (access + refresh), bcrypt, express-validator, Socket.IO (realtime), Winston logging
 - **Database:** SQLite by default; also supports PostgreSQL, MySQL, MariaDB, and SQL Server (selectable at install time)
 - **Cache:** optional Redis (ioredis) with a transparent in-memory fallback
 - **Frontend:** Vue 3, Vite, Pinia, Vue Router, Vue I18n, Tailwind CSS, Axios
@@ -22,7 +24,7 @@ starter-saas/
 │   └── src/modules/   auth (incl. install wizard), dashboard, profile, admin
 ├── shared/        HMVC business modules consumed by the server
 │   ├── erp/       products, pricing, customers, vendors, quotations, orders, invoices,
-│   │              receipts, purchasing, inventory/stock, accounting, settings, …
+│   │              receipts, purchasing, inventory/stock, accounting, alerts, settings, …
 │   └── hrms/      departments, employees
 └── package.json   workspace root
 ```
@@ -75,6 +77,17 @@ How the pieces get wired up automatically:
 
 To add a new ERP module, create a folder under `shared/erp/<feature>/` following the same
 layout — no central registry edits are needed; the route/nav auto-discovery picks it up.
+
+## Realtime alerts
+
+The `shared/erp/alert` module powers the notification bell in the topbar (shown above).
+Alerts can be authored for everyone (`global`), a specific module, or an HRMS department,
+and are delivered live over **Socket.IO** — the server wraps Express in an HTTP server,
+authenticates each socket with the JWT access token, and joins per-org / per-module /
+per-department rooms so a change reaches only the eligible recipients. The bell shows an
+unread badge and a panel with All / Module / Department filters; read state is tracked
+per user. Other modules can raise alerts programmatically via the service's
+`emitSystem()` helper. Guarded by the `erp.alerts.list` / `erp.alerts.manage` permissions.
 
 ## Prerequisites
 
