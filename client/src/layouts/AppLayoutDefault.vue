@@ -223,10 +223,7 @@
           </div>
 
           <!-- Notification bell -->
-          <button class="hidden sm:flex w-10 h-10 items-center justify-center border border-[#E2E8F0]
-                         bg-white hover:bg-[#F7F9FC] text-[#637381] hover:text-[#1C2434] transition-colors">
-            <BellIcon class="w-5 h-5" />
-          </button>
+          <AlertBell v-if="auth.hasPermission('erp.alerts.list')" class="hidden sm:block" />
 
           <!-- User avatar / dropdown -->
           <div class="relative" ref="userMenuRef">
@@ -311,12 +308,13 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import {
-  ChevronDownIcon, ArrowRightOnRectangleIcon, BellIcon,
+  ChevronDownIcon, ArrowRightOnRectangleIcon,
   UserCircleIcon, ComputerDesktopIcon, Bars3Icon, XMarkIcon,
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useAppLayout } from '@/composables/useAppLayout'
+import AlertBell from '@/components/AlertBell.vue'
 
 const {
   auth,

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/api'
+import { disconnectSocket } from '@/api/socket'
 
 // Tokens are stored in localStorage (persist across tabs/restarts) when the
 // user checks "Remember me", otherwise in sessionStorage (cleared on tab close).
@@ -59,6 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
     permissions.value  = []
     removeToken('accessToken')
     removeToken('refreshToken')
+    disconnectSocket()
   }
 
   // Called by the API interceptor after a silent token refresh so the store

@@ -83,6 +83,7 @@ export default {
     templates:      'เทมเพลต',
     erp:            'ERP',
     erpDashboard:   'แดชบอร์ด',
+    alerts:         'การแจ้งเตือน',
     customers:      'ลูกค้า',
     customerGroups: 'กลุ่ม',
     vendors:        'ผู้ขาย',

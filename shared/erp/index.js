@@ -26,6 +26,7 @@ export default {
     icon: BuildingOffice2Icon,
     children: [
       ...(m('dashboard').navChildren || []),
+      ...(m('alert').navChildren || []),
       ...(m('customers').navChildren || []),
       ...(m('vendors').navChildren   || []),
       {

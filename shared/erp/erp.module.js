@@ -43,6 +43,7 @@ module.exports = defineModule({
     'erp.audit.list',
     'erp.currencies.list', 'erp.currencies.edit',
     'erp.tax-periods.list', 'erp.tax-periods.edit',
+    'erp.alerts.list', 'erp.alerts.manage',
   ],
   meta: { mountPath: API_PREFIX },
   register(app) {

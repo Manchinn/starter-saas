@@ -83,6 +83,7 @@ export default {
     templates:      'Templates',
     erp:            'ERP',
     erpDashboard:   'Dashboard',
+    alerts:         'Alerts',
     customers:      'Customers',
     customerGroups: 'Groups',
     vendors:        'Vendors',

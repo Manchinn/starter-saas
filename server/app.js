@@ -1,5 +1,6 @@
 require('dotenv').config()
 const path = require('path')
+const http = require('http')
 const express = require('express')
 const cors = require('cors')
 const config = require('./config/config')
@@ -9,6 +10,7 @@ const migrator = require('./core/migrator')
 const { seedSequences } = require('./core/seed')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
 const cache = require('./config/redis')
+const realtime = require('./core/realtime')
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
 
@@ -78,7 +80,10 @@ async function bootstrap() {
     res.status(err.status || 500).json({ success: false, message: 'Internal server error' })
   })
 
-  app.listen(config.port, () => {
+  const server = http.createServer(app)
+  realtime.init(server)
+
+  server.listen(config.port, () => {
     logger.info(`Server running on http://localhost:${config.port} (${config.env})`, { label: 'server' })
   })
 
