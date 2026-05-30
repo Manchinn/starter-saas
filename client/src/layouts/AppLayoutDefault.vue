@@ -183,7 +183,7 @@
           <button type="button" @click="chatOpen = true"
             class="w-10 h-10 flex items-center justify-center border border-[#E2E8F0]
                    bg-white hover:bg-[#F7F9FC] text-[#637381] hover:text-[#1C2434] transition-colors"
-            :title="t('aiAgent.chat.title')">
+            :title="`${t('aiAgent.chat.title')} (Shift+A)`">
             <SparklesIcon class="w-5 h-5" />
           </button>
 
@@ -396,6 +396,19 @@ function onClickOutside(e) {
 
 function onKeydown(e) {
   if (e.key === 'Escape' && sidebarOpen.value) sidebarOpen.value = false
+
+  // Shift+A toggles the AI panel — ignored while typing so it doesn't hijack
+  // a capital "A" in an input, textarea, select, or contenteditable.
+  if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'a') {
+    const el = e.target
+    const typing = el && (
+      el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+      el.tagName === 'SELECT' || el.isContentEditable
+    )
+    if (typing) return
+    e.preventDefault()
+    chatOpen.value = !chatOpen.value
+  }
 }
 
 onMounted(() => {
