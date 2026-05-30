@@ -39,12 +39,14 @@ describe('dashboard ai-tools — registry', () => {
   })
 })
 
+// Reporting tools are read-only: they return data for the model to narrate
+// and must NOT emit a navigate action (no page is opened).
 describe('executive_summary', () => {
-  test('returns the full summary + dashboard action, scoped to the org', async () => {
+  test('returns the full summary (no action), scoped to the org', async () => {
     const { result, action } = await byName.executive_summary.handler({}, { user: { id: 'u1', organizationId: 'o1' } })
     expect(svc.getExecutiveSummary).toHaveBeenCalledWith('o1')
     expect(result).toBe(SUMMARY)
-    expect(action).toMatchObject({ type: 'navigate', path: '/erp/dashboard' })
+    expect(action).toBeUndefined()
   })
 
   test('falls back to user id when no organization', async () => {
@@ -54,19 +56,19 @@ describe('executive_summary', () => {
 })
 
 describe('financial_summary', () => {
-  test('returns only the finance slice', async () => {
+  test('returns only the finance slice, no action', async () => {
     const { result, action } = await byName.financial_summary.handler({}, { user: { id: 'u1', organizationId: 'o1' } })
     expect(result).toBe(SUMMARY.finance)
     expect(result.netPosition).toBe(200)
-    expect(action.path).toBe('/erp/dashboard')
+    expect(action).toBeUndefined()
   })
 })
 
 describe('inventory_summary', () => {
-  test('returns only the inventory slice and links to products', async () => {
+  test('returns only the inventory slice, no action', async () => {
     const { result, action } = await byName.inventory_summary.handler({}, { user: { id: 'u1', organizationId: 'o1' } })
     expect(result).toBe(SUMMARY.inventory)
     expect(result.outOfStock).toBe(2)
-    expect(action.path).toBe('/erp/item-master')
+    expect(action).toBeUndefined()
   })
 })
