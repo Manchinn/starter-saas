@@ -33,36 +33,31 @@
             <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.deliveryOrders.customer')" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId || !!errorOf('customerId')" placeholder="— Select customer —">
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
-              <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
-              <FieldError name="customerId" :errors="fieldErrors" />
+              <FieldError name="customerId" :errors="mergedErrors" />
               <CustomerChip :customer="selectedCustomer" />
             </div>
 
             <!-- Reference / PO # -->
-            <div>
-              <FieldLabel :text="t('erp.deliveryOrders.referenceNumber')" />
-              <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
-                class="input" />
-            </div>
+            <FormField name="referenceNumber" :label="t('erp.deliveryOrders.referenceNumber')" :errors="mergedErrors"
+              v-model="form.referenceNumber" placeholder="e.g. PO-2025-001" />
 
             <!-- Date -->
-            <div>
-              <FieldLabel :text="t('erp.common.date')" required />
-              <DateInput v-model="form.date"
-                :class="['input', (errors.date || errorOf('date')) && 'input-error']" />
-              <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
-              <FieldError name="date" :errors="fieldErrors" />
-            </div>
+            <FormField name="date" :label="t('erp.common.date')" :errors="mergedErrors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.date" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
             <!-- Delivery Date -->
-            <div>
-              <FieldLabel :text="t('erp.deliveryOrders.deliveryDate')" />
-              <DateInput v-model="form.deliveryDate" class="input" />
-            </div>
+            <FormField name="deliveryDate" :label="t('erp.deliveryOrders.deliveryDate')" :errors="mergedErrors">
+              <template #default>
+                <DateInput v-model="form.deliveryDate" class="input" />
+              </template>
+            </FormField>
 
             <!-- Reference Sales Order -->
             <div>
@@ -71,13 +66,14 @@
             </div>
 
             <!-- Payment terms -->
-            <div>
-              <FieldLabel :text="t('erp.deliveryOrders.paymentTerms')" />
-              <select v-model="form.paymentTerms" class="input">
-                <option value="">—</option>
-                <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
-              </select>
-            </div>
+            <FormField name="paymentTerms" :label="t('erp.deliveryOrders.paymentTerms')" :errors="mergedErrors">
+              <template #default="{ id }">
+                <select :id="id" v-model="form.paymentTerms" class="input">
+                  <option value="">—</option>
+                  <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
+                </select>
+              </template>
+            </FormField>
 
             <!-- Salesperson -->
             <div>
@@ -104,11 +100,9 @@
             </button>
           </template>
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <FieldLabel :text="t('erp.deliveryOrders.shippingAddress')" />
-              <textarea v-model="form.shippingAddress" rows="3" placeholder="Ship to address…"
-                class="input resize-none" />
-            </div>
+            <FormField name="shippingAddress" :label="t('erp.deliveryOrders.shippingAddress')" :errors="mergedErrors"
+              v-model="form.shippingAddress" textarea :rows="3" placeholder="Ship to address…"
+              input-class="resize-none" />
             <div>
               <div class="flex items-center justify-between">
                 <FieldLabel :text="t('erp.deliveryOrders.billingAddress')" />
@@ -264,11 +258,9 @@
         <!-- Notes + Summary -->
         <FormCard :title="t('erp.deliveryOrders.deliverySummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-            <div class="flex flex-col text-left">
-              <FieldLabel :text="t('erp.common.notes')" />
-              <textarea v-model="form.notes" placeholder="Handling instructions or remarks…"
-                class="input resize-none flex-1 min-h-[8rem]" />
-            </div>
+            <FormField name="notes" :label="t('erp.common.notes')" :errors="mergedErrors"
+              v-model="form.notes" textarea placeholder="Handling instructions or remarks…"
+              wrapper-class="flex flex-col text-left" input-class="resize-none flex-1 min-h-[8rem]" />
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
                 <dt class="text-[#637381]">{{ t('erp.deliveryOrders.customer') }}</dt>
@@ -371,7 +363,9 @@ import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
@@ -396,7 +390,9 @@ const paymentTerms = ref([])
 const saving       = ref(false)
 const globalError  = ref('')
 const errors       = ref({})
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+
+const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({

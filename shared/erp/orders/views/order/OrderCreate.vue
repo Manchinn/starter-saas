@@ -32,11 +32,12 @@
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
             <!-- Reference / PO # -->
-            <div>
-              <FieldLabel :text="t('erp.orders.referenceNumber')" />
-              <input ref="referenceInputRef" v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
-                class="input" />
-            </div>
+            <FormField name="referenceNumber" :label="t('erp.orders.referenceNumber')" :errors="errors">
+              <template #default="{ id }">
+                <input :id="id" ref="referenceInputRef" v-model="form.referenceNumber" type="text"
+                  placeholder="e.g. PO-2025-001" class="input" />
+              </template>
+            </FormField>
 
             <!-- Customer -->
             <div class="lg:col-span-2">
@@ -62,17 +63,18 @@
             </div>
 
             <!-- Order Date -->
-            <div>
-              <FieldLabel :text="t('erp.orders.orderDate')" required />
-              <DateInput v-model="form.orderDate" :class="['input', errors.orderDate && 'input-error']" />
-              <FieldError :error="errors.orderDate" />
-            </div>
+            <FormField name="orderDate" :label="t('erp.orders.orderDate')" :errors="errors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.orderDate" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
             <!-- Expected delivery date -->
-            <div>
-              <FieldLabel :text="t('erp.orders.expectedDelivery')" />
-              <DateInput v-model="form.expectedDeliveryDate" class="input" />
-            </div>
+            <FormField name="expectedDeliveryDate" :label="t('erp.orders.expectedDelivery')" :errors="errors">
+              <template #default>
+                <DateInput v-model="form.expectedDeliveryDate" class="input" />
+              </template>
+            </FormField>
 
             <!-- Currency -->
             <div>
@@ -80,14 +82,15 @@
               <CurrencySelector v-model="form.currency" v-model:exchangeRate="form.exchangeRate" :as-of-date="form.orderDate" />
             </div>
 
-            <!-- Payment terms (values from /erp/master-data/payment-terms) -->
-            <div>
-              <FieldLabel :text="t('erp.orders.paymentTerms')" />
-              <select v-model="form.paymentTerms" class="input">
-                <option value="">—</option>
-                <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
-              </select>
-            </div>
+            <!-- Payment terms -->
+            <FormField name="paymentTerms" :label="t('erp.orders.paymentTerms')" :errors="errors">
+              <template #default="{ id }">
+                <select :id="id" v-model="form.paymentTerms" class="input">
+                  <option value="">—</option>
+                  <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
+                </select>
+              </template>
+            </FormField>
 
             <!-- Salesperson -->
             <div>
@@ -114,11 +117,9 @@
             </button>
           </template>
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <FieldLabel :text="t('erp.orders.shippingAddress')" />
-              <textarea v-model="form.shippingAddress" rows="3" placeholder="Ship to address…"
-                class="input resize-none" />
-            </div>
+            <FormField name="shippingAddress" :label="t('erp.orders.shippingAddress')" :errors="errors"
+              v-model="form.shippingAddress" textarea :rows="3" placeholder="Ship to address…"
+              input-class="resize-none" />
             <div>
               <div class="flex items-center justify-between">
                 <FieldLabel :text="t('erp.orders.billingAddress')" />
@@ -345,11 +346,9 @@
         <!-- Summary + totals -->
         <FormCard :title="t('erp.orders.orderSummary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-            <div class="flex flex-col text-left">
-              <FieldLabel :text="t('erp.orders.notes')" />
-              <textarea v-model="form.notes" placeholder="Order notes or special instructions…"
-                class="input resize-none flex-1 min-h-[10rem]" />
-            </div>
+            <FormField name="notes" :label="t('erp.orders.notes')" :errors="errors"
+              v-model="form.notes" textarea placeholder="Order notes or special instructions…"
+              wrapper-class="flex flex-col text-left" input-class="resize-none flex-1 min-h-[10rem]" />
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
                 <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
@@ -576,29 +575,22 @@
             </button>
           </div>
           <div class="flex-1 px-6 py-5 space-y-4">
-            <div>
-              <FieldLabel :text="t('erp.customers.name')" required />
-              <input v-model="newCustomer.name" type="text" placeholder="Customer name"
-                ref="newCustomerNameRef" class="input" />
-            </div>
-            <div>
-              <FieldLabel :text="t('erp.customers.company')" />
-              <input v-model="newCustomer.company" type="text" class="input" />
-            </div>
+            <FormField name="customerName" :label="t('erp.customers.name')" :errors="{}" required>
+              <template #default="{ id }">
+                <input :id="id" v-model="newCustomer.name" ref="newCustomerNameRef" type="text"
+                  placeholder="Customer name" class="input" />
+              </template>
+            </FormField>
+            <FormField name="customerCompany" :label="t('erp.customers.company')" :errors="{}"
+              v-model="newCustomer.company" />
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <FieldLabel :text="t('erp.customers.email')" />
-                <input v-model="newCustomer.email" type="email" class="input" />
-              </div>
-              <div>
-                <FieldLabel :text="t('erp.customers.phone')" />
-                <input v-model="newCustomer.phone" type="text" class="input" />
-              </div>
+              <FormField name="customerEmail" :label="t('erp.customers.email')" :errors="{}"
+                v-model="newCustomer.email" type="email" />
+              <FormField name="customerPhone" :label="t('erp.customers.phone')" :errors="{}"
+                v-model="newCustomer.phone" />
             </div>
-            <div>
-              <FieldLabel :text="t('erp.customers.address')" />
-              <textarea v-model="newCustomer.address" rows="3" class="input resize-none" />
-            </div>
+            <FormField name="customerAddress" :label="t('erp.customers.address')" :errors="{}"
+              v-model="newCustomer.address" textarea :rows="3" input-class="resize-none" />
             <p v-if="newCustomerError" class="text-[12px] text-red-600">{{ newCustomerError }}</p>
           </div>
           <div class="px-6 py-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
@@ -635,6 +627,7 @@ import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'

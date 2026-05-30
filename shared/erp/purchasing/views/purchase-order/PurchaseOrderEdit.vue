@@ -43,7 +43,7 @@
               <FieldLabel :text="t('erp.po.vendor')" required />
               <div class="flex gap-2 items-start">
                 <div class="flex-1 min-w-0 vendor-field">
-                  <SearchSelect v-model="form.vendorId" :options="vendors" :invalid="!!errors.vendorId || !!errorOf('vendorId')"
+                  <SearchSelect v-model="form.vendorId" :options="vendors" :invalid="!!mergedErrors.vendorId"
                     :placeholder="`— ${t('erp.po.selectVendor')} —`">
                     <template #option="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> · {{ option.code }}</span></template>
                     <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.code" class="text-[#9BA7B0]"> · {{ option.code }}</span></template>
@@ -58,8 +58,7 @@
                   <kbd class="hidden lg:inline px-1.5 py-0.5 bg-white/80 border border-primary-200 font-mono text-[10px] text-primary-700">Alt+V</kbd>
                 </button>
               </div>
-              <p v-if="errors.vendorId" class="mt-1 text-[11px] text-red-500">{{ errors.vendorId }}</p>
-              <FieldError name="vendorId" :errors="fieldErrors" />
+              <FieldError name="vendorId" :errors="mergedErrors" />
               <VendorChip :vendor="selectedVendor" />
             </div>
 
@@ -71,24 +70,18 @@
             </div>
 
             <!-- Order Date -->
-            <div>
-              <FieldLabel :text="t('erp.po.date')" required />
-              <DateInput v-model="form.date"
-                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('date') && 'input-error']" />
-              <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
-              <FieldError name="date" :errors="fieldErrors" />
-            </div>
+            <FormField name="date" :label="t('erp.po.date')" :errors="mergedErrors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.date" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
             <!-- Delivery Date -->
-            <div>
-              <FieldLabel :text="t('erp.po.deliveryDate')" />
-              <DateInput v-model="form.deliveryDate"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
-            </div>
+            <FormField name="deliveryDate" :label="t('erp.po.deliveryDate')" :errors="mergedErrors">
+              <template #default>
+                <DateInput v-model="form.deliveryDate" class="input" />
+              </template>
+            </FormField>
 
             <!-- Currency -->
             <div>
@@ -246,13 +239,9 @@
         <!-- Notes + summary -->
         <FormCard :title="t('erp.po.summary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-            <div class="flex flex-col text-left">
-              <FieldLabel :text="t('erp.po.notes')" />
-              <textarea v-model="form.notes" :placeholder="t('erp.po.notesPh')"
-                class="flex-1 w-full min-h-[10rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
-            </div>
+            <FormField name="notes" :label="t('erp.po.notes')" :errors="mergedErrors"
+              v-model="form.notes" textarea :placeholder="t('erp.po.notesPh')"
+              wrapper-class="flex flex-col text-left" input-class="flex-1 min-h-[10rem]" />
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
                 <dt class="text-[#637381]">{{ t('erp.po.summaryItems') }}</dt>
@@ -374,39 +363,22 @@
             </button>
           </div>
           <div class="flex-1 px-6 py-5 space-y-4">
-            <div>
-              <FieldLabel :text="t('erp.vendors.name')" required />
-              <input v-model="newVendor.name" type="text" placeholder="Vendor name"
-                ref="newVendorNameRef"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-            </div>
-            <div>
-              <FieldLabel :text="t('erp.vendors.code')" />
-              <input v-model="newVendor.code" type="text"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-            </div>
+            <FormField name="vendorName" :label="t('erp.vendors.name')" :errors="{}" required>
+              <template #default="{ id }">
+                <input :id="id" v-model="newVendor.name" ref="newVendorNameRef" type="text"
+                  placeholder="Vendor name" class="input" />
+              </template>
+            </FormField>
+            <FormField name="vendorCode" :label="t('erp.vendors.code')" :errors="{}"
+              v-model="newVendor.code" />
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <FieldLabel :text="t('erp.vendors.email')" />
-                <input v-model="newVendor.email" type="email"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-              </div>
-              <div>
-                <FieldLabel :text="t('erp.vendors.phone')" />
-                <input v-model="newVendor.phone" type="text"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-              </div>
+              <FormField name="vendorEmail" :label="t('erp.vendors.email')" :errors="{}"
+                v-model="newVendor.email" type="email" />
+              <FormField name="vendorPhone" :label="t('erp.vendors.phone')" :errors="{}"
+                v-model="newVendor.phone" />
             </div>
-            <div>
-              <FieldLabel :text="t('erp.vendors.address')" />
-              <textarea v-model="newVendor.address" rows="3"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 resize-none" />
-            </div>
+            <FormField name="vendorAddress" :label="t('erp.vendors.address')" :errors="{}"
+              v-model="newVendor.address" textarea :rows="3" input-class="resize-none" />
             <p v-if="newVendorError" class="text-[12px] text-red-600">{{ newVendorError }}</p>
           </div>
           <div class="px-6 py-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
@@ -442,7 +414,9 @@ import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
@@ -469,7 +443,9 @@ const savingDraft  = ref(false)
 const draftSavedAt = ref(null)
 const globalError  = ref('')
 const errors       = ref({})
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+
+const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 
 const form = ref({
   date: '', deliveryDate: '', vendorId: '', requisitionId: '',

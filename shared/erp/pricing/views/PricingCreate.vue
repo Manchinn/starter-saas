@@ -1,84 +1,85 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/pricing" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.pricing.new') }}</h1>
-      </div>
+      <PageHeader :title="t('erp.pricing.new')" back-to="/erp/pricing"
+        :breadcrumb="[
+          { label: t('erp.pricing.title'), to: '/erp/pricing' },
+          { label: t('common.create') },
+        ]">
+        <template #actions>
+          <HeaderSaveActions
+            cancel-to="/erp/pricing"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.creating')"
+            :save-label="t('erp.pricing.create')"
+            @save="save"
+          />
+        </template>
+      </PageHeader>
 
-      <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
-
+      <FormCard :title="t('erp.pricing.new')" :icon="TagIcon" icon-color="primary">
         <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.code') }}</label>
-            <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" placeholder="e.g. PL-001"
-              class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            <input v-else :value="autoCode.preview.value" type="text" readonly
-              class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
-            <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
-              {{ t('erp.common.autoGenerate') }}
-            </label>
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.name') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" placeholder="e.g. Standard Rate"
-              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-            <FieldError name="name" :errors="fieldErrors" />
-          </div>
 
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.description') }}</label>
-            <textarea v-model="form.description" rows="2" placeholder="Optional notes…"
-              class="w-full px-3 py-2 border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
+          <FormField name="code" :label="t('erp.pricing.code')" :errors="fieldErrors">
+            <template #default="{ id }">
+              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+                placeholder="e.g. PL-001" class="input font-mono" />
+              <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
+                class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+              <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
+                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" />
+                {{ t('erp.common.autoGenerate') }}
+              </label>
+            </template>
+          </FormField>
 
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.unitPrice') }} <span class="text-red-500">*</span></label>
-            <input v-model.number="form.unitPrice" type="number" min="0" step="0.01"
-              :class="['w-full px-3 py-2 border text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('unitPrice') && 'input-error']" />
-            <FieldError name="unitPrice" :errors="fieldErrors" />
-          </div>
+          <FormField name="name" :label="t('erp.pricing.name')" :errors="fieldErrors"
+            v-model="form.name" placeholder="e.g. Standard Rate" required
+            wrapper-class="col-span-2" />
+
+          <FormField name="description" :label="t('erp.pricing.description')" :errors="fieldErrors"
+            v-model="form.description" textarea :rows="2" placeholder="Optional notes…"
+            wrapper-class="col-span-2" />
+
+          <FormField name="unitPrice" :label="t('erp.pricing.unitPrice')" :errors="fieldErrors"
+            v-model="form.unitPrice" type="number" min="0" step="0.01" required
+            input-class="text-right" />
 
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
+            <FormField name="activeFrom" :label="t('erp.common.activeFrom')" :errors="fieldErrors">
+              <template #default>
+                <DateInput v-model="form.activeFrom" class="input" />
+              </template>
+            </FormField>
+            <FormField name="activeTo" :label="t('erp.common.activeTo')" :errors="fieldErrors">
+              <template #default>
+                <DateInput v-model="form.activeTo" class="input" />
+              </template>
+            </FormField>
           </div>
+
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.status') }}</label>
+            <FieldLabel :text="t('erp.pricing.status')" />
             <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.customerGroup') }}</label>
+            <FieldLabel :text="t('erp.pricing.customerGroup')" />
             <SearchSelect v-model="form.customerGroupId" :options="groups" placeholder="— None —" />
           </div>
+
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.pricing.saleItem') }}</label>
+            <FieldLabel :text="t('erp.pricing.saleItem')" />
             <SearchSelect v-model="form.saleItemId" :options="saleItemOptions" placeholder="— None —" />
           </div>
+
         </div>
+      </FormCard>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
+      <ErrorBanner :message="error" />
 
-        <div class="flex justify-end gap-3 pt-2">
-          <RouterLink to="/erp/pricing" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
-          <button @click="save" :disabled="saving"
-            class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
-            {{ saving ? t('erp.common.creating') : t('erp.pricing.create') }}
-          </button>
-        </div>
-
-      </div>
     </div>
   </AppLayout>
 </template>
@@ -87,10 +88,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import { TagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
@@ -104,7 +111,7 @@ const groups    = ref([])
 const saleItems = ref([])
 const error     = ref('')
 const saving    = ref(false)
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const statusOptions   = computed(() => [
   { id: 'active',   name: t('common.active')   },
