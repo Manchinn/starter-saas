@@ -136,7 +136,12 @@
       "Bash(npm audit *)",
       "Bash(ls client/src)",
       "Bash(ls web/src)",
-      "Bash(ls frontend/src)"
+      "Bash(ls frontend/src)",
+      "Bash(node app.js)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Write-Output '\\\\''port 3000 cleared'\\\\''')",
+      "Read(//tmp/**)",
+      "Bash(Select-Object Name)"
     ]
   }
 }
