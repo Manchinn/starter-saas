@@ -232,4 +232,62 @@ const getStats = async (organizationId = null) => {
   }
 }
 
-module.exports = { getStats }
+// Executive summary — fold the raw stats into a high-level, decision-oriented
+// snapshot grouped by lens (finance / sales / inventory / operations) plus a
+// derived list of attention items. Reused by the dashboard view and the AI
+// "executive summary" tools.
+const getExecutiveSummary = async (organizationId = null) => {
+  const s = await getStats(organizationId)
+  const f = s.finance || {}
+
+  const pendingApprovals =
+      (s.pending?.goodReceives ?? 0)
+    + (s.pending?.stockRequests ?? 0)
+    + (s.pending?.adjustments ?? 0)
+    + (s.pending?.purchaseRequisitions ?? 0)
+    + (s.pending?.purchaseOrders ?? 0)
+
+  // Human-readable attention items, most financial-impacting first.
+  const alerts = []
+  if ((f.arOverdueCount ?? 0) > 0)        alerts.push(`${f.arOverdueCount} overdue invoice(s) in AR`)
+  if ((s.products?.zeroStock ?? 0) > 0)   alerts.push(`${s.products.zeroStock} product(s) out of stock`)
+  if ((s.lowStockProducts?.length ?? 0) > 0) alerts.push(`${s.lowStockProducts.length} product(s) at/below reorder point`)
+  if (pendingApprovals > 0)               alerts.push(`${pendingApprovals} item(s) pending approval`)
+  if ((s.draftJournals ?? 0) > 0)         alerts.push(`${s.draftJournals} draft journal(s) to post`)
+
+  return {
+    finance: {
+      salesMtd:       f.salesMtd ?? 0,
+      arOutstanding:  f.arOutstanding ?? 0,
+      arOverdueCount: f.arOverdueCount ?? 0,
+      apOutstanding:  f.apOutstanding ?? 0,
+      // Net working-capital position from receivables vs payables.
+      netPosition:    (f.arOutstanding ?? 0) - (f.apOutstanding ?? 0),
+      vat: f.vatPeriod
+        ? { period: f.vatPeriod.name, netPayable: f.vatPeriod.netPayable }
+        : null,
+    },
+    sales: {
+      openQuotations:    s.sales?.openQuotations ?? 0,
+      activeOrders:      s.sales?.activeSalesOrders ?? 0,
+      pendingDeliveries: s.sales?.pendingDeliveries ?? 0,
+      sentInvoices:      s.invoices?.sentCount ?? 0,
+    },
+    inventory: {
+      activeProducts: s.products?.active ?? 0,
+      totalProducts:  s.products?.total ?? 0,
+      stockOnHand:    s.products?.totalStock ?? 0,
+      outOfStock:     s.products?.zeroStock ?? 0,
+      lowStock:       s.lowStockProducts?.length ?? 0,
+    },
+    operations: {
+      pendingApprovals,
+      pending:           s.pending || {},
+      draftJournals:     s.draftJournals ?? 0,
+      todayGoodReceives: s.todayGoodReceives ?? 0,
+    },
+    alerts,
+  }
+}
+
+module.exports = { getStats, getExecutiveSummary }

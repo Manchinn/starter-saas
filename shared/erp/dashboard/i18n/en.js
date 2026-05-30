@@ -6,6 +6,9 @@ export default {
       greetAfternoon:   'Good afternoon',
       greetEvening:     'Good evening',
       refresh:          'Refresh',
+      execSummary:      'Executive Summary',
+      execSummaryDesc:  'Financial & operational health at a glance',
+      netPosition:      'Net AR − AP',
       actionRequired:   'Action Required',
       alerts: {
         outOfStock:      '{n} product out of stock | {n} products out of stock',

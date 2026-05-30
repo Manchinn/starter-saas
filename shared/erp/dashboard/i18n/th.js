@@ -6,6 +6,9 @@ export default {
       greetAfternoon:   'สวัสดีตอนบ่าย',
       greetEvening:     'สวัสดีตอนเย็น',
       refresh:          'รีเฟรช',
+      execSummary:      'สรุปสำหรับผู้บริหาร',
+      execSummaryDesc:  'ภาพรวมสุขภาพการเงินและการดำเนินงาน',
+      netPosition:      'สุทธิ ลูกหนี้ − เจ้าหนี้',
       actionRequired:   'รอดำเนินการ',
       alerts: {
         outOfStock:      'สินค้าหมดสต็อก {n} รายการ',

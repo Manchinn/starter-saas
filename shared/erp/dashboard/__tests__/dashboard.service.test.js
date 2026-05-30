@@ -291,6 +291,51 @@ describe('dashboard.getStats — straight counts', () => {
   })
 })
 
+describe('dashboard.getExecutiveSummary — folding', () => {
+  test('all-zero stats → empty alerts, zero net position', async () => {
+    const out = await service.getExecutiveSummary()
+    expect(out.finance).toMatchObject({ salesMtd: 0, arOutstanding: 0, apOutstanding: 0, netPosition: 0, vat: null })
+    expect(out.operations.pendingApprovals).toBe(0)
+    expect(out.alerts).toEqual([])
+    expect(Object.keys(out).sort()).toEqual(['alerts', 'finance', 'inventory', 'operations', 'sales'])
+  })
+
+  test('net position = AR − AP; pending + alerts derived from the slices', async () => {
+    const past = new Date(); past.setDate(past.getDate() - 5)
+    const isoPast = past.toISOString().slice(0, 10)
+
+    m.Invoice.findAll
+      .mockResolvedValueOnce([])                                          // recentInvoices
+      .mockResolvedValueOnce([])                                          // salesMtdRows
+      .mockResolvedValueOnce([{ total: 500, exchangeRate: 1, dueDate: isoPast }]) // arSentRows → 500, overdue
+    m.VendorBill.findAll.mockResolvedValue([{ total: 300, exchangeRate: 1 }])     // AP 300
+    m.Product.findAll.mockResolvedValue([{ id: 'p1', name: 'A', sku: 'A', stock: 1, reorderPoint: 5, reorderQty: 10 }]) // 1 low-stock
+    m.Product.count.mockImplementation(async (q) =>
+      (q?.where?.status === 'active' && q?.where?.stock) ? 2 : 0)         // zeroStock = 2
+    m.GoodReceive.count.mockResolvedValue(2)                             // pending GR (+ today GR)
+    m.PurchaseOrder.count.mockResolvedValue(1)                          // pending PO
+    m.Journal.count.mockResolvedValue(3)                               // draft journals
+
+    const out = await service.getExecutiveSummary('org-1')
+
+    expect(out.finance.arOutstanding).toBe(500)
+    expect(out.finance.apOutstanding).toBe(300)
+    expect(out.finance.netPosition).toBe(200)
+    expect(out.finance.arOverdueCount).toBe(1)
+    expect(out.inventory.outOfStock).toBe(2)
+    expect(out.inventory.lowStock).toBe(1)
+    // goodReceives(2) + PRs(0) + POs(1) + adjustments(0) + stockRequests(0)
+    expect(out.operations.pendingApprovals).toBe(3)
+    expect(out.alerts).toEqual([
+      '1 overdue invoice(s) in AR',
+      '2 product(s) out of stock',
+      '1 product(s) at/below reorder point',
+      '3 item(s) pending approval',
+      '3 draft journal(s) to post',
+    ])
+  })
+})
+
 describe('dashboard.getStats — org scoping', () => {
   test('scopes every aggregate to the organization when one is supplied', async () => {
     await service.getStats('org-9')
