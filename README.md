@@ -1,6 +1,6 @@
 # Starter SaaS
 
-A multi-tenant ERP/SaaS starter built as an npm-workspaces monorepo: an Express + Sequelize REST API and a Vue 3 single-page app, sharing a modular (HMVC) ERP layer. It ships with a guided install wizard, JWT auth, per-organization data isolation, realtime in-app alerts, and a full set of ERP modules (sales, purchasing, inventory, accounting, HRMS).
+A multi-tenant ERP/SaaS starter built as an npm-workspaces monorepo: an Express + Sequelize REST API and a Vue 3 single-page app, sharing a modular (HMVC) ERP layer. It ships with a guided install wizard, JWT auth, per-organization data isolation, realtime in-app alerts, a full set of ERP modules (sales, purchasing, inventory, accounting, HRMS), and an AI assistant that connects to a local LLM.
 
 ![Starter SaaS — ERP dashboard with the realtime notification bell open](screenshot.png)
 
@@ -11,6 +11,7 @@ A multi-tenant ERP/SaaS starter built as an npm-workspaces monorepo: an Express 
 - **Cache:** optional Redis (ioredis) with a transparent in-memory fallback
 - **Frontend:** Vue 3, Vite, Pinia, Vue Router, Vue I18n, Tailwind CSS, Axios
 - **i18n:** English and Thai, split per module and auto-merged; supports CE/BE calendars and configurable currency formatting
+- **AI assistant:** local LLM via Ollama or LM Studio; tool-calling agent that navigates pages and creates records
 
 ## Repository layout
 
@@ -25,7 +26,8 @@ starter-saas/
 ├── shared/        HMVC business modules consumed by the server
 │   ├── erp/       products, pricing, customers, vendors, quotations, orders, invoices,
 │   │              receipts, purchasing, inventory/stock, accounting, alerts, settings, …
-│   └── hrms/      departments, employees
+│   ├── hrms/      departments, employees
+│   └── ai-agent/  local-LLM chat, tool registry, provider adapters (Ollama / LM Studio)
 └── package.json   workspace root
 ```
 
@@ -53,6 +55,8 @@ shared/erp/products/
 ├── migrations/         Schema migrations (run automatically on boot)
 ├── seeds/              Optional seed data
 ├── validators/         express-validator rule sets
+├── ai-tools/           AI agent tool definitions scoped to this module (optional)
+│   └── index.js        Exports an array of { name, description, kind, parameters, handler }
 ├── views/              Vue 3 SPA pages (lists + dedicated create/edit pages)
 │   ├── products/        ProductsList.vue, ProductCreate.vue, ProductEdit.vue
 │   └── categories/      ProductCategoriesList.vue, …Create.vue, …Edit.vue
@@ -80,7 +84,7 @@ layout — no central registry edits are needed; the route/nav auto-discovery pi
 
 ## Realtime alerts
 
-The `shared/erp/alert` module powers the notification bell in the topbar (shown above).
+The `shared/erp/alert` module powers the notification bell in the topbar.
 Alerts can be authored for everyone (`global`), a specific module, or an HRMS department,
 and are delivered live over **Socket.IO** — the server wraps Express in an HTTP server,
 authenticates each socket with the JWT access token, and joins per-org / per-module /
@@ -89,11 +93,59 @@ unread badge and a panel with All / Module / Department filters; read state is t
 per user. Other modules can raise alerts programmatically via the service's
 `emitSystem()` helper. Guarded by the `erp.alerts.list` / `erp.alerts.manage` permissions.
 
+## AI assistant
+
+The `shared/ai-agent` module provides a conversational AI assistant that connects to a
+locally-hosted LLM (no cloud key required).
+
+**Provider support**
+
+| Provider | Default base URL |
+|---|---|
+| [Ollama](https://ollama.com) | `http://localhost:11434` |
+| [LM Studio](https://lmstudio.ai) | `http://localhost:1234/v1` |
+
+The provider, model, temperature, system prompt, and an optional API key are configurable
+per organization from **AI → Settings** (`/ai/settings`).
+
+**Tool-calling agent**
+
+The assistant uses the LLM's native tool-calling interface. The global tool registry lives in
+`shared/ai-agent/services/tools.js` and includes:
+
+| Tool | Kind | Description |
+|---|---|---|
+| `navigate` | client | Opens a page in the SPA |
+| `create_product` | server | Creates a product in the catalogue |
+| `list_products` | server | Searches the product list |
+| `create_customer` | server | Creates a customer record |
+| `list_customers` | server | Searches the customer list |
+
+**Adding tools for a new ERP module**
+
+Create `shared/erp/<feature>/ai-tools/index.js` that exports an array of tool definitions,
+then spread it into the registry in `shared/ai-agent/services/tools.js`:
+
+```js
+const featureTools = require('../../erp/<feature>/ai-tools')
+const tools = [ ...coreTools, ...featureTools ]
+```
+
+**UI**
+
+- **Full-page chat** — `/ai/chat` — conversation sidebar + message thread.
+- **Slide-over panel** — a sparkles button (✦) in the topbar opens a compact chat panel
+  from anywhere in the app, following the same slide-over pattern as the inline forms.
+
+Conversations and messages are stored per organization in the database. The assistant is
+disabled by default until a provider is configured and tested.
+
 ## Prerequisites
 
 - Node.js 18+ and npm 9+
 - (Optional) PostgreSQL / MySQL / MariaDB / SQL Server if you don't want SQLite
 - (Optional) Redis if you want a shared cache
+- (Optional) Ollama or LM Studio running locally for the AI assistant
 
 ## Getting started
 
