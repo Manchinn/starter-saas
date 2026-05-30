@@ -141,7 +141,11 @@
       "Bash(echo \"started pid $!\")",
       "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Write-Output '\\\\''port 3000 cleared'\\\\''')",
       "Read(//tmp/**)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Find-Item -Path \"D:\\\\Projects\\\\starter-saas\\\\shared\\\\components\\\\form\" -Filter \"*.vue\" -Name)",
+      "Bash(dir \"D:\\\\Projects\\\\starter-saas\\\\shared\\\\hrms\\\\views\" -Recurse -Filter \"*.vue\")"
     ]
   }
 }
