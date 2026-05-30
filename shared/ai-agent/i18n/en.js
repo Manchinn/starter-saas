@@ -1,8 +1,9 @@
 export default {
   nav: {
-    aiAgent:    'AI Assistant',
-    aiChat:     'Chat',
-    aiSettings: 'Settings',
+    aiAgent:      'AI Assistant',
+    aiChat:       'Chat',
+    aiSettings:   'Settings',
+    openFullPage: 'Open full page',
   },
   aiAgent: {
     chat: {

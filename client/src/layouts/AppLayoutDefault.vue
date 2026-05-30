@@ -179,6 +179,13 @@
         </div>
 
         <div class="flex items-center gap-1.5 sm:gap-2.5">
+          <!-- AI Chat button -->
+          <button type="button" @click="chatOpen = true"
+            class="p-2 text-[#637381] hover:bg-[#F7F9FC] hover:text-primary-600 transition-colors"
+            :title="t('aiAgent.chat.title')">
+            <SparklesIcon class="w-5 h-5" />
+          </button>
+
           <!-- Language switcher -->
           <div class="relative" ref="langMenuRef">
             <button
@@ -303,18 +310,22 @@
 
     </div>
   </div>
+
+  <!-- AI Chat slide-over -->
+  <AiChatPanel v-model="chatOpen" />
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import {
   ChevronDownIcon, ArrowRightOnRectangleIcon,
-  UserCircleIcon, ComputerDesktopIcon, Bars3Icon, XMarkIcon,
+  UserCircleIcon, ComputerDesktopIcon, Bars3Icon, XMarkIcon, SparklesIcon,
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useAppLayout } from '@/composables/useAppLayout'
 import AlertBell from '@/components/AlertBell.vue'
+import AiChatPanel from '@/components/AiChatPanel.vue'
 
 const {
   auth,
@@ -331,6 +342,9 @@ const route  = useRoute()
 
 // ── Mobile sidebar state ────────────────────────────────────────────────
 const sidebarOpen = ref(false)
+
+// ── AI Chat panel ────────────────────────────────────────────────────────
+const chatOpen = ref(false)
 
 watch(() => route.path, () => { sidebarOpen.value = false })
 

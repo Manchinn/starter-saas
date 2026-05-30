@@ -1,8 +1,9 @@
 export default {
   nav: {
-    aiAgent:    'ผู้ช่วย AI',
-    aiChat:     'แชท',
-    aiSettings: 'ตั้งค่า',
+    aiAgent:      'ผู้ช่วย AI',
+    aiChat:       'แชท',
+    aiSettings:   'ตั้งค่า',
+    openFullPage: 'เปิดหน้าเต็ม',
   },
   aiAgent: {
     chat: {
