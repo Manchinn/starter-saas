@@ -10,12 +10,31 @@
  *   { result, action }   — `result` (string|object) is summarized back to the
  *                          model; `action` is forwarded to the client to run.
  *
- * ERP services are required lazily inside handlers to avoid any module
- * load-order coupling (same pattern product.service uses for sequence.service).
+ * Module tools are auto-loaded from any shared/erp/<module>/ai-tools/index.js.
+ * To add tools for a new module, create that file and export an array of tool definitions.
  */
 
-const productTools  = require('../../erp/products/ai-tools')
-const customerTools = require('../../erp/customers/ai-tools')
+const fs   = require('fs')
+const path = require('path')
+
+const ERP_DIR = path.join(__dirname, '../../erp')
+
+const findAiToolFiles = (dir) => {
+  const out = []
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const full = path.join(dir, entry.name)
+    if (entry.name === 'ai-tools') {
+      const idx = path.join(full, 'index.js')
+      if (fs.existsSync(idx)) out.push(idx)
+    } else {
+      out.push(...findAiToolFiles(full))
+    }
+  }
+  return out
+}
+
+const moduleTools = findAiToolFiles(ERP_DIR).flatMap((file) => require(file))
 
 // Friendly page targets the `navigate` tool understands → real SPA routes.
 const NAV_TARGETS = {
@@ -59,8 +78,7 @@ const tools = [
     },
   },
 
-  ...productTools,
-  ...customerTools,
+  ...moduleTools,
 ]
 
 const byName = new Map(tools.map((t) => [t.name, t]))
