@@ -1,3 +1,8 @@
+const navTargets = {
+  customers_list:  { path: '/erp/customers',        label: 'Customers' },
+  customer_create: { path: '/erp/customers/create', label: 'New Customer' },
+}
+
 const tools = [
   {
     name: 'create_customer',
@@ -59,4 +64,4 @@ const tools = [
   },
 ]
 
-module.exports = tools
+module.exports = { tools, navTargets }

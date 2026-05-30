@@ -34,20 +34,13 @@ const findAiToolFiles = (dir) => {
   return out
 }
 
-const moduleTools = findAiToolFiles(ERP_DIR).flatMap((file) => require(file))
-
-// Friendly page targets the `navigate` tool understands → real SPA routes.
-const NAV_TARGETS = {
-  dashboard:        { path: '/erp/dashboard',           label: 'Dashboard' },
-  products_list:    { path: '/erp/item-master',         label: 'Products' },
-  product_create:   { path: '/erp/item-master/create',  label: 'New Product' },
-  customers_list:   { path: '/erp/customers',           label: 'Customers' },
-  customer_create:  { path: '/erp/customers/create',    label: 'New Customer' },
-  orders_list:      { path: '/erp/orders',              label: 'Orders' },
-  order_create:     { path: '/erp/orders/create',       label: 'New Order' },
-  invoices_list:    { path: '/erp/invoices',            label: 'Invoices' },
-  invoice_create:   { path: '/erp/invoices/create',     label: 'New Invoice' },
-  settings:         { path: '/erp/settings/general',    label: 'Settings' },
+// Auto-load tools and navTargets from every shared/erp/<module>/ai-tools/index.js.
+const NAV_TARGETS = {}
+const moduleTools = []
+for (const file of findAiToolFiles(ERP_DIR)) {
+  const mod = require(file)
+  moduleTools.push(...(mod.tools || []))
+  Object.assign(NAV_TARGETS, mod.navTargets || {})
 }
 
 const tools = [
