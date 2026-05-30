@@ -1,135 +1,122 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/hrms/employees" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.employees.new') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">Link an existing user account to an employee record</p>
-        </div>
-      </div>
+      <PageHeader :title="t('erp.employees.new')" back-to="/hrms/employees"
+        :breadcrumb="[
+          { label: t('erp.employees.title'), to: '/hrms/employees' },
+          { label: t('common.create') },
+        ]">
+        <template #actions>
+          <HeaderSaveActions
+            cancel-to="/hrms/employees"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.creating')"
+            :save-label="t('erp.employees.create')"
+            @save="save"
+          />
+        </template>
+      </PageHeader>
 
       <!-- Two-column layout -->
       <div class="grid grid-cols-2 gap-6 items-start">
 
         <!-- Left: Employee Information -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0]">
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.employeeInfo') }}</h2>
-          </div>
-          <div class="px-6 py-5 grid grid-cols-2 gap-4">
+        <FormCard :title="t('erp.employees.employeeInfo')" :icon="IdentificationIcon" icon-color="primary">
+          <div class="grid grid-cols-2 gap-4">
 
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.employeeCode') }}</label>
-              <input v-if="!autoCode.enabled.value" v-model="form.employeeCode" type="text" placeholder="e.g. EMP-001"
-                class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              <input v-else :value="autoCode.preview.value" type="text" readonly
-                class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
-              <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
-                {{ t('erp.common.autoGenerate') }}
-              </label>
+            <FormField name="employeeCode" :label="t('erp.employees.employeeCode')" :errors="fieldErrors"
+              wrapper-class="col-span-2">
+              <template #default="{ id }">
+                <input v-if="!autoCode.enabled.value" :id="id" v-model="form.employeeCode" type="text"
+                  placeholder="e.g. EMP-001" class="input font-mono" />
+                <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
+                  class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+                <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
+                  <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" />
+                  {{ t('erp.common.autoGenerate') }}
+                </label>
+              </template>
+            </FormField>
+
+            <FormField name="firstName" :label="t('erp.employees.firstName')" :errors="fieldErrors"
+              v-model="form.firstName" placeholder="First name" required />
+
+            <FormField name="lastName" :label="t('erp.employees.lastName')" :errors="fieldErrors"
+              v-model="form.lastName" placeholder="Last name" required />
+
+            <FormField name="position" :label="t('erp.employees.position')" :errors="fieldErrors"
+              v-model="form.position" placeholder="e.g. Software Engineer" />
+
+            <FormField name="phone" :label="t('erp.employees.phone')" :errors="fieldErrors"
+              v-model="form.phone" placeholder="+1 555 000 0000" />
+
+            <FormField name="startDate" :label="t('erp.employees.startDate')" :errors="fieldErrors">
+              <template #default>
+                <DateInput v-model="form.startDate" class="input" />
+              </template>
+            </FormField>
+
+            <div class="col-span-2 grid grid-cols-2 gap-4">
+              <FormField name="activeFrom" :label="t('erp.common.activeFrom')" :errors="fieldErrors">
+                <template #default>
+                  <DateInput v-model="form.activeFrom" class="input" />
+                </template>
+              </FormField>
+              <FormField name="activeTo" :label="t('erp.common.activeTo')" :errors="fieldErrors">
+                <template #default>
+                  <DateInput v-model="form.activeTo" class="input" />
+                </template>
+              </FormField>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.firstName') }} <span class="text-red-500">*</span></label>
-              <input v-model="form.firstName" type="text" placeholder="First name"
-                :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('firstName') && 'input-error']" />
-              <FieldError name="firstName" :errors="fieldErrors" />
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.lastName') }} <span class="text-red-500">*</span></label>
-              <input v-model="form.lastName" type="text" placeholder="Last name"
-                :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('lastName') && 'input-error']" />
-              <FieldError name="lastName" :errors="fieldErrors" />
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.position') }}</label>
-              <input v-model="form.position" type="text" placeholder="e.g. Software Engineer"
-                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
-
-
-
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.phone') }}</label>
-              <input v-model="form.phone" type="text" placeholder="+1 555 000 0000"
-                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.startDate') }}</label>
-              <DateInput v-model="form.startDate"
-                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 col-span-2">
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.status') }}</label>
+              <FieldLabel :text="t('erp.employees.status')" />
               <SearchSelect v-model="form.status" :options="EMP_STATUS_OPTIONS" :allow-empty="false" placeholder="— Select —" />
             </div>
 
           </div>
-        </div>
+        </FormCard>
 
-        <!-- Right: Login Credentials (Optional) -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0]">
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.loginCredentials') }}</h2>
-          </div>
+        <!-- Right: Login Credentials + Departments -->
+        <FormCard :title="t('erp.employees.loginCredentials')" :icon="KeyIcon" icon-color="green">
+          <div class="space-y-4">
 
-          <div class="px-6 py-5 space-y-4">
-            <label class="flex items-center gap-2 cursor-pointer select-none mb-2">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
               <input type="checkbox" v-model="createAccount" class="text-primary-500 focus:ring-primary-500" />
               <span class="text-sm font-medium text-[#374151]">{{ t('erp.employees.createLogin') }}</span>
             </label>
 
             <div v-if="createAccount" class="space-y-4 pt-4 border-t border-slate-50">
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.emailUsername') }} <span class="text-red-500">*</span></label>
-                <input v-model="form.email" type="email" placeholder="employee@company.com"
-                  :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('email') && 'input-error']" />
-                <FieldError name="email" :errors="fieldErrors" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.password') }} <span class="text-red-500">*</span></label>
-                <div class="relative">
-                  <input v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="Min 8 characters"
-                    :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10', errorOf('password') && 'input-error']" />
+              <FormField name="email" :label="t('erp.employees.emailUsername')" :errors="fieldErrors"
+                v-model="form.email" type="email" placeholder="employee@company.com" required />
+
+              <FormField name="password" :label="t('erp.employees.password')" :errors="fieldErrors"
+                v-model="form.password" :type="showPassword ? 'text' : 'password'"
+                placeholder="Min 8 characters" required>
+                <template #suffix>
                   <button type="button" @click="showPassword = !showPassword"
-                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9BA7B0] hover:text-[#637381]">
+                    class="text-[#9BA7B0] hover:text-[#637381]">
                     <EyeSlashIcon v-if="showPassword" class="w-4 h-4" />
                     <EyeIcon v-else class="w-4 h-4" />
                   </button>
-                </div>
-                <FieldError name="password" :errors="fieldErrors" />
-              </div>
+                </template>
+              </FormField>
+
               <p class="text-xs text-[#637381] italic">
                 A system user account will be created and linked to this employee.
               </p>
             </div>
+
             <div v-else class="text-xs text-[#9BA7B0] py-2">
               This employee record will not have a login account associated with it.
             </div>
 
-            <!-- Moved Department Selection here -->
-            <div class="pt-6 border-t border-[#E2E8F0]">
-              <label class="block text-sm font-medium text-[#374151] mb-3">{{ t('erp.employees.deptAssignments') }}</label>
-              <div class="grid grid-cols-2 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/80 max-h-48 overflow-y-auto">
+            <!-- Department Assignments -->
+            <div class="pt-4 border-t border-[#E2E8F0]">
+              <FieldLabel :text="t('erp.employees.deptAssignments')" />
+              <div class="mt-2 grid grid-cols-2 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/80 max-h-48 overflow-y-auto">
                 <label v-for="d in departments" :key="d.id" class="flex items-center gap-2 px-2 py-1.5 hover:bg-white cursor-pointer transition-colors">
                   <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="text-primary-500 focus:ring-primary-500" />
                   <span class="text-xs font-medium text-[#374151] truncate" :title="d.name">{{ d.name }}</span>
@@ -140,27 +127,13 @@
                 No departments configured.
               </p>
             </div>
+
           </div>
-        </div>
+        </FormCard>
 
       </div>
 
-      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-        <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
-        {{ error }}
-      </div>
-
-      <div class="flex justify-end gap-3">
-        <RouterLink to="/hrms/employees" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
-          {{ t('common.cancel') }}
-        </RouterLink>
-        <button @click="save" :disabled="saving"
-          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white
-                 hover:bg-primary-700 disabled:opacity-50 transition-colors shadow-sm">
-          <CheckIcon v-if="!saving" class="w-4 h-4" />
-          {{ saving ? t('erp.common.creating') : t('erp.employees.create') }}
-        </button>
-      </div>
+      <ErrorBanner :message="error" />
 
     </div>
   </AppLayout>
@@ -170,10 +143,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
+import { IdentificationIcon, KeyIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
@@ -186,6 +165,7 @@ const EMP_STATUS_OPTIONS = computed(() => [
   { id: 'inactive',   name: t('erp.employees.inactive') },
   { id: 'terminated', name: t('erp.employees.terminated') },
 ])
+
 const router        = useRouter()
 const autoCode      = useAutoCode('EMP')
 const users         = ref([])
@@ -194,7 +174,7 @@ const error         = ref('')
 const saving        = ref(false)
 const createAccount = ref(false)
 const showPassword  = ref(false)
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const form = ref({
   employeeCode:  '',
@@ -211,8 +191,6 @@ const form = ref({
   email:         '',
   password:      '',
 })
-
-const selectedUser = computed(() => users.value.find(u => u.id === form.value.userId) || null)
 
 onMounted(async () => {
   try {

@@ -1,173 +1,154 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/hrms/employees" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.employees.edit') }}</h1>
-          <p v-if="form.employeeCode" class="text-sm text-[#637381] mt-0.5 font-mono">{{ form.employeeCode }}</p>
-        </div>
-      </div>
+      <PageHeader :title="t('erp.employees.edit')" back-to="/hrms/employees"
+        :breadcrumb="[
+          { label: t('erp.employees.title'), to: '/hrms/employees' },
+          { label: t('erp.employees.edit') },
+        ]">
+        <template #actions>
+          <HeaderSaveActions
+            cancel-to="/hrms/employees"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('common.saveChanges')"
+            @save="save"
+          />
+        </template>
+      </PageHeader>
 
-      <div v-if="loading" class="bg-white border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">Loading…</div>
+      <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">{{ t('common.loading') }}</div>
 
       <template v-else>
 
         <!-- Two-column layout -->
         <div class="grid grid-cols-2 gap-6 items-start">
-          
+
           <!-- Left: Employee Information -->
-          <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-[#E2E8F0]">
-              <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.employeeInfo') }}</h2>
-            </div>
-            <div class="px-6 py-5 grid grid-cols-2 gap-4">
-              <div class="col-span-2">
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.employeeCode') }}</label>
-                <input v-model="form.employeeCode" type="text" placeholder="e.g. EMP-001"
-                  class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
+          <FormCard :title="t('erp.employees.employeeInfo')" :icon="IdentificationIcon" icon-color="primary">
+            <div class="grid grid-cols-2 gap-4">
 
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.firstName') }} <span class="text-red-500">*</span></label>
-                <input v-model="form.firstName" type="text"
-                  :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('firstName') && 'input-error']" />
-                <FieldError name="firstName" :errors="fieldErrors" />
-              </div>
+              <FormField name="employeeCode" :label="t('erp.employees.employeeCode')" :errors="fieldErrors"
+                v-model="form.employeeCode" placeholder="e.g. EMP-001"
+                input-class="font-mono" wrapper-class="col-span-2" />
 
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.lastName') }} <span class="text-red-500">*</span></label>
-                <input v-model="form.lastName" type="text"
-                  :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('lastName') && 'input-error']" />
-                <FieldError name="lastName" :errors="fieldErrors" />
-              </div>
+              <FormField name="firstName" :label="t('erp.employees.firstName')" :errors="fieldErrors"
+                v-model="form.firstName" required />
 
-              <div class="col-span-2">
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.position') }}</label>
-                <input v-model="form.position" type="text" placeholder="e.g. Software Engineer"
-                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
+              <FormField name="lastName" :label="t('erp.employees.lastName')" :errors="fieldErrors"
+                v-model="form.lastName" required />
 
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.phone') }}</label>
-                <input v-model="form.phone" type="text"
-                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
+              <FormField name="position" :label="t('erp.employees.position')" :errors="fieldErrors"
+                v-model="form.position" placeholder="e.g. Software Engineer"
+                wrapper-class="col-span-2" />
 
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.startDate') }}</label>
-                <DateInput v-model="form.startDate"
-                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
+              <FormField name="phone" :label="t('erp.employees.phone')" :errors="fieldErrors"
+                v-model="form.phone" />
+
+              <FormField name="startDate" :label="t('erp.employees.startDate')" :errors="fieldErrors">
+                <template #default>
+                  <DateInput v-model="form.startDate" class="input" />
+                </template>
+              </FormField>
 
               <div class="col-span-2 grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-                  <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-                  <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                </div>
+                <FormField name="activeFrom" :label="t('erp.common.activeFrom')" :errors="fieldErrors">
+                  <template #default>
+                    <DateInput v-model="form.activeFrom" class="input" />
+                  </template>
+                </FormField>
+                <FormField name="activeTo" :label="t('erp.common.activeTo')" :errors="fieldErrors">
+                  <template #default>
+                    <DateInput v-model="form.activeTo" class="input" />
+                  </template>
+                </FormField>
               </div>
-              <div class="col-span-2 border-t border-slate-50 pt-3">
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.employmentStatus') }}</label>
+
+              <div class="col-span-2">
+                <FieldLabel :text="t('erp.employees.employmentStatus')" />
                 <SearchSelect v-model="form.status" :options="EMP_STATUS_OPTIONS" :allow-empty="false" placeholder="— Select —" />
               </div>
-            </div>
-          </div>
 
-          <!-- Right Column -->
+            </div>
+          </FormCard>
+
+          <!-- Right: User Account + Departments -->
           <div class="space-y-6">
-            <!-- User Account -->
-            <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-              <div class="px-6 py-4 border-b border-[#E2E8F0]">
-                <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.employees.userAccount') }}</h2>
-                <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.employees.linkedUser') }}</p>
-              </div>
-              <div class="px-6 py-5">
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.employees.user') }}</label>
-                <SearchSelect v-model="form.userId" :options="userOptions" placeholder="— None —" />
+            <FormCard :title="t('erp.employees.userAccount')" :icon="UserCircleIcon" icon-color="green">
+              <p class="text-xs text-[#9BA7B0] -mt-1 mb-3">{{ t('erp.employees.linkedUser') }}</p>
 
-                <div v-if="selectedUser" class="mt-4 p-3.5 bg-[#F7F9FC] space-y-2 border border-[#E2E8F0]">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-primary-100 text-primary-500 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                      {{ selectedUser.name.charAt(0).toUpperCase() }}
-                    </div>
-                    <div>
-                      <p class="text-sm font-bold text-[#1C2434] leading-tight">{{ selectedUser.name }}</p>
-                      <p class="text-xs text-[#637381]">{{ selectedUser.email }}</p>
-                    </div>
+              <FieldLabel :text="t('erp.employees.user')" />
+              <SearchSelect v-model="form.userId" :options="userOptions" placeholder="— None —" />
+
+              <div v-if="selectedUser" class="mt-4 p-3.5 bg-[#F7F9FC] space-y-2 border border-[#E2E8F0]">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 bg-primary-100 text-primary-500 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    {{ selectedUser.name.charAt(0).toUpperCase() }}
                   </div>
-                  <div class="flex items-center gap-4 pt-1">
-                    <span class="text-xs text-[#637381] flex items-center gap-1">
-                      Role: <span class="font-semibold text-[#374151] capitalize">{{ selectedUser.role }}</span>
-                    </span>
-                    <span :class="selectedUser.isActive ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" 
-                      class="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5">
-                      {{ selectedUser.isActive ? t('erp.employees.active') : t('erp.employees.inactive') }}
-                    </span>
+                  <div>
+                    <p class="text-sm font-bold text-[#1C2434] leading-tight">{{ selectedUser.name }}</p>
+                    <p class="text-xs text-[#637381]">{{ selectedUser.email }}</p>
                   </div>
                 </div>
-
-                <!-- Department Selection -->
-                <div class="pt-6 mt-6 border-t border-[#E2E8F0]">
-                  <div class="flex items-center justify-between mb-3">
-                    <label class="block text-sm font-medium text-[#374151]">{{ t('erp.employees.deptAssignments') }}</label>
-                    <span class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-widest">{{ form.departmentIds.length }} {{ t('erp.employees.selected') }}</span>
-                  </div>
-                  <div class="grid grid-cols-1 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/50 max-h-56 overflow-y-auto shadow-inner">
-                    <label v-for="d in departments" :key="d.id" 
-                      class="flex items-center gap-2.5 px-3 py-2 hover:bg-white hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-[#E2E8F0] group">
-                      <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="text-primary-500 focus:ring-primary-500" />
-                      <span class="text-xs font-medium text-[#637381] group-hover:text-primary-500 transition-colors truncate" :title="d.name">{{ d.name }}</span>
-                    </label>
-                  </div>
-                  <p v-if="!departments.length" class="text-xs text-[#9BA7B0] mt-2 italic flex items-center gap-1.5 px-1">
-                    <InformationCircleIcon class="w-3.5 h-3.5" />
-                    No departments configured.
-                  </p>
+                <div class="flex items-center gap-4 pt-1">
+                  <span class="text-xs text-[#637381] flex items-center gap-1">
+                    Role: <span class="font-semibold text-[#374151] capitalize">{{ selectedUser.role }}</span>
+                  </span>
+                  <span :class="selectedUser.isActive ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'"
+                    class="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5">
+                    {{ selectedUser.isActive ? t('erp.employees.active') : t('erp.employees.inactive') }}
+                  </span>
                 </div>
               </div>
-            </div>
+
+              <!-- Department Assignments -->
+              <div class="pt-5 mt-5 border-t border-[#E2E8F0]">
+                <div class="flex items-center justify-between mb-2">
+                  <FieldLabel :text="t('erp.employees.deptAssignments')" />
+                  <span class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-widest">
+                    {{ form.departmentIds.length }} {{ t('erp.employees.selected') }}
+                  </span>
+                </div>
+                <div class="grid grid-cols-1 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/50 max-h-56 overflow-y-auto shadow-inner">
+                  <label v-for="d in departments" :key="d.id"
+                    class="flex items-center gap-2.5 px-3 py-2 hover:bg-white hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-[#E2E8F0] group">
+                    <input type="checkbox" v-model="form.departmentIds" :value="d.id" class="text-primary-500 focus:ring-primary-500" />
+                    <span class="text-xs font-medium text-[#637381] group-hover:text-primary-500 transition-colors truncate" :title="d.name">{{ d.name }}</span>
+                  </label>
+                </div>
+                <p v-if="!departments.length" class="text-xs text-[#9BA7B0] mt-2 italic flex items-center gap-1.5 px-1">
+                  <InformationCircleIcon class="w-3.5 h-3.5" />
+                  No departments configured.
+                </p>
+              </div>
+            </FormCard>
           </div>
 
         </div>
 
-        <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-          <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
-          {{ error }}
-        </div>
-
-        <div class="flex justify-end gap-3 pt-4">
-          <RouterLink to="/hrms/employees" class="px-4 py-2 text-sm font-medium text-[#637381] border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
-            {{ t('common.cancel') }}
-          </RouterLink>
-          <button @click="save" :disabled="saving"
-            class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold bg-primary-500 text-white
-                   hover:bg-primary-700 disabled:opacity-50 transition-all shadow-md hover:shadow-lg active:scale-95">
-            <CheckIcon v-if="!saving" class="w-4 h-4 shadow-sm" />
-            {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
-          </button>
-        </div>
+        <ErrorBanner :message="error" />
 
       </template>
     </div>
   </AppLayout>
 </template>
 
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
+import { IdentificationIcon, UserCircleIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
@@ -181,7 +162,7 @@ const saving  = ref(false)
 const users   = ref([])
 const departments = ref([])
 const error   = ref('')
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const EMP_STATUS_OPTIONS = computed(() => [
   { id: 'active',     name: t('erp.employees.active') },

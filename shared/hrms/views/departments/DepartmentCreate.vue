@@ -1,79 +1,69 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/hrms/departments" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.departments.new') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ t('erp.departments.createDesc') }}</p>
-        </div>
-      </div>
+      <PageHeader :title="t('erp.departments.new')" back-to="/hrms/departments"
+        :breadcrumb="[
+          { label: t('erp.departments.title'), to: '/hrms/departments' },
+          { label: t('common.create') },
+        ]">
+        <template #actions>
+          <HeaderSaveActions
+            cancel-to="/hrms/departments"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.creating')"
+            :save-label="t('erp.departments.create')"
+            @save="save"
+          />
+        </template>
+      </PageHeader>
 
-      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <div class="px-6 py-5 space-y-4">
+      <FormCard :title="t('erp.departments.new')" :icon="BuildingOfficeIcon" icon-color="primary">
+        <div class="space-y-4">
 
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.code') }}</label>
-            <input v-if="!autoCode.enabled.value" v-model="form.code" type="text" placeholder="e.g. DEP0001"
-              class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            <input v-else :value="autoCode.preview.value" type="text" readonly
-              class="w-full px-3 py-2 border text-sm bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
-            <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
-              <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" class="" />
-              {{ t('erp.common.autoGenerate') }}
-            </label>
-          </div>
+          <FormField name="code" :label="t('erp.departments.code')" :errors="fieldErrors">
+            <template #default="{ id }">
+              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+                placeholder="e.g. DEP0001" class="input font-mono" />
+              <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
+                class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
+              <label class="mt-1 flex items-center gap-2 text-xs text-[#637381] cursor-pointer select-none">
+                <input type="checkbox" :checked="autoCode.enabled.value" @change="autoCode.toggle" />
+                {{ t('erp.common.autoGenerate') }}
+              </label>
+            </template>
+          </FormField>
 
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.name') }} <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" placeholder="e.g. Engineering"
-              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-            <FieldError name="name" :errors="fieldErrors" />
-          </div>
+          <FormField name="name" :label="t('erp.departments.name')" :errors="fieldErrors"
+            v-model="form.name" placeholder="e.g. Engineering" required />
 
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.description') }}</label>
-            <textarea v-model="form.description" rows="3" placeholder="Describe the functions of this department…"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"></textarea>
-          </div>
+          <FormField name="description" :label="t('erp.departments.description')" :errors="fieldErrors"
+            v-model="form.description" textarea :rows="3"
+            placeholder="Describe the functions of this department…" />
 
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-              <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-              <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
+            <FormField name="activeFrom" :label="t('erp.common.activeFrom')" :errors="fieldErrors">
+              <template #default>
+                <DateInput v-model="form.activeFrom" class="input" />
+              </template>
+            </FormField>
+            <FormField name="activeTo" :label="t('erp.common.activeTo')" :errors="fieldErrors">
+              <template #default>
+                <DateInput v-model="form.activeTo" class="input" />
+              </template>
+            </FormField>
           </div>
+
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.status') }}</label>
+            <FieldLabel :text="t('erp.departments.status')" />
             <SearchSelect v-model="form.isActive" :options="STATUS_OPTIONS" :allow-empty="false" placeholder="— Select —" />
           </div>
 
         </div>
-      </div>
+      </FormCard>
 
-      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-        <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
-        {{ error }}
-      </div>
-
-      <div class="flex justify-end gap-3">
-        <RouterLink to="/hrms/departments" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
-          {{ t('common.cancel') }}
-        </RouterLink>
-        <button @click="save" :disabled="saving"
-          class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white
-                 hover:bg-primary-700 disabled:opacity-50 transition-colors shadow-sm">
-          <CheckIcon v-if="!saving" class="w-4 h-4" />
-          {{ saving ? t('erp.common.creating') : t('erp.departments.create') }}
-        </button>
-      </div>
+      <ErrorBanner :message="error" />
 
     </div>
   </AppLayout>
@@ -83,10 +73,16 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
+import { BuildingOfficeIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
@@ -97,7 +93,7 @@ const router   = useRouter()
 const autoCode = useAutoCode('DEP')
 const saving   = ref(false)
 const error    = ref('')
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const STATUS_OPTIONS = computed(() => [
   { id: true,  name: t('common.active') },

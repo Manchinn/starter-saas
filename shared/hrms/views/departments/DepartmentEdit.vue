@@ -1,86 +1,76 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/hrms/departments" class="p-1.5 text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F1F5F9] transition-colors">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.departments.edit') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ form.name }}</p>
-        </div>
-      </div>
+      <PageHeader :title="t('erp.departments.edit')" back-to="/hrms/departments"
+        :breadcrumb="[
+          { label: t('erp.departments.title'), to: '/hrms/departments' },
+          { label: t('erp.departments.edit') },
+        ]">
+        <template #actions>
+          <HeaderSaveActions
+            cancel-to="/hrms/departments"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('common.saveChanges')"
+            @save="save"
+          />
+        </template>
+      </PageHeader>
 
-      <div v-if="loading" class="bg-white border border-[#E2E8F0] p-6 text-center text-[#9BA7B0] font-medium">Loading…</div>
+      <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">{{ t('common.loading') }}</div>
 
-      <template v-else>
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-          <div class="px-6 py-5 space-y-4">
+      <FormCard v-else :title="t('erp.departments.edit')" :icon="BuildingOfficeIcon" icon-color="primary">
+        <div class="space-y-4">
 
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label class="block text-sm font-medium text-[#374151]">{{ t('erp.departments.code') }}</label>
+          <FormField name="code" :errors="fieldErrors" v-model="form.code"
+            hint="Short unique identifier for this department">
+            <template #label>
+              <span class="flex items-center justify-between">
+                {{ t('erp.departments.code') }}
                 <button type="button" @click="forceGenerate"
-                  class="text-xs text-primary-500 hover:text-primary-500 hover:underline">
+                  class="text-xs text-primary-500 hover:underline font-normal">
                   ↻ {{ t('erp.departments.generate') }}
                 </button>
-              </div>
-              <input v-model="form.code" @input="form.code = form.code.toUpperCase()" type="text"
-                placeholder="e.g. ENG" maxlength="10"
-                class="w-full px-3 py-2 border text-sm font-mono uppercase
-                       focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              <p class="mt-1 text-xs text-[#9BA7B0]">Short unique identifier for this department</p>
-            </div>
+              </span>
+            </template>
+            <template #default="{ id, hasError }">
+              <input :id="id" v-model="form.code" type="text" placeholder="e.g. ENG" maxlength="10"
+                @input="form.code = form.code.toUpperCase()"
+                :class="['input font-mono uppercase', hasError && 'input-error']" />
+            </template>
+          </FormField>
 
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.name') }} <span class="text-red-500">*</span></label>
-              <input v-model="form.name" type="text" placeholder="e.g. Engineering"
-                :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-              <FieldError name="name" :errors="fieldErrors" />
-            </div>
+          <FormField name="name" :label="t('erp.departments.name')" :errors="fieldErrors"
+            v-model="form.name" placeholder="e.g. Engineering" required />
 
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.description') }}</label>
-              <textarea v-model="form.description" rows="3" placeholder="Describe the functions of this department…"
-                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"></textarea>
-            </div>
+          <FormField name="description" :label="t('erp.departments.description')" :errors="fieldErrors"
+            v-model="form.description" textarea :rows="3"
+            placeholder="Describe the functions of this department…" />
 
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeFrom') }}</label>
-                <DateInput v-model="form.activeFrom" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.activeTo') }}</label>
-                <DateInput v-model="form.activeTo" class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.departments.status') }}</label>
-              <SearchSelect v-model="form.isActive" :options="STATUS_OPTIONS" :allow-empty="false" placeholder="— Select —" />
-            </div>
-
+          <div class="grid grid-cols-2 gap-4">
+            <FormField name="activeFrom" :label="t('erp.common.activeFrom')" :errors="fieldErrors">
+              <template #default>
+                <DateInput v-model="form.activeFrom" class="input" />
+              </template>
+            </FormField>
+            <FormField name="activeTo" :label="t('erp.common.activeTo')" :errors="fieldErrors">
+              <template #default>
+                <DateInput v-model="form.activeTo" class="input" />
+              </template>
+            </FormField>
           </div>
-        </div>
 
-        <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-          <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
-          {{ error }}
-        </div>
+          <div>
+            <FieldLabel :text="t('erp.departments.status')" />
+            <SearchSelect v-model="form.isActive" :options="STATUS_OPTIONS" :allow-empty="false" placeholder="— Select —" />
+          </div>
 
-        <div class="flex justify-end gap-3">
-          <RouterLink to="/hrms/departments" class="px-4 py-2 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition-colors">
-            {{ t('common.cancel') }}
-          </RouterLink>
-          <button @click="save" :disabled="saving"
-            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white
-                   hover:bg-primary-700 disabled:opacity-50 transition-colors shadow-sm">
-            <CheckIcon v-if="!saving" class="w-4 h-4" />
-            {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
-          </button>
         </div>
-      </template>
+      </FormCard>
+
+      <ErrorBanner :message="error" />
 
     </div>
   </AppLayout>
@@ -90,10 +80,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
+import { BuildingOfficeIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
@@ -105,7 +101,7 @@ const id      = route.params.id
 const loading = ref(true)
 const saving  = ref(false)
 const error   = ref('')
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const STATUS_OPTIONS = computed(() => [
   { id: true,  name: t('common.active') },
