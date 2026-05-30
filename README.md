@@ -11,7 +11,7 @@ A multi-tenant ERP/SaaS starter built as an npm-workspaces monorepo: an Express 
 - **Cache:** optional Redis (ioredis) with a transparent in-memory fallback
 - **Frontend:** Vue 3, Vite, Pinia, Vue Router, Vue I18n, Tailwind CSS, Axios
 - **i18n:** English and Thai, split per module and auto-merged; supports CE/BE calendars and configurable currency formatting
-- **AI assistant:** local LLM via Ollama or LM Studio; tool-calling agent that navigates pages and creates records
+- **AI assistant:** local LLM via Ollama or LM Studio; tool-calling agent that navigates pages, manages records (create/update/delete), and reports live KPIs — grounded in your data and replying in your selected language
 
 ## Repository layout
 
@@ -105,8 +105,8 @@ locally-hosted LLM (no cloud key required).
 | [Ollama](https://ollama.com) | `http://localhost:11434` |
 | [LM Studio](https://lmstudio.ai) | `http://localhost:1234/v1` |
 
-The provider, model, temperature, system prompt, and an optional API key are configurable
-per organization from **AI → Settings** (`/ai/settings`).
+The provider, model, temperature, system prompt, an optional API key, and the **auto-action**
+toggle are configurable per organization from **AI → Settings** (`/ai/settings`).
 
 **Tool-calling agent**
 
@@ -133,7 +133,7 @@ const tools = [
       const svc = require('../services/feature.service')
       const created = await svc.create({ ...args, organizationId: user.organizationId })
       return {
-        result: { id: created.id, name: created.name },
+        result: { id: created.id, name: created.name },        // summarized back to the model
         action: { type: 'navigate', path: `/erp/feature/${created.id}/edit`, label: created.name },
       }
     },
@@ -143,28 +143,48 @@ const tools = [
 module.exports = { tools, navTargets }
 ```
 
-Modules with nav targets but no tools yet still export `{ tools: [], navTargets }` so the
-`navigate` tool knows about their pages. Current coverage:
+A handler returns `{ result, action? }`: `result` is fed back to the model, and the optional
+`action` is forwarded to the browser (e.g. SPA navigation). Read-only **reporting** tools omit
+`action` and return data only, so the model narrates an answer instead of opening a page.
+
+Modules with several controllers can split their tools one file per controller (e.g.
+`product.ai-tools.js` + `product-category.ai-tools.js`) and merge them in `index.js` — the
+registry only loads `index.js`. Modules with nav targets but no tools yet still export
+`{ tools: [], navTargets }` so the `navigate` tool knows about their pages. Current coverage:
 
 | Module | Nav targets | Tools |
 |---|---|---|
-| `dashboard` | `dashboard` | — |
-| `products` | `products_list`, `product_create` | `create_product`, `list_products` |
-| `customers` | `customers_list`, `customer_create` | `create_customer`, `list_customers` |
+| `dashboard` | `dashboard` | `executive_summary`, `financial_summary`, `inventory_summary` (read-only KPI reporting) |
+| `products` | `products_list`, `product_create`, `product_categories_list`, `product_category_create` | `create`/`list`/`get`/`update`/`delete_product`, `create`/`list_product_categories` |
+| `customers` | `customers_list`, `customer_create`, `customer_groups_list`, `customer_group_create` | `create`/`list`/`get`/`update`/`delete_customer`, `create`/`list_customer_groups` |
 | `orders` | `orders_list`, `order_create` | — |
 | `invoices` | `invoices_list`, `invoice_create` | — |
 | `settings` | `settings` | — |
+
+Mutating/lookup tools resolve records by name (the model never sees UUIDs): a free-text term
+is matched to exactly one record, and ambiguous or empty matches return a clarifying message
+instead of acting.
 
 **Adding tools for a new ERP module**
 
 Create `shared/erp/<feature>/ai-tools/index.js` and export `{ tools, navTargets }`.
 No edits to `tools.js` are needed — the file is picked up automatically on next boot.
 
+**Behavior**
+
+- **Grounded answers** — an always-on data-integrity guardrail in the system prompt requires
+  every figure to come from a tool result; the model won't invent or estimate numbers, and
+  reports zero / no-data honestly. All tools are organization-scoped to the caller's data.
+- **Auto-action** — when enabled (default), actions the assistant returns (e.g. navigation)
+  run automatically; when off they render as clickable chips the user triggers. The reply
+  also follows the app's selected language (English / ไทย).
+
 **UI**
 
-- **Full-page chat** — `/ai/chat` — conversation sidebar + message thread.
-- **Slide-over panel** — a sparkles button (✦) in the topbar opens a compact chat panel
-  from anywhere in the app, following the same slide-over pattern as the inline forms.
+- **Full-page chat** — `/ai/chat` — conversation sidebar + message thread, with clickable
+  sample prompts on the empty state and light markdown rendering for clean, structured replies.
+- **Slide-over panel** — a sparkles button (✦) in the topbar, or the **Shift+A** shortcut,
+  opens a compact chat panel from anywhere in the app.
 
 Conversations and messages are stored per organization in the database. The assistant is
 disabled by default until a provider is configured and tested.
