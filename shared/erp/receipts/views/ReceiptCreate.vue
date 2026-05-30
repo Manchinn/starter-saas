@@ -32,24 +32,20 @@
             <!-- Customer -->
             <div class="col-span-2">
               <FieldLabel :text="t('erp.common.customer')" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId" placeholder="— Select customer —">
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
-              <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
-
+              <FieldError name="customerId" :errors="mergedErrors" />
               <CustomerChip :customer="selectedCustomer" />
             </div>
 
             <!-- Receipt Date -->
-            <div>
-              <FieldLabel :text="t('erp.receipts.receiptDate')" required />
-              <DateInput v-model="form.receiptDate"
-                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.receiptDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-              <p v-if="errors.receiptDate" class="mt-1 text-xs text-red-500">{{ errors.receiptDate }}</p>
-            </div>
+            <FormField name="receiptDate" :label="t('erp.receipts.receiptDate')" :errors="mergedErrors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.receiptDate" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
             <!-- Reference Invoice -->
             <div>
@@ -61,13 +57,9 @@
             </div>
 
             <!-- Notes -->
-            <div class="col-span-2">
-              <FieldLabel :text="t('erp.common.notes')" />
-              <textarea v-model="form.notes" rows="2" placeholder="Additional notes…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-colors resize-none placeholder-[#CBD5E1]" />
-            </div>
+            <FormField name="notes" :label="t('erp.common.notes')" :errors="mergedErrors"
+              v-model="form.notes" textarea :rows="2" placeholder="Additional notes…"
+              input-class="resize-none" wrapper-class="col-span-2" />
 
           </div>
         </FormCard>
@@ -79,30 +71,19 @@
             <!-- Payment Method -->
             <div>
               <FieldLabel :text="t('erp.receipts.paymentMethod')" required />
-              <SearchSelect v-model="form.paymentMethod" :options="paymentMethodOptions" placeholder="— Select —" :invalid="!!errorOf('paymentMethod')" />
-              <FieldError name="paymentMethod" :errors="fieldErrors" />
+              <SearchSelect v-model="form.paymentMethod" :options="paymentMethodOptions" placeholder="— Select —" :invalid="!!mergedErrors.paymentMethod" />
+              <FieldError name="paymentMethod" :errors="mergedErrors" />
             </div>
 
             <!-- Amount -->
-            <div>
-              <FieldLabel :text="t('erp.receipts.amountReceived')" required />
-              <input v-model.number="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
-                :class="['w-full px-3.5 py-2.5 border text-sm text-right tabular-nums transition-colors',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('amount') && 'input-error']" />
-              <p v-if="errors.amount" class="mt-1 text-xs text-red-500">{{ errors.amount }}</p>
-              <FieldError name="amount" :errors="fieldErrors" />
-            </div>
+            <FormField name="amount" :label="t('erp.receipts.amountReceived')" :errors="mergedErrors"
+              v-model="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00" required
+              input-class="text-right tabular-nums" />
 
             <!-- Reference No. -->
-            <div class="col-span-2">
-              <FieldLabel :text="t('erp.receipts.referenceNo')" />
-              <input v-model="form.reference" type="text" placeholder="Cheque no., transfer ref…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-colors placeholder-[#CBD5E1]" />
-            </div>
+            <FormField name="reference" :label="t('erp.receipts.referenceNo')" :errors="mergedErrors"
+              v-model="form.reference" placeholder="Cheque no., transfer ref…"
+              wrapper-class="col-span-2" />
 
           </div>
         </FormCard>
@@ -162,6 +143,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
@@ -185,7 +167,9 @@ const paymentMethodOptions = computed(() => paymentMethods.value.map(m => ({ id:
 const saving           = ref(false)
 const globalError      = ref('')
 const errors           = ref({})
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+
+const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({

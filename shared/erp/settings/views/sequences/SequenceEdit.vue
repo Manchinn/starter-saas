@@ -1,45 +1,54 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/settings/sequence" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ isCreate ? t('erp.settings.newSeq') : t('erp.settings.seqTitle') }}</h1>
-        <span v-if="!isCreate && seq" class="font-mono text-sm bg-[#F1F5F9] text-[#374151] px-2.5 py-0.5">{{ seq.code }}</span>
-      </div>
+
+      <PageHeader
+        :title="isCreate ? t('erp.settings.newSeq') : (seq ? `${t('erp.settings.seqTitle')} · ${seq.code}` : t('erp.settings.seqTitle'))"
+        back-to="/erp/settings/sequence"
+        :breadcrumb="[
+          { label: t('erp.settings.sequencesTitle'), to: '/erp/settings/sequence' },
+          { label: isCreate ? t('erp.settings.newSeq') : t('erp.settings.seqTitle') },
+        ]">
+        <template #actions>
+          <div class="flex items-center gap-2">
+            <button v-if="!isCreate" @click="resetNow"
+              class="px-3.5 py-2 text-sm font-medium text-orange-600 border border-orange-200 hover:bg-orange-50 transition">
+              {{ t('erp.settings.resetToInitial') }}
+            </button>
+            <HeaderSaveActions
+              cancel-to="/erp/settings/sequence"
+              :cancel-label="t('common.cancel')"
+              :saving="saving"
+              :saving-label="t('erp.common.saving')"
+              :save-label="t('common.save')"
+              @save="save"
+            />
+          </div>
+        </template>
+      </PageHeader>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
 
-      <template v-else>
-        <div class="grid grid-cols-2 gap-6">
-          <!-- Left: form fields -->
-          <div class="space-y-5 bg-white border border-[#E2E8F0] p-6">
+      <div v-else class="grid grid-cols-2 gap-6">
+
+        <!-- Left: form fields -->
+        <FormCard :title="t('erp.settings.seqTitle')" :icon="HashtagIcon" icon-color="primary">
+          <div class="space-y-5">
 
             <div v-if="isCreate" class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.seqCode') }} <span class="text-red-500">*</span></label>
-                <input v-model="form.code" type="text" placeholder="e.g. PO"
-                  class="w-full px-3 py-2 border text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <p class="text-xs text-[#9BA7B0] mt-1">Unique short identifier, used by the system</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.seqName') }} <span class="text-red-500">*</span></label>
-                <input v-model="form.name" type="text" placeholder="e.g. Purchase Order"
-                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              </div>
+              <FormField name="code" :label="t('erp.settings.seqCode')" :errors="{}" required
+                v-model="form.code" placeholder="e.g. PO" input-class="font-mono uppercase"
+                hint="Unique short identifier, used by the system" />
+              <FormField name="name" :label="t('erp.settings.seqName')" :errors="{}" required
+                v-model="form.name" placeholder="e.g. Purchase Order" />
             </div>
 
-            <div v-else>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.seqName') }} <span class="text-red-500">*</span></label>
-              <input v-model="form.name" type="text"
-                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
+            <FormField v-else name="name" :label="t('erp.settings.seqName')" :errors="{}" required
+              v-model="form.name" />
 
             <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.displayFormat') }} <span class="text-red-500">*</span></label>
-              <input v-model="form.format" type="text" placeholder="e.g. GR-{YYYY}{MM}-{####}"
-                class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              <FormField name="format" :label="t('erp.settings.displayFormat')" :errors="{}" required
+                v-model="form.format" placeholder="e.g. GR-{YYYY}{MM}-{####}" input-class="font-mono" />
               <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#9BA7B0] mt-2">
                 <span><code>{####}</code> = padded number</span>
                 <span><code>{YYYY}</code> = 4-digit year</span>
@@ -50,29 +59,17 @@
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.initialValue') }}</label>
-                <input v-model.number="form.initialValue" type="number" min="1"
-                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <p class="text-xs text-[#9BA7B0] mt-1">Value after reset</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.runningValue') }}</label>
-                <input v-model.number="form.runningValue" type="number" min="1"
-                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <p class="text-xs text-[#9BA7B0] mt-1">Next number to issue</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.settings.maximumValue') }}</label>
-                <input v-model.number="form.maxValue" type="number" min="1"
-                  class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                <p class="text-xs text-[#9BA7B0] mt-1">Error if exceeded</p>
-              </div>
+              <FormField name="initialValue" :label="t('erp.settings.initialValue')" :errors="{}"
+                v-model="form.initialValue" type="number" min="1" hint="Value after reset" />
+              <FormField name="runningValue" :label="t('erp.settings.runningValue')" :errors="{}"
+                v-model="form.runningValue" type="number" min="1" hint="Next number to issue" />
+              <FormField name="maxValue" :label="t('erp.settings.maximumValue')" :errors="{}"
+                v-model="form.maxValue" type="number" min="1" hint="Error if exceeded" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-[#374151] mb-2">{{ t('erp.settings.reseedPeriod') }}</label>
-              <div class="flex gap-2">
+              <label class="label">{{ t('erp.settings.reseedPeriod') }}</label>
+              <div class="flex gap-2 mt-1.5">
                 <button v-for="opt in reseedOptions" :key="opt.value"
                   type="button" @click="form.reseedPeriod = opt.value"
                   :class="form.reseedPeriod === opt.value ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-[#637381] border-[#CBD5E1] hover:bg-[#F7F9FC]'"
@@ -83,64 +80,51 @@
               <p class="text-xs text-[#9BA7B0] mt-2">{{ reseedDescription }}</p>
             </div>
 
-            <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
+            <ErrorBanner :message="error" />
 
-            <div class="flex justify-between items-center pt-2">
-              <button v-if="!isCreate" @click="resetNow"
-                class="px-4 py-2 text-sm border border-orange-300 text-orange-600 hover:bg-orange-50 transition">
-                {{ t('erp.settings.resetToInitial') }}
-              </button>
-              <div class="flex gap-3 ml-auto">
-                <RouterLink to="/erp/settings/sequence"
-                  class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
-                <button @click="save" :disabled="saving"
-                  class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
-                  {{ saving ? t('erp.common.saving') : t('common.save') }}
-                </button>
-              </div>
+          </div>
+        </FormCard>
+
+        <!-- Right: preview + stats -->
+        <div class="space-y-4">
+          <div class="bg-white border border-[#E2E8F0] p-5">
+            <h3 class="text-sm font-semibold text-[#374151] mb-3">{{ t('erp.settings.preview') }}</h3>
+            <div class="bg-[#F7F9FC] px-4 py-6 text-center">
+              <p class="font-mono text-2xl font-bold text-primary-500 tracking-wide">{{ livePreview }}</p>
+              <p class="text-xs text-[#9BA7B0] mt-2">Next ref no (running value = {{ form.runningValue }})</p>
             </div>
           </div>
 
-          <!-- Right: preview -->
-          <div class="space-y-4">
-            <div class="bg-white border border-[#E2E8F0] p-5">
-              <h3 class="text-sm font-semibold text-[#374151] mb-3">{{ t('erp.settings.preview') }}</h3>
-              <div class="bg-[#F7F9FC] px-4 py-6 text-center">
-                <p class="font-mono text-2xl font-bold text-primary-500 tracking-wide">{{ livePreview }}</p>
-                <p class="text-xs text-[#9BA7B0] mt-2">Next ref no (running value = {{ form.runningValue }})</p>
+          <div class="bg-white border border-[#E2E8F0] p-5">
+            <h3 class="text-sm font-semibold text-[#374151] mb-3">{{ t('erp.settings.seqInfo') }}</h3>
+            <dl class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <dt class="text-[#637381]">{{ t('erp.settings.initialValue') }}</dt>
+                <dd class="font-medium text-[#1C2434]">{{ form.initialValue }}</dd>
               </div>
-            </div>
-
-            <div class="bg-white border border-[#E2E8F0] p-5">
-              <h3 class="text-sm font-semibold text-[#374151] mb-3">{{ t('erp.settings.seqInfo') }}</h3>
-              <dl class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                  <dt class="text-[#637381]">{{ t('erp.settings.initialValue') }}</dt>
-                  <dd class="font-medium text-[#1C2434]">{{ form.initialValue }}</dd>
-                </div>
-                <div class="flex justify-between">
-                  <dt class="text-[#637381]">{{ t('erp.settings.runningValue') }}</dt>
-                  <dd class="font-medium text-primary-500">{{ form.runningValue }}</dd>
-                </div>
-                <div class="flex justify-between">
-                  <dt class="text-[#637381]">{{ t('erp.settings.maximumValue') }}</dt>
-                  <dd class="font-medium text-[#1C2434]">{{ form.maxValue }}</dd>
-                </div>
-                <div class="flex justify-between">
-                  <dt class="text-[#637381]">{{ t('erp.settings.remaining') }}</dt>
-                  <dd :class="remaining < 100 ? 'text-red-600 font-bold' : 'text-[#1C2434] font-medium'">
-                    {{ remaining.toLocaleString() }}
-                  </dd>
-                </div>
-                <div v-if="seq?.lastResetDate" class="flex justify-between">
-                  <dt class="text-[#637381]">{{ t('erp.settings.lastReset') }}</dt>
-                  <dd class="text-[#1C2434]">{{ seq.lastResetDate }}</dd>
-                </div>
-              </dl>
-            </div>
+              <div class="flex justify-between">
+                <dt class="text-[#637381]">{{ t('erp.settings.runningValue') }}</dt>
+                <dd class="font-medium text-primary-500">{{ form.runningValue }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-[#637381]">{{ t('erp.settings.maximumValue') }}</dt>
+                <dd class="font-medium text-[#1C2434]">{{ form.maxValue }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-[#637381]">{{ t('erp.settings.remaining') }}</dt>
+                <dd :class="remaining < 100 ? 'text-red-600 font-bold' : 'text-[#1C2434] font-medium'">
+                  {{ remaining.toLocaleString() }}
+                </dd>
+              </div>
+              <div v-if="seq?.lastResetDate" class="flex justify-between">
+                <dt class="text-[#637381]">{{ t('erp.settings.lastReset') }}</dt>
+                <dd class="text-[#1C2434]">{{ seq.lastResetDate }}</dd>
+              </div>
+            </dl>
           </div>
         </div>
-      </template>
+
+      </div>
     </div>
   </AppLayout>
 </template>
@@ -149,8 +133,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import { HashtagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 
@@ -188,7 +177,6 @@ const reseedDescription = computed(() => {
 
 const remaining = computed(() => Math.max(0, form.value.maxValue - form.value.runningValue + 1))
 
-// Live preview using client-side format engine
 const livePreview = computed(() => {
   const fmt     = form.value.format || '{####}'
   const running = form.value.runningValue || 1

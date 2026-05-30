@@ -53,31 +53,22 @@
             </div>
 
             <!-- Reference / PO # -->
-            <div>
-              <FieldLabel :text="t('erp.quotations.referenceNumber')" />
-              <input v-model="form.referenceNumber" type="text" placeholder="e.g. PO-2025-001"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all placeholder:text-[#9BA7B0]" />
-            </div>
+            <FormField name="referenceNumber" :label="t('erp.quotations.referenceNumber')" :errors="errors"
+              v-model="form.referenceNumber" placeholder="e.g. PO-2025-001" />
 
             <!-- Quotation Date -->
-            <div>
-              <FieldLabel :text="t('erp.quotations.quotationDate')" required />
-              <DateInput v-model="form.quotationDate"
-                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.quotationDate ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-              <p v-if="errors.quotationDate" class="mt-1 text-[11px] text-red-500">{{ errors.quotationDate }}</p>
-            </div>
+            <FormField name="quotationDate" :label="t('erp.quotations.quotationDate')" :errors="errors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.quotationDate" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
             <!-- Valid Until -->
-            <div>
-              <FieldLabel :text="t('erp.quotations.validUntil')" />
-              <DateInput v-model="form.validUntil"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
-            </div>
+            <FormField name="validUntil" :label="t('erp.quotations.validUntil')" :errors="errors">
+              <template #default>
+                <DateInput v-model="form.validUntil" class="input" />
+              </template>
+            </FormField>
 
             <!-- Currency -->
             <div>
@@ -86,15 +77,14 @@
             </div>
 
             <!-- Payment terms -->
-            <div>
-              <FieldLabel :text="t('erp.quotations.paymentTerms')" />
-              <select v-model="form.paymentTerms"
-                class="w-full px-3 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434] bg-white
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all">
-                <option value="">—</option>
-                <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
-              </select>
-            </div>
+            <FormField name="paymentTerms" :label="t('erp.quotations.paymentTerms')" :errors="errors">
+              <template #default="{ id }">
+                <select :id="id" v-model="form.paymentTerms" class="input">
+                  <option value="">—</option>
+                  <option v-for="opt in paymentTerms" :key="opt.id" :value="opt.code || opt.name">{{ opt.name }}</option>
+                </select>
+              </template>
+            </FormField>
 
             <!-- Salesperson -->
             <div>
@@ -121,14 +111,9 @@
             </button>
           </template>
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <FieldLabel :text="t('erp.quotations.shippingAddress')" />
-              <textarea v-model="form.shippingAddress" rows="3"
-                placeholder="Ship to address…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
-            </div>
+            <FormField name="shippingAddress" :label="t('erp.quotations.shippingAddress')" :errors="errors"
+              v-model="form.shippingAddress" textarea :rows="3" placeholder="Ship to address…"
+              input-class="resize-none" />
             <div>
               <div class="flex items-center justify-between">
                 <FieldLabel :text="t('erp.quotations.billingAddress')" />
@@ -353,13 +338,9 @@
         <!-- Summary + totals -->
         <FormCard :title="t('erp.quotations.summary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-            <div class="flex flex-col text-left">
-              <FieldLabel :text="t('erp.quotations.notes')" />
-              <textarea v-model="form.notes" placeholder="Quotation notes or special instructions…"
-                class="flex-1 w-full min-h-[10rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
-            </div>
+            <FormField name="notes" :label="t('erp.quotations.notes')" :errors="errors"
+              v-model="form.notes" textarea placeholder="Quotation notes or special instructions…"
+              wrapper-class="flex flex-col text-left" input-class="flex-1 min-h-[10rem]" />
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
                 <dt class="text-[#637381]">{{ t('erp.quotations.subtotal') }}</dt>
@@ -493,39 +474,22 @@
             </button>
           </div>
           <div class="flex-1 px-6 py-5 space-y-4">
-            <div>
-              <FieldLabel :text="t('erp.customers.name')" required />
-              <input v-model="newCustomer.name" type="text" placeholder="Customer name"
-                ref="newCustomerNameRef"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-            </div>
-            <div>
-              <FieldLabel :text="t('erp.customers.company')" />
-              <input v-model="newCustomer.company" type="text"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-            </div>
+            <FormField name="customerName" :label="t('erp.customers.name')" :errors="{}" required>
+              <template #default="{ id }">
+                <input :id="id" v-model="newCustomer.name" ref="newCustomerNameRef" type="text"
+                  placeholder="Customer name" class="input" />
+              </template>
+            </FormField>
+            <FormField name="customerCompany" :label="t('erp.customers.company')" :errors="{}"
+              v-model="newCustomer.company" />
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <FieldLabel :text="t('erp.customers.email')" />
-                <input v-model="newCustomer.email" type="email"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-              </div>
-              <div>
-                <FieldLabel :text="t('erp.customers.phone')" />
-                <input v-model="newCustomer.phone" type="text"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-              </div>
+              <FormField name="customerEmail" :label="t('erp.customers.email')" :errors="{}"
+                v-model="newCustomer.email" type="email" />
+              <FormField name="customerPhone" :label="t('erp.customers.phone')" :errors="{}"
+                v-model="newCustomer.phone" />
             </div>
-            <div>
-              <FieldLabel :text="t('erp.customers.address')" />
-              <textarea v-model="newCustomer.address" rows="3"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 resize-none" />
-            </div>
+            <FormField name="customerAddress" :label="t('erp.customers.address')" :errors="{}"
+              v-model="newCustomer.address" textarea :rows="3" input-class="resize-none" />
             <p v-if="newCustomerError" class="text-[12px] text-red-600">{{ newCustomerError }}</p>
           </div>
           <div class="px-6 py-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
@@ -562,6 +526,7 @@ import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'

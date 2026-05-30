@@ -25,31 +25,18 @@
           <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
             <!-- Code (slug) -->
-            <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                {{ t('common.code') }} <span class="text-red-500 normal-case font-normal">*</span>
-                <span class="ml-1 normal-case font-normal text-[#9BA7B0]">{{ t('erp.masterData.slugHint') }}</span>
-              </label>
-              <input v-model="form.slug" type="text" :placeholder="t('erp.masterData.slugPh')"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm font-mono text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-            </div>
+            <FormField name="slug" :label="t('common.code')" :errors="{}" required
+              v-model="form.slug" :placeholder="t('erp.masterData.slugPh')"
+              input-class="font-mono" :hint="t('erp.masterData.slugHint')" />
 
             <!-- Name -->
-            <div>
-              <FieldLabel :text="t('common.name')" required />
-              <input v-model="form.name" type="text" :placeholder="t('erp.masterData.namePh')"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-            </div>
+            <FormField name="name" :label="t('common.name')" :errors="{}" required
+              v-model="form.name" :placeholder="t('erp.masterData.namePh')" />
 
             <!-- Description -->
-            <div class="col-span-2">
-              <FieldLabel :text="t('common.description')" />
-              <input v-model="form.description" type="text" :placeholder="t('erp.masterData.descPh')"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-            </div>
+            <FormField name="description" :label="t('common.description')" :errors="{}"
+              v-model="form.description" :placeholder="t('erp.masterData.descPh')"
+              wrapper-class="col-span-2" />
 
             <!-- Is System Data -->
             <div class="col-span-2">
@@ -89,6 +76,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'

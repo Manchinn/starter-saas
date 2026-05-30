@@ -35,21 +35,10 @@
           <div class="space-y-5">
 
             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
-              <!-- Name -->
-              <div>
-                <FieldLabel :text="t('common.name')" required />
-                <input v-model="catForm.name" type="text"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-              </div>
-
-              <!-- Description -->
-              <div>
-                <FieldLabel :text="t('common.description')" />
-                <input v-model="catForm.description" type="text" :placeholder="t('erp.masterData.descPh')"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-              </div>
+              <FormField name="catName" :label="t('common.name')" :errors="{}" required
+                v-model="catForm.name" />
+              <FormField name="catDescription" :label="t('common.description')" :errors="{}"
+                v-model="catForm.description" :placeholder="t('erp.masterData.descPh')" />
             </div>
 
             <ErrorBanner :message="catError" />
@@ -252,6 +241,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import LoadingSpinner from '@/components/form/LoadingSpinner.vue'

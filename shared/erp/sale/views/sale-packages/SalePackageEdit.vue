@@ -1,65 +1,68 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/sale-packages" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.salePackages.edit') }}</h1>
-      </div>
+      <PageHeader :title="t('erp.salePackages.edit')" back-to="/erp/sale-packages"
+        :breadcrumb="[
+          { label: t('erp.salePackages.title'), to: '/erp/sale-packages' },
+          { label: t('erp.salePackages.edit') },
+        ]">
+        <template #actions>
+          <div class="flex items-center gap-2">
+            <button @click="confirmDelete"
+              class="px-3.5 py-2 text-sm font-medium text-red-500 border border-red-200 hover:bg-red-50 transition">
+              {{ t('common.delete') }}
+            </button>
+            <HeaderSaveActions
+              cancel-to="/erp/sale-packages"
+              :cancel-label="t('common.cancel')"
+              :saving="saving"
+              :saving-label="t('erp.common.saving')"
+              :save-label="t('common.saveChanges')"
+              @save="save"
+            />
+          </div>
+        </template>
+      </PageHeader>
 
-      <div v-if="loading" class="bg-white border border-[#E2E8F0] p-6 text-center text-[#9BA7B0]">{{ t('common.loading') }}</div>
+      <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">{{ t('common.loading') }}</div>
 
       <template v-else>
 
-        <!-- Header card -->
-        <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
+        <!-- Header info -->
+        <FormCard :title="t('erp.salePackages.edit')" :icon="CubeIcon" icon-color="primary">
           <div class="grid grid-cols-2 gap-4">
 
-            <!-- Code -->
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.code') }}</label>
-              <input v-model="form.code" type="text" placeholder="e.g. PKG-001"
-                class="w-full px-3 py-2 border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
+            <FormField name="code" :label="t('erp.salePackages.code')" :errors="fieldErrors"
+              v-model="form.code" placeholder="e.g. PKG-001" input-class="font-mono" />
 
-            <!-- Status -->
             <div>
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.status') }}</label>
+              <FieldLabel :text="t('erp.salePackages.status')" />
               <SearchSelect v-model="form.status" :options="statusOptions" :allow-empty="false" />
             </div>
 
-            <!-- Name -->
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.name') }} <span class="text-red-500">*</span></label>
-              <input v-model="form.name" type="text"
-                :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-              <FieldError name="name" :errors="fieldErrors" />
-            </div>
+            <FormField name="name" :label="t('erp.salePackages.name')" :errors="fieldErrors"
+              v-model="form.name" required wrapper-class="col-span-2" />
 
-            <!-- Description -->
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.salePackages.description') }}</label>
-              <textarea v-model="form.description" rows="2"
-                class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
-            </div>
+            <FormField name="description" :label="t('erp.salePackages.description')" :errors="fieldErrors"
+              v-model="form.description" textarea :rows="2" :placeholder="t('erp.salePackages.descriptionPh')"
+              wrapper-class="col-span-2" />
+
           </div>
-        </div>
+        </FormCard>
 
-        <!-- Package Items card -->
-        <div class="bg-white border border-[#E2E8F0] p-6 space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold text-[#1C2434]">{{ t('erp.salePackages.packageItems') }}</h2>
+        <!-- Package Items -->
+        <FormCard :title="t('erp.salePackages.packageItems')" :icon="ShoppingBagIcon" icon-color="green" :padded="false">
+          <template #actions>
             <button @click="addLine" type="button"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors">
-              <PlusIcon class="w-4 h-4" />
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold
+                     text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 transition-colors">
+              <PlusIcon class="w-3.5 h-3.5" />
               {{ t('erp.salePackages.addItem') }}
             </button>
-          </div>
+          </template>
 
-          <!-- Items table -->
-          <div v-if="form.items.length" class="border border-[#E2E8F0] overflow-visible">
+          <div v-if="form.items.length" class="overflow-visible">
             <table class="w-full text-sm">
               <thead class="bg-[#F7F9FC]">
                 <tr>
@@ -114,28 +117,12 @@
             </table>
           </div>
 
-          <div v-else class="border-2 border-dashed border-[#E2E8F0] py-8 text-center text-sm text-[#9BA7B0]">
+          <div v-else class="px-6 py-10 text-center text-sm text-[#9BA7B0] border-t border-[#E2E8F0]">
             {{ t('erp.salePackages.noItems') }}
           </div>
-        </div>
+        </FormCard>
 
-        <!-- Footer -->
-        <div class="bg-white border border-[#E2E8F0] px-6 py-4">
-          <div v-if="error" class="mb-3 bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
-          <div class="flex items-center justify-between">
-            <button @click="confirmDelete"
-              class="px-4 py-2 text-sm text-red-600 border border-red-200 hover:bg-red-50 transition-colors">
-              {{ t('common.delete') }}
-            </button>
-            <div class="flex gap-3">
-              <RouterLink to="/erp/sale-packages" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
-              <button @click="save" :disabled="saving"
-                class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
-                {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ErrorBanner :message="error" />
 
       </template>
     </div>
@@ -162,12 +149,17 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { RouterLink, useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, XMarkIcon, CubeIcon, ShoppingBagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
-import FieldError from '@/components/form/FieldError.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
@@ -180,13 +172,13 @@ const id     = route.params.id
 const form    = ref({ code: '', name: '', description: '', status: 'active', items: [] })
 const loading = ref(true)
 const saving  = ref(false)
-const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
+const error   = ref('')
+const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const statusOptions = computed(() => [
   { id: 'active',   name: t('common.active')   },
   { id: 'inactive', name: t('common.inactive') },
 ])
-const error   = ref('')
 
 const deleteModal = reactive({ open: false, saving: false, error: '' })
 const saleItems   = ref([])
