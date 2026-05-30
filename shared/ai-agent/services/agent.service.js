@@ -12,6 +12,16 @@ const toolsRegistry = require('./tools')
 const MAX_ITERATIONS = 5
 const HISTORY_LIMIT = 20   // prior turns fed back to the model
 
+// Map the UI locale to a directive appended to the system prompt so the model
+// replies in the user's selected language even when tool data is in English.
+const LANG_NAMES = { en: 'English', th: 'Thai' }
+const langDirective = (lang) => {
+  const name = LANG_NAMES[lang]
+  return name
+    ? `\n\nAlways write your replies to the user in ${name}, regardless of the language of the data or tool results.`
+    : ''
+}
+
 // ── Conversation persistence ──────────────────────────────────────────────────
 
 const ensureConversation = async (userId, conversationId) => {
@@ -44,7 +54,7 @@ const buildBaseMessages = async (settings, conversationId) => {
 
 // ── Main entry ────────────────────────────────────────────────────────────────
 
-const chat = async ({ user, conversationId, content }) => {
+const chat = async ({ user, conversationId, content, lang }) => {
   if (!content || !content.trim()) throw { status: 400, message: 'Message is required' }
 
   const settings = await settingsSvc.getRaw(user.id)
@@ -55,6 +65,11 @@ const chat = async ({ user, conversationId, content }) => {
   const conv = await ensureConversation(user.id, conversationId)
 
   const messages = await buildBaseMessages(settings, conv.id)
+  // Steer the reply language to the user's UI locale (system message is first).
+  const directive = langDirective(lang)
+  if (directive && messages[0]?.role === 'system') {
+    messages[0] = { role: 'system', content: messages[0].content + directive }
+  }
   messages.push({ role: 'user', content })
 
   const actions = []

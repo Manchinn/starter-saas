@@ -12,6 +12,7 @@ const settingsRules = [
 const chatRules = [
   body('content').trim().notEmpty().withMessage('Message is required'),
   body('conversationId').optional({ nullable: true }).isUUID().withMessage('Invalid conversation id'),
+  body('lang').optional().isString().withMessage('Invalid language'),
 ]
 
 module.exports = { settingsRules, chatRules }

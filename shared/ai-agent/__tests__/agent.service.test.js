@@ -70,6 +70,24 @@ describe('agent.chat — tool loop', () => {
     ])
   })
 
+  test('lang steers the reply language via a system-prompt directive', async () => {
+    provider.chat.mockResolvedValueOnce({ role: 'assistant', content: 'สวัสดี', tool_calls: [] })
+
+    await agent.chat({ user: USER, conversationId: null, content: 'hi', lang: 'th' })
+
+    const sys = provider.chat.mock.calls[0][0].messages.find((m) => m.role === 'system')
+    expect(sys.content).toContain('Thai')
+  })
+
+  test('no/unknown lang leaves the system prompt unchanged', async () => {
+    provider.chat.mockResolvedValueOnce({ role: 'assistant', content: 'hi', tool_calls: [] })
+
+    await agent.chat({ user: USER, conversationId: null, content: 'hi' })
+
+    const sys = provider.chat.mock.calls[0][0].messages.find((m) => m.role === 'system')
+    expect(sys.content).toBe('sys')
+  })
+
   test('rejects when the assistant is disabled', async () => {
     settingsSvc.getRaw.mockResolvedValue({ enabled: false, systemPrompt: 'sys' })
     await expect(agent.chat({ user: USER, content: 'hi' })).rejects.toMatchObject({ status: 400 })

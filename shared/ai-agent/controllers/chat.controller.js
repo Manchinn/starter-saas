@@ -11,6 +11,7 @@ module.exports = {
         user: ctxUser(req),
         conversationId: req.body.conversationId || null,
         content: req.body.content,
+        lang: req.body.lang,
       })
       return ok(res, result)
     } catch (err) {

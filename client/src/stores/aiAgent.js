@@ -76,6 +76,9 @@ export const useAiAgentStore = defineStore('aiAgent', () => {
       const { data } = await api.post('/ai-agent/chat', {
         conversationId: conversationId.value,
         content: text,
+        // Reply in the user's selected UI language (persisted by the app /
+        // language switcher); defaults to English.
+        lang: localStorage.getItem('app-lang') || 'en',
       })
       const res = data.data
       const isNew = !conversationId.value
