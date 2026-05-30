@@ -122,7 +122,7 @@ const inputEl = ref(null)
 
 // Clickable starter prompts shown on the empty state. Each maps to a real
 // tool/navigation the agent supports.
-const SAMPLE_KEYS = ['productList', 'newCustomer', 'listCustomers', 'findCustomer', 'newProduct', 'openOrders']
+const SAMPLE_KEYS = ['execSummary', 'financialSummary', 'inventorySummary', 'productList', 'newCustomer', 'listCustomers', 'findCustomer', 'newProduct', 'openOrders']
 const samples = computed(() => SAMPLE_KEYS.map((k) => t(`aiAgent.chat.samples.${k}`)))
 
 onMounted(() => {
