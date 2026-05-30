@@ -146,7 +146,11 @@
       "Bash(Sort-Object FullName)",
       "Bash(Find-Item -Path \"D:\\\\Projects\\\\starter-saas\\\\shared\\\\components\\\\form\" -Filter \"*.vue\" -Name)",
       "Bash(dir \"D:\\\\Projects\\\\starter-saas\\\\shared\\\\hrms\\\\views\" -Recurse -Filter \"*.vue\")",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "Bash(find shared/erp -type d -name \"ai-tools\")",
+      "Bash(ls -la shared/erp/customers/)",
+      "Bash(find shared *)",
+      "Bash(grep -rl \"ai-tools\" shared/**/__tests__/)"
     ]
   }
 }
