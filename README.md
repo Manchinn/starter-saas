@@ -56,7 +56,7 @@ shared/erp/products/
 ├── seeds/              Optional seed data
 ├── validators/         express-validator rule sets
 ├── ai-tools/           AI agent tool definitions scoped to this module (optional)
-│   └── index.js        Exports an array of { name, description, kind, parameters, handler }
+│   └── index.js        Exports { tools, navTargets } — auto-discovered by the tool registry
 ├── views/              Vue 3 SPA pages (lists + dedicated create/edit pages)
 │   ├── products/        ProductsList.vue, ProductCreate.vue, ProductEdit.vue
 │   └── categories/      ProductCategoriesList.vue, …Create.vue, …Edit.vue
@@ -110,26 +110,55 @@ per organization from **AI → Settings** (`/ai/settings`).
 
 **Tool-calling agent**
 
-The assistant uses the LLM's native tool-calling interface. The global tool registry lives in
-`shared/ai-agent/services/tools.js` and includes:
+The assistant uses the LLM's native tool-calling interface. `shared/ai-agent/services/tools.js`
+only owns the core `navigate` tool — all other tools and nav targets are auto-discovered at
+startup by scanning every `shared/erp/<module>/ai-tools/index.js` file.
 
-| Tool | Kind | Description |
+Each `ai-tools/index.js` exports `{ tools, navTargets }`:
+
+```js
+// shared/erp/<feature>/ai-tools/index.js
+const navTargets = {
+  feature_list:   { path: '/erp/feature',        label: 'Feature' },
+  feature_create: { path: '/erp/feature/create', label: 'New Feature' },
+}
+
+const tools = [
+  {
+    name: 'create_feature',
+    kind: 'server',            // 'server' = runs handler; 'client' = sends action to browser
+    description: '...',
+    parameters: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] },
+    async handler(args, { user }) {
+      const svc = require('../services/feature.service')
+      const created = await svc.create({ ...args, organizationId: user.organizationId })
+      return {
+        result: { id: created.id, name: created.name },
+        action: { type: 'navigate', path: `/erp/feature/${created.id}/edit`, label: created.name },
+      }
+    },
+  },
+]
+
+module.exports = { tools, navTargets }
+```
+
+Modules with nav targets but no tools yet still export `{ tools: [], navTargets }` so the
+`navigate` tool knows about their pages. Current coverage:
+
+| Module | Nav targets | Tools |
 |---|---|---|
-| `navigate` | client | Opens a page in the SPA |
-| `create_product` | server | Creates a product in the catalogue |
-| `list_products` | server | Searches the product list |
-| `create_customer` | server | Creates a customer record |
-| `list_customers` | server | Searches the customer list |
+| `dashboard` | `dashboard` | — |
+| `products` | `products_list`, `product_create` | `create_product`, `list_products` |
+| `customers` | `customers_list`, `customer_create` | `create_customer`, `list_customers` |
+| `orders` | `orders_list`, `order_create` | — |
+| `invoices` | `invoices_list`, `invoice_create` | — |
+| `settings` | `settings` | — |
 
 **Adding tools for a new ERP module**
 
-Create `shared/erp/<feature>/ai-tools/index.js` that exports an array of tool definitions,
-then spread it into the registry in `shared/ai-agent/services/tools.js`:
-
-```js
-const featureTools = require('../../erp/<feature>/ai-tools')
-const tools = [ ...coreTools, ...featureTools ]
-```
+Create `shared/erp/<feature>/ai-tools/index.js` and export `{ tools, navTargets }`.
+No edits to `tools.js` are needed — the file is picked up automatically on next boot.
 
 **UI**
 
