@@ -47,8 +47,9 @@ export default {
       testFail:     'Could not connect.',
       save:         'Save settings',
       saved:        'Settings saved',
-      selectModel:  'Select a model',
+      selectModel:  'Search or select a model…',
       noModels:     'No models found — type a name manually.',
+      noMatch:      'No matching model — press Enter to use as typed.',
     },
     errors: {
       loadFailed: 'Failed to load',

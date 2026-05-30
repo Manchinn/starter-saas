@@ -15,6 +15,16 @@ const TIMEOUT_MS = 120000
 
 const trimSlash = (u) => (u || '').replace(/\/+$/, '')
 
+// LM Studio's OpenAI-compatible server is always rooted at `/v1`. Users often
+// paste just `http://localhost:1234` (or copy a non-OpenAI path) — without the
+// `/v1` the request hits LM Studio's native REST root, which returns 200 with
+// no OpenAI `data`/`choices`, looking like a silent "0 models" success. Append
+// `/v1` when no explicit /vN segment is present so it works either way.
+const openaiBase = (u) => {
+  const b = trimSlash(u)
+  return /\/v\d+$/.test(b) ? b : `${b}/v1`
+}
+
 async function httpJson(url, options = {}) {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
@@ -44,8 +54,8 @@ async function httpJson(url, options = {}) {
 // Returns an assistant message: { role:'assistant', content, tool_calls? }
 // where each tool_call is { id, name, arguments(object) }.
 async function chat({ settings, messages, tools }) {
-  const base = trimSlash(settings.baseUrl)
   if (settings.provider === 'ollama') {
+    const base = trimSlash(settings.baseUrl)
     const data = await httpJson(`${base}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -61,6 +71,7 @@ async function chat({ settings, messages, tools }) {
   }
 
   // LM Studio (OpenAI-compatible)
+  const base = openaiBase(settings.baseUrl)
   const headers = { 'Content-Type': 'application/json' }
   if (settings.apiKey) headers.Authorization = `Bearer ${settings.apiKey}`
   const data = await httpJson(`${base}/chat/completions`, {
@@ -131,14 +142,13 @@ function safeParse(s) {
 
 // ── List models (connection test) ────────────────────────────────────────────
 async function listModels({ provider, baseUrl, apiKey }) {
-  const base = trimSlash(baseUrl)
   if (provider === 'ollama') {
-    const data = await httpJson(`${base}/api/tags`, { method: 'GET' })
+    const data = await httpJson(`${trimSlash(baseUrl)}/api/tags`, { method: 'GET' })
     return (data?.models || []).map((m) => m.name).filter(Boolean)
   }
   const headers = {}
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`
-  const data = await httpJson(`${base}/models`, { method: 'GET', headers })
+  const data = await httpJson(`${openaiBase(baseUrl)}/models`, { method: 'GET', headers })
   return (data?.data || []).map((m) => m.id).filter(Boolean)
 }
 

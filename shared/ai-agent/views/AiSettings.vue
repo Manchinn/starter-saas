@@ -37,15 +37,33 @@
             <p class="text-xs text-[#9BA7B0] mt-1">{{ t('aiAgent.settings.baseUrlHint') }}</p>
           </div>
 
-          <!-- Model + test -->
+          <!-- Model + test (searchable dropdown) -->
           <div>
             <label class="label">{{ t('aiAgent.settings.model') }}</label>
             <div class="flex gap-2">
-              <input v-if="!models.length" v-model="form.model" type="text" class="input flex-1" placeholder="llama3.1" />
-              <select v-else v-model="form.model" class="input flex-1">
-                <option value="" disabled>{{ t('aiAgent.settings.selectModel') }}</option>
-                <option v-for="m in models" :key="m" :value="m">{{ m }}</option>
-              </select>
+              <div class="relative flex-1" ref="modelMenuRef">
+                <input v-model="form.model" type="text" class="input w-full pr-9"
+                  :placeholder="t('aiAgent.settings.selectModel')" autocomplete="off"
+                  @focus="openModels" @input="onModelInput" @keydown.esc="modelOpen = false" />
+                <button type="button" @click="toggleModels" tabindex="-1"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-[#9BA7B0] hover:text-[#637381]">
+                  <span v-if="loadingModels" class="block w-3.5 h-3.5 border-2 border-[#C0C8D2] border-t-primary-500 rounded-full animate-spin"></span>
+                  <ChevronUpDownIcon v-else class="w-4 h-4" />
+                </button>
+
+                <div v-if="modelOpen"
+                  class="absolute z-20 mt-1 w-full bg-white border border-[#E2E8F0] shadow-card-lg max-h-60 overflow-y-auto scrollbar-thin">
+                  <button v-for="m in filteredModels" :key="m" type="button" @click="selectModel(m)"
+                    :class="['w-full flex items-center gap-2 px-3 py-2 text-[13px] text-left hover:bg-[#F7F9FC]',
+                             m === form.model ? 'text-primary-600 font-medium' : 'text-[#1C2434]']">
+                    <CheckIcon v-if="m === form.model" class="w-3.5 h-3.5 flex-shrink-0" />
+                    <span :class="{ 'pl-[1.375rem]': m !== form.model }" class="truncate">{{ m }}</span>
+                  </button>
+                  <p v-if="!filteredModels.length" class="px-3 py-2.5 text-[13px] text-[#9BA7B0]">
+                    {{ models.length ? t('aiAgent.settings.noMatch') : t('aiAgent.settings.noModels') }}
+                  </p>
+                </div>
+              </div>
               <button type="button" @click="testConnection" :disabled="testing"
                 class="btn-secondary whitespace-nowrap">
                 {{ testing ? t('aiAgent.settings.testing') : t('aiAgent.settings.test') }}
@@ -112,9 +130,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
+import { CheckCircleIcon, ExclamationCircleIcon, ChevronUpDownIcon, CheckIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAiAgentStore } from '@/stores/aiAgent'
 
@@ -135,14 +153,56 @@ const saving = ref(false)
 const saved = ref(false)
 const error = ref('')
 
+// ── Searchable model dropdown ─────────────────────────────────────────────────
+const modelMenuRef = ref(null)
+const modelOpen = ref(false)
+const modelDirty = ref(false)      // true once the user types → switch to filtering
+const loadingModels = ref(false)
+
+const filteredModels = computed(() => {
+  const q = (form.value?.model || '').toLowerCase().trim()
+  if (!modelDirty.value || !q) return models.value
+  return models.value.filter((m) => m.toLowerCase().includes(q))
+})
+
+function openModels() { modelOpen.value = true; modelDirty.value = false }
+function toggleModels() { modelOpen.value ? (modelOpen.value = false) : openModels() }
+function onModelInput() { modelDirty.value = true; modelOpen.value = true }
+function selectModel(m) { form.value.model = m; modelDirty.value = false; modelOpen.value = false }
+
+function onClickOutside(e) {
+  if (modelMenuRef.value && !modelMenuRef.value.contains(e.target)) modelOpen.value = false
+}
+
+// Best-effort populate the dropdown without requiring a manual "Test connection".
+async function loadModels({ silent = true } = {}) {
+  loadingModels.value = true
+  try {
+    models.value = await store.testConnection({
+      provider: form.value.provider,
+      baseUrl: form.value.baseUrl,
+      apiKey: form.value.apiKey || undefined,
+    })
+    return models.value
+  } catch (e) {
+    if (!silent) throw e
+    return []
+  } finally {
+    loadingModels.value = false
+  }
+}
+
 onMounted(async () => {
   try {
     settings.value = await store.loadSettings()
     form.value = { ...settings.value, apiKey: '' }
+    loadModels()   // fire-and-forget; failures stay silent on first load
   } catch (e) {
     error.value = t('aiAgent.errors.loadFailed')
   }
+  document.addEventListener('mousedown', onClickOutside)
 })
+onUnmounted(() => document.removeEventListener('mousedown', onClickOutside))
 
 function setProvider(p) {
   form.value.provider = p
@@ -151,6 +211,7 @@ function setProvider(p) {
   form.value.model = PRESETS[p].model
   models.value = []
   testResult.value = null
+  loadModels()   // refresh the dropdown for the new provider
 }
 
 async function testConnection() {

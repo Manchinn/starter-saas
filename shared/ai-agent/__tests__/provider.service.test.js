@@ -68,6 +68,29 @@ describe('provider.chat — LM Studio', () => {
   })
 })
 
+describe('provider — LM Studio base URL normalization', () => {
+  test('appends /v1 when the base URL omits it (chat + listModels)', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce(jsonRes({ choices: [{ message: { content: 'hi' } }] }))
+      .mockResolvedValueOnce(jsonRes({ data: [{ id: 'm1' }] }))
+
+    await provider.chat({
+      settings: { provider: 'lmstudio', baseUrl: 'http://host:1234', model: 'm', temperature: 0 },
+      messages: [], tools: [],
+    })
+    await provider.listModels({ provider: 'lmstudio', baseUrl: 'http://host:1234/' })
+
+    expect(global.fetch.mock.calls[0][0]).toBe('http://host:1234/v1/chat/completions')
+    expect(global.fetch.mock.calls[1][0]).toBe('http://host:1234/v1/models')
+  })
+
+  test('does not double up when /v1 is already present', async () => {
+    global.fetch = jest.fn().mockResolvedValue(jsonRes({ data: [] }))
+    await provider.listModels({ provider: 'lmstudio', baseUrl: 'http://host:1234/v1' })
+    expect(global.fetch.mock.calls[0][0]).toBe('http://host:1234/v1/models')
+  })
+})
+
 describe('provider.listModels', () => {
   test('Ollama maps /api/tags names', async () => {
     global.fetch = jest.fn().mockResolvedValue(jsonRes({ models: [{ name: 'llama3.1' }, { name: 'qwen2.5' }] }))
