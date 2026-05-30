@@ -14,7 +14,7 @@
  * load-order coupling (same pattern product.service uses for sequence.service).
  */
 
-const customerTools = require('../../erp/customers/tools')
+const customerTools = require('../../erp/customers/ai-tools')
 
 // Friendly page targets the `navigate` tool understands → real SPA routes.
 const NAV_TARGETS = {
