@@ -42,6 +42,8 @@ export default {
       systemPrompt: 'System prompt',
       enabled:      'เปิดใช้งาน',
       enabledHint:  'เปิดหรือปิดผู้ช่วย',
+      autoAction:   'ทำงานอัตโนมัติ',
+      autoActionHint: 'ทำงานทันทีโดยไม่ต้องกดปุ่ม เช่น “เปิดรายการสินค้า” จะเปิดหน้าให้เลย',
       test:         'ทดสอบการเชื่อมต่อ',
       testing:      'กำลังทดสอบ…',
       testOk:       'เชื่อมต่อสำเร็จ — พบ {count} โมเดล',

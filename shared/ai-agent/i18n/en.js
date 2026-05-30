@@ -42,6 +42,8 @@ export default {
       systemPrompt: 'System prompt',
       enabled:      'Enabled',
       enabledHint:  'Turn the assistant on or off.',
+      autoAction:   'Auto action',
+      autoActionHint: 'Run actions automatically (e.g. open a page) without clicking the action button.',
       test:         'Test connection',
       testing:      'Testing…',
       testOk:       'Connected — {count} model(s) found.',

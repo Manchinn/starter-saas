@@ -14,6 +14,10 @@ const AiSetting = sequelize.define('AiSetting', {
   temperature: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0.3 },
   systemPrompt:{ type: DataTypes.TEXT, allowNull: true },
   enabled:     { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+
+  // When true, actions the assistant returns (e.g. navigate) run automatically
+  // without the user having to click the action chip.
+  autoAction:  { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
 })
 
 module.exports = AiSetting

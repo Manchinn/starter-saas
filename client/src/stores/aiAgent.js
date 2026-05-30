@@ -81,7 +81,13 @@ export const useAiAgentStore = defineStore('aiAgent', () => {
       const isNew = !conversationId.value
       conversationId.value = res.conversationId
       messages.value.push(res.message)
-      applyActions(res.message.actions)
+      // Auto-run returned actions only when the user opted in. The chat UIs
+      // always render the actions as clickable chips, so when autoAction is
+      // off the user can still trigger them manually. Settings may not be
+      // loaded yet in the chat/panel context, so fetch them once on demand;
+      // a missing/unknown flag defaults to auto-running (preserves prior UX).
+      if (settings.value === null) { try { await loadSettings() } catch { /* keep default */ } }
+      if (settings.value?.autoAction !== false) applyActions(res.message.actions)
       // Refresh the sidebar list (title may have been set / order changed).
       if (isNew) await loadConversations()
       else {

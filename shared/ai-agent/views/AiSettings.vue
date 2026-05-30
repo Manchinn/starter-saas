@@ -102,6 +102,15 @@
             </span>
             <input v-model="form.enabled" type="checkbox" class="w-5 h-5 accent-primary-500" />
           </label>
+
+          <!-- Auto action -->
+          <label class="flex items-center justify-between gap-3 cursor-pointer">
+            <span>
+              <span class="block text-sm font-medium text-[#1C2434]">{{ t('aiAgent.settings.autoAction') }}</span>
+              <span class="block text-xs text-[#9BA7B0]">{{ t('aiAgent.settings.autoActionHint') }}</span>
+            </span>
+            <input v-model="form.autoAction" type="checkbox" class="w-5 h-5 accent-primary-500" />
+          </label>
         </div>
 
         <!-- Feedback + save -->
@@ -245,6 +254,7 @@ async function save() {
       temperature: form.value.temperature,
       systemPrompt: form.value.systemPrompt,
       enabled: form.value.enabled,
+      autoAction: form.value.autoAction,
     }
     // Only send apiKey when the user typed one (blank keeps the saved key).
     if (form.value.apiKey) patch.apiKey = form.value.apiKey

@@ -6,6 +6,7 @@ const settingsRules = [
   body('model').optional().trim().notEmpty().withMessage('Model is required'),
   body('temperature').optional().isFloat({ min: 0, max: 2 }).withMessage('Temperature must be 0–2'),
   body('enabled').optional().isBoolean().withMessage('Invalid enabled flag'),
+  body('autoAction').optional().isBoolean().withMessage('Invalid autoAction flag'),
 ]
 
 const chatRules = [

@@ -16,7 +16,7 @@ const DEFAULT_SYSTEM_PROMPT = [
   'Keep replies short and confirm what you did.',
 ].join('\n')
 
-const PUBLIC_FIELDS = ['provider', 'baseUrl', 'model', 'temperature', 'systemPrompt', 'enabled']
+const PUBLIC_FIELDS = ['provider', 'baseUrl', 'model', 'temperature', 'systemPrompt', 'enabled', 'autoAction']
 
 const defaults = () => ({
   provider:     'ollama',
@@ -26,6 +26,7 @@ const defaults = () => ({
   temperature:  0.3,
   systemPrompt: DEFAULT_SYSTEM_PROMPT,
   enabled:      true,
+  autoAction:   true,
 })
 
 // Full settings incl. apiKey — for server-side LLM calls only.
@@ -41,6 +42,7 @@ const getRaw = async (userId) => {
     temperature:  row.temperature,
     systemPrompt: row.systemPrompt || DEFAULT_SYSTEM_PROMPT,
     enabled:      row.enabled,
+    autoAction:   row.autoAction,
   }
 }
 
@@ -62,6 +64,7 @@ const save = async (userId, patch = {}) => {
   }
   if (patch.temperature !== undefined) next.temperature = Number(patch.temperature)
   if (patch.enabled !== undefined) next.enabled = !!patch.enabled
+  if (patch.autoAction !== undefined) next.autoAction = !!patch.autoAction
   // apiKey: only overwrite when a non-undefined value is sent (empty string clears it)
   if (patch.apiKey !== undefined) next.apiKey = patch.apiKey
 
@@ -74,6 +77,7 @@ const save = async (userId, patch = {}) => {
     temperature:  next.temperature,
     systemPrompt: next.systemPrompt,
     enabled:      next.enabled,
+    autoAction:   next.autoAction,
   })
   return get(userId)
 }
