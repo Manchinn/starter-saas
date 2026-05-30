@@ -1,132 +1,197 @@
 <template>
-  <div class="min-h-screen bg-[#F1F5F9] flex flex-col">
+  <div class="min-h-screen flex">
 
-    <!-- ── Top bar ───────────────────────────────────────────────────────────── -->
-    <header class="flex items-center justify-between px-6 py-5 flex-shrink-0">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 flex items-center justify-center flex-shrink-0"
+    <!-- ── Left panel: branding ──────────────────────────────────────────────── -->
+    <aside class="hidden lg:flex lg:w-[38%] xl:w-[35%] min-h-screen flex-col flex-shrink-0 sticky top-0 h-screen overflow-hidden"
+      style="background: linear-gradient(155deg, #1e2a4a 0%, #1a1f3a 50%, #0f1628 100%);">
+
+      <!-- logo -->
+      <div class="px-10 pt-10 flex items-center gap-3">
+        <div class="w-9 h-9 flex items-center justify-center flex-shrink-0"
           style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
-          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                  d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
-        <span class="text-[15px] font-bold text-[#1C2434]">Starter SaaS</span>
+        <span class="text-[16px] font-bold text-white tracking-tight">Starter SaaS</span>
       </div>
-      <RouterLink to="/login"
-        class="text-[13px] font-medium text-[#637381] hover:text-primary-600 transition-colors">
-        {{ t('auth.signInLink') }} →
-      </RouterLink>
-    </header>
 
-    <!-- ── Form area ─────────────────────────────────────────────────────────── -->
-    <main class="flex-1 flex items-start justify-center px-4 pb-10">
-      <div class="w-full max-w-2xl">
+      <!-- headline -->
+      <div class="px-10 mt-16">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 mb-4 text-[10px] font-bold
+                     text-primary-300 bg-primary-500/20 uppercase tracking-widest">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          {{ t('auth.setupTitle') }}
+        </span>
+        <h1 class="text-[28px] font-bold text-white leading-snug tracking-tight">
+          {{ t('auth.createWorkspace') }}
+        </h1>
+        <p class="text-[14px] text-[#8BA3C7] mt-3 leading-relaxed">{{ t('auth.setupDesc') }}</p>
+      </div>
 
-        <!-- Heading -->
-        <div class="text-center mb-6">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 mb-3 text-[11px] font-semibold
-                       text-primary-700 bg-primary-50 uppercase tracking-wider">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            {{ t('auth.setupTitle') }}
-          </span>
-          <h1 class="text-[26px] font-bold text-[#0F172A] tracking-[-0.5px]">{{ t('auth.createWorkspace') }}</h1>
-          <p class="text-[14px] text-[#637381] mt-1">{{ t('auth.setupDesc') }}</p>
+      <!-- checklist -->
+      <div class="px-10 mt-10 space-y-4">
+        <div v-for="item in setupSteps" :key="item.text" class="flex items-start gap-3">
+          <div class="mt-0.5 w-5 h-5 rounded-full bg-primary-500/25 flex items-center justify-center flex-shrink-0">
+            <svg class="w-3 h-3 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-[13px] font-semibold text-white leading-snug">{{ item.title }}</p>
+            <p class="text-[12px] text-[#6B84A8] mt-0.5 leading-relaxed">{{ item.desc }}</p>
+          </div>
         </div>
+      </div>
 
-        <div class="card p-6 sm:p-8">
-          <form @submit.prevent="handleInstall" class="space-y-7">
+      <!-- footer note -->
+      <div class="mt-auto px-10 pb-10">
+        <div class="flex items-center gap-2 text-[11px] text-[#4A637A]">
+          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span>{{ t('auth.setupOnce') }} · {{ t('auth.secureNote') }}</span>
+        </div>
+      </div>
+    </aside>
 
-            <!-- ── Default language ──────────────────────────────────────────── -->
-            <div>
-              <label class="label">{{ t('auth.defaultLanguage') }}</label>
-              <select v-model="defaultLang" @change="setLang(defaultLang)" class="input">
-                <option v-for="opt in langOptions" :key="opt.code" :value="opt.code">{{ opt.flag }} {{ opt.label }}</option>
-              </select>
-              <p class="mt-1.5 text-[12px] text-[#94A3B8]">{{ t('auth.defaultLanguageHint') }}</p>
-            </div>
+    <!-- ── Right panel: form ──────────────────────────────────────────────────── -->
+    <div class="flex-1 min-h-screen bg-white flex flex-col overflow-y-auto">
 
-            <!-- ── Account ───────────────────────────────────────────────────── -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- top bar -->
+      <header class="flex items-center justify-between px-8 lg:px-12 py-5 flex-shrink-0 border-b border-[#F1F5F9]">
+        <!-- mobile logo -->
+        <div class="flex items-center gap-2.5 lg:hidden">
+          <div class="w-7 h-7 flex items-center justify-center flex-shrink-0"
+            style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <span class="text-[14px] font-bold text-[#1C2434]">Starter SaaS</span>
+        </div>
+        <div class="hidden lg:block" />
+        <RouterLink to="/login"
+          class="text-[13px] font-medium text-[#637381] hover:text-primary-600 transition-colors">
+          {{ t('auth.signInLink') }} →
+        </RouterLink>
+      </header>
 
-              <!-- Organization -->
-              <div>
-                <label class="label">{{ t('auth.orgName') }}</label>
-                <input
-                  v-model="form.name" type="text" required autocomplete="organization"
-                  :placeholder="t('auth.orgNamePh')"
-                  :class="['input', errorOf('name') && 'input-error']" />
-                <FieldError name="name" :errors="fieldErrors" />
+      <!-- form content -->
+      <main class="flex-1 px-8 lg:px-12 xl:px-16 py-10">
+        <div class="max-w-3xl">
+
+          <form @submit.prevent="handleInstall" class="space-y-10">
+
+            <!-- ── Language ─────────────────────────────────────────────────── -->
+            <section>
+              <div class="flex items-center justify-between mb-5">
+                <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest">
+                  {{ t('auth.defaultLanguage') }}
+                </h2>
               </div>
-
-              <!-- Email -->
-              <div>
-                <label class="label">{{ t('auth.email') }}</label>
-                <input
-                  v-model="form.email" type="email" required autocomplete="email"
-                  :placeholder="t('auth.adminEmailPh')"
-                  :class="['input', errorOf('email') && 'input-error']" />
-                <FieldError name="email" :errors="fieldErrors" />
-              </div>
-
-              <!-- Password -->
-              <div>
-                <label class="label">{{ t('auth.password') }}</label>
-                <div class="relative">
-                  <input
-                    v-model="form.password" :type="showPassword ? 'text' : 'password'" required
-                    autocomplete="new-password" :placeholder="t('auth.passwordMinPh')"
-                    :class="['input pr-11', errorOf('password') && 'input-error']" />
-                  <button type="button" @click="showPassword = !showPassword" tabindex="-1"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors">
-                    <svg v-if="showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </button>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <select v-model="defaultLang" @change="setLang(defaultLang)" class="input">
+                    <option v-for="opt in langOptions" :key="opt.code" :value="opt.code">{{ opt.flag }} {{ opt.label }}</option>
+                  </select>
+                  <p class="mt-1.5 text-[12px] text-[#94A3B8]">{{ t('auth.defaultLanguageHint') }}</p>
                 </div>
-                <FieldError name="password" :errors="fieldErrors" />
               </div>
+            </section>
 
-              <!-- Confirm password -->
-              <div>
-                <label class="label">{{ t('auth.confirmPassword') }}</label>
-                <input
-                  v-model="form.confirmPassword" :type="showPassword ? 'text' : 'password'" required
-                  autocomplete="new-password" :placeholder="t('auth.repeatPh')"
-                  :class="['input', confirmMismatch && 'input-error']" />
-                <FieldError :error="confirmMismatch ? t('auth.passwordsNoMatch') : ''" />
+            <!-- ── Account ──────────────────────────────────────────────────── -->
+            <section>
+              <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest mb-5">
+                {{ t('auth.orgName') }} &amp; Admin
+              </h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-4">
+
+                <!-- Organization name — full width on first row -->
+                <div class="sm:col-span-2 lg:col-span-1">
+                  <label class="label">{{ t('auth.orgName') }}</label>
+                  <input
+                    v-model="form.name" type="text" required autocomplete="organization"
+                    :placeholder="t('auth.orgNamePh')"
+                    :class="['input', errorOf('name') && 'input-error']" />
+                  <FieldError name="name" :errors="fieldErrors" />
+                </div>
+
+                <!-- Email -->
+                <div class="sm:col-span-2 lg:col-span-2">
+                  <label class="label">{{ t('auth.email') }}</label>
+                  <input
+                    v-model="form.email" type="email" required autocomplete="email"
+                    :placeholder="t('auth.adminEmailPh')"
+                    :class="['input', errorOf('email') && 'input-error']" />
+                  <FieldError name="email" :errors="fieldErrors" />
+                </div>
+
+                <!-- Password -->
+                <div>
+                  <label class="label">{{ t('auth.password') }}</label>
+                  <div class="relative">
+                    <input
+                      v-model="form.password" :type="showPassword ? 'text' : 'password'" required
+                      autocomplete="new-password" :placeholder="t('auth.passwordMinPh')"
+                      :class="['input pr-11', errorOf('password') && 'input-error']" />
+                    <button type="button" @click="showPassword = !showPassword" tabindex="-1"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors">
+                      <svg v-if="showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                      <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <FieldError name="password" :errors="fieldErrors" />
+                </div>
+
+                <!-- Confirm password -->
+                <div>
+                  <label class="label">{{ t('auth.confirmPassword') }}</label>
+                  <input
+                    v-model="form.confirmPassword" :type="showPassword ? 'text' : 'password'" required
+                    autocomplete="new-password" :placeholder="t('auth.repeatPh')"
+                    :class="['input', confirmMismatch && 'input-error']" />
+                  <FieldError :error="confirmMismatch ? t('auth.passwordsNoMatch') : ''" />
+                </div>
+
               </div>
-            </div>
+            </section>
 
-            <!-- ── Database ──────────────────────────────────────────────────── -->
-            <div class="space-y-4 pt-1">
-              <p class="section-label px-0">{{ t('auth.dbSection') }}</p>
+            <!-- ── Database ─────────────────────────────────────────────────── -->
+            <section>
+              <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest mb-5">
+                {{ t('auth.dbSection') }}
+              </h2>
+              <div class="space-y-4">
 
-              <div>
-                <label class="label">{{ t('auth.dbEngine') }}</label>
-                <select v-model="db.dialect" class="input" @change="dbTestResult = ''">
-                  <option v-for="opt in dbDialects" :key="opt.value" :value="opt.value">{{ t(opt.labelKey) }}</option>
-                </select>
-              </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div>
+                    <label class="label">{{ t('auth.dbEngine') }}</label>
+                    <select v-model="db.dialect" class="input" @change="dbTestResult = ''">
+                      <option v-for="opt in dbDialects" :key="opt.value" :value="opt.value">{{ t(opt.labelKey) }}</option>
+                    </select>
+                  </div>
 
-              <!-- SQLite: file path -->
-              <div v-if="db.dialect === 'sqlite'">
-                <label class="label">{{ t('auth.dbSqlitePath') }}</label>
-                <input v-model="db.storage" type="text" spellcheck="false" autocomplete="off"
-                  :placeholder="DEFAULT_SQLITE_PATH" class="input font-mono text-[13px]" />
-                <p class="mt-1.5 text-[12px] text-[#94A3B8]">{{ t('auth.dbSqlitePathHint') }}</p>
-              </div>
+                  <!-- SQLite path inline -->
+                  <div v-if="db.dialect === 'sqlite'" class="sm:col-span-2">
+                    <label class="label">{{ t('auth.dbSqlitePath') }}</label>
+                    <input v-model="db.storage" type="text" spellcheck="false" autocomplete="off"
+                      :placeholder="DEFAULT_SQLITE_PATH" class="input font-mono text-[13px]" />
+                    <p class="mt-1.5 text-[12px] text-[#94A3B8]">{{ t('auth.dbSqlitePathHint') }}</p>
+                  </div>
+                </div>
 
-              <!-- Relational: connection details -->
-              <div v-else class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div class="sm:col-span-2">
+                <!-- Relational details -->
+                <div v-if="db.dialect !== 'sqlite'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-4">
+                  <div class="lg:col-span-2">
                     <label class="label">{{ t('auth.dbHost') }}</label>
                     <input v-model="db.host" type="text" placeholder="localhost" class="input" />
                   </div>
@@ -134,12 +199,10 @@
                     <label class="label">{{ t('auth.dbPort') }}</label>
                     <input v-model="db.port" type="number" :placeholder="String(defaultPort)" class="input" />
                   </div>
-                </div>
-                <div>
-                  <label class="label">{{ t('auth.dbName') }}</label>
-                  <input v-model="db.database" type="text" placeholder="starter_saas" class="input" />
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="label">{{ t('auth.dbName') }}</label>
+                    <input v-model="db.database" type="text" placeholder="starter_saas" class="input" />
+                  </div>
                   <div>
                     <label class="label">{{ t('auth.dbUsername') }}</label>
                     <input v-model="db.username" type="text" autocomplete="off" class="input" />
@@ -148,49 +211,49 @@
                     <label class="label">{{ t('auth.password') }}</label>
                     <input v-model="db.password" type="password" autocomplete="new-password" class="input" />
                   </div>
-                </div>
-
-                <!-- Test connection -->
-                <div class="flex items-center gap-3">
-                  <button type="button" @click="testDb" :disabled="dbTesting" class="btn-secondary">
-                    <svg v-if="dbTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    {{ dbTesting ? t('auth.dbTesting') : t('auth.dbTest') }}
-                  </button>
-                  <span v-if="dbTestResult === 'ok'" class="text-[13px] font-semibold text-emerald-600 flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {{ t('auth.dbConnected') }}
-                  </span>
-                  <span v-else-if="dbTestResult === 'fail'" class="text-[13px] text-red-600">{{ dbTestError }}</span>
+                  <div class="lg:col-span-3 flex items-center gap-3">
+                    <button type="button" @click="testDb" :disabled="dbTesting" class="btn-secondary">
+                      <svg v-if="dbTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      {{ dbTesting ? t('auth.dbTesting') : t('auth.dbTest') }}
+                    </button>
+                    <span v-if="dbTestResult === 'ok'" class="text-[13px] font-semibold text-emerald-600 flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      {{ t('auth.dbConnected') }}
+                    </span>
+                    <span v-else-if="dbTestResult === 'fail'" class="text-[13px] text-red-600">{{ dbTestError }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <!-- ── Cache (Redis) ─────────────────────────────────────────────── -->
-            <div class="space-y-4 pt-1">
-              <p class="section-label px-0">{{ t('auth.cacheSection') }}</p>
+            <!-- ── Cache (Redis) ────────────────────────────────────────────── -->
+            <section>
+              <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest mb-5">
+                {{ t('auth.cacheSection') }}
+              </h2>
+              <div class="space-y-4">
 
-              <label class="flex items-start gap-3 cursor-pointer select-none border bg-white px-4 py-3.5 transition-all duration-150 hover:border-primary-300"
-                :class="redis.enabled ? 'border-primary-300 bg-primary-50/30' : 'border-[#E2E8F0]'">
-                <input v-model="redis.enabled" type="checkbox" class="sr-only" @change="redisTestResult = ''" />
-                <span class="mt-0.5 w-4 h-4 border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all"
-                  :class="redis.enabled ? 'bg-primary-500 border-primary-500' : 'bg-white border-[#CBD5E1]'">
-                  <svg v-if="redis.enabled" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-                <span>
-                  <span class="block text-[13px] font-semibold text-[#374151] leading-snug">{{ t('auth.redisEnable') }}</span>
-                  <span class="block text-[12px] text-[#94A3B8] mt-0.5 leading-relaxed">{{ t('auth.redisEnableHint') }}</span>
-                </span>
-              </label>
+                <label class="flex items-start gap-3 cursor-pointer select-none border px-4 py-3.5 transition-all duration-150 hover:border-primary-300"
+                  :class="redis.enabled ? 'border-primary-300 bg-primary-50/30' : 'border-[#E2E8F0] bg-white'">
+                  <input v-model="redis.enabled" type="checkbox" class="sr-only" @change="redisTestResult = ''" />
+                  <span class="mt-0.5 w-4 h-4 border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all"
+                    :class="redis.enabled ? 'bg-primary-500 border-primary-500' : 'bg-white border-[#CBD5E1]'">
+                    <svg v-if="redis.enabled" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <span>
+                    <span class="block text-[13px] font-semibold text-[#374151] leading-snug">{{ t('auth.redisEnable') }}</span>
+                    <span class="block text-[12px] text-[#94A3B8] mt-0.5 leading-relaxed">{{ t('auth.redisEnableHint') }}</span>
+                  </span>
+                </label>
 
-              <div v-if="redis.enabled" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div v-if="redis.enabled" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-4">
                   <div class="sm:col-span-2">
                     <label class="label">{{ t('auth.dbHost') }}</label>
                     <input v-model="redis.host" type="text" placeholder="127.0.0.1" class="input" @input="redisTestResult = ''" />
@@ -199,44 +262,42 @@
                     <label class="label">{{ t('auth.dbPort') }}</label>
                     <input v-model="redis.port" type="number" :placeholder="String(REDIS_DEFAULT_PORT)" class="input" @input="redisTestResult = ''" />
                   </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div class="sm:col-span-2">
-                    <label class="label">{{ t('auth.password') }}</label>
-                    <input v-model="redis.password" type="password" autocomplete="new-password" class="input" @input="redisTestResult = ''" />
-                  </div>
                   <div>
                     <label class="label">{{ t('auth.redisDbIndex') }}</label>
                     <input v-model="redis.db" type="number" placeholder="0" class="input" @input="redisTestResult = ''" />
                   </div>
-                </div>
-
-                <!-- Test connection -->
-                <div class="flex items-center gap-3">
-                  <button type="button" @click="testRedis" :disabled="redisTesting" class="btn-secondary">
-                    <svg v-if="redisTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    {{ redisTesting ? t('auth.dbTesting') : t('auth.dbTest') }}
-                  </button>
-                  <span v-if="redisTestResult === 'ok'" class="text-[13px] font-semibold text-emerald-600 flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {{ t('auth.dbConnected') }}
-                  </span>
-                  <span v-else-if="redisTestResult === 'fail'" class="text-[13px] text-red-600">{{ redisTestError }}</span>
+                  <div class="sm:col-span-2">
+                    <label class="label">{{ t('auth.password') }}</label>
+                    <input v-model="redis.password" type="password" autocomplete="new-password" class="input" @input="redisTestResult = ''" />
+                  </div>
+                  <div class="sm:col-span-2 lg:col-span-4 flex items-center gap-3">
+                    <button type="button" @click="testRedis" :disabled="redisTesting" class="btn-secondary">
+                      <svg v-if="redisTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      {{ redisTesting ? t('auth.dbTesting') : t('auth.dbTest') }}
+                    </button>
+                    <span v-if="redisTestResult === 'ok'" class="text-[13px] font-semibold text-emerald-600 flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                      {{ t('auth.dbConnected') }}
+                    </span>
+                    <span v-else-if="redisTestResult === 'fail'" class="text-[13px] text-red-600">{{ redisTestError }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
 
             <!-- ── Setup options ─────────────────────────────────────────────── -->
-            <div class="space-y-3 pt-1">
-              <p class="section-label px-0">{{ t('auth.setupOptions') }}</p>
+            <section>
+              <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest mb-5">
+                {{ t('auth.setupOptions') }}
+              </h2>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label class="flex items-start gap-3 cursor-pointer select-none border bg-white px-4 py-3.5 transition-all duration-150 hover:border-primary-300"
-                  :class="seedSequences ? 'border-primary-300 bg-primary-50/30' : 'border-[#E2E8F0]'">
+                <label class="flex items-start gap-3 cursor-pointer select-none border px-4 py-3.5 transition-all duration-150 hover:border-primary-300"
+                  :class="seedSequences ? 'border-primary-300 bg-primary-50/30' : 'border-[#E2E8F0] bg-white'">
                   <input v-model="seedSequences" type="checkbox" class="sr-only" />
                   <span class="mt-0.5 w-4 h-4 border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all"
                     :class="seedSequences ? 'bg-primary-500 border-primary-500' : 'bg-white border-[#CBD5E1]'">
@@ -250,8 +311,8 @@
                   </span>
                 </label>
 
-                <label class="flex items-start gap-3 cursor-pointer select-none border bg-white px-4 py-3.5 transition-all duration-150 hover:border-primary-300"
-                  :class="seedDemo ? 'border-primary-300 bg-primary-50/30' : 'border-[#E2E8F0]'">
+                <label class="flex items-start gap-3 cursor-pointer select-none border px-4 py-3.5 transition-all duration-150 hover:border-primary-300"
+                  :class="seedDemo ? 'border-primary-300 bg-primary-50/30' : 'border-[#E2E8F0] bg-white'">
                   <input v-model="seedDemo" type="checkbox" class="sr-only" />
                   <span class="mt-0.5 w-4 h-4 border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all"
                     :class="seedDemo ? 'bg-primary-500 border-primary-500' : 'bg-white border-[#CBD5E1]'">
@@ -265,47 +326,40 @@
                   </span>
                 </label>
               </div>
+            </section>
+
+            <!-- ── Error + Submit ───────────────────────────────────────────── -->
+            <div class="space-y-4 pt-2">
+              <transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0 -translate-y-1"
+                enter-to-class="opacity-100 translate-y-0">
+                <div v-if="errors.length"
+                  class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px]">
+                  <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div class="space-y-0.5">
+                    <p v-for="e in errors" :key="e">{{ e }}</p>
+                  </div>
+                </div>
+              </transition>
+
+              <button type="submit" :disabled="loading" class="btn-primary w-full py-3 text-[14px]">
+                <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span>{{ loading ? loadingPhase : t('auth.createAdmin') }}</span>
+              </button>
             </div>
 
-            <!-- Error -->
-            <transition
-              enter-active-class="transition duration-200 ease-out"
-              enter-from-class="opacity-0 -translate-y-1"
-              enter-to-class="opacity-100 translate-y-0">
-              <div v-if="errors.length"
-                class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px]">
-                <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <div class="space-y-0.5">
-                  <p v-for="e in errors" :key="e">{{ e }}</p>
-                </div>
-              </div>
-            </transition>
-
-            <!-- Submit -->
-            <button type="submit" :disabled="loading" class="btn-primary w-full py-3 text-[14px]">
-              <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              <span>{{ loading ? loadingPhase : t('auth.createAdmin') }}</span>
-            </button>
           </form>
         </div>
+      </main>
+    </div>
 
-        <!-- Trust line -->
-        <div class="mt-6 flex items-center justify-center gap-1.5 text-[12px] text-[#94A3B8]">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <span>{{ t('auth.setupOnce') }} · {{ t('auth.secureNote') }}</span>
-        </div>
-
-      </div>
-    </main>
   </div>
 </template>
 
@@ -322,6 +376,12 @@ import FieldError from '@/components/form/FieldError.vue'
 const auth   = useAuthStore()
 const router = useRouter()
 const { t, locale } = useI18n()
+
+const setupSteps = [
+  { title: 'Admin account',     desc: 'Create your organization and administrator login credentials.' },
+  { title: 'Database',          desc: 'Connect to SQLite, PostgreSQL, MySQL, MariaDB, or MSSQL.' },
+  { title: 'Ready to use',      desc: 'Optionally seed sequences and demo data, then go to the dashboard.' },
+]
 
 // ── Language ───────────────────────────────────────────────────────────────
 // The picker doubles as the workspace default: switching it re-labels the form
