@@ -14,6 +14,7 @@ const UserRole       = require('./user-role.model')
 // ── Shared-layer models ───────────────────────────────────────────────────────
 const erpModels  = require('../../shared/erp/models')
 const hrmsModels = require('../../shared/hrms/models')
+const aiModels   = require('../../shared/ai-agent/models')
 
 // ── Full model registry ───────────────────────────────────────────────────────
 const models = {
@@ -22,6 +23,7 @@ const models = {
   Role, Permission, RolePermission, RoleModule, UserRole,
   ...erpModels,
   ...hrmsModels,
+  ...aiModels,
 }
 
 // ── Core associations (auth / roles / permissions) ────────────────────────────

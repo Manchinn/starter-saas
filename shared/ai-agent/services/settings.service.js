@@ -1,0 +1,81 @@
+const { AiSetting } = require('../../../server/models')
+
+// Provider presets used when a user first opens settings or switches provider.
+const PRESETS = {
+  ollama:   { baseUrl: 'http://localhost:11434',     model: 'llama3.1' },
+  lmstudio: { baseUrl: 'http://localhost:1234/v1',   model: 'local-model' },
+}
+
+const DEFAULT_SYSTEM_PROMPT = [
+  'You are an in-app assistant for an ERP web application.',
+  'You can take actions on the user\'s behalf by calling the provided tools:',
+  '- To open or show a page, call the `navigate` tool.',
+  '- To create or list products/customers, call the matching tool.',
+  'Prefer calling a tool over describing how to do something manually.',
+  'When the user asks to "open", "show", "go to" or "list" something, navigate there.',
+  'Keep replies short and confirm what you did.',
+].join('\n')
+
+const PUBLIC_FIELDS = ['provider', 'baseUrl', 'model', 'temperature', 'systemPrompt', 'enabled']
+
+const defaults = () => ({
+  provider:     'ollama',
+  baseUrl:      PRESETS.ollama.baseUrl,
+  model:        PRESETS.ollama.model,
+  apiKey:       '',
+  temperature:  0.3,
+  systemPrompt: DEFAULT_SYSTEM_PROMPT,
+  enabled:      true,
+})
+
+// Full settings incl. apiKey — for server-side LLM calls only.
+const getRaw = async (userId) => {
+  const row = await AiSetting.findOne({ where: { userId } })
+  if (!row) return { ...defaults(), userId }
+  return {
+    userId,
+    provider:     row.provider,
+    baseUrl:      row.baseUrl,
+    model:        row.model,
+    apiKey:       row.apiKey || '',
+    temperature:  row.temperature,
+    systemPrompt: row.systemPrompt || DEFAULT_SYSTEM_PROMPT,
+    enabled:      row.enabled,
+  }
+}
+
+// Client-facing view — never leaks the apiKey, just whether one is set.
+const get = async (userId) => {
+  const raw = await getRaw(userId)
+  const out = {}
+  for (const f of PUBLIC_FIELDS) out[f] = raw[f]
+  out.hasApiKey = !!raw.apiKey
+  return out
+}
+
+const save = async (userId, patch = {}) => {
+  const current = await getRaw(userId)
+  const next = { ...current }
+
+  for (const f of ['provider', 'baseUrl', 'model', 'systemPrompt']) {
+    if (patch[f] !== undefined) next[f] = patch[f]
+  }
+  if (patch.temperature !== undefined) next.temperature = Number(patch.temperature)
+  if (patch.enabled !== undefined) next.enabled = !!patch.enabled
+  // apiKey: only overwrite when a non-undefined value is sent (empty string clears it)
+  if (patch.apiKey !== undefined) next.apiKey = patch.apiKey
+
+  await AiSetting.upsert({
+    userId,
+    provider:     next.provider,
+    baseUrl:      next.baseUrl,
+    model:        next.model,
+    apiKey:       next.apiKey || null,
+    temperature:  next.temperature,
+    systemPrompt: next.systemPrompt,
+    enabled:      next.enabled,
+  })
+  return get(userId)
+}
+
+module.exports = { get, getRaw, save, defaults, PRESETS, DEFAULT_SYSTEM_PROMPT }

@@ -1,0 +1,92 @@
+jest.mock('../../../server/models', () => ({
+  AiConversation: { findOne: jest.fn(), create: jest.fn() },
+  AiMessage: { findAll: jest.fn(), create: jest.fn() },
+}))
+jest.mock('../services/settings.service')
+jest.mock('../services/provider.service')
+// ERP services the tools lazily require — mock at the resolved module path.
+jest.mock('../../erp/products/services/product.service', () => ({ create: jest.fn(), list: jest.fn() }))
+jest.mock('../../erp/customers/services/customer.service', () => ({ create: jest.fn(), list: jest.fn() }))
+
+const { AiConversation, AiMessage } = require('../../../server/models')
+const settingsSvc = require('../services/settings.service')
+const provider = require('../services/provider.service')
+const productSvc = require('../../erp/products/services/product.service')
+const agent = require('../services/agent.service')
+
+const USER = { id: 'u1', organizationId: 'o1' }
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  settingsSvc.getRaw.mockResolvedValue({ enabled: true, systemPrompt: 'sys', provider: 'ollama' })
+  AiMessage.findAll.mockResolvedValue([])
+  AiConversation.create.mockResolvedValue({ id: 'c1', title: 'New chat', save: jest.fn() })
+  AiMessage.create.mockImplementation(async (row) => ({ id: 'm-' + row.role, ...row }))
+})
+
+describe('agent.chat — tool loop', () => {
+  test('executes a server tool (create_product) and feeds the result back to the model', async () => {
+    productSvc.create.mockResolvedValue({ id: 'p1', name: 'Widget', sku: 'PRD-1' })
+
+    provider.chat
+      // round 1: model asks to create a product
+      .mockResolvedValueOnce({ role: 'assistant', content: '', tool_calls: [
+        { id: 't1', name: 'create_product', arguments: { name: 'Widget' } },
+      ] })
+      // round 2: model produces the final answer
+      .mockResolvedValueOnce({ role: 'assistant', content: 'Created Widget.', tool_calls: [] })
+
+    const res = await agent.chat({ user: USER, conversationId: null, content: 'add a product called Widget' })
+
+    // tool ran with the org-scoped user context
+    expect(productSvc.create).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'Widget', userId: 'u1', organizationId: 'o1',
+    }))
+    // model was called twice (tool round + final round)
+    expect(provider.chat).toHaveBeenCalledTimes(2)
+    // the second call's messages include the tool result fed back
+    const secondCallMessages = provider.chat.mock.calls[1][0].messages
+    const toolMsg = secondCallMessages.find((m) => m.role === 'tool')
+    expect(toolMsg).toBeTruthy()
+    expect(toolMsg.content).toContain('Widget')
+
+    // final reply + a client action surfaced to the UI
+    expect(res.message.content).toBe('Created Widget.')
+    expect(res.message.actions.some((a) => a.type === 'navigate')).toBe(true)
+  })
+
+  test('navigate is a client tool — produces an action, writes no data', async () => {
+    provider.chat
+      .mockResolvedValueOnce({ role: 'assistant', content: '', tool_calls: [
+        { id: 't1', name: 'navigate', arguments: { target: 'products_list' } },
+      ] })
+      .mockResolvedValueOnce({ role: 'assistant', content: 'Opened it.', tool_calls: [] })
+
+    const res = await agent.chat({ user: USER, conversationId: null, content: 'open the product list' })
+
+    expect(productSvc.create).not.toHaveBeenCalled()
+    expect(res.message.actions).toEqual([
+      expect.objectContaining({ type: 'navigate', target: 'products_list', path: '/erp/item-master' }),
+    ])
+  })
+
+  test('rejects when the assistant is disabled', async () => {
+    settingsSvc.getRaw.mockResolvedValue({ enabled: false, systemPrompt: 'sys' })
+    await expect(agent.chat({ user: USER, content: 'hi' })).rejects.toMatchObject({ status: 400 })
+    expect(provider.chat).not.toHaveBeenCalled()
+  })
+
+  test('a failing tool is reported back to the model, not thrown', async () => {
+    productSvc.create.mockRejectedValue({ message: 'SKU already exists' })
+    provider.chat
+      .mockResolvedValueOnce({ role: 'assistant', content: '', tool_calls: [
+        { id: 't1', name: 'create_product', arguments: { name: 'Dup' } },
+      ] })
+      .mockResolvedValueOnce({ role: 'assistant', content: 'Sorry, that SKU exists.', tool_calls: [] })
+
+    const res = await agent.chat({ user: USER, content: 'add Dup' })
+    const toolMsg = provider.chat.mock.calls[1][0].messages.find((m) => m.role === 'tool')
+    expect(toolMsg.content).toContain('SKU already exists')
+    expect(res.message.content).toBe('Sorry, that SKU exists.')
+  })
+})
