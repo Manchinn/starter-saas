@@ -31,42 +31,32 @@
             <!-- Customer -->
             <div class="col-span-2 lg:col-span-1">
               <FieldLabel :text="t('erp.common.customer')" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId || !!errorOf('customerId')" placeholder="— Select customer —" @change="onCustomerChange">
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
               <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
-              <FieldError name="customerId" :errors="fieldErrors" />
+              <FieldError name="customerId" :errors="mergedErrors" />
             </div>
 
             <!-- Date -->
-            <div>
-              <FieldLabel :text="t('erp.common.date')" required />
-              <DateInput v-model="form.date"
-                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('date') && 'input-error']" />
-              <p v-if="errors.date" class="mt-1 text-xs text-red-500">{{ errors.date }}</p>
-              <FieldError name="date" :errors="fieldErrors" />
-            </div>
+            <FormField name="date" :label="t('erp.common.date')" :errors="mergedErrors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.date" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
             <!-- Due Date -->
-            <div>
-              <FieldLabel :text="t('erp.billingNotes.colDueDate')" />
-              <DateInput v-model="form.dueDate"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
-            </div>
+            <FormField name="dueDate" :label="t('erp.billingNotes.colDueDate')" :errors="mergedErrors">
+              <template #default>
+                <DateInput v-model="form.dueDate" class="input" />
+              </template>
+            </FormField>
 
             <!-- Notes -->
-            <div class="col-span-2">
-              <FieldLabel :text="t('erp.common.notes')" />
-              <textarea v-model="form.notes" rows="2" :placeholder="t('erp.billingNotes.notesPh')"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-colors resize-none placeholder-[#CBD5E1]" />
-            </div>
+            <FormField name="notes" :label="t('erp.common.notes')" :errors="mergedErrors"
+              v-model="form.notes" textarea :rows="2" :placeholder="t('erp.billingNotes.notesPh')"
+              wrapper-class="col-span-2" />
 
           </div>
         </FormCard>
@@ -210,13 +200,14 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import DocFooterBar from '@/components/form/DocFooterBar.vue'
-import FieldError from '@/components/form/FieldError.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
@@ -231,7 +222,9 @@ const loadingInvoices  = ref(false)
 const saving           = ref(false)
 const globalError      = ref('')
 const errors           = ref({})
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+
+const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({

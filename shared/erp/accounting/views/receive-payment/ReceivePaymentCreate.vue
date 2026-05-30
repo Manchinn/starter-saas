@@ -33,56 +33,41 @@
             <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel text="Customer" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId || !!errorOf('customerId')" placeholder="— Select customer —" @change="onCustomerChange">
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
               <p v-if="errors.customerId" class="mt-1 text-[11px] text-red-500">{{ errors.customerId }}</p>
-              <FieldError name="customerId" :errors="fieldErrors" />
+              <FieldError name="customerId" :errors="mergedErrors" />
               <CustomerChip :customer="selectedCustomer" />
             </div>
 
             <!-- Reference -->
-            <div>
-              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                Reference <span class="text-[#9BA7B0] normal-case font-normal text-[10px]">(cheque #, transfer ref…)</span>
-              </label>
-              <input v-model="form.reference" type="text" placeholder="Optional reference number"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
-            </div>
+            <FormField name="reference" label="Reference" :errors="mergedErrors"
+              v-model="form.reference" placeholder="Optional reference number"
+              hint="cheque #, transfer ref…" />
 
             <!-- Date -->
-            <div>
-              <FieldLabel text="Date" required />
-              <DateInput v-model="form.date"
-                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('date') && 'input-error']" />
-              <p v-if="errors.date" class="mt-1 text-[11px] text-red-500">{{ errors.date }}</p>
-              <FieldError name="date" :errors="fieldErrors" />
-            </div>
+            <FormField name="date" label="Date" :errors="mergedErrors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.date" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
             <!-- Payment Method -->
             <div>
               <FieldLabel text="Payment Method" required />
-              <SearchSelect v-model="form.paymentMethod" :options="paymentMethods" track-by="name" label-key="name" placeholder="— Select —" :invalid="!!errors.paymentMethod || !!errorOf('paymentMethod')" />
-              <p v-if="errors.paymentMethod" class="mt-1 text-[11px] text-red-500">{{ errors.paymentMethod }}</p>
-              <FieldError name="paymentMethod" :errors="fieldErrors" />
+              <SearchSelect v-model="form.paymentMethod" :options="paymentMethods" track-by="name" label-key="name" placeholder="— Select —" :invalid="!!mergedErrors.paymentMethod" />
+              <FieldError name="paymentMethod" :errors="mergedErrors" />
             </div>
 
             <!-- spacer to push notes to its own row on lg -->
             <div></div>
 
             <!-- Notes -->
-            <div class="lg:col-span-3">
-              <FieldLabel text="Notes" />
-              <textarea v-model="form.notes" rows="2" placeholder="Remarks…"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
-            </div>
+            <FormField name="notes" label="Notes" :errors="mergedErrors"
+              v-model="form.notes" textarea :rows="2" placeholder="Remarks…"
+              wrapper-class="lg:col-span-3" />
 
           </div>
         </FormCard>
@@ -267,14 +252,15 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import CustomerChip from '@/components/form/CustomerChip.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
-import FieldError from '@/components/form/FieldError.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtMoney } from '@/utils/fmt'
@@ -288,7 +274,9 @@ const loadingInvoices   = ref(false)
 const saving            = ref(false)
 const globalError       = ref('')
 const errors            = ref({})
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+
+const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({

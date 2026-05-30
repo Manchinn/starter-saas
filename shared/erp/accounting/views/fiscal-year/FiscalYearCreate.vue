@@ -23,49 +23,26 @@
         <div class="space-y-5">
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div>
-              <FieldLabel :text="t('erp.fiscalYears.colName')" required />
-              <input v-model="form.name" type="text" :placeholder="t('erp.fiscalYears.namePh')"
-                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.name ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('name') && 'input-error']" />
-              <p v-if="errors.name" class="mt-1 text-xs text-red-500">{{ errors.name }}</p>
-              <FieldError name="name" :errors="fieldErrors" />
-            </div>
-            <div>
-              <FieldLabel :text="t('erp.fiscalYears.colStartDate')" required />
-              <DateInput v-model="form.startDate"
-                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.startDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('startDate') && 'input-error']" />
-              <p v-if="errors.startDate" class="mt-1 text-xs text-red-500">{{ errors.startDate }}</p>
-              <FieldError name="startDate" :errors="fieldErrors" />
-            </div>
-            <div>
-              <FieldLabel :text="t('erp.fiscalYears.colEndDate')" required />
-              <DateInput v-model="form.endDate"
-                :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.endDate ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
-                         errorOf('endDate') && 'input-error']" />
-              <p v-if="errors.endDate" class="mt-1 text-xs text-red-500">{{ errors.endDate }}</p>
-              <FieldError name="endDate" :errors="fieldErrors" />
-            </div>
+            <FormField name="name" :label="t('erp.fiscalYears.colName')" :errors="mergedErrors"
+              v-model="form.name" :placeholder="t('erp.fiscalYears.namePh')" required />
+            <FormField name="startDate" :label="t('erp.fiscalYears.colStartDate')" :errors="mergedErrors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.startDate" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
+            <FormField name="endDate" :label="t('erp.fiscalYears.colEndDate')" :errors="mergedErrors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.endDate" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
           </div>
 
           <p v-if="duration" class="text-xs text-[#637381]">
             {{ t('erp.fiscalYears.period') }}: <span class="font-semibold text-[#1C2434]">{{ duration }}</span>
           </p>
 
-          <div>
-            <FieldLabel :text="t('erp.common.notes')" />
-            <textarea v-model="form.notes" rows="3" :placeholder="t('erp.fiscalYears.notesPh')"
-              class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                     focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                     transition-colors resize-none placeholder-[#CBD5E1]" />
-          </div>
+          <FormField name="notes" :label="t('erp.common.notes')" :errors="mergedErrors"
+            v-model="form.notes" textarea :rows="3" :placeholder="t('erp.fiscalYears.notesPh')" />
 
         </div>
       </FormCard>
@@ -85,10 +62,9 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
-import FieldLabel from '@/components/form/FieldLabel.vue'
+import FormField from '@/components/form/FormField.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
-import FieldError from '@/components/form/FieldError.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
@@ -98,7 +74,9 @@ const router      = useRouter()
 const saving      = ref(false)
 const globalError = ref('')
 const errors      = ref({})
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+
+const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 
 const form = ref({
   name:      '',

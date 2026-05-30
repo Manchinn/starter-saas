@@ -27,86 +27,51 @@
       <div class="space-y-5">
 
         <!-- Section: Debit Note Information -->
-        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
-            <div class="w-8 h-8 bg-orange-50 flex items-center justify-center flex-shrink-0">
-              <ArrowTrendingUpIcon class="w-4 h-4 text-orange-500" />
+        <FormCard :title="t('erp.debitNotes.info')" :icon="ArrowTrendingUpIcon" icon-color="amber">
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+
+            <!-- Customer -->
+            <div class="col-span-2 lg:col-span-1">
+              <FieldLabel :text="t('erp.common.customer')" required />
+              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+                <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+                <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
+              </SearchSelect>
+              <FieldError name="customerId" :errors="mergedErrors" />
             </div>
-            <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.debitNotes.info') }}</h2>
-          </div>
-          <div class="px-6 py-5">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
-              <!-- Customer -->
-              <div class="col-span-2 lg:col-span-1">
-                <FieldLabel :text="t('erp.common.customer')" required />
-                <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!errors.customerId || !!errorOf('customerId')" placeholder="— Select customer —" @change="onCustomerChange">
-                  <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                  <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
-                </SearchSelect>
-                <p v-if="errors.customerId" class="mt-1 text-xs text-red-500">{{ errors.customerId }}</p>
-                <FieldError name="customerId" :errors="fieldErrors" />
-              </div>
+            <!-- Date -->
+            <FormField name="date" :label="t('erp.common.date')" :errors="mergedErrors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.date" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
-              <!-- Date -->
-              <div>
-                <FieldLabel :text="t('erp.common.date')" required />
-                <DateInput v-model="form.date"
-                  :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.date ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
-                           errorOf('date') && 'input-error']" />
-                <p v-if="errors.date" class="mt-1 text-xs text-red-500">{{ errors.date }}</p>
-                <FieldError name="date" :errors="fieldErrors" />
-              </div>
-
-              <!-- Invoice (optional) - kept inline because the label has a secondary "(optional)" hint -->
-              <div class="col-span-2 lg:col-span-1">
-                <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
-                  {{ t('erp.debitNotes.linkedInvoice') }} <span class="text-[#9BA7B0] normal-case font-normal text-[10px]">(optional)</span>
-                </label>
-                <SearchSelect v-model="form.invoiceId" :options="invoices" label-key="invoiceNumber" :disabled="!form.customerId || loadingInvoices" :loading="loadingInvoices" placeholder="— No invoice —">
-                  <template #option="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
-                  <template #singleLabel="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
-                </SearchSelect>
-              </div>
-
-              <!-- Amount -->
-              <div>
-                <FieldLabel :text="t('erp.debitNotes.colAmount')" required />
-                <input v-model="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00"
-                  :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.amount ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
-                           errorOf('amount') && 'input-error']" />
-                <p v-if="errors.amount" class="mt-1 text-xs text-red-500">{{ errors.amount }}</p>
-                <FieldError name="amount" :errors="fieldErrors" />
-              </div>
-
-              <!-- Reason -->
-              <div class="col-span-2">
-                <FieldLabel :text="t('erp.debitNotes.colReason')" required />
-                <input v-model="form.reason" type="text" :placeholder="t('erp.debitNotes.reasonPh')"
-                  :class="['w-full px-3.5 py-2.5 border text-sm transition-colors',
-                           'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                           errors.reason ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] text-[#1C2434]',
-                           errorOf('reason') && 'input-error']" />
-                <p v-if="errors.reason" class="mt-1 text-xs text-red-500">{{ errors.reason }}</p>
-                <FieldError name="reason" :errors="fieldErrors" />
-              </div>
-
-              <!-- Notes -->
-              <div class="col-span-2">
-                <FieldLabel :text="t('erp.common.notes')" />
-                <textarea v-model="form.notes" rows="2" :placeholder="t('erp.debitNotes.notesPh')"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                         transition-colors resize-none placeholder-[#CBD5E1]" />
-              </div>
-
+            <!-- Invoice (optional) -->
+            <div class="col-span-2 lg:col-span-1">
+              <FieldLabel :text="t('erp.debitNotes.linkedInvoice')" />
+              <SearchSelect v-model="form.invoiceId" :options="invoices" label-key="invoiceNumber" :disabled="!form.customerId || loadingInvoices" :loading="loadingInvoices" placeholder="— No invoice —">
+                <template #option="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
+                <template #singleLabel="{ option }">{{ option.invoiceNumber }} · {{ fmtMoney(option.total) }}</template>
+              </SearchSelect>
             </div>
+
+            <!-- Amount -->
+            <FormField name="amount" :label="t('erp.debitNotes.colAmount')" :errors="mergedErrors"
+              v-model="form.amount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
+
+            <!-- Reason -->
+            <FormField name="reason" :label="t('erp.debitNotes.colReason')" :errors="mergedErrors"
+              v-model="form.reason" :placeholder="t('erp.debitNotes.reasonPh')" required
+              wrapper-class="col-span-2" />
+
+            <!-- Notes -->
+            <FormField name="notes" :label="t('erp.common.notes')" :errors="mergedErrors"
+              v-model="form.notes" textarea :rows="2" :placeholder="t('erp.debitNotes.notesPh')"
+              wrapper-class="col-span-2" />
+
           </div>
-        </div>
+        </FormCard>
 
         <!-- Global error -->
         <ErrorBanner :message="globalError" />
@@ -153,7 +118,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -162,13 +127,15 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
+import FieldError from '@/components/form/FieldError.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import StatusPill from '@/components/form/StatusPill.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import DocFooterBar from '@/components/form/DocFooterBar.vue'
-import FieldError from '@/components/form/FieldError.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
@@ -183,7 +150,9 @@ const loadingInvoices = ref(false)
 const saving         = ref(false)
 const globalError    = ref('')
 const errors         = ref({})
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+
+const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 
 const today = new Date().toISOString().slice(0, 10)
 const form  = ref({

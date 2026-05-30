@@ -61,29 +61,20 @@
               <VendorChip :vendor="selectedVendor" />
             </div>
 
-            <div>
-              <FieldLabel :text="t('erp.bills.vendorInvoiceNo')" />
-              <input v-model="form.vendorInvoiceNo" type="text" :placeholder="t('erp.bills.vendorInvoicePh')"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all placeholder:text-[#9BA7B0]" />
-            </div>
+            <FormField name="vendorInvoiceNo" :label="t('erp.bills.vendorInvoiceNo')" :errors="errors"
+              v-model="form.vendorInvoiceNo" :placeholder="t('erp.bills.vendorInvoicePh')" />
 
-            <div>
-              <FieldLabel :text="t('erp.bills.billDate')" required />
-              <DateInput v-model="form.billDate"
-                :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
-                         'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
-                         errors.billDate ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
-              <p v-if="errors.billDate" class="mt-1 text-[11px] text-red-500">{{ errors.billDate }}</p>
-            </div>
+            <FormField name="billDate" :label="t('erp.bills.billDate')" :errors="errors" required>
+              <template #default="{ hasError }">
+                <DateInput v-model="form.billDate" :class="['input', hasError && 'input-error']" />
+              </template>
+            </FormField>
 
-            <div>
-              <FieldLabel :text="t('erp.bills.dueDate')" />
-              <DateInput v-model="form.dueDate"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all" />
-            </div>
+            <FormField name="dueDate" :label="t('erp.bills.dueDate')" :errors="errors">
+              <template #default>
+                <DateInput v-model="form.dueDate" class="input" />
+              </template>
+            </FormField>
 
             <div>
               <FieldLabel :text="t('erp.common.currency')" />
@@ -252,13 +243,9 @@
         <!-- Notes + summary -->
         <FormCard :title="t('erp.bills.summary')" :icon="CalculatorIcon" icon-color="slate" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-            <div class="flex flex-col text-left">
-              <FieldLabel :text="t('erp.bills.notes')" />
-              <textarea v-model="form.notes" :placeholder="t('erp.bills.notesPh')"
-                class="flex-1 w-full min-h-[10rem] px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
-                       transition-all resize-none placeholder:text-[#9BA7B0]" />
-            </div>
+            <FormField name="notes" :label="t('erp.bills.notes')" :errors="errors"
+              v-model="form.notes" textarea :placeholder="t('erp.bills.notesPh')"
+              input-class="flex-1 min-h-[10rem]" />
             <dl class="w-full space-y-2.5">
               <div class="flex items-center justify-between text-[13px]">
                 <dt class="text-[#637381]">{{ t('erp.bills.summaryItems') }}</dt>
@@ -384,39 +371,22 @@
             </button>
           </div>
           <div class="flex-1 px-6 py-5 space-y-4">
-            <div>
-              <FieldLabel :text="t('erp.vendors.name')" required />
-              <input v-model="newVendor.name" type="text" placeholder="Vendor name"
-                ref="newVendorNameRef"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-            </div>
-            <div>
-              <FieldLabel :text="t('erp.vendors.code')" />
-              <input v-model="newVendor.code" type="text"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-            </div>
+            <FormField name="vendorName" :label="t('erp.vendors.name')" :errors="{}" required>
+              <template #default="{ id }">
+                <input :id="id" v-model="newVendor.name" ref="newVendorNameRef" type="text"
+                  placeholder="Vendor name" class="input" />
+              </template>
+            </FormField>
+            <FormField name="vendorCode" :label="t('erp.vendors.code')" :errors="{}"
+              v-model="newVendor.code" />
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <FieldLabel :text="t('erp.vendors.email')" />
-                <input v-model="newVendor.email" type="email"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-              </div>
-              <div>
-                <FieldLabel :text="t('erp.vendors.phone')" />
-                <input v-model="newVendor.phone" type="text"
-                  class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
-              </div>
+              <FormField name="vendorEmail" :label="t('erp.vendors.email')" :errors="{}"
+                v-model="newVendor.email" type="email" />
+              <FormField name="vendorPhone" :label="t('erp.vendors.phone')" :errors="{}"
+                v-model="newVendor.phone" />
             </div>
-            <div>
-              <FieldLabel :text="t('erp.vendors.address')" />
-              <textarea v-model="newVendor.address" rows="3"
-                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-[13px] text-[#1C2434]
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 resize-none" />
-            </div>
+            <FormField name="vendorAddress" :label="t('erp.vendors.address')" :errors="{}"
+              v-model="newVendor.address" textarea :rows="3" />
             <p v-if="newVendorError" class="text-[12px] text-red-600">{{ newVendorError }}</p>
           </div>
           <div class="px-6 py-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
@@ -452,6 +422,7 @@ import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import StatusPill from '@/components/form/StatusPill.vue'

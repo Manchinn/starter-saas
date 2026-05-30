@@ -1,13 +1,29 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/accounting/chart-of-accounts" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.accounting.edit') }}</h1>
-      </div>
+      <PageHeader :title="t('erp.accounting.edit')" :back-to="`/erp/accounting/chart-of-accounts`"
+        :breadcrumb="[
+          { label: t('erp.accounting.title'), to: '/erp/accounting/chart-of-accounts' },
+          { label: t('erp.accounting.edit') },
+        ]">
+        <template #actions>
+          <div class="flex items-center gap-2">
+            <button v-can="'erp.accounting.delete'" @click="confirmDelete"
+              class="px-3.5 py-2 text-sm font-medium text-red-500 border border-red-200 hover:bg-red-50 transition">
+              {{ t('erp.accounting.deleteAccount') }}
+            </button>
+            <HeaderSaveActions
+              cancel-to="/erp/accounting/chart-of-accounts"
+              :cancel-label="t('common.cancel')"
+              :saving="saving"
+              :saving-label="t('erp.common.saving')"
+              :save-label="t('common.saveChanges')"
+              @save="save"
+            />
+          </div>
+        </template>
+      </PageHeader>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">{{ t('common.loading') }}</div>
       <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3">
@@ -15,36 +31,21 @@
         <RouterLink to="/erp/accounting/chart-of-accounts" class="underline ml-1">{{ t('erp.common.backToList') }}</RouterLink>
       </div>
 
-      <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
-
+      <FormCard v-else :title="t('erp.accounting.edit')" :icon="BuildingLibraryIcon" icon-color="primary">
         <div class="grid grid-cols-2 gap-4">
 
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">
-              {{ t('erp.accounting.code') }} <span class="text-red-500">*</span>
-            </label>
-            <input v-model="form.code" type="text"
-              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono', errorOf('code') && 'input-error']" />
-            <FieldError name="code" :errors="fieldErrors" />
-          </div>
+          <FormField name="code" :label="t('erp.accounting.code')" :errors="fieldErrors"
+            v-model="form.code" input-class="font-mono" required />
+
+          <FormField name="name" :label="t('erp.accounting.name')" :errors="fieldErrors"
+            v-model="form.name" required />
 
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">
-              {{ t('erp.accounting.name') }} <span class="text-red-500">*</span>
-            </label>
-            <input v-model="form.name" type="text"
-              :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('name') && 'input-error']" />
-            <FieldError name="name" :errors="fieldErrors" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">
-              {{ t('erp.accounting.accountType') }} <span class="text-red-500">*</span>
-            </label>
+            <FieldLabel :text="t('erp.accounting.accountType')" required />
             <template v-if="accountTypeOptions.length">
               <SearchSelect v-model="form.accountType"
                 :options="accountTypeOptions" track-by="code" :placeholder="`— ${t('erp.accounting.selectType')} —`"
-                :allow-empty="false" :invalid="!!errorOf('accountType')" @change="onTypeChange" />
+                :allow-empty="false" :invalid="!!fieldErrors.accountType" @change="onTypeChange" />
               <FieldError name="accountType" :errors="fieldErrors" />
             </template>
             <p v-else class="text-xs text-amber-600 mt-1 px-3 py-2 bg-amber-50 border border-amber-200">
@@ -54,50 +55,32 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.accounting.normalBalance') }}</label>
+            <FieldLabel :text="t('erp.accounting.normalBalance')" />
             <SearchSelect v-model="form.normalBalance" :options="NORMAL_BALANCE_OPTIONS" :allow-empty="false" />
           </div>
 
           <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.accounting.parentAccount') }}</label>
+            <FieldLabel :text="t('erp.accounting.parentAccount')" />
             <SearchSelect v-model="form.parentId" :options="parentOptions" :placeholder="`— ${t('erp.accounting.noParent')} —`">
               <template #option="{ option }">{{ option.code }} — {{ option.name }}</template>
               <template #singleLabel="{ option }">{{ option.code }} — {{ option.name }}</template>
             </SearchSelect>
           </div>
 
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.accounting.description') }}</label>
-            <textarea v-model="form.description" rows="3"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
-          </div>
+          <FormField name="description" :label="t('erp.accounting.description')" :errors="fieldErrors"
+            v-model="form.description" textarea :rows="3" :placeholder="t('erp.accounting.descriptionPh')"
+            wrapper-class="col-span-2" />
 
           <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.accounting.status') }}</label>
+            <FieldLabel :text="t('erp.accounting.status')" />
             <SearchSelect v-model="form.status" :options="STATUS_OPTIONS" :allow-empty="false" />
           </div>
 
         </div>
+      </FormCard>
 
-        <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
+      <ErrorBanner :message="error" />
 
-        <div class="flex justify-between items-center pt-2">
-          <button v-can="'erp.accounting.delete'" @click="confirmDelete"
-            class="px-4 py-2 text-sm text-red-500 border border-red-200 hover:bg-red-50 transition">
-            {{ t('erp.accounting.deleteAccount') }}
-          </button>
-          <div class="flex gap-3">
-            <RouterLink to="/erp/accounting/chart-of-accounts" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">
-              {{ t('common.cancel') }}
-            </RouterLink>
-            <button @click="save" :disabled="saving"
-              class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
-              {{ saving ? t('erp.common.saving') : t('common.saveChanges') }}
-            </button>
-          </div>
-        </div>
-
-      </div>
     </div>
   </AppLayout>
 </template>
@@ -106,10 +89,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import { BuildingLibraryIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
 import FieldError from '@/components/form/FieldError.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
@@ -136,7 +125,7 @@ const loading  = ref(true)
 const notFound = ref(false)
 const error    = ref('')
 const saving   = ref(false)
-const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
 
 onMounted(async () => {
   const [typesRes, allAccountsRes] = await Promise.all([
