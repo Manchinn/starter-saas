@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="flex flex-col h-full">
+    <div class="flex flex-col h-full overflow-hidden">
 
       <!-- Heading -->
       <div class="flex items-center justify-between mb-4">
