@@ -25,49 +25,6 @@
         </div>
       </div>
 
-      <!-- ── Executive Summary — financial & operational health at a glance ──── -->
-      <div class="text-white shadow-sm p-5 sm:p-6"
-        style="background: linear-gradient(135deg, #1e2a4a 0%, #0f1628 100%);">
-        <div class="flex items-center gap-2.5 mb-5">
-          <div class="w-8 h-8 bg-white/10 flex items-center justify-center flex-shrink-0">
-            <PresentationChartLineIcon class="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h2 class="text-sm font-semibold">{{ t('erp.dashboard.execSummary') }}</h2>
-            <p class="text-[11px] text-white/50">{{ t('erp.dashboard.execSummaryDesc') }}</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5">
-          <div>
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-white/50">{{ t('erp.dashboard.salesMtd') }}</p>
-            <div v-if="loading" class="mt-1.5 h-6 w-24 bg-white/10 animate-pulse" />
-            <p v-else class="text-xl font-extrabold tabular-nums mt-1 leading-none">{{ fmtCurrency(stats.finance?.salesMtd) }}</p>
-          </div>
-          <div>
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-white/50">{{ t('erp.dashboard.outstandingAR') }}</p>
-            <div v-if="loading" class="mt-1.5 h-6 w-24 bg-white/10 animate-pulse" />
-            <p v-else class="text-xl font-extrabold tabular-nums mt-1 leading-none">
-              {{ fmtCurrency(stats.finance?.arOutstanding) }}
-              <span v-if="(stats.finance?.arOverdueCount ?? 0) > 0"
-                class="ml-1 inline-block px-1.5 text-[10px] font-bold text-red-200 bg-red-500/30 align-middle">
-                {{ stats.finance.arOverdueCount }} {{ t('erp.dashboard.overdue') }}
-              </span>
-            </p>
-          </div>
-          <div>
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-white/50">{{ t('erp.dashboard.outstandingAP') }}</p>
-            <div v-if="loading" class="mt-1.5 h-6 w-24 bg-white/10 animate-pulse" />
-            <p v-else class="text-xl font-extrabold tabular-nums mt-1 leading-none">{{ fmtCurrency(stats.finance?.apOutstanding) }}</p>
-          </div>
-          <div>
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-white/50">{{ t('erp.dashboard.netPosition') }}</p>
-            <div v-if="loading" class="mt-1.5 h-6 w-24 bg-white/10 animate-pulse" />
-            <p v-else class="text-xl font-extrabold tabular-nums mt-1 leading-none"
-              :class="netPosition >= 0 ? 'text-emerald-300' : 'text-red-300'">{{ fmtCurrency(netPosition) }}</p>
-          </div>
-        </div>
-      </div>
-
       <!-- ── Alert Banner — compact inline strip of clickable, localized alerts ── -->
       <div v-if="!loading && criticalAlerts.length > 0"
         class="flex items-center flex-wrap gap-x-2 gap-y-1.5 bg-red-50 border border-red-200 px-4 py-2.5">
@@ -726,7 +683,6 @@ import {
   DocumentTextIcon, CurrencyDollarIcon, ClipboardDocumentListIcon,
   ShoppingBagIcon, PencilSquareIcon,
   ArrowTrendingUpIcon, BanknotesIcon, DocumentChartBarIcon,
-  PresentationChartLineIcon,
 } from '@heroicons/vue/24/outline'
 import api from '@/api'
 import { fmtDate, fmtDateTime } from '@/utils/fmt'
@@ -760,11 +716,6 @@ const greeting = computed(() => {
 })
 
 const todayLabel = fmtDate(new Date())
-
-// Net working-capital position: receivables minus payables (base currency).
-const netPosition = computed(() =>
-  (stats.value.finance?.arOutstanding ?? 0) - (stats.value.finance?.apOutstanding ?? 0)
-)
 
 const totalPending = computed(() =>
   (stats.value.pending?.goodReceives         ?? 0)
