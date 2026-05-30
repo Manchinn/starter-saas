@@ -84,7 +84,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   SparklesIcon, XMarkIcon, PaperAirplaneIcon, ArrowTopRightOnSquareIcon,
@@ -96,6 +96,7 @@ const emit  = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 const router = useRouter()
+const route  = useRoute()
 const store  = useAiAgentStore()
 
 const draft   = ref('')
@@ -125,6 +126,11 @@ watch(() => props.modelValue, (open) => {
 
 watch(() => store.messages.length, scrollToBottom)
 watch(() => store.loading, scrollToBottom)
+
+// Auto-run actions (gated by the autoAction setting inside store.send) navigate
+// the page underneath the overlay. Close the panel on any route change so the
+// user lands on the destination — matching the full-page /ai/chat experience.
+watch(() => route.fullPath, () => { if (props.modelValue) close() })
 
 async function onSend() {
   const text = draft.value.trim()
