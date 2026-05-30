@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="flex flex-col" style="height: calc(100vh - 9rem)">
+    <div class="flex flex-col h-full">
 
       <!-- Heading -->
       <div class="flex items-center justify-between mb-4">
