@@ -253,4 +253,4 @@ Locale messages are split per module (e.g. `client/src/modules/*/i18n/{en,th}.js
 
 ## License
 
-Private/internal project. Add a license here if you intend to distribute it.
+MIT License
