@@ -181,7 +181,8 @@
         <div class="flex items-center gap-1.5 sm:gap-2.5">
           <!-- AI Chat button -->
           <button type="button" @click="chatOpen = true"
-            class="p-2 text-[#637381] hover:bg-[#F7F9FC] hover:text-primary-600 transition-colors"
+            class="w-10 h-10 flex items-center justify-center border border-[#E2E8F0]
+                   bg-white hover:bg-[#F7F9FC] text-[#637381] hover:text-[#1C2434] transition-colors"
             :title="t('aiAgent.chat.title')">
             <SparklesIcon class="w-5 h-5" />
           </button>
