@@ -1,98 +1,50 @@
 <template>
-  <div class="min-h-screen flex">
+  <div class="min-h-screen bg-[#F1F5F9] flex flex-col">
 
-    <!-- ── Left panel: branding ──────────────────────────────────────────────── -->
-    <aside class="hidden lg:flex lg:w-[38%] xl:w-[35%] min-h-screen flex-col flex-shrink-0 sticky top-0 h-screen overflow-hidden"
-      style="background: linear-gradient(155deg, #1e2a4a 0%, #1a1f3a 50%, #0f1628 100%);">
-
-      <!-- logo -->
-      <div class="px-10 pt-10 flex items-center gap-3">
-        <div class="w-9 h-9 flex items-center justify-center flex-shrink-0"
+    <!-- ── Top bar ───────────────────────────────────────────────────────────── -->
+    <header class="flex items-center justify-between px-8 py-5 flex-shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 flex items-center justify-center flex-shrink-0"
           style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
-          <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
-        <span class="text-[16px] font-bold text-white tracking-tight">Starter SaaS</span>
+        <span class="text-[15px] font-bold text-[#1C2434]">Starter SaaS</span>
       </div>
+      <RouterLink to="/login"
+        class="text-[13px] font-medium text-[#637381] hover:text-primary-600 transition-colors">
+        {{ t('auth.signInLink') }} →
+      </RouterLink>
+    </header>
 
-      <!-- headline -->
-      <div class="px-10 mt-16">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 mb-4 text-[10px] font-bold
-                     text-primary-300 bg-primary-500/20 uppercase tracking-widest">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+    <!-- ── Form area ─────────────────────────────────────────────────────────── -->
+    <main class="flex-1 px-8 pb-12">
+
+      <!-- Heading -->
+      <div class="mb-8">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 mb-3 text-[11px] font-semibold
+                     text-primary-700 bg-primary-50 uppercase tracking-wider">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           {{ t('auth.setupTitle') }}
         </span>
-        <h1 class="text-[28px] font-bold text-white leading-snug tracking-tight">
-          {{ t('auth.createWorkspace') }}
-        </h1>
-        <p class="text-[14px] text-[#8BA3C7] mt-3 leading-relaxed">{{ t('auth.setupDesc') }}</p>
+        <h1 class="text-[26px] font-bold text-[#0F172A] tracking-[-0.5px]">{{ t('auth.createWorkspace') }}</h1>
+        <p class="text-[14px] text-[#637381] mt-1">{{ t('auth.setupDesc') }}</p>
       </div>
 
-      <!-- checklist -->
-      <div class="px-10 mt-10 space-y-4">
-        <div v-for="item in setupSteps" :key="item.text" class="flex items-start gap-3">
-          <div class="mt-0.5 w-5 h-5 rounded-full bg-primary-500/25 flex items-center justify-center flex-shrink-0">
-            <svg class="w-3 h-3 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <div>
-            <p class="text-[13px] font-semibold text-white leading-snug">{{ item.title }}</p>
-            <p class="text-[12px] text-[#6B84A8] mt-0.5 leading-relaxed">{{ item.desc }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- footer note -->
-      <div class="mt-auto px-10 pb-10">
-        <div class="flex items-center gap-2 text-[11px] text-[#4A637A]">
-          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <span>{{ t('auth.setupOnce') }} · {{ t('auth.secureNote') }}</span>
-        </div>
-      </div>
-    </aside>
-
-    <!-- ── Right panel: form ──────────────────────────────────────────────────── -->
-    <div class="flex-1 min-h-screen bg-white flex flex-col overflow-y-auto">
-
-      <!-- top bar -->
-      <header class="flex items-center justify-between px-8 lg:px-12 py-5 flex-shrink-0 border-b border-[#F1F5F9]">
-        <!-- mobile logo -->
-        <div class="flex items-center gap-2.5 lg:hidden">
-          <div class="w-7 h-7 flex items-center justify-center flex-shrink-0"
-            style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
-            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="text-[14px] font-bold text-[#1C2434]">Starter SaaS</span>
-        </div>
-        <div class="hidden lg:block" />
-        <RouterLink to="/login"
-          class="text-[13px] font-medium text-[#637381] hover:text-primary-600 transition-colors">
-          {{ t('auth.signInLink') }} →
-        </RouterLink>
-      </header>
-
-      <!-- form content -->
-      <main class="flex-1 px-8 lg:px-12 xl:px-16 py-10">
-        <div class="max-w-3xl">
+      <div class="bg-white border border-[#E2E8F0] shadow-sm">
+        <div class="px-8 py-8">
+        <div class="max-w-none">
 
           <form @submit.prevent="handleInstall" class="space-y-10">
 
             <!-- ── Language ─────────────────────────────────────────────────── -->
             <section>
-              <div class="flex items-center justify-between mb-5">
-                <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest">
-                  {{ t('auth.defaultLanguage') }}
-                </h2>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+              <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest mb-5">
+                {{ t('auth.defaultLanguage') }}
+              </h2>
+              <div class="grid grid-cols-4 gap-5">
+                <div class="col-span-2">
                   <select v-model="defaultLang" @change="setLang(defaultLang)" class="input">
                     <option v-for="opt in langOptions" :key="opt.code" :value="opt.code">{{ opt.flag }} {{ opt.label }}</option>
                   </select>
@@ -106,10 +58,10 @@
               <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest mb-5">
                 {{ t('auth.orgName') }} &amp; Admin
               </h2>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-4">
+              <div class="grid grid-cols-4 gap-x-5 gap-y-4">
 
-                <!-- Organization name — full width on first row -->
-                <div class="sm:col-span-2 lg:col-span-1">
+                <!-- Organization name -->
+                <div class="col-span-2">
                   <label class="label">{{ t('auth.orgName') }}</label>
                   <input
                     v-model="form.name" type="text" required autocomplete="organization"
@@ -119,7 +71,7 @@
                 </div>
 
                 <!-- Email -->
-                <div class="sm:col-span-2 lg:col-span-2">
+                <div class="col-span-2">
                   <label class="label">{{ t('auth.email') }}</label>
                   <input
                     v-model="form.email" type="email" required autocomplete="email"
@@ -129,7 +81,7 @@
                 </div>
 
                 <!-- Password -->
-                <div>
+                <div class="col-span-2">
                   <label class="label">{{ t('auth.password') }}</label>
                   <div class="relative">
                     <input
@@ -153,7 +105,7 @@
                 </div>
 
                 <!-- Confirm password -->
-                <div>
+                <div class="col-span-2">
                   <label class="label">{{ t('auth.confirmPassword') }}</label>
                   <input
                     v-model="form.confirmPassword" :type="showPassword ? 'text' : 'password'" required
@@ -172,8 +124,8 @@
               </h2>
               <div class="space-y-4">
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  <div>
+                <div class="grid grid-cols-4 gap-x-5 gap-y-4">
+                  <div class="col-span-2">
                     <label class="label">{{ t('auth.dbEngine') }}</label>
                     <select v-model="db.dialect" class="input" @change="dbTestResult = ''">
                       <option v-for="opt in dbDialects" :key="opt.value" :value="opt.value">{{ t(opt.labelKey) }}</option>
@@ -181,7 +133,7 @@
                   </div>
 
                   <!-- SQLite path inline -->
-                  <div v-if="db.dialect === 'sqlite'" class="sm:col-span-2">
+                  <div v-if="db.dialect === 'sqlite'" class="col-span-2">
                     <label class="label">{{ t('auth.dbSqlitePath') }}</label>
                     <input v-model="db.storage" type="text" spellcheck="false" autocomplete="off"
                       :placeholder="DEFAULT_SQLITE_PATH" class="input font-mono text-[13px]" />
@@ -190,28 +142,28 @@
                 </div>
 
                 <!-- Relational details -->
-                <div v-if="db.dialect !== 'sqlite'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-4">
-                  <div class="lg:col-span-2">
+                <div v-if="db.dialect !== 'sqlite'" class="grid grid-cols-4 gap-x-5 gap-y-4">
+                  <div class="col-span-2">
                     <label class="label">{{ t('auth.dbHost') }}</label>
                     <input v-model="db.host" type="text" placeholder="localhost" class="input" />
                   </div>
-                  <div>
+                  <div class="col-span-1">
                     <label class="label">{{ t('auth.dbPort') }}</label>
                     <input v-model="db.port" type="number" :placeholder="String(defaultPort)" class="input" />
                   </div>
-                  <div>
+                  <div class="col-span-1">
                     <label class="label">{{ t('auth.dbName') }}</label>
                     <input v-model="db.database" type="text" placeholder="starter_saas" class="input" />
                   </div>
-                  <div>
+                  <div class="col-span-2">
                     <label class="label">{{ t('auth.dbUsername') }}</label>
                     <input v-model="db.username" type="text" autocomplete="off" class="input" />
                   </div>
-                  <div>
+                  <div class="col-span-2">
                     <label class="label">{{ t('auth.password') }}</label>
                     <input v-model="db.password" type="password" autocomplete="new-password" class="input" />
                   </div>
-                  <div class="lg:col-span-3 flex items-center gap-3">
+                  <div class="col-span-4 flex items-center gap-3">
                     <button type="button" @click="testDb" :disabled="dbTesting" class="btn-secondary">
                       <svg v-if="dbTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
@@ -253,24 +205,24 @@
                   </span>
                 </label>
 
-                <div v-if="redis.enabled" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-4">
-                  <div class="sm:col-span-2">
+                <div v-if="redis.enabled" class="grid grid-cols-4 gap-x-5 gap-y-4">
+                  <div class="col-span-2">
                     <label class="label">{{ t('auth.dbHost') }}</label>
                     <input v-model="redis.host" type="text" placeholder="127.0.0.1" class="input" @input="redisTestResult = ''" />
                   </div>
-                  <div>
+                  <div class="col-span-1">
                     <label class="label">{{ t('auth.dbPort') }}</label>
                     <input v-model="redis.port" type="number" :placeholder="String(REDIS_DEFAULT_PORT)" class="input" @input="redisTestResult = ''" />
                   </div>
-                  <div>
+                  <div class="col-span-1">
                     <label class="label">{{ t('auth.redisDbIndex') }}</label>
                     <input v-model="redis.db" type="number" placeholder="0" class="input" @input="redisTestResult = ''" />
                   </div>
-                  <div class="sm:col-span-2">
+                  <div class="col-span-2">
                     <label class="label">{{ t('auth.password') }}</label>
                     <input v-model="redis.password" type="password" autocomplete="new-password" class="input" @input="redisTestResult = ''" />
                   </div>
-                  <div class="sm:col-span-2 lg:col-span-4 flex items-center gap-3">
+                  <div class="col-span-4 flex items-center gap-3">
                     <button type="button" @click="testRedis" :disabled="redisTesting" class="btn-secondary">
                       <svg v-if="redisTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
@@ -357,9 +309,19 @@
 
           </form>
         </div>
-      </main>
-    </div>
+        </div>
+      </div>
 
+      <!-- Trust line -->
+      <div class="mt-6 flex items-center gap-1.5 text-[12px] text-[#94A3B8]">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span>{{ t('auth.setupOnce') }} · {{ t('auth.secureNote') }}</span>
+      </div>
+
+    </main>
   </div>
 </template>
 
@@ -377,11 +339,6 @@ const auth   = useAuthStore()
 const router = useRouter()
 const { t, locale } = useI18n()
 
-const setupSteps = [
-  { title: 'Admin account',     desc: 'Create your organization and administrator login credentials.' },
-  { title: 'Database',          desc: 'Connect to SQLite, PostgreSQL, MySQL, MariaDB, or MSSQL.' },
-  { title: 'Ready to use',      desc: 'Optionally seed sequences and demo data, then go to the dashboard.' },
-]
 
 // ── Language ───────────────────────────────────────────────────────────────
 // The picker doubles as the workspace default: switching it re-labels the form
