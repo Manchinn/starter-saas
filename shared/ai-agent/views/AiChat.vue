@@ -16,7 +16,7 @@
       <div class="flex flex-1 min-h-0 border border-[#E2E8F0] bg-white">
 
         <!-- Conversation list -->
-        <aside class="w-60 flex-shrink-0 border-r border-[#E2E8F0] flex flex-col">
+        <aside class="w-60 flex-shrink-0 border-r border-[#E2E8F0] flex flex-col" style="max-height: 650px">
           <button @click="store.newConversation()"
             class="m-3 btn-primary justify-center">
             <PlusIcon class="w-4 h-4" /> {{ t('aiAgent.chat.newChat') }}
