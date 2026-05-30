@@ -79,13 +79,25 @@ describe('agent.chat — tool loop', () => {
     expect(sys.content).toContain('Thai')
   })
 
-  test('no/unknown lang leaves the system prompt unchanged', async () => {
+  test('keeps the base system prompt and adds no language directive when lang is absent', async () => {
     provider.chat.mockResolvedValueOnce({ role: 'assistant', content: 'hi', tool_calls: [] })
 
     await agent.chat({ user: USER, conversationId: null, content: 'hi' })
 
     const sys = provider.chat.mock.calls[0][0].messages.find((m) => m.role === 'system')
-    expect(sys.content).toBe('sys')
+    expect(sys.content).toMatch(/^sys/)
+    expect(sys.content).not.toContain('Thai')
+    expect(sys.content).not.toContain('English')
+  })
+
+  test('always appends the data-integrity guardrail (anti-hallucination)', async () => {
+    provider.chat.mockResolvedValueOnce({ role: 'assistant', content: 'hi', tool_calls: [] })
+
+    await agent.chat({ user: USER, conversationId: null, content: 'how are sales?' })
+
+    const sys = provider.chat.mock.calls[0][0].messages.find((m) => m.role === 'system')
+    expect(sys.content).toContain('data integrity')
+    expect(sys.content).toMatch(/only the values it returns/i)
   })
 
   test('rejects when the assistant is disabled', async () => {
