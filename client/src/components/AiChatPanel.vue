@@ -30,6 +30,17 @@
             </div>
             <p class="text-sm font-medium text-[#1C2434]">{{ t('aiAgent.chat.empty') }}</p>
             <p class="text-[12px] text-[#9BA7B0] max-w-[220px]">{{ t('aiAgent.chat.emptyHint') }}</p>
+
+            <!-- Clickable sample prompts -->
+            <p class="mt-3 text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('aiAgent.chat.samplesTitle') }}</p>
+            <div class="flex flex-wrap items-center justify-center gap-1.5 max-w-[280px]">
+              <button v-for="(s, i) in samples" :key="i" type="button" @click="useSample(s)"
+                :disabled="store.loading"
+                class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] text-[#374151] bg-white border border-[#E2E8F0] hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition-colors disabled:opacity-50">
+                <SparklesIcon class="w-2.5 h-2.5 text-primary-400" />
+                {{ s }}
+              </button>
+            </div>
           </div>
 
           <div v-for="m in store.messages" :key="m.id"
@@ -72,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -90,6 +101,11 @@ const store  = useAiAgentStore()
 const draft   = ref('')
 const scrollEl = ref(null)
 const inputEl  = ref(null)
+
+// Clickable starter prompts shown on the empty state. Each maps to a real
+// tool/navigation the agent supports.
+const SAMPLE_KEYS = ['productList', 'newCustomer', 'listCustomers', 'findCustomer', 'newProduct', 'openOrders']
+const samples = computed(() => SAMPLE_KEYS.map((k) => t(`aiAgent.chat.samples.${k}`)))
 
 function close() { emit('update:modelValue', false) }
 
@@ -122,6 +138,13 @@ async function onSend() {
       content: e.response?.data?.message || t('aiAgent.errors.sendFailed'), actions: [],
     })
   }
+}
+
+// Fill the composer with a sample prompt and send it immediately.
+function useSample(text) {
+  if (store.loading) return
+  draft.value = text
+  onSend()
 }
 
 function runAction(a) {
