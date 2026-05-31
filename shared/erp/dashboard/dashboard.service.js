@@ -4,7 +4,7 @@ const {
   Invoice, Customer,
   PurchaseRequisition, PurchaseOrder,
   Journal,
-  VendorBill, TaxPeriod,
+  VendorBill, TaxPeriod, FiscalYear,
 } = require('../../../server/models')
 const { Op, fn, col } = require('sequelize')
 
@@ -153,6 +153,23 @@ const getStats = async (organizationId = null) => {
   const arOverdue    = arSentRows.filter(r => r.dueDate && r.dueDate < isoToday).length
   const apBase       = sumBase(apApprovedRows)
 
+  // Profitability (fiscal-year-to-date) — derived from posted journals via the
+  // financial-statements service. Falls back to month-to-date when no fiscal
+  // year covers today, and to zeros if the chart of accounts isn't seeded.
+  let profitability = { revenue: 0, costOfSales: 0, grossProfit: 0, netProfit: 0, periodFrom: null, periodTo: isoToday }
+  try {
+    const fsSvc = require('../accounting/services/financial-statements.service')
+    const fy = await FiscalYear.findOne({
+      where: { ...scope, dataFlag: { [Op.ne]: 2 }, startDate: { [Op.lte]: isoToday }, endDate: { [Op.gte]: isoToday } },
+    })
+    const fromDate = fy ? fy.startDate : monthStart.toISOString().slice(0, 10)
+    const is = await fsSvc.incomeStatementForPeriod({ fromDate, toDate: isoToday, organizationId })
+    profitability = {
+      revenue: is.revenue, costOfSales: is.costOfSales, grossProfit: is.grossProfit, netProfit: is.netProfit,
+      periodFrom: fromDate, periodTo: isoToday,
+    }
+  } catch (_) { /* CoA not seeded — leave zeros */ }
+
   // Current period VAT — call the report service if a period covers today
   let vatPeriodInfo = null
   if (currentTaxPeriod) {
@@ -193,6 +210,7 @@ const getStats = async (organizationId = null) => {
       arOverdueCount:  arOverdue,
       apOutstanding:   apBase,
       vatPeriod:       vatPeriodInfo,
+      profitability,
     },
     draftJournals,
     pending: {
@@ -263,6 +281,10 @@ const getExecutiveSummary = async (organizationId = null) => {
       apOutstanding:  f.apOutstanding ?? 0,
       // Net working-capital position from receivables vs payables.
       netPosition:    (f.arOutstanding ?? 0) - (f.apOutstanding ?? 0),
+      // Profitability (fiscal-year-to-date) from the financial statements.
+      revenue:        f.profitability?.revenue ?? 0,
+      grossProfit:    f.profitability?.grossProfit ?? 0,
+      netProfit:      f.profitability?.netProfit ?? 0,
       vat: f.vatPeriod
         ? { period: f.vatPeriod.name, netPayable: f.vatPeriod.netPayable }
         : null,

@@ -22,6 +22,10 @@ export default {
       kpis: {
         salesInPeriod:      'ยอดขาย (ช่วงเวลา)',
         salesInPeriodDesc:  'ออกใบแจ้งหนี้ในช่วงนี้',
+        grossProfit:        'กำไรขั้นต้น',
+        grossMargin:        'อัตรากำไร',
+        netProfit:          'กำไรสุทธิ',
+        netProfitDesc:      'หลังหักค่าใช้จ่ายทั้งหมด',
         invoicesInPeriod:   'ใบแจ้งหนี้ (ช่วงเวลา)',
         invoicesInPeriodDesc: 'ออกในช่วงนี้',
         outstandingAR:  'ลูกหนี้คงค้าง',

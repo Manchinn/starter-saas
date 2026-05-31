@@ -34,8 +34,10 @@ jest.mock('../../../../server/models', () => {
 
 jest.mock('../../accounting/services/tax-period.service', () => ({ assertOpen: jest.fn() }))
 jest.mock('../../accounting/services/auto-journal.service', () => ({
-  postInvoice:    jest.fn(),
-  reverseInvoice: jest.fn(),
+  postInvoice:        jest.fn(),
+  reverseInvoice:     jest.fn(),
+  postInvoiceCOGS:    jest.fn(),
+  reverseInvoiceCOGS: jest.fn(),
 }))
 jest.mock('../../audit/audit.service', () => ({ log: jest.fn() }))
 jest.mock('../../settings/services/currency.service', () => ({ getRateOn: jest.fn(() => 1) }), { virtual: true })

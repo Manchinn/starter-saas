@@ -18,6 +18,7 @@ const ROLE_TO_CODE = {
   OUTPUT_TAX: '2140', // Output Tax (VAT) - on sales
   INPUT_TAX:  '1160', // Input Tax (VAT)  - on purchases
   COGS:       '5110', // Cost of Goods Sold
+  INVENTORY_ADJUSTMENT: '5130', // Inventory write-offs / gains (stock adjust & issue)
 }
 
 const cache = new Map() // key: `${orgId || 'null'}:${code}` → account record

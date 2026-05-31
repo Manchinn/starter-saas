@@ -122,6 +122,51 @@
 
       </div>
 
+      <!-- ── Profitability (fiscal-year-to-date) ─────────────────────────────── -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <RouterLink to="/erp/accounting/financial-statements/income-statement"
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
+          <div class="w-11 h-11 bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
+            <ArrowTrendingUpIcon class="w-5 h-5 text-emerald-600" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.revenueYtd') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-24 bg-[#F1F5F9] animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1 tabular-nums">{{ fmtCurrency(stats.finance?.profitability?.revenue) }}</p>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.dashboard.profitYtdDesc') }}</p>
+          </div>
+        </RouterLink>
+
+        <RouterLink to="/erp/accounting/financial-statements/income-statement"
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-indigo-200 hover:shadow-md transition-all group">
+          <div class="w-11 h-11 bg-indigo-50 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-100 transition-colors">
+            <CurrencyDollarIcon class="w-5 h-5 text-indigo-600" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.grossProfit') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-24 bg-[#F1F5F9] animate-pulse" />
+            <p v-else class="text-2xl font-extrabold text-[#1C2434] leading-none mt-1 tabular-nums">{{ fmtCurrency(stats.finance?.profitability?.grossProfit) }}</p>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.dashboard.grossProfitDesc') }}</p>
+          </div>
+        </RouterLink>
+
+        <RouterLink to="/erp/accounting/financial-statements/income-statement"
+          class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-slate-300 hover:shadow-md transition-all group">
+          <div class="w-11 h-11 bg-slate-50 flex items-center justify-center flex-shrink-0 group-hover:bg-slate-100 transition-colors">
+            <DocumentChartBarIcon class="w-5 h-5 text-slate-700" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#637381]">{{ t('erp.dashboard.netProfit') }}</p>
+            <div v-if="loading" class="mt-1 h-7 w-24 bg-[#F1F5F9] animate-pulse" />
+            <p v-else class="text-2xl font-extrabold leading-none mt-1 tabular-nums"
+              :class="(stats.finance?.profitability?.netProfit ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-600'">
+              {{ fmtCurrency(stats.finance?.profitability?.netProfit) }}
+            </p>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.dashboard.netProfitDesc') }}</p>
+          </div>
+        </RouterLink>
+      </div>
+
       <!-- ── KPI Row 1: Sales Pipeline ───────────────────────────────────────── -->
       <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 

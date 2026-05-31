@@ -300,7 +300,9 @@ const updateStatus = async (id, status, userId, organizationId) => {
   const autoJournal = require('../accounting/services/auto-journal.service')
   if (status === 'sent') {
     try {
-      await autoJournal.postInvoice(await getById(id), userId)
+      const full = await getById(id)
+      await autoJournal.postInvoice(full, userId)
+      await autoJournal.postInvoiceCOGS(full, userId) // relieve inventory at cost
     } catch (err) {
       await invoice.update({ status: previousStatus })
       throw err
@@ -309,6 +311,7 @@ const updateStatus = async (id, status, userId, organizationId) => {
   if (status === 'cancelled' && ['sent', 'paid'].includes(previousStatus)) {
     try {
       await autoJournal.reverseInvoice(invoice, userId, `cancelled from "${previousStatus}"`)
+      await autoJournal.reverseInvoiceCOGS(invoice, userId, `cancelled from "${previousStatus}"`)
     } catch (err) {
       await invoice.update({ status: previousStatus })
       throw err

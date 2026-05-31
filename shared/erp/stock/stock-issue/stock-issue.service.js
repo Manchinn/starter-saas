@@ -157,6 +157,12 @@ const confirm = async (id) => {
 
     await issue.update({ status: 'confirmed' }, { transaction: t })
     await t.commit()
+    // Relieve inventory at standard cost in the GL (outside the txn). Idempotent.
+    await require('../../accounting/services/auto-journal.service').postStockIssue({
+      id: issue.id, refNo: issue.refNo, date: issue.date,
+      items: issue.items.map(i => ({ productId: i.productId, qty: i.qty })),
+      organizationId: issue.organizationId,
+    })
     return getById(id)
   } catch (err) {
     await t.rollback()

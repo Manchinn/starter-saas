@@ -30,13 +30,19 @@ jest.mock('../../../../server/models', () => ({
   Journal:             { count: jest.fn() },
   VendorBill:          { findAll: jest.fn() },
   TaxPeriod:           { findOne: jest.fn() },
+  FiscalYear:          { findOne: jest.fn() },
 }))
 
 jest.mock('../../accounting/services/tax-period.service', () => ({
   getVatReport: jest.fn(),
 }))
 
+jest.mock('../../accounting/services/financial-statements.service', () => ({
+  incomeStatementForPeriod: jest.fn(),
+}))
+
 const m = require('../../../../server/models')
+const fsSvc = require('../../accounting/services/financial-statements.service')
 const taxPeriodSvc = require('../../accounting/services/tax-period.service')
 const service = require('../dashboard.service')
 
@@ -62,6 +68,8 @@ function stubAllZero() {
   m.Journal.count.mockResolvedValue(0)
   m.VendorBill.findAll.mockResolvedValue([])
   m.TaxPeriod.findOne.mockResolvedValue(null)
+  m.FiscalYear.findOne.mockResolvedValue(null)
+  fsSvc.incomeStatementForPeriod.mockResolvedValue({ revenue: 0, costOfSales: 0, grossProfit: 0, netProfit: 0 })
 }
 
 beforeEach(stubAllZero)
@@ -358,5 +366,30 @@ describe('dashboard.getStats — org scoping', () => {
     const storeInclude = m.StoreStock.findAll.mock.calls[0][0].include[0]
     expect(storeInclude.where).toBeUndefined()
     expect(storeInclude.required).toBe(false)
+  })
+})
+
+describe('dashboard.getStats — profitability (fiscal-year-to-date)', () => {
+  test('folds the income statement into finance.profitability, using the FY start', async () => {
+    m.FiscalYear.findOne.mockResolvedValue({ startDate: '2026-01-01', endDate: '2026-12-31' })
+    fsSvc.incomeStatementForPeriod.mockResolvedValue({ revenue: 1000, costOfSales: 400, grossProfit: 600, netProfit: 250 })
+    const out = await service.getStats('org-1')
+    expect(out.finance.profitability).toMatchObject({ revenue: 1000, costOfSales: 400, grossProfit: 600, netProfit: 250, periodFrom: '2026-01-01' })
+    expect(fsSvc.incomeStatementForPeriod.mock.calls[0][0].fromDate).toBe('2026-01-01')
+  })
+
+  test('degrades to zeros when the chart of accounts is not seeded', async () => {
+    fsSvc.incomeStatementForPeriod.mockRejectedValue({ status: 400, message: 'Missing chart of accounts entry' })
+    const out = await service.getStats('org-1')
+    expect(out.finance.profitability).toMatchObject({ revenue: 0, grossProfit: 0, netProfit: 0 })
+  })
+})
+
+describe('dashboard.getExecutiveSummary — profitability surfaced', () => {
+  test('finance block exposes revenue / grossProfit / netProfit', async () => {
+    m.FiscalYear.findOne.mockResolvedValue({ startDate: '2026-01-01', endDate: '2026-12-31' })
+    fsSvc.incomeStatementForPeriod.mockResolvedValue({ revenue: 800, costOfSales: 300, grossProfit: 500, netProfit: 120 })
+    const out = await service.getExecutiveSummary('org-1')
+    expect(out.finance).toMatchObject({ revenue: 800, grossProfit: 500, netProfit: 120 })
   })
 })

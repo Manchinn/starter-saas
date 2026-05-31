@@ -115,6 +115,19 @@ const buildArAging = async (scope, from, to) => {
   return out
 }
 
+// Profitability for the window, from posted journals via the financial-statements
+// service (revenue/COGS/gross profit/net profit). Zeros if the CoA isn't seeded.
+const buildProfitability = async (organizationId, from, to) => {
+  try {
+    const fsSvc = require('../../erp/accounting/services/financial-statements.service')
+    const is = await fsSvc.incomeStatementForPeriod({ fromDate: from, toDate: to, organizationId })
+    const grossMarginPct = is.revenue > 0 ? Math.round((is.grossProfit / is.revenue) * 1000) / 10 : 0
+    return { revenue: is.revenue, costOfSales: is.costOfSales, grossProfit: is.grossProfit, netProfit: is.netProfit, grossMarginPct }
+  } catch (_) {
+    return { revenue: 0, costOfSales: 0, grossProfit: 0, netProfit: 0, grossMarginPct: 0 }
+  }
+}
+
 // Aggregate ERP data into a chart-ready summary. Invoice-based analytics are
 // scoped to the [from, to] window; inventory and open-document tiles reuse the
 // (already tested) ERP dashboard service and reflect the current snapshot.
@@ -122,11 +135,12 @@ const getSummary = async (organizationId = null, opts = {}) => {
   const scope = organizationId ? { organizationId } : {}
   const range = resolveRange(opts)
 
-  const [stats, salesTrend, invoiceStatus, arAging] = await Promise.all([
+  const [stats, salesTrend, invoiceStatus, arAging, profit] = await Promise.all([
     erpDashboard.getStats(organizationId),
     buildSalesTrend(scope, range.from, range.to, range.granularity),
     buildInvoiceStatus(scope, range.from, range.to),
     buildArAging(scope, range.from, range.to),
+    buildProfitability(organizationId, range.from, range.to),
   ])
 
   const invoicesInPeriod =
@@ -141,7 +155,12 @@ const getSummary = async (organizationId = null, opts = {}) => {
       apOutstanding:    stats.finance.apOutstanding,
       activeProducts:   stats.products.active,
       totalStock:       stats.products.totalStock,
+      costOfSales:      profit.costOfSales,
+      grossProfit:      profit.grossProfit,
+      grossMarginPct:   profit.grossMarginPct,
+      netProfit:        profit.netProfit,
     },
+    profitability:      profit,
     salesTrend,
     invoiceStatus,
     pipeline: {

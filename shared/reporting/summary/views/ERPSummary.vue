@@ -212,6 +212,12 @@ const kpiCards = computed(() => {
   return [
     { key: 'salesInPeriod', label: t('reporting.erpSummary.kpis.salesInPeriod'), desc: t('reporting.erpSummary.kpis.salesInPeriodDesc'),
       value: fmtMoney(k.salesInPeriod || 0), icon: ArrowTrendingUpIcon, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+    { key: 'grossProfit', label: t('reporting.erpSummary.kpis.grossProfit'),
+      desc: `${t('reporting.erpSummary.kpis.grossMargin')} ${fmtNumber(k.grossMarginPct || 0, 1)}%`,
+      value: fmtMoney(k.grossProfit || 0), icon: ScaleIcon, iconBg: 'bg-indigo-50', iconColor: 'text-indigo-600' },
+    { key: 'netProfit', label: t('reporting.erpSummary.kpis.netProfit'), desc: t('reporting.erpSummary.kpis.netProfitDesc'),
+      value: fmtMoney(k.netProfit || 0), icon: PresentationChartLineIcon,
+      iconBg: (k.netProfit || 0) >= 0 ? 'bg-emerald-50' : 'bg-red-50', iconColor: (k.netProfit || 0) >= 0 ? 'text-emerald-600' : 'text-red-600' },
     { key: 'invoicesInPeriod', label: t('reporting.erpSummary.kpis.invoicesInPeriod'), desc: t('reporting.erpSummary.kpis.invoicesInPeriodDesc'),
       value: fmtNumber(k.invoicesInPeriod || 0, 0), icon: DocumentTextIcon, iconBg: 'bg-violet-50', iconColor: 'text-violet-600' },
     { key: 'ar', label: t('reporting.erpSummary.kpis.outstandingAR'), desc: t('reporting.erpSummary.kpis.arDesc'),

@@ -140,6 +140,13 @@ const confirm = async (id) => {
     }
     await adj.update({ status: 'confirmed' }, { transaction: t })
     await t.commit()
+    // Post the inventory true-up to the GL (outside the txn — postJournal opens
+    // its own). Idempotent on sourceType 'StockAdjust'.
+    await require('../../accounting/services/auto-journal.service').postStockAdjustment({
+      id: adj.id, refNo: adj.refNo, date: adj.date,
+      items: adj.items.map(i => ({ productId: i.productId, qty: i.qty })),
+      organizationId: adj.organizationId,
+    })
     require('../../audit/audit.service').log({
       action: 'stock-adjust.confirmed', entityType: 'StockAdjust', entityId: id,
       summary: { refNo: adj.refNo, storeId: adj.storeId, items: adj.items.length },

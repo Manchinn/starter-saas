@@ -122,6 +122,61 @@ const postInvoice = async (invoice, userId) => {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Sales: Invoice sent → also relieve inventory at cost.
+// Dr COGS / Cr Inventory for Σ(qty × product.cost) (standard cost, base currency).
+// Posted separately from the revenue entry so each can be reversed independently.
+// No-op (returns null) for service-only invoices where the cost is zero.
+// ──────────────────────────────────────────────────────────────────────────────
+const postInvoiceCOGS = async (invoice, userId) => {
+  const orgId = invoice.organizationId || null
+  const existing = await findExisting('Invoice.cogs', invoice.id)
+  if (existing) return existing
+
+  const { InvoiceItem, Product, SaleItem } = require('../../../../server/models')
+  const items = await InvoiceItem.findAll({
+    where: { invoiceId: invoice.id },
+    attributes: ['id', 'quantity', 'productId', 'saleItemId'],
+  })
+  // A line's product is either set directly or resolved via its sale item.
+  const saleItemIds = [...new Set(items.filter(i => !i.productId && i.saleItemId).map(i => i.saleItemId))]
+  const saleItemToProduct = {}
+  if (saleItemIds.length) {
+    const sis = await SaleItem.findAll({ where: { id: saleItemIds }, attributes: ['id', 'productId'] })
+    for (const s of sis) saleItemToProduct[s.id] = s.productId
+  }
+  const productIds = [...new Set(items.map(i => i.productId || saleItemToProduct[i.saleItemId]).filter(Boolean))]
+  const costOf = {}
+  if (productIds.length) {
+    const products = await Product.findAll({ where: { id: productIds }, attributes: ['id', 'cost'] })
+    for (const p of products) costOf[p.id] = Number(p.cost || 0)
+  }
+  let cogs = 0
+  for (const it of items) {
+    const pid = it.productId || saleItemToProduct[it.saleItemId]
+    if (!pid) continue // services / non-stock lines carry no cost
+    cogs += Number(it.quantity || 0) * (costOf[pid] || 0)
+  }
+  cogs = Math.round(cogs * 100) / 100
+  if (cogs <= 0) return null
+
+  const cogsAcc   = await accounts.getByRole('COGS',      orgId)
+  const inventory = await accounts.getByRole('INVENTORY', orgId)
+
+  return postJournal({
+    sourceType:    'Invoice.cogs',
+    sourceId:      invoice.id,
+    date:          invoice.invoiceDate,
+    description:   `Cost of sales for Invoice ${invoice.invoiceNumber}`,
+    lines: [
+      { accountId: cogsAcc.id,   debit: cogs, credit: 0, description: `COGS - ${invoice.invoiceNumber}` },
+      { accountId: inventory.id, debit: 0, credit: cogs, description: `Inventory relief - ${invoice.invoiceNumber}` },
+    ],
+    userId,
+    organizationId: orgId,
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Sales: Receipt confirmed → Dr Cash/Bank / Cr AR
 // ──────────────────────────────────────────────────────────────────────────────
 const postReceipt = async (receipt, userId) => {
@@ -333,6 +388,73 @@ const postDebitNote = async (dn, userId) => {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Inventory: Stock adjustment confirmed → true-up inventory at standard cost.
+// Net cost delta = Σ(qty × product.cost), qty signed (+ increase, − decrease).
+//   increase → Dr Inventory / Cr Inventory Adjustment (gain)
+//   decrease → Dr Inventory Adjustment / Cr Inventory (loss/shrinkage)
+// ──────────────────────────────────────────────────────────────────────────────
+const costDelta = async (items = []) => {
+  const { Product } = require('../../../../server/models')
+  let delta = 0
+  for (const it of items) {
+    const p = await Product.findByPk(it.productId, { attributes: ['id', 'cost'] })
+    delta += Number(it.qty || 0) * Number(p?.cost || 0)
+  }
+  return Math.round(delta * 100) / 100
+}
+
+const postStockAdjustment = async ({ id, refNo, date, items = [], organizationId, userId }) => {
+  const existing = await findExisting('StockAdjust', id)
+  if (existing) return existing
+
+  const delta = await costDelta(items)
+  if (delta === 0) return null
+
+  const inventory = await accounts.getByRole('INVENTORY',            organizationId)
+  const adj       = await accounts.getByRole('INVENTORY_ADJUSTMENT', organizationId)
+  const amount = Math.abs(delta)
+  const desc = `Stock adjustment ${refNo || ''}`.trim()
+  const lines = delta > 0
+    ? [{ accountId: inventory.id, debit: amount, credit: 0, description: desc },
+       { accountId: adj.id,       debit: 0, credit: amount, description: desc }]
+    : [{ accountId: adj.id,       debit: amount, credit: 0, description: desc },
+       { accountId: inventory.id, debit: 0, credit: amount, description: desc }]
+
+  return postJournal({
+    sourceType: 'StockAdjust', sourceId: id,
+    date: date || new Date().toISOString().slice(0, 10),
+    description: `Auto-posted from ${desc}`, lines, userId, organizationId,
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Inventory: Stock issue confirmed → relieve inventory at standard cost.
+// Dr Inventory Adjustment / Cr Inventory for Σ(qty × product.cost).
+// ──────────────────────────────────────────────────────────────────────────────
+const postStockIssue = async ({ id, refNo, date, items = [], organizationId, userId }) => {
+  const existing = await findExisting('StockIssue', id)
+  if (existing) return existing
+
+  const amount = Math.abs(await costDelta(items))
+  if (amount === 0) return null
+
+  const inventory = await accounts.getByRole('INVENTORY',            organizationId)
+  const adj       = await accounts.getByRole('INVENTORY_ADJUSTMENT', organizationId)
+  const desc = `Stock issue ${refNo || ''}`.trim()
+
+  return postJournal({
+    sourceType: 'StockIssue', sourceId: id,
+    date: date || new Date().toISOString().slice(0, 10),
+    description: `Auto-posted from ${desc}`,
+    lines: [
+      { accountId: adj.id,       debit: amount, credit: 0, description: desc },
+      { accountId: inventory.id, debit: 0, credit: amount, description: desc },
+    ],
+    userId, organizationId,
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Reversal: create a mirror journal with debits/credits swapped.
 // Idempotent: the reversal itself uses sourceType `${origSourceType}.reversal`
 // so re-running won't duplicate.
@@ -376,6 +498,9 @@ const reverseCreditNote     = (cn,      userId, reason = 'credit note cancelled'
 const reverseDebitNote      = (dn,      userId, reason = 'debit note cancelled')      => reverseFor('DebitNote',         dn.id,      userId, reason)
 const reverseVendorBill     = (bill,    userId, reason = 'vendor bill cancelled')     => reverseFor('VendorBill',        bill.id,    userId, reason)
 const reverseBillPayment    = (bill,    userId, reason = 'bill payment cancelled')    => reverseFor('VendorBillPayment', bill.id,    userId, reason)
+const reverseInvoiceCOGS    = (invoice, userId, reason = 'invoice cancelled')         => reverseFor('Invoice.cogs',      invoice.id, userId, reason)
+const reverseStockAdjustment= (id,      userId, reason = 'adjustment voided')         => reverseFor('StockAdjust',       id,         userId, reason)
+const reverseStockIssue     = (id,      userId, reason = 'issue voided')              => reverseFor('StockIssue',        id,         userId, reason)
 
 // Wrap a hook with safe error handling so callers can decide policy
 const safeRun = async (fn, context) => {
@@ -389,6 +514,9 @@ const safeRun = async (fn, context) => {
 
 module.exports = {
   postInvoice:           (inv, uid)      => safeRun(() => postInvoice(inv, uid),                  `Invoice ${inv.invoiceNumber}`),
+  postInvoiceCOGS:       (inv, uid)      => safeRun(() => postInvoiceCOGS(inv, uid),              `Invoice COGS ${inv.invoiceNumber}`),
+  postStockAdjustment:   (p)            => safeRun(() => postStockAdjustment(p),                 `StockAdjust ${p.refNo || p.id}`),
+  postStockIssue:        (p)            => safeRun(() => postStockIssue(p),                      `StockIssue ${p.refNo || p.id}`),
   postReceipt:           (rec, uid)      => safeRun(() => postReceipt(rec, uid),                  `Receipt ${rec.receiptNumber}`),
   postReceivePayment:    (rp,  uid)      => safeRun(() => postReceivePayment(rp, uid),            `ReceivePayment ${rp.refNo}`),
   postCreditNote:        (cn,  uid)      => safeRun(() => postCreditNote(cn, uid),                `CreditNote ${cn.refNo}`),
@@ -402,4 +530,7 @@ module.exports = {
   reverseDebitNote:      (dn,  uid, r)   => safeRun(() => reverseDebitNote(dn, uid, r),           `Reverse DebitNote ${dn.refNo}`),
   reverseVendorBill:     (bill, uid, r)  => safeRun(() => reverseVendorBill(bill, uid, r),        `Reverse VendorBill ${bill.billNumber}`),
   reverseBillPayment:    (bill, uid, r)  => safeRun(() => reverseBillPayment(bill, uid, r),       `Reverse BillPayment ${bill.billNumber}`),
+  reverseInvoiceCOGS:    (inv, uid, r)   => safeRun(() => reverseInvoiceCOGS(inv, uid, r),        `Reverse Invoice COGS ${inv.invoiceNumber}`),
+  reverseStockAdjustment:(id, uid, r)    => safeRun(() => reverseStockAdjustment(id, uid, r),     `Reverse StockAdjust ${id}`),
+  reverseStockIssue:     (id, uid, r)    => safeRun(() => reverseStockIssue(id, uid, r),          `Reverse StockIssue ${id}`),
 }

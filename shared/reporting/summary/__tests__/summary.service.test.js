@@ -17,8 +17,13 @@ jest.mock('../../../erp/dashboard/dashboard.service', () => ({
   getStats: jest.fn(),
 }))
 
+jest.mock('../../../erp/accounting/services/financial-statements.service', () => ({
+  incomeStatementForPeriod: jest.fn(),
+}))
+
 const m = require('../../../../server/models')
 const erpDashboard = require('../../../erp/dashboard/dashboard.service')
+const fsSvc = require('../../../erp/accounting/services/financial-statements.service')
 const service = require('../summary.service')
 
 const pad = (n) => String(n).padStart(2, '0')
@@ -37,13 +42,14 @@ beforeEach(() => {
   jest.clearAllMocks()
   erpDashboard.getStats.mockResolvedValue(statsFixture)
   m.Invoice.findAll.mockResolvedValue([])
+  fsSvc.incomeStatementForPeriod.mockResolvedValue({ revenue: 0, costOfSales: 0, grossProfit: 0, netProfit: 0 })
 })
 
 describe('summary.getSummary — shape, range & KPI mapping', () => {
   test('includes a resolved range defaulting to the last 30 days (daily granularity)', async () => {
     const out = await service.getSummary()
     expect(Object.keys(out).sort()).toEqual([
-      'arAging', 'arVsAp', 'invoiceStatus', 'kpis', 'pipeline', 'range', 'salesTrend', 'stockByStore',
+      'arAging', 'arVsAp', 'invoiceStatus', 'kpis', 'pipeline', 'profitability', 'range', 'salesTrend', 'stockByStore',
     ])
     expect(out.range.to).toBe(todayYmd)
     expect(out.range.days).toBe(30)
@@ -56,10 +62,18 @@ describe('summary.getSummary — shape, range & KPI mapping', () => {
       salesInPeriod: 0, invoicesInPeriod: 0,
       arOutstanding: 500, apOutstanding: 300,
       activeProducts: 8, totalStock: 200,
+      costOfSales: 0, grossProfit: 0, grossMarginPct: 0, netProfit: 0,
     })
     expect(out.pipeline).toEqual({ quotations: 3, orders: 4, deliveries: 2, invoices: 5 })
     expect(out.arVsAp).toEqual({ ar: 500, ap: 300 })
     expect(out.stockByStore).toEqual([{ store: { id: 's1', name: 'Main' }, totalStock: 150 }])
+  })
+
+  test('maps profitability KPIs from the income statement and derives gross margin %', async () => {
+    fsSvc.incomeStatementForPeriod.mockResolvedValue({ revenue: 1000, costOfSales: 400, grossProfit: 600, netProfit: 150 })
+    const out = await service.getSummary()
+    expect(out.kpis).toMatchObject({ costOfSales: 400, grossProfit: 600, netProfit: 150, grossMarginPct: 60 })
+    expect(out.profitability).toMatchObject({ revenue: 1000, grossProfit: 600, netProfit: 150, grossMarginPct: 60 })
   })
 })
 

@@ -22,6 +22,10 @@ export default {
       kpis: {
         salesInPeriod:      'Sales (period)',
         salesInPeriodDesc:  'invoiced in range',
+        grossProfit:        'Gross Profit',
+        grossMargin:        'margin',
+        netProfit:          'Net Profit',
+        netProfitDesc:      'after all expenses',
         invoicesInPeriod:   'Invoices (period)',
         invoicesInPeriodDesc: 'issued in range',
         outstandingAR:  'Outstanding AR',

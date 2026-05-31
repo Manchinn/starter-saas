@@ -257,6 +257,7 @@ async function seedDemo(userId, orgId, lang = 'en') {
       { code: '5000', name: 'Expenses',                 accountType: 'expense',   normalBalance: 'debit',  parentCode: null,   cat: null },
       { code: '5100', name: 'Cost of Sales',            accountType: 'expense',   normalBalance: 'debit',  parentCode: '5000', cat: 'cost_of_sales' },
       { code: '5110', name: 'Cost of Goods Sold',       accountType: 'expense',   normalBalance: 'debit',  parentCode: '5100', cat: 'cost_of_sales' },
+      { code: '5130', name: 'Inventory Adjustment',     accountType: 'expense',   normalBalance: 'debit',  parentCode: '5100', cat: 'cost_of_sales' },
       { code: '5200', name: 'Operating Expenses',       accountType: 'expense',   normalBalance: 'debit',  parentCode: '5000', cat: 'selling_admin_expenses' },
       { code: '5210', name: 'Salary Expense',           accountType: 'expense',   normalBalance: 'debit',  parentCode: '5200', cat: 'selling_admin_expenses' },
       { code: '5220', name: 'Rent Expense',             accountType: 'expense',   normalBalance: 'debit',  parentCode: '5200', cat: 'selling_admin_expenses' },
