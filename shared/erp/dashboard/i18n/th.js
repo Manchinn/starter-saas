@@ -7,6 +7,8 @@ export default {
       greetEvening:     'สวัสดีตอนเย็น',
       refresh:          'รีเฟรช',
       actionRequired:   'รอดำเนินการ',
+      noAccessTitle:    'ยังไม่มีข้อมูลให้แสดง',
+      noAccessDesc:     'บัญชีของคุณยังไม่ได้รับสิทธิ์ ERP โปรดติดต่อผู้ดูแลระบบเพื่อกำหนดบทบาทที่มีฟังก์ชันที่คุณต้องการ',
       alerts: {
         outOfStock:      'สินค้าหมดสต็อก {n} รายการ',
         overdueInvoices: 'ใบแจ้งหนี้เกินกำหนด {n} รายการ',

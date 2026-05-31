@@ -15,7 +15,7 @@ const sumBase = (rows) => rows.reduce((s, r) => {
   return s + total * rate
 }, 0)
 
-const getStats = async (organizationId = null, from = null, to = null) => {
+const getStats = async (organizationId = null, from = null, to = null, permissions = null) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const tomorrow = new Date(today)
@@ -33,6 +33,15 @@ const getStats = async (organizationId = null, from = null, to = null) => {
   // of its own, so it's scoped through its Store association instead.
   const scope = organizationId ? { organizationId } : {}
   const storeScope = organizationId ? { organizationId } : undefined
+
+  // Permission gate. A null `permissions` set means full access (internal
+  // calls, tests, system admins). Otherwise each section is only computed for
+  // callers who hold the matching slug, so an employee's dashboard reflects the
+  // permissions selected on their HRMS roles. `P` is lazy — non-permitted
+  // queries never touch the database and their section falls back to empty, so
+  // the output shape stays stable and no data leaks.
+  const canSee = (slug) => !permissions || permissions.has('*') || permissions.has(slug)
+  const P = (slug, fn, fallback) => (canSee(slug) ? fn() : Promise.resolve(fallback))
 
   const [
     totalProducts,
@@ -61,15 +70,15 @@ const getStats = async (organizationId = null, from = null, to = null) => {
     apApprovedRows,
     currentTaxPeriod,
   ] = await Promise.all([
-    Product.count({ where: { ...scope } }),
-    Product.count({ where: { ...scope, status: 'active' } }),
-    Product.sum('stock', { where: { ...scope } }) || 0,
-    Product.count({ where: { ...scope, stock: { [Op.lte]: 0 }, status: 'active' } }),
-    GoodReceive.count({ where: { ...scope, status: 'draft' } }),
-    StockRequest.count({ where: { ...scope, status: 'draft' } }),
-    StockAdjust.count({ where: { ...scope, status: 'draft' } }),
-    GoodReceive.count({ where: { ...scope, createdAt: { [Op.gte]: today, [Op.lt]: tomorrow } } }),
-    StockMovement.findAll({
+    P('erp.products.list', () => Product.count({ where: { ...scope } }), 0),
+    P('erp.products.list', () => Product.count({ where: { ...scope, status: 'active' } }), 0),
+    P('erp.products.list', () => Product.sum('stock', { where: { ...scope } }), 0),
+    P('erp.products.list', () => Product.count({ where: { ...scope, stock: { [Op.lte]: 0 }, status: 'active' } }), 0),
+    P('erp.purchasing.list', () => GoodReceive.count({ where: { ...scope, status: 'draft' } }), 0),
+    P('erp.stock.list', () => StockRequest.count({ where: { ...scope, status: 'draft' } }), 0),
+    P('erp.stock.list', () => StockAdjust.count({ where: { ...scope, status: 'draft' } }), 0),
+    P('erp.purchasing.list', () => GoodReceive.count({ where: { ...scope, createdAt: { [Op.gte]: today, [Op.lt]: tomorrow } } }), 0),
+    P('erp.stock.list', () => StockMovement.findAll({
       where: { ...scope },
       include: [
         { model: Product, as: 'product', attributes: ['id', 'name', 'sku'] },
@@ -77,8 +86,8 @@ const getStats = async (organizationId = null, from = null, to = null) => {
       ],
       order: [['createdAt', 'DESC']],
       limit: 8,
-    }),
-    Product.findAll({
+    }), []),
+    P('erp.products.list', () => Product.findAll({
       where: {
         ...scope,
         status: 'active',
@@ -92,55 +101,55 @@ const getStats = async (organizationId = null, from = null, to = null) => {
       attributes: ['id', 'name', 'sku', 'stock', 'reorderPoint', 'reorderQty'],
       order: [['stock', 'ASC']],
       limit: 10,
-    }),
+    }), []),
     // StoreStock has no organizationId — scope through its Store (inner join
     // when an org is supplied) so only this org's stores are summed.
-    StoreStock.findAll({
+    P('erp.products.list', () => StoreStock.findAll({
       attributes: ['storeId', [fn('SUM', col('stock')), 'totalStock']],
       include: [{ model: Store, as: 'store', attributes: ['id', 'name'], where: storeScope, required: !!organizationId }],
       group: ['storeId', 'store.id'],
       order: [[fn('SUM', col('stock')), 'DESC']],
-    }),
+    }), []),
     // Sales
-    Quotation.count({ where: { ...scope, status: { [Op.in]: ['draft', 'sent'] } } }),
-    Order.count({ where: { ...scope, status: { [Op.in]: ['confirmed', 'shipped'] } } }),
-    DeliveryOrder.count({ where: { ...scope, status: { [Op.in]: ['confirmed', 'shipped'] } } }),
+    P('erp.quotations.list', () => Quotation.count({ where: { ...scope, status: { [Op.in]: ['draft', 'sent'] } } }), 0),
+    P('erp.orders.list', () => Order.count({ where: { ...scope, status: { [Op.in]: ['confirmed', 'shipped'] } } }), 0),
+    P('erp.orders.list', () => DeliveryOrder.count({ where: { ...scope, status: { [Op.in]: ['confirmed', 'shipped'] } } }), 0),
     // Billing / AR
-    Invoice.count({ where: { ...scope, status: 'sent' } }),
-    Invoice.sum('total', { where: { ...scope, status: 'sent' } }),
+    P('erp.invoices.list', () => Invoice.count({ where: { ...scope, status: 'sent' } }), 0),
+    P('erp.invoices.list', () => Invoice.sum('total', { where: { ...scope, status: 'sent' } }), 0),
     // Purchasing
-    PurchaseRequisition.count({ where: { ...scope, status: 'draft' } }),
-    PurchaseOrder.count({ where: { ...scope, status: 'confirmed' } }),
+    P('erp.purchasing.list', () => PurchaseRequisition.count({ where: { ...scope, status: 'draft' } }), 0),
+    P('erp.purchasing.list', () => PurchaseOrder.count({ where: { ...scope, status: 'confirmed' } }), 0),
     // Accounting
-    Journal.count({ where: { ...scope, status: 'draft' } }),
+    P('erp.accounting.list', () => Journal.count({ where: { ...scope, status: 'draft' } }), 0),
     // Recent invoices
-    Invoice.findAll({
+    P('erp.invoices.list', () => Invoice.findAll({
       where: { ...scope },
       include: [{ model: Customer, as: 'customer', attributes: ['id', 'name'] }],
       order: [['createdAt', 'DESC']],
       limit: 6,
-    }),
+    }), []),
     // Sales in period: all non-cancelled invoices within the date range
-    Invoice.findAll({
+    P('erp.invoices.list', () => Invoice.findAll({
       where: {
         ...scope,
         status: { [Op.ne]: 'cancelled' },
         invoiceDate: { [Op.gte]: periodFrom, [Op.lte]: periodTo },
       },
       attributes: ['total', 'exchangeRate'],
-    }),
+    }), []),
     // Outstanding AR: sent invoices
-    Invoice.findAll({
+    P('erp.invoices.list', () => Invoice.findAll({
       where: { ...scope, status: 'sent' },
       attributes: ['total', 'exchangeRate', 'dueDate'],
-    }),
+    }), []),
     // Outstanding AP: approved (unpaid) vendor bills
-    VendorBill.findAll({
+    P('erp.purchasing.list', () => VendorBill.findAll({
       where: { ...scope, status: 'approved' },
       attributes: ['total', 'exchangeRate'],
-    }),
+    }), []),
     // Current open tax period containing today
-    TaxPeriod.findOne({
+    P('erp.accounting.list', () => TaxPeriod.findOne({
       where: {
         ...scope,
         status: 'open',
@@ -148,7 +157,7 @@ const getStats = async (organizationId = null, from = null, to = null) => {
         startDate: { [Op.lte]: isoToday },
         endDate:   { [Op.gte]: isoToday },
       },
-    }),
+    }), null),
   ])
 
   // Compute base-currency totals + overdue count
@@ -161,18 +170,20 @@ const getStats = async (organizationId = null, from = null, to = null) => {
   // financial-statements service. Falls back to month-to-date when no fiscal
   // year covers today, and to zeros if the chart of accounts isn't seeded.
   let profitability = { revenue: 0, costOfSales: 0, grossProfit: 0, netProfit: 0, periodFrom: null, periodTo: isoToday }
-  try {
-    const fsSvc = require('../accounting/services/financial-statements.service')
-    const fy = await FiscalYear.findOne({
-      where: { ...scope, dataFlag: { [Op.ne]: 2 }, startDate: { [Op.lte]: isoToday }, endDate: { [Op.gte]: isoToday } },
-    })
-    const fromDate = fy ? fy.startDate : monthStart.toISOString().slice(0, 10)
-    const is = await fsSvc.incomeStatementForPeriod({ fromDate, toDate: isoToday, organizationId })
-    profitability = {
-      revenue: is.revenue, costOfSales: is.costOfSales, grossProfit: is.grossProfit, netProfit: is.netProfit,
-      periodFrom: fromDate, periodTo: isoToday,
-    }
-  } catch (_) { /* CoA not seeded — leave zeros */ }
+  if (canSee('erp.accounting.list')) {
+    try {
+      const fsSvc = require('../accounting/services/financial-statements.service')
+      const fy = await FiscalYear.findOne({
+        where: { ...scope, dataFlag: { [Op.ne]: 2 }, startDate: { [Op.lte]: isoToday }, endDate: { [Op.gte]: isoToday } },
+      })
+      const fromDate = fy ? fy.startDate : monthStart.toISOString().slice(0, 10)
+      const is = await fsSvc.incomeStatementForPeriod({ fromDate, toDate: isoToday, organizationId })
+      profitability = {
+        revenue: is.revenue, costOfSales: is.costOfSales, grossProfit: is.grossProfit, netProfit: is.netProfit,
+        periodFrom: fromDate, periodTo: isoToday,
+      }
+    } catch (_) { /* CoA not seeded — leave zeros */ }
+  }
 
   // Current period VAT — call the report service if a period covers today
   let vatPeriodInfo = null

@@ -369,6 +369,53 @@ describe('dashboard.getStats — org scoping', () => {
   })
 })
 
+describe('dashboard.getStats — permission gating', () => {
+  test('a null permission set (default) computes every section', async () => {
+    await service.getStats('org-1', null, null, null)
+    expect(m.Product.count).toHaveBeenCalled()
+    expect(m.Invoice.count).toHaveBeenCalled()
+    expect(m.Quotation.count).toHaveBeenCalled()
+    expect(m.Journal.count).toHaveBeenCalled()
+  })
+
+  test("a '*' wildcard set behaves like full access", async () => {
+    await service.getStats('org-1', null, null, new Set(['*']))
+    expect(m.Product.count).toHaveBeenCalled()
+    expect(m.Invoice.count).toHaveBeenCalled()
+  })
+
+  test('only permitted sections run their queries; the rest fall back to empty', async () => {
+    const out = await service.getStats('org-1', null, null, new Set(['erp.invoices.list']))
+
+    // invoices granted → its queries fire and the section is populated
+    expect(m.Invoice.count).toHaveBeenCalled()
+
+    // products / stock / quotations / accounting NOT granted → never queried
+    expect(m.Product.count).not.toHaveBeenCalled()
+    expect(m.Product.sum).not.toHaveBeenCalled()
+    expect(m.Quotation.count).not.toHaveBeenCalled()
+    expect(m.StockMovement.findAll).not.toHaveBeenCalled()
+    expect(m.Journal.count).not.toHaveBeenCalled()
+    expect(m.TaxPeriod.findOne).not.toHaveBeenCalled()
+
+    // non-permitted sections degrade to safe empties; shape stays stable
+    expect(out.products).toEqual({ total: 0, active: 0, totalStock: 0, zeroStock: 0 })
+    expect(out.recentMovements).toEqual([])
+    expect(out.draftJournals).toBe(0)
+    expect(out.finance.vatPeriod).toBeNull()
+    expect(out.finance.profitability).toMatchObject({ revenue: 0, grossProfit: 0, netProfit: 0 })
+  })
+
+  test('accounting permission gates the profitability income-statement call', async () => {
+    await service.getStats('org-1', null, null, new Set(['erp.invoices.list']))
+    expect(fsSvc.incomeStatementForPeriod).not.toHaveBeenCalled()
+
+    jest.clearAllMocks(); stubAllZero()
+    await service.getStats('org-1', null, null, new Set(['erp.accounting.list']))
+    expect(fsSvc.incomeStatementForPeriod).toHaveBeenCalled()
+  })
+})
+
 describe('dashboard.getStats — profitability (fiscal-year-to-date)', () => {
   test('folds the income statement into finance.profitability, using the FY start', async () => {
     m.FiscalYear.findOne.mockResolvedValue({ startDate: '2026-01-01', endDate: '2026-12-31' })

@@ -7,6 +7,8 @@ export default {
       greetEvening:     'Good evening',
       refresh:          'Refresh',
       actionRequired:   'Action Required',
+      noAccessTitle:    'No data to show yet',
+      noAccessDesc:     'Your account has no ERP permissions assigned. Ask an administrator to attach a role with the functions you need.',
       alerts: {
         outOfStock:      '{n} product out of stock | {n} products out of stock',
         overdueInvoices: '{n} overdue invoice | {n} overdue invoices',

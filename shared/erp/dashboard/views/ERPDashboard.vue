@@ -68,11 +68,19 @@
         </RouterLink>
       </div>
 
+      <!-- ── Empty state — employee has no ERP section permissions ───────────── -->
+      <div v-if="!loading && !hasAnySection"
+        class="flex flex-col items-center justify-center bg-white border border-[#E2E8F0] shadow-sm py-16 text-center">
+        <LockClosedIcon class="w-10 h-10 text-slate-200 mb-3" />
+        <p class="text-sm font-medium text-[#637381]">{{ t('erp.dashboard.noAccessTitle') }}</p>
+        <p class="text-xs text-[#9BA7B0] mt-1 max-w-sm">{{ t('erp.dashboard.noAccessDesc') }}</p>
+      </div>
+
       <!-- ── Finance Row: GL-backed metrics in base currency ─────────────────── -->
-      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div v-if="showFinanceRow" class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 
         <!-- Sales MTD -->
-        <RouterLink to="/erp/invoices"
+        <RouterLink v-if="canInvoices" to="/erp/invoices"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
             <ArrowTrendingUpIcon class="w-5 h-5 text-emerald-600" />
@@ -86,7 +94,7 @@
         </RouterLink>
 
         <!-- Outstanding AR -->
-        <RouterLink to="/erp/invoices?status=sent"
+        <RouterLink v-if="canInvoices" to="/erp/invoices?status=sent"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group"
           :class="(stats.finance?.arOverdueCount ?? 0) > 0 ? 'border-red-200 bg-red-50/30' : ''">
           <div class="w-11 h-11 flex items-center justify-center flex-shrink-0 group-hover:opacity-90 transition-colors"
@@ -108,7 +116,7 @@
         </RouterLink>
 
         <!-- Outstanding AP -->
-        <RouterLink to="/erp/purchasing/bills"
+        <RouterLink v-if="canPurchasing" to="/erp/purchasing/bills"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-amber-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
             <BanknotesIcon class="w-5 h-5 text-amber-600" />
@@ -122,7 +130,7 @@
         </RouterLink>
 
         <!-- This Period VAT -->
-        <RouterLink :to="stats.finance?.vatPeriod ? `/erp/accounting/tax-periods/${stats.finance.vatPeriod.id}/vat-report` : '/erp/accounting/tax-periods'"
+        <RouterLink v-if="canAccounting" :to="stats.finance?.vatPeriod ? `/erp/accounting/tax-periods/${stats.finance.vatPeriod.id}/vat-report` : '/erp/accounting/tax-periods'"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-slate-300 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-slate-50 flex items-center justify-center flex-shrink-0 group-hover:bg-slate-100 transition-colors">
             <DocumentChartBarIcon class="w-5 h-5 text-slate-700" />
@@ -151,7 +159,7 @@
       </div>
 
       <!-- ── Profitability (fiscal-year-to-date) ─────────────────────────────── -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div v-if="canAccounting" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <RouterLink to="/erp/accounting/financial-statements/income-statement"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
@@ -196,10 +204,10 @@
       </div>
 
       <!-- ── KPI Row 1: Sales Pipeline ───────────────────────────────────────── -->
-      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div v-if="showSalesRow" class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 
         <!-- Open Quotations -->
-        <RouterLink to="/erp/quotations"
+        <RouterLink v-if="canQuotations" to="/erp/quotations"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-violet-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-violet-50 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-100 transition-colors">
             <DocumentTextIcon class="w-5 h-5 text-violet-600" />
@@ -215,7 +223,7 @@
         </RouterLink>
 
         <!-- Active Sales Orders -->
-        <RouterLink to="/erp/orders"
+        <RouterLink v-if="canOrders" to="/erp/orders"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-emerald-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
             <ShoppingCartIcon class="w-5 h-5 text-emerald-600" />
@@ -231,7 +239,7 @@
         </RouterLink>
 
         <!-- Pending Deliveries -->
-        <RouterLink to="/erp/delivery-orders"
+        <RouterLink v-if="canOrders" to="/erp/delivery-orders"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-amber-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
             <TruckIcon class="w-5 h-5 text-amber-600" />
@@ -247,7 +255,7 @@
         </RouterLink>
 
         <!-- Sent invoice count (replaces legacy AR tile; the financial AR moved to the Finance row above) -->
-        <RouterLink to="/erp/invoices?status=sent"
+        <RouterLink v-if="canInvoices" to="/erp/invoices?status=sent"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
             <DocumentTextIcon class="w-5 h-5 text-blue-600" />
@@ -263,10 +271,10 @@
       </div>
 
       <!-- ── KPI Row 2: Inventory & Accounting ──────────────────────────────── -->
-      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div v-if="showInventoryRow" class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 
         <!-- Active Products -->
-        <RouterLink to="/erp/item-master"
+        <RouterLink v-if="canProducts" to="/erp/item-master"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-indigo-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-indigo-50 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-100 transition-colors">
             <CubeIcon class="w-5 h-5 text-indigo-600" />
@@ -284,7 +292,7 @@
         </RouterLink>
 
         <!-- Stock on Hand -->
-        <RouterLink to="/erp/stock-balance"
+        <RouterLink v-if="canProducts" to="/erp/stock-balance"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-teal-200 hover:shadow-md transition-all group">
           <div class="w-11 h-11 bg-teal-50 flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
             <ArchiveBoxIcon class="w-5 h-5 text-teal-600" />
@@ -300,7 +308,7 @@
         </RouterLink>
 
         <!-- Out of Stock -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4"
+        <div v-if="canProducts" class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4"
           :class="(stats.products?.zeroStock ?? 0) > 0 ? 'border-red-200 bg-red-50/30' : ''">
           <div class="w-11 h-11 flex items-center justify-center flex-shrink-0"
             :class="(stats.products?.zeroStock ?? 0) > 0 ? 'bg-red-100' : 'bg-[#F1F5F9]'">
@@ -321,7 +329,7 @@
         </div>
 
         <!-- Draft Journals -->
-        <RouterLink to="/erp/accounting/journals"
+        <RouterLink v-if="canAccounting" to="/erp/accounting/journals"
           class="bg-white border border-[#E2E8F0] shadow-sm p-5 flex items-start gap-4 hover:border-orange-200 hover:shadow-md transition-all group"
           :class="(stats.draftJournals ?? 0) > 0 ? 'border-orange-100 bg-orange-50/20' : ''">
           <div class="w-11 h-11 flex items-center justify-center flex-shrink-0 group-hover:opacity-90 transition-colors"
@@ -342,10 +350,10 @@
       </div>
 
       <!-- ── Middle Row ──────────────────────────────────────────────────────── -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div v-if="showMiddleRow" class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         <!-- Pending Approvals ──────────────────────────────────────────────── -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div v-if="showPending" class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-7 h-7 bg-amber-50 flex items-center justify-center">
@@ -360,7 +368,7 @@
           </div>
           <div class="divide-y divide-[#E2E8F0]">
 
-            <RouterLink to="/erp/good-receive"
+            <RouterLink v-if="canPurchasing" to="/erp/good-receive"
               class="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F9FC] transition-colors group">
               <div class="w-9 h-9 bg-blue-50 flex items-center justify-center flex-shrink-0">
                 <TruckIcon class="w-4 h-4 text-blue-500" />
@@ -378,7 +386,7 @@
               </div>
             </RouterLink>
 
-            <RouterLink to="/erp/purchasing/requisitions"
+            <RouterLink v-if="canPurchasing" to="/erp/purchasing/requisitions"
               class="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F9FC] transition-colors group">
               <div class="w-9 h-9 bg-violet-50 flex items-center justify-center flex-shrink-0">
                 <ClipboardDocumentListIcon class="w-4 h-4 text-violet-500" />
@@ -396,7 +404,7 @@
               </div>
             </RouterLink>
 
-            <RouterLink to="/erp/purchasing/orders"
+            <RouterLink v-if="canPurchasing" to="/erp/purchasing/orders"
               class="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F9FC] transition-colors group">
               <div class="w-9 h-9 bg-emerald-50 flex items-center justify-center flex-shrink-0">
                 <ShoppingBagIcon class="w-4 h-4 text-emerald-500" />
@@ -414,7 +422,7 @@
               </div>
             </RouterLink>
 
-            <RouterLink to="/erp/stock-adjust"
+            <RouterLink v-if="canStock" to="/erp/stock-adjust"
               class="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F9FC] transition-colors group">
               <div class="w-9 h-9 bg-purple-50 flex items-center justify-center flex-shrink-0">
                 <AdjustmentsHorizontalIcon class="w-4 h-4 text-purple-500" />
@@ -432,7 +440,7 @@
               </div>
             </RouterLink>
 
-            <RouterLink to="/erp/stock-request"
+            <RouterLink v-if="canStock" to="/erp/stock-request"
               class="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F9FC] transition-colors group">
               <div class="w-9 h-9 bg-teal-50 flex items-center justify-center flex-shrink-0">
                 <ArrowsRightLeftIcon class="w-4 h-4 text-teal-500" />
@@ -454,7 +462,7 @@
         </div>
 
         <!-- Recent Invoices ─────────────────────────────────────────────────── -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div v-if="canInvoices" class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-7 h-7 bg-blue-50 flex items-center justify-center">
@@ -505,7 +513,7 @@
         </div>
 
         <!-- Low Stock Alert ─────────────────────────────────────────────────── -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div v-if="canProducts" class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-7 h-7 bg-red-50 flex items-center justify-center">
@@ -579,7 +587,7 @@
       </div>
 
       <!-- ── Recent Stock Movements ──────────────────────────────────────────── -->
-      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div v-if="canStock" class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 bg-indigo-50 flex items-center justify-center">
@@ -664,11 +672,11 @@
       </div>
 
       <!-- ── Quick Actions ───────────────────────────────────────────────────── -->
-      <div class="bg-white border border-[#E2E8F0] shadow-sm p-5">
+      <div v-if="canAnyQuickAction" class="bg-white border border-[#E2E8F0] shadow-sm p-5">
         <p class="text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide mb-4">{{ t('erp.dashboard.quickActions') }}</p>
         <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
 
-          <RouterLink to="/erp/invoices/create"
+          <RouterLink v-can="'erp.invoices.edit'" to="/erp/invoices/create"
             class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-blue-300 hover:bg-blue-50 transition-all group text-center">
             <div class="w-10 h-10 bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
@@ -679,7 +687,7 @@
             </span>
           </RouterLink>
 
-          <RouterLink to="/erp/quotations/create"
+          <RouterLink v-can="'erp.quotations.edit'" to="/erp/quotations/create"
             class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-violet-300 hover:bg-violet-50 transition-all group text-center">
             <div class="w-10 h-10 bg-violet-100 group-hover:bg-violet-200 flex items-center justify-center transition-colors">
@@ -690,7 +698,7 @@
             </span>
           </RouterLink>
 
-          <RouterLink to="/erp/orders/create"
+          <RouterLink v-can="'erp.orders.edit'" to="/erp/orders/create"
             class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-emerald-300 hover:bg-emerald-50 transition-all group text-center">
             <div class="w-10 h-10 bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition-colors">
@@ -701,7 +709,7 @@
             </span>
           </RouterLink>
 
-          <RouterLink to="/erp/good-receive/create"
+          <RouterLink v-can="'erp.purchasing.edit'" to="/erp/good-receive/create"
             class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-amber-300 hover:bg-amber-50 transition-all group text-center">
             <div class="w-10 h-10 bg-amber-100 group-hover:bg-amber-200 flex items-center justify-center transition-colors">
@@ -712,7 +720,7 @@
             </span>
           </RouterLink>
 
-          <RouterLink to="/erp/accounting/journals/create"
+          <RouterLink v-can="'erp.accounting.edit'" to="/erp/accounting/journals/create"
             class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-orange-300 hover:bg-orange-50 transition-all group text-center">
             <div class="w-10 h-10 bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center transition-colors">
@@ -723,7 +731,7 @@
             </span>
           </RouterLink>
 
-          <RouterLink to="/erp/stock-count/create"
+          <RouterLink v-can="'erp.stock.edit'" to="/erp/stock-count/create"
             class="flex flex-col items-center gap-2.5 p-4 border border-[#E2E8F0]
                    hover:border-purple-300 hover:bg-purple-50 transition-all group text-center">
             <div class="w-10 h-10 bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center transition-colors">
@@ -755,13 +763,37 @@ import {
   ArrowDownTrayIcon, ArrowUpTrayIcon, ArrowUturnLeftIcon, TagIcon,
   DocumentTextIcon, CurrencyDollarIcon, ClipboardDocumentListIcon,
   ShoppingBagIcon, PencilSquareIcon,
-  ArrowTrendingUpIcon, BanknotesIcon, DocumentChartBarIcon,
+  ArrowTrendingUpIcon, BanknotesIcon, DocumentChartBarIcon, LockClosedIcon,
 } from '@heroicons/vue/24/outline'
 import api from '@/api'
 import { fmtDate, fmtDateTime } from '@/utils/fmt'
 
 const { t } = useI18n()
 const auth    = useAuthStore()
+
+// ── Permission gating ───────────────────────────────────────────────────────
+// The dashboard is the default landing for every employee; each section is
+// shown only when the user holds the matching ERP permission (granted via their
+// HRMS roles). The backend mirrors this gating, so hidden sections carry no data.
+const can = (slug) => auth.hasPermission(slug)
+const canProducts   = computed(() => can('erp.products.list'))
+const canInvoices   = computed(() => can('erp.invoices.list'))
+const canOrders     = computed(() => can('erp.orders.list'))
+const canQuotations = computed(() => can('erp.quotations.list'))
+const canStock      = computed(() => can('erp.stock.list'))
+const canPurchasing = computed(() => can('erp.purchasing.list'))
+const canAccounting = computed(() => can('erp.accounting.list'))
+
+const showFinanceRow   = computed(() => canInvoices.value || canPurchasing.value || canAccounting.value)
+const showSalesRow     = computed(() => canQuotations.value || canOrders.value || canInvoices.value)
+const showInventoryRow = computed(() => canProducts.value || canAccounting.value)
+const showPending      = computed(() => canPurchasing.value || canStock.value)
+const showMiddleRow    = computed(() => showPending.value || canInvoices.value || canProducts.value)
+const canAnyQuickAction = computed(() => can('erp.invoices.edit') || can('erp.quotations.edit')
+  || can('erp.orders.edit') || can('erp.purchasing.edit') || can('erp.accounting.edit') || can('erp.stock.edit'))
+const hasAnySection = computed(() => showFinanceRow.value || showSalesRow.value || showInventoryRow.value
+  || showMiddleRow.value || canStock.value || canAnyQuickAction.value)
+
 const stats   = ref({})
 const loading = ref(true)
 const lastUpdated = ref('')
