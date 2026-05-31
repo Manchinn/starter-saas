@@ -4,8 +4,6 @@ import {
   ClipboardDocumentCheckIcon,
   ArrowPathIcon,
   ReceiptRefundIcon,
-  ChartBarIcon,
-  ArrowsRightLeftIcon,
 } from '@heroicons/vue/24/outline'
 
 export const routes = [
@@ -188,8 +186,6 @@ export const inventoryNavChildren = [
   { label: 'nav.stockTransfer',   to: '/erp/stock-request',   icon: ArrowPathIcon,              permission: 'erp.stock.list' },
   { label: 'nav.stockReturn',     to: '/erp/stock-return',    icon: ReceiptRefundIcon,          permission: 'erp.stock.list' },
   { label: 'nav.stockIssue',      to: '/erp/stock-issue',     icon: ArrowPathIcon,              permission: 'erp.stock.list' },
-  { label: 'nav.stockBalance',    to: '/erp/stock-balance',   icon: ChartBarIcon,               permission: 'erp.stock.list' },
-  { label: 'nav.stockMovement',   to: '/erp/stock-movements', icon: ArrowsRightLeftIcon,        permission: 'erp.stock.list' },
 ]
 
 // Nav item that belongs to the Purchasing nav group
