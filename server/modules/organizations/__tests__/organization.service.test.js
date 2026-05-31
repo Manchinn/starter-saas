@@ -10,10 +10,14 @@ jest.mock('../../../models', () => ({
   Module:     { findAll: jest.fn() },
   Role:       { findAll: jest.fn(), findOne: jest.fn() },
   Permission: {},
+  // Touched transitively via access.service.employeePermissionSlugs in getMyModules.
+  Employee:       { findOne: jest.fn() },
+  HrmsRole:       {},
+  HrmsPermission: {},
 }))
 
 const { Op } = require('sequelize')
-const { User, Module, Role } = require('../../../models')
+const { User, Module, Role, Employee } = require('../../../models')
 const service = require('../organization.service')
 
 describe('organization.create', () => {
@@ -184,6 +188,34 @@ describe('organization.getMyModules', () => {
     })
     const out = await service.getMyModules('o1')
     expect(out.map((m) => m.id)).toEqual(['m1', 'm2'])
+  })
+
+  test('surfaces modules derived from granted permission slugs (e.g. HRMS roles)', async () => {
+    // No directly-assigned or role-granted modules, but the user holds an
+    // erp.* permission via a role → the `erp` module must be revealed.
+    User.findByPk.mockResolvedValue({
+      modules: [],
+      roles: [{ modules: [], permissions: [{ slug: 'erp.invoices.list' }] }],
+    })
+    Module.findAll.mockResolvedValue([{ id: 'm-erp', slug: 'erp' }])
+
+    const out = await service.getMyModules('o1')
+
+    // looked up active modules by the derived slug prefix
+    expect(Module.findAll.mock.calls[0][0].where).toMatchObject({ slug: ['erp'], isActive: true })
+    expect(out.map((m) => m.id)).toEqual(['m-erp'])
+  })
+
+  test('includes permissions granted via the employee record (HRMS roles)', async () => {
+    User.findByPk.mockResolvedValue({ modules: [], roles: [] })
+    Employee.findOne.mockResolvedValue({
+      roles: [{ permissions: [{ slug: 'hrms.roles.manage' }] }],
+    })
+    Module.findAll.mockResolvedValue([{ id: 'm-hrms', slug: 'hrms' }])
+
+    const out = await service.getMyModules('o1')
+    expect(Module.findAll.mock.calls[0][0].where.slug).toEqual(['hrms'])
+    expect(out.map((m) => m.id)).toEqual(['m-hrms'])
   })
 })
 

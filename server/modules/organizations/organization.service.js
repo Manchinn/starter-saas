@@ -4,6 +4,7 @@ const crypto = require('crypto')
 const { User, Module, Role, Permission } = require('../../models')
 const { Op } = require('sequelize')
 const { resolvePermissions } = require('../../middleware/permission')
+const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
 
 // ── Privilege-escalation guards ───────────────────────────────────────────────
 // `organizations.edit` is a delegable permission, so without these guards a
@@ -219,14 +220,23 @@ const getUserPermissions = async (organizationId) => {
   return { isAdmin: false, permissions: perms }
 }
 
-// Returns merged list of modules: directly assigned to user + granted via user's roles
+// Returns merged list of modules the user can reach:
+//   • modules assigned directly to the user
+//   • modules granted via the user's global roles
+//   • modules the user holds at least one permission in — including permissions
+//     granted by HRMS roles attached to their employee record. Without this a
+//     staff member could be given functions (e.g. erp.invoices.list) yet see no
+//     nav, because the module itself was never explicitly assigned.
 const getMyModules = async (organizationId) => {
   const organization = await User.findByPk(organizationId, {
     include: [
       { model: Module, as: 'modules', attributes: ['id', 'slug', 'name', 'icon', 'isActive'] },
       {
         model: Role, as: 'roles',
-        include: [{ model: Module, as: 'modules', attributes: ['id', 'slug', 'name', 'icon', 'isActive'] }],
+        include: [
+          { model: Module, as: 'modules', attributes: ['id', 'slug', 'name', 'icon', 'isActive'] },
+          { model: Permission, as: 'permissions', attributes: ['slug'] },
+        ],
       },
     ],
   })
@@ -234,15 +244,30 @@ const getMyModules = async (organizationId) => {
 
   const seen = new Set()
   const merged = []
+  const add = (m) => {
+    if (m && !seen.has(m.id)) { seen.add(m.id); merged.push(m) }
+  }
   for (const m of [
     ...organization.modules,
     ...organization.roles.flatMap((r) => r.modules),
-  ]) {
-    if (!seen.has(m.id)) {
-      seen.add(m.id)
-      merged.push(m)
-    }
+  ]) add(m)
+
+  // Derive modules from the user's effective permission slugs. A slug is
+  // namespaced by its module (e.g. `erp.invoices.list` → `erp`), so the prefix
+  // before the first dot is the module slug.
+  const permSlugs = new Set()
+  for (const r of organization.roles) for (const p of (r.permissions || [])) permSlugs.add(p.slug)
+  for (const s of await employeePermissionSlugs(organizationId)) permSlugs.add(s)
+
+  const moduleSlugs = [...new Set([...permSlugs].map((s) => s.split('.')[0]))]
+  if (moduleSlugs.length) {
+    const permModules = await Module.findAll({
+      where: { slug: moduleSlugs, isActive: true },
+      attributes: ['id', 'slug', 'name', 'icon', 'isActive'],
+    })
+    for (const m of permModules) add(m)
   }
+
   return merged
 }
 
