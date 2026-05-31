@@ -25,6 +25,34 @@
         </div>
       </div>
 
+      <!-- ── Date range filter ───────────────────────────────────────────────── -->
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-3 bg-white border border-[#E2E8F0] shadow-sm px-4 py-3">
+        <span class="text-xs font-semibold text-[#9BA7B0] uppercase tracking-wide">
+          {{ t('erp.dashboard.filter.period') }}
+        </span>
+        <div class="flex items-center gap-1">
+          <button v-for="p in presets" :key="p.days" @click="applyPreset(p.days)"
+            class="px-2.5 py-1 text-xs font-medium border transition-colors"
+            :class="activeDays === p.days
+              ? 'bg-primary-50 text-primary-600 border-primary-200'
+              : 'text-[#637381] border-[#E2E8F0] hover:bg-[#F7F9FC]'">
+            {{ p.label }}
+          </button>
+        </div>
+        <div class="h-5 w-px bg-[#E2E8F0]" />
+        <div class="flex items-center gap-2">
+          <input type="date" v-model="from" :max="to" @change="onDateChange"
+            class="px-2 py-1 text-xs text-[#374151] border border-[#E2E8F0] focus:border-primary-300 focus:outline-none" />
+          <span class="text-xs text-[#9BA7B0]">–</span>
+          <input type="date" v-model="to" :min="from" :max="todayInput" @change="onDateChange"
+            class="px-2 py-1 text-xs text-[#374151] border border-[#E2E8F0] focus:border-primary-300 focus:outline-none" />
+          <button @click="loadStats" :disabled="loading"
+            class="px-3 py-1 text-xs font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 transition-colors">
+            {{ t('erp.dashboard.filter.apply') }}
+          </button>
+        </div>
+      </div>
+
       <!-- ── Alert Banner — compact inline strip of clickable, localized alerts ── -->
       <div v-if="!loading && criticalAlerts.length > 0"
         class="flex items-center flex-wrap gap-x-2 gap-y-1.5 bg-red-50 border border-red-200 px-4 py-2.5">
@@ -741,6 +769,29 @@ const generatingReorder = ref(false)
 const reorderResult     = ref(null)
 const reorderError      = ref('')
 
+// ── Date range filter (defaults to the last 30 days) ───────────────────────
+const pad = (n) => String(n).padStart(2, '0')
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return ymd(d) }
+
+const todayInput = ymd(new Date())
+const from = ref(daysAgo(29))
+const to = ref(todayInput)
+const activeDays = ref(30)
+const presets = [
+  { days: 7,  label: t('erp.dashboard.filter.last7') },
+  { days: 30, label: t('erp.dashboard.filter.last30') },
+  { days: 90, label: t('erp.dashboard.filter.last90') },
+]
+
+function applyPreset(days) {
+  activeDays.value = days
+  to.value = todayInput
+  from.value = daysAgo(days - 1)
+  loadStats()
+}
+function onDateChange() { activeDays.value = null }
+
 async function generateReorder() {
   reorderError.value = ''
   reorderResult.value = null
@@ -789,7 +840,7 @@ const criticalAlerts = computed(() => {
 async function loadStats() {
   loading.value = true
   try {
-    const { data } = await api.get('/erp/dashboard/stats')
+    const { data } = await api.get('/erp/dashboard/stats', { params: { from: from.value, to: to.value } })
     stats.value = data.data
     lastUpdated.value = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
   } catch (err) {

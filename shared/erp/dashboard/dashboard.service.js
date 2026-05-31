@@ -15,13 +15,17 @@ const sumBase = (rows) => rows.reduce((s, r) => {
   return s + total * rate
 }, 0)
 
-const getStats = async (organizationId = null) => {
+const getStats = async (organizationId = null, from = null, to = null) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
   const isoToday   = today.toISOString().slice(0, 10)
+
+  // Period for date-range-sensitive metrics; defaults to current month
+  const periodFrom = from || monthStart.toISOString().slice(0, 10)
+  const periodTo   = to   || isoToday
 
   // Scope every aggregate to the caller's organization, matching the rest of
   // the ERP (see server/core/tenant.js). When no org is supplied (internal
@@ -116,12 +120,12 @@ const getStats = async (organizationId = null) => {
       order: [['createdAt', 'DESC']],
       limit: 6,
     }),
-    // Sales MTD: all non-cancelled invoices this month
+    // Sales in period: all non-cancelled invoices within the date range
     Invoice.findAll({
       where: {
         ...scope,
         status: { [Op.ne]: 'cancelled' },
-        invoiceDate: { [Op.gte]: monthStart },
+        invoiceDate: { [Op.gte]: periodFrom, [Op.lte]: periodTo },
       },
       attributes: ['total', 'exchangeRate'],
     }),
