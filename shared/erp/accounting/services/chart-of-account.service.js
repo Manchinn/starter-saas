@@ -53,6 +53,29 @@ const ALL_CATEGORIES = Object.values(CATEGORIES_BY_TYPE).flat()
 // Default (most common) category for a type, used when none is supplied.
 const defaultCategoryFor = (accountType) => (CATEGORIES_BY_TYPE[accountType] || [])[0] || null
 
+// ── TFRS for NPAEs statement structure ───────────────────────────────────────
+// Maps each statement section to the categories that roll into it. Single
+// source of truth shared by the financial-statements service and the UI.
+const STATEMENT_STRUCTURE = {
+  balanceSheet: {
+    currentAssets:        ['cash_and_equivalents', 'trade_receivables', 'inventories', 'other_current_assets'],
+    nonCurrentAssets:     ['property_plant_equipment', 'other_non_current_assets'],
+    currentLiabilities:   ['trade_payables', 'short_term_borrowings', 'other_current_liabilities'],
+    nonCurrentLiabilities:['long_term_borrowings', 'other_non_current_liabilities'],
+    equity:               ['owners_capital', 'retained_earnings'],
+  },
+  // Income statement lines in presentation order (by function).
+  incomeStatement: [
+    'revenue',
+    'cost_of_sales',
+    'other_income',
+    'selling_admin_expenses',
+    'other_expenses',
+    'finance_costs',
+    'income_tax_expense',
+  ],
+}
+
 const list = async ({ page = 1, limit = 20, search = '', accountType = '', status = '', organizationId }) => {
   const offset = (page - 1) * limit
   const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
@@ -164,5 +187,5 @@ const remove = async (id, organizationId) => {
 
 module.exports = {
   list, listAll, getById, create, update, remove,
-  normalBalanceFor, CATEGORIES_BY_TYPE, ALL_CATEGORIES, defaultCategoryFor,
+  normalBalanceFor, CATEGORIES_BY_TYPE, ALL_CATEGORIES, defaultCategoryFor, STATEMENT_STRUCTURE,
 }
