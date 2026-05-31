@@ -8,6 +8,8 @@ import {
   DocumentTextIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
+  TableCellsIcon,
+  BookOpenIcon,
 } from '@heroicons/vue/24/outline'
 
 export const routes = [
@@ -80,6 +82,19 @@ export const routes = [
     name: 'erp-accounting-ar-aging',
     component: () => import('./views/ar-aging/ARAgingReport.vue'),
     meta: { requiresAuth: true, title: 'AR Aging Report' },
+  },
+  // Financial Reports — Trial Balance & General Ledger
+  {
+    path: '/erp/accounting/reports/trial-balance',
+    name: 'erp-accounting-trial-balance',
+    component: () => import('./views/reports/TrialBalanceReport.vue'),
+    meta: { requiresAuth: true, title: 'Trial Balance' },
+  },
+  {
+    path: '/erp/accounting/reports/general-ledger',
+    name: 'erp-accounting-general-ledger',
+    component: () => import('./views/reports/GeneralLedgerReport.vue'),
+    meta: { requiresAuth: true, title: 'General Ledger' },
   },
   // Tax Periods
   {
@@ -217,6 +232,8 @@ export const navChildren = [
   { label: 'nav.fiscalYears',     to: '/erp/accounting/fiscal-years',      icon: CalendarDaysIcon, permission: 'erp.accounting.list' },
   { label: 'nav.chartOfAccounts', to: '/erp/accounting/chart-of-accounts', icon: ListBulletIcon,   permission: 'erp.accounting.list' },
   { label: 'nav.journals',        to: '/erp/accounting/journals',          icon: PencilSquareIcon, permission: 'erp.accounting.list' },
+  { label: 'nav.trialBalance',    to: '/erp/accounting/reports/trial-balance',  icon: TableCellsIcon, permission: 'erp.accounting.list' },
+  { label: 'nav.generalLedger',   to: '/erp/accounting/reports/general-ledger', icon: BookOpenIcon,   permission: 'erp.accounting.list' },
   { label: 'nav.arAging',         to: '/erp/accounting/ar-aging',          icon: ChartBarIcon,     permission: 'erp.accounting.list' },
   { label: 'nav.taxPeriods',      to: '/erp/accounting/tax-periods',       icon: LockClosedIcon,   permission: 'erp.tax-periods.list' },
 ]

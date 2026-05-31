@@ -128,6 +128,8 @@ export default {
     receivePayments:   'รับชำระเงิน',
     arAging:           'รายงานลูกหนี้คงค้าง',
     journals:          'บันทึกบัญชี',
+    trialBalance:      'งบทดลอง',
+    generalLedger:     'บัญชีแยกประเภท',
     purchasing:        'จัดซื้อ',
     requisitions:      'ใบขอซื้อ',
     purchaseOrders:    'ใบสั่งซื้อ',

@@ -20,6 +20,11 @@ const ChartOfAccount = sequelize.define('ChartOfAccount', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  // TFRS for NPAEs statement line-item classification (see chart-of-account.service.js).
+  statementCategory: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   normalBalance: {
     type: DataTypes.ENUM('debit', 'credit'),
     allowNull: false,

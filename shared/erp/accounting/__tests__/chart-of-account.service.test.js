@@ -96,6 +96,35 @@ describe('chart-of-account.create', () => {
     await service.create({ code: '1000', name: 'Assets', accountType: 'asset' })
     expect(ChartOfAccount.create.mock.calls[0][0].level).toBe(1)
   })
+
+  test('defaults statementCategory from the account type when not provided', async () => {
+    ChartOfAccount.findOne.mockResolvedValue(null)
+    ChartOfAccount.create.mockResolvedValue({ id: 'a' })
+    await service.create({ code: '1110', name: 'Cash', accountType: 'asset' })
+    expect(ChartOfAccount.create.mock.calls[0][0].statementCategory)
+      .toBe(service.defaultCategoryFor('asset'))
+  })
+
+  test('respects an explicit statementCategory', async () => {
+    ChartOfAccount.findOne.mockResolvedValue(null)
+    ChartOfAccount.create.mockResolvedValue({ id: 'a' })
+    await service.create({ code: '5110', name: 'COGS', accountType: 'expense', statementCategory: 'cost_of_sales' })
+    expect(ChartOfAccount.create.mock.calls[0][0].statementCategory).toBe('cost_of_sales')
+  })
+})
+
+describe('chart-of-account taxonomy', () => {
+  test('defaultCategoryFor returns the first category of a type, null for unknown', () => {
+    expect(service.defaultCategoryFor('asset')).toBe('cash_and_equivalents')
+    expect(service.defaultCategoryFor('nonsense')).toBeNull()
+  })
+
+  test('ALL_CATEGORIES is the flattened set of every type taxonomy', () => {
+    expect(service.ALL_CATEGORIES).toContain('retained_earnings')
+    expect(service.ALL_CATEGORIES).toContain('income_tax_expense')
+    expect(service.ALL_CATEGORIES.length)
+      .toBe(Object.values(service.CATEGORIES_BY_TYPE).flat().length)
+  })
 })
 
 describe('chart-of-account.update', () => {
@@ -113,6 +142,17 @@ describe('chart-of-account.update', () => {
     expect(ChartOfAccount.findOne).toHaveBeenCalledWith({
       where: { code: '1131', organizationId: 'o', id: { [Op.ne]: 'a' } },
     })
+  })
+
+  test('persists statementCategory through the allowed-fields filter', async () => {
+    const acc = {
+      id: 'a', code: '1110', organizationId: 'o', parentId: null, level: 1,
+      update: jest.fn().mockResolvedValue(),
+      reload: jest.fn().mockResolvedValue({ id: 'a' }),
+    }
+    ChartOfAccount.findByPk.mockResolvedValue(acc)
+    await service.update('a', { statementCategory: 'inventories' }, 'u')
+    expect(acc.update.mock.calls[0][0].statementCategory).toBe('inventories')
   })
 
   test('changing parent re-derives level', async () => {

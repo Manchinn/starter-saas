@@ -128,6 +128,8 @@ export default {
     receivePayments:   'Receive Payments',
     arAging:           'AR Aging',
     journals:          'Journal Entries',
+    trialBalance:      'Trial Balance',
+    generalLedger:     'General Ledger',
     purchasing:        'Purchasing',
     requisitions:      'Requisitions',
     purchaseOrders:    'Purchase Orders',

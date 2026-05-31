@@ -60,6 +60,12 @@
           </div>
 
           <div class="col-span-2">
+            <FieldLabel :text="t('erp.accounting.statementCategory')" />
+            <SearchSelect v-model="form.statementCategory" :options="statementCategoryOptions"
+              :placeholder="`— ${t('erp.accounting.selectCategory')} —`" :disabled="!form.accountType" />
+          </div>
+
+          <div class="col-span-2">
             <FieldLabel :text="t('erp.accounting.parentAccount')" />
             <SearchSelect v-model="form.parentId" :options="parentOptions" :placeholder="`— ${t('erp.accounting.noParent')} —`">
               <template #option="{ option }">{{ option.code }} — {{ option.name }}</template>
@@ -118,7 +124,18 @@ const STATUS_OPTIONS = computed(() => [
 
 const normalBalanceFor = { asset: 'debit', expense: 'debit', liability: 'credit', equity: 'credit', revenue: 'credit' }
 
-const form = ref({ code: '', name: '', accountType: '', normalBalance: 'debit', description: '', parentId: '', status: 'active' })
+// TFRS statement line-item categories per account type (mirrors chart-of-account.service.js).
+const CATEGORIES_BY_TYPE = {
+  asset:     ['cash_and_equivalents', 'trade_receivables', 'inventories', 'other_current_assets', 'property_plant_equipment', 'other_non_current_assets'],
+  liability: ['trade_payables', 'short_term_borrowings', 'other_current_liabilities', 'long_term_borrowings', 'other_non_current_liabilities'],
+  equity:    ['owners_capital', 'retained_earnings'],
+  revenue:   ['revenue', 'other_income'],
+  expense:   ['cost_of_sales', 'selling_admin_expenses', 'other_expenses', 'finance_costs', 'income_tax_expense'],
+}
+const statementCategoryOptions = computed(() =>
+  (CATEGORIES_BY_TYPE[form.value.accountType] || []).map(c => ({ id: c, name: t(`erp.accounting.statementCategories.${c}`) })))
+
+const form = ref({ code: '', name: '', accountType: '', statementCategory: '', normalBalance: 'debit', description: '', parentId: '', status: 'active' })
 const parentOptions      = ref([])
 const accountTypeOptions = ref([])
 const loading  = ref(true)
@@ -139,13 +156,14 @@ onMounted(async () => {
     const { data } = await api.get(`/erp/accounting/chart-of-accounts/${route.params.id}`)
     const a = data.data.account
     form.value = {
-      code:          a.code,
-      name:          a.name,
-      accountType:   a.accountType,
-      normalBalance: a.normalBalance,
-      description:   a.description || '',
-      parentId:      a.parentId || '',
-      status:        a.status,
+      code:              a.code,
+      name:              a.name,
+      accountType:       a.accountType,
+      statementCategory: a.statementCategory || '',
+      normalBalance:     a.normalBalance,
+      description:       a.description || '',
+      parentId:          a.parentId || '',
+      status:            a.status,
     }
   } catch {
     notFound.value = true
@@ -157,6 +175,8 @@ onMounted(async () => {
 function onTypeChange() {
   const nb = normalBalanceFor[form.value.accountType]
   if (nb) form.value.normalBalance = nb
+  const cats = CATEGORIES_BY_TYPE[form.value.accountType] || []
+  if (!cats.includes(form.value.statementCategory)) form.value.statementCategory = cats[0] || ''
 }
 
 async function save() {
