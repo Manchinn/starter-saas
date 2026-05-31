@@ -1,11 +1,13 @@
 export default {
   nav: {
-    reporting:  'Reporting',
-    erpSummary: 'ERP Summary',
+    reporting:          'Reporting',
+    erpSummary:         'ERP Summary',
+    reportingDashboard: 'Dashboard',
+    reportingOverview:  'Overview',
   },
   reporting: {
     erpSummary: {
-      title:    'ERP Summary',
+      title:    'Overview',
       subtitle: 'Performance at a glance',
       refresh:  'Refresh',
       updated:  'Updated',

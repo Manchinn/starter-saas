@@ -1,11 +1,13 @@
 export default {
   nav: {
-    reporting:  'รายงาน',
-    erpSummary: 'สรุป ERP',
+    reporting:          'รายงาน',
+    erpSummary:         'สรุป ERP',
+    reportingDashboard: 'แดชบอร์ด',
+    reportingOverview:  'ภาพรวม',
   },
   reporting: {
     erpSummary: {
-      title:    'สรุป ERP',
+      title:    'ภาพรวม',
       subtitle: 'ภาพรวมผลการดำเนินงาน',
       refresh:  'รีเฟรช',
       updated:  'อัปเดตเมื่อ',
