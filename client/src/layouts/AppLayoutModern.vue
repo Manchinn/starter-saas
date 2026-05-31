@@ -71,21 +71,127 @@
         </template>
       </nav>
 
-      <!-- Right: user info + logout -->
-      <div class="flex items-center gap-2.5 flex-shrink-0 ml-auto">
-        <div class="hidden lg:flex items-center gap-2.5 pl-2.5 pr-3.5 py-1.5 border border-white/[0.12] bg-white/[0.06]">
-          <div class="w-7 h-7 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
-                      text-white text-[11px] font-bold flex-shrink-0">
-            {{ userInitial }}
-          </div>
-          <span class="text-[13px] text-[#DEE4EE] font-medium truncate max-w-28">{{ auth.user?.name }}</span>
-        </div>
-        <button @click="handleLogout" title="Sign out"
-                class="p-2 text-[#DEE4EE] hover:text-white hover:bg-white/[0.10] transition-colors">
-          <ArrowRightOnRectangleIcon class="w-4 h-4" />
+      <!-- Right: controls + user dropdown -->
+      <div class="flex items-center gap-1.5 flex-shrink-0 ml-auto">
+        <!-- AI Chat button -->
+        <button type="button" @click="chatOpen = true"
+          class="w-9 h-9 flex items-center justify-center border border-white/[0.15]
+                 bg-white/[0.06] text-[#DEE4EE] hover:text-white hover:bg-white/[0.10] transition-colors"
+          :title="`${t('aiAgent.chat.title')} (Shift+A)`">
+          <SparklesIcon class="w-4 h-4" />
         </button>
+
+        <!-- Language switcher -->
+        <div class="relative" ref="langMenuRef">
+          <button
+            @click="langOpen = !langOpen"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] font-medium text-[#DEE4EE]
+                   border border-white/[0.15] bg-white/[0.06] hover:bg-white/[0.10] transition-colors select-none"
+          >
+            <span>{{ currentLangLabel }}</span>
+            <ChevronDownIcon class="w-3.5 h-3.5 text-[#8D9BB4] transition-transform duration-150"
+                            :class="{ 'rotate-180': langOpen }" />
+          </button>
+          <Transition
+            enter-active-class="transition ease-out duration-100"
+            enter-from-class="opacity-0 scale-95 -translate-y-1"
+            enter-to-class="opacity-100 scale-100 translate-y-0"
+            leave-active-class="transition ease-in duration-75"
+            leave-from-class="opacity-100 scale-100 translate-y-0"
+            leave-to-class="opacity-0 scale-95 -translate-y-1"
+          >
+            <div
+              v-if="langOpen"
+              class="absolute right-0 top-full mt-1.5 w-44 bg-white border border-[#E2E8F0] shadow-card-lg z-[9999] overflow-hidden"
+            >
+              <div class="p-1.5">
+                <button
+                  v-for="opt in langOptions"
+                  :key="opt.code"
+                  @click="setLang(opt.code)"
+                  class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left
+                         hover:bg-[#F7F9FC] transition-colors"
+                  :class="locale === opt.code ? 'text-primary-600 font-semibold' : 'text-[#1C2434]'"
+                >
+                  <span class="text-base leading-none">{{ opt.flag }}</span>
+                  <span class="flex-1">{{ opt.label }}</span>
+                  <span v-if="locale === opt.code" class="w-1.5 h-1.5 bg-primary-500 flex-shrink-0" />
+                </button>
+              </div>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- Notification bell -->
+        <AlertBell v-if="auth.hasPermission('erp.alerts.list')" class="hidden sm:block" />
+
+        <!-- User avatar / dropdown -->
+        <div class="relative" ref="userMenuRef">
+          <button
+            type="button"
+            @click="userOpen = !userOpen"
+            class="flex items-center gap-2 pl-2 pr-3 py-1.5 border border-white/[0.15] bg-white/[0.06]
+                   hover:bg-white/[0.10] transition-colors"
+          >
+            <div class="w-7 h-7 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
+                        text-white text-[11px] font-bold flex-shrink-0">
+              {{ userInitial }}
+            </div>
+            <span class="hidden lg:block text-[13px] text-[#DEE4EE] font-medium truncate max-w-28">{{ auth.user?.name }}</span>
+            <ChevronDownIcon class="hidden lg:block w-3.5 h-3.5 text-[#8D9BB4] transition-transform"
+                             :class="{ 'rotate-180': userOpen }" />
+          </button>
+
+          <Transition
+            enter-active-class="transition ease-out duration-100"
+            enter-from-class="opacity-0 scale-95 -translate-y-1"
+            enter-to-class="opacity-100 scale-100 translate-y-0"
+            leave-active-class="transition ease-in duration-75"
+            leave-from-class="opacity-100 scale-100 translate-y-0"
+            leave-to-class="opacity-0 scale-95 -translate-y-1"
+          >
+            <div v-if="userOpen"
+                 class="absolute right-0 top-full mt-1.5 w-56 bg-white border border-[#E2E8F0] shadow-card-lg z-[9999] overflow-hidden">
+              <div class="px-4 py-3 border-b border-[#E2E8F0]">
+                <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ auth.user?.name }}</p>
+                <p class="text-[11.5px] text-[#637381] truncate">{{ auth.user?.email }}</p>
+              </div>
+              <div class="p-1.5">
+                <RouterLink to="/profile/general" @click="userOpen = false"
+                  class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
+                  <UserCircleIcon class="w-4 h-4 text-[#637381]" />
+                  <span>{{ t('nav.profile') }}</span>
+                </RouterLink>
+                <RouterLink to="/profile/sessions" @click="userOpen = false"
+                  class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
+                  <ComputerDesktopIcon class="w-4 h-4 text-[#637381]" />
+                  <span>{{ t('profile.tabSessions') }}</span>
+                </RouterLink>
+              </div>
+              <div class="p-1.5 border-t border-[#E2E8F0]">
+                <button type="button" @click="handleLogout"
+                  class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#B91C1C] hover:bg-red-50 transition-colors">
+                  <ArrowRightOnRectangleIcon class="w-4 h-4" />
+                  <span>{{ t('nav.signOut') }}</span>
+                </button>
+              </div>
+            </div>
+          </Transition>
+        </div>
       </div>
     </header>
+
+    <!-- Impersonation banner -->
+    <div v-if="auth.impersonating" class="flex-shrink-0 bg-amber-400 px-4 md:px-6 py-2 flex items-center gap-3">
+      <UserCircleIcon class="w-4 h-4 text-amber-900 flex-shrink-0" />
+      <p class="text-[13px] font-semibold text-amber-900 flex-1 leading-none">
+        Viewing as <span class="font-bold">{{ auth.user?.name }}</span> ({{ auth.user?.email }})
+      </p>
+      <button @click="handleReturnToAdmin"
+        class="text-[12px] font-bold text-amber-900 bg-amber-900/15 hover:bg-amber-900/25 px-3 py-1 transition-colors flex-shrink-0">
+        Return to Admin
+      </button>
+    </div>
 
     <!-- ── Page title bar ─────────────────────────────────────────────────── -->
     <div class="bg-white border-b border-[#E2E8F0] px-4 md:px-6 py-3.5 flex items-center gap-3 flex-shrink-0">
@@ -329,17 +435,22 @@
     </Teleport>
 
   </div>
+
+  <!-- AI Chat slide-over -->
+  <AiChatPanel v-model="chatOpen" />
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import {
   ChevronDownIcon, ArrowRightOnRectangleIcon,
-  Bars3Icon, XMarkIcon,
+  Bars3Icon, XMarkIcon, SparklesIcon, UserCircleIcon, ComputerDesktopIcon,
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { useAppLayout } from '@/composables/useAppLayout'
+import AlertBell from '@/components/AlertBell.vue'
+import AiChatPanel from '@/components/AiChatPanel.vue'
 
 const {
   auth,
@@ -349,11 +460,40 @@ const {
   handleLogout,
 } = useAppLayout()
 
-const { t } = useI18n()
+const { locale, t } = useI18n()
+const router       = useRouter()
 const route        = useRoute()
 const openDropdown = ref(null)
 const dropdownPos  = ref({ top: 0, left: 0 })
 let   closeTimer   = null
+
+// ── Topbar controls ─────────────────────────────────────────────────────
+const chatOpen    = ref(false)
+const langOpen    = ref(false)
+const langMenuRef = ref(null)
+const userOpen    = ref(false)
+const userMenuRef = ref(null)
+
+const langOptions = [
+  { code: 'en', flag: '🇺🇸', label: 'English' },
+  { code: 'th', flag: '🇹🇭', label: 'ภาษาไทย' },
+]
+
+const currentLangLabel = computed(() =>
+  langOptions.find(o => o.code === locale.value)?.flag + ' ' +
+  (locale.value === 'th' ? 'TH' : 'EN')
+)
+
+function setLang(code) {
+  locale.value = code
+  localStorage.setItem('app-lang', code)
+  langOpen.value = false
+}
+
+function handleReturnToAdmin() {
+  auth.returnToAdmin()
+  router.push('/admin/organizations')
+}
 
 // ── Mobile drawer state ─────────────────────────────────────────────────
 const mobileNavOpen = ref(false)
@@ -372,12 +512,30 @@ watch(mobileNavOpen, (open) => {
   document.body.style.overflow = open ? 'hidden' : ''
 })
 
-// Esc closes drawer
+function onClickOutside(e) {
+  if (langMenuRef.value && !langMenuRef.value.contains(e.target)) langOpen.value = false
+  if (userMenuRef.value && !userMenuRef.value.contains(e.target)) userOpen.value = false
+}
+
 function onKeydown(e) {
   if (e.key === 'Escape' && mobileNavOpen.value) mobileNavOpen.value = false
+  if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'a') {
+    const el = e.target
+    const typing = el && (
+      el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+      el.tagName === 'SELECT' || el.isContentEditable
+    )
+    if (typing) return
+    e.preventDefault()
+    chatOpen.value = !chatOpen.value
+  }
 }
-onMounted(() => window.addEventListener('keydown', onKeydown))
+onMounted(() => {
+  document.addEventListener('mousedown', onClickOutside)
+  window.addEventListener('keydown', onKeydown)
+})
 onUnmounted(() => {
+  document.removeEventListener('mousedown', onClickOutside)
   window.removeEventListener('keydown', onKeydown)
   if (typeof document !== 'undefined') document.body.style.overflow = ''
 })
