@@ -382,7 +382,7 @@
             <!-- Column header — uses the sub-group label, or "Quick links" for the flat column -->
             <div class="flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-gray-100">
               <component v-if="col.icon" :is="col.icon" class="w-3 h-3 text-gray-400 flex-shrink-0" />
-              <p class="text-[9.5px] font-semibold tracking-widest text-gray-500 uppercase truncate">
+              <p class="text-[9.5px] font-semibold tracking-widest text-gray-500 uppercase">
                 {{ t(col.label) }}
               </p>
             </div>
@@ -397,7 +397,7 @@
                   @click="openDropdown = null"
                 >
                   <component v-if="link.icon" :is="link.icon" class="w-3.5 h-3.5 flex-shrink-0" />
-                  <span class="truncate">{{ t(link.label) }}</span>
+                  <span>{{ t(link.label) }}</span>
                 </RouterLink>
               </li>
             </ul>
@@ -578,9 +578,9 @@ const megaColumns = computed(() => {
 
 // Positioning — keep mega menu within the viewport. Columns wrap to a new row
 // when the available width can't fit them all (CSS auto-fit grid handles that).
-const MEGA_COL_MIN = 150   // min column width that still keeps labels readable
+const MEGA_COL_MIN = 220   // min column width — wide enough for long report labels
 const MEGA_PADDING = 12    // matches p-3 above
-const MEGA_MAX     = 920   // hard cap, even on huge monitors
+const MEGA_MAX     = 1200  // hard cap, even on huge monitors
 const VIEWPORT_PAD = 12    // breathing room from window edges
 
 const megaMenuStyle = computed(() => {
