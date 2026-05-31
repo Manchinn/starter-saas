@@ -75,17 +75,17 @@
       <div class="flex items-center gap-1.5 flex-shrink-0 ml-auto">
         <!-- AI Chat button -->
         <button type="button" @click="chatOpen = true"
-          class="w-9 h-9 flex items-center justify-center border border-white/[0.15]
+          class="w-10 h-10 flex items-center justify-center border border-white/[0.15]
                  bg-white/[0.06] text-[#DEE4EE] hover:text-white hover:bg-white/[0.10] transition-colors"
           :title="`${t('aiAgent.chat.title')} (Shift+A)`">
-          <SparklesIcon class="w-4 h-4" />
+          <SparklesIcon class="w-5 h-5" />
         </button>
 
         <!-- Language switcher -->
         <div class="relative" ref="langMenuRef">
           <button
             @click="langOpen = !langOpen"
-            class="flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] font-medium text-[#DEE4EE]
+            class="flex items-center gap-1.5 h-10 px-2.5 sm:px-3 text-[13px] font-medium text-[#DEE4EE]
                    border border-white/[0.15] bg-white/[0.06] hover:bg-white/[0.10] transition-colors select-none"
           >
             <span>{{ currentLangLabel }}</span>
@@ -130,7 +130,7 @@
           <button
             type="button"
             @click="userOpen = !userOpen"
-            class="flex items-center gap-2 pl-2 pr-3 py-1.5 border border-white/[0.15] bg-white/[0.06]
+            class="flex items-center gap-2 h-10 pl-2.5 pr-3.5 border border-white/[0.15] bg-white/[0.06]
                    hover:bg-white/[0.10] transition-colors"
           >
             <div class="w-7 h-7 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center

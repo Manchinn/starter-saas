@@ -183,7 +183,7 @@
           <div class="relative" ref="langMenuRef">
             <button
               @click="langOpen = !langOpen"
-              class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[13px] font-medium text-[#637381]
+              class="flex items-center gap-1.5 h-10 px-2.5 sm:px-3 text-[13px] font-medium text-[#637381]
                      border border-[#E2E8F0] bg-white hover:bg-[#F7F9FC] transition-colors select-none"
             >
               <span>{{ currentLangLabel }}</span>
@@ -230,7 +230,7 @@
             <button
               type="button"
               @click="userOpen = !userOpen"
-              class="flex items-center gap-2.5 p-1 sm:pl-2.5 sm:pr-3.5 sm:py-1.5 border border-transparent sm:border-[#E2E8F0] bg-transparent sm:bg-white
+              class="flex items-center gap-2.5 h-10 sm:pl-2.5 sm:pr-3.5 border border-transparent sm:border-[#E2E8F0] bg-transparent sm:bg-white
                      hover:bg-[#F7F9FC] transition-colors"
             >
               <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center
