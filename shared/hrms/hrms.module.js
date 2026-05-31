@@ -24,6 +24,7 @@ module.exports = defineModule({
   permissions: [
     'hrms.employees.list', 'hrms.employees.edit', 'hrms.employees.delete',
     'hrms.departments.list', 'hrms.departments.edit', 'hrms.departments.delete',
+    'hrms.roles.list', 'hrms.roles.manage',
   ],
   meta: { mountPath: API_PREFIX },
   register(app) {

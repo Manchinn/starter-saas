@@ -1,4 +1,4 @@
-import { IdentificationIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+import { IdentificationIcon, UserGroupIcon, ShieldCheckIcon, KeyIcon } from '@heroicons/vue/24/outline'
 
 const routes = [
   {
@@ -37,6 +37,36 @@ const routes = [
     component: () => import('./views/departments/DepartmentEdit.vue'),
     meta: { requiresAuth: true, title: 'Edit Department' },
   },
+  {
+    path: '/hrms/roles',
+    name: 'hrms-roles',
+    component: () => import('./views/roles/RolesList.vue'),
+    meta: { requiresAuth: true, title: 'Roles' },
+  },
+  {
+    path: '/hrms/roles/create',
+    name: 'hrms-roles-create',
+    component: () => import('./views/roles/RoleCreate.vue'),
+    meta: { requiresAuth: true, title: 'New Role' },
+  },
+  {
+    path: '/hrms/roles/:id/edit',
+    name: 'hrms-roles-edit',
+    component: () => import('./views/roles/RoleEdit.vue'),
+    meta: { requiresAuth: true, title: 'Edit Role' },
+  },
+  {
+    path: '/hrms/roles/:id/permissions',
+    name: 'hrms-roles-permissions',
+    component: () => import('./views/roles/RolePermissions.vue'),
+    meta: { requiresAuth: true, title: 'Role Permissions' },
+  },
+  {
+    path: '/hrms/permissions',
+    name: 'hrms-permissions',
+    component: () => import('./views/permissions/PermissionsList.vue'),
+    meta: { requiresAuth: true, title: 'Permissions' },
+  },
 ]
 
 export default {
@@ -50,6 +80,8 @@ export default {
     children: [
       { label: 'nav.employees',   to: '/hrms/employees',   icon: IdentificationIcon, permission: 'hrms.employees.list' },
       { label: 'nav.departments', to: '/hrms/departments', icon: UserGroupIcon,      permission: 'hrms.departments.list' },
+      { label: 'nav.roles',       to: '/hrms/roles',       icon: ShieldCheckIcon,    permission: 'hrms.roles.list' },
+      { label: 'nav.permissions', to: '/hrms/permissions', icon: KeyIcon,            permission: 'hrms.roles.list' },
     ],
   },
 }

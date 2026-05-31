@@ -1,4 +1,4 @@
-const { Employee, User, Department } = require('../../../server/models')
+const { Employee, User, Department, HrmsRole } = require('../../../server/models')
 const { Op } = require('sequelize')
 const seqService  = require('../../erp/settings/services/sequence.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
@@ -26,6 +26,7 @@ const list = async ({ organizationId, page = 1, limit = 20, search = '', status 
     include: [
       { model: User, as: 'user', attributes: USER_ATTRS },
       { model: Department, as: 'departments', through: { attributes: [] } },
+      { model: HrmsRole, as: 'roles', attributes: ['id', 'name', 'color'], through: { attributes: [] } },
     ],
     limit,
     offset,
@@ -43,6 +44,7 @@ const getById = async (id, organizationId) => {
     include: [
       { model: User, as: 'user', attributes: USER_ATTRS },
       { model: Department, as: 'departments', through: { attributes: [] } },
+      { model: HrmsRole, as: 'roles', attributes: ['id', 'name', 'color'], through: { attributes: [] } },
     ],
   })
   if (!emp) throw { status: 404, message: 'Employee not found' }
@@ -51,7 +53,7 @@ const getById = async (id, organizationId) => {
 
 const create = async ({ firstName, lastName, position, phone, startDate, status = 'active',
   activeFrom, activeTo,
-  employeeCode, autoCode, userId, email, password, credentialMode = 'existing', createdByUserId, organizationId, departmentIds }) => {
+  employeeCode, autoCode, userId, email, password, credentialMode = 'existing', createdByUserId, organizationId, departmentIds, roleIds }) => {
   if (!organizationId) throw { status: 400, message: 'Organization ID is required' }
   if (!firstName?.trim()) throw { status: 400, message: 'First name is required' }
   if (!lastName?.trim())  throw { status: 400, message: 'Last name is required' }
@@ -105,13 +107,18 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
     await emp.setDepartments(departmentIds)
   }
 
+  if (roleIds && roleIds.length) {
+    const roles = await HrmsRole.findAll({ where: { id: roleIds, organizationId } })
+    await emp.setRoles(roles)
+  }
+
   return getById(emp.id)
 }
 
 const update = async (id, payload, organizationId, modifiedByUserId) => {
   const { firstName, lastName, position, phone, startDate, status,
     activeFrom, activeTo,
-    employeeCode, userId, organizationId: newOrgId, departmentIds } = payload
+    employeeCode, userId, organizationId: newOrgId, departmentIds, roleIds } = payload
   const emp = await Employee.findOne({ where: { id, organizationId } })
   if (!emp) throw { status: 404, message: 'Employee not found' }
 
@@ -139,6 +146,11 @@ const update = async (id, payload, organizationId, modifiedByUserId) => {
 
   if (departmentIds !== undefined) {
     await emp.setDepartments(departmentIds || [])
+  }
+
+  if (roleIds !== undefined) {
+    const roles = await HrmsRole.findAll({ where: { id: roleIds || [], organizationId } })
+    await emp.setRoles(roles)
   }
 
   return getById(id)

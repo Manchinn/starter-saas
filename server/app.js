@@ -7,7 +7,7 @@ const config = require('./config/config')
 const { sequelize } = require('./models')
 const moduleLoader = require('./core/module.loader')
 const migrator = require('./core/migrator')
-const { seedSequences } = require('./core/seed')
+const { seedSequences, seedHrmsPermissions } = require('./core/seed')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
 const cache = require('./config/redis')
 const realtime = require('./core/realtime')
@@ -55,6 +55,7 @@ async function bootstrap() {
   await sequelize.sync()
   await migrator.up(sequelize)
   await seedSequences()
+  await seedHrmsPermissions()
   logger.info('Database connected and synced', { label: 'db' })
 
   // Initialise the cache (Redis when enabled, in-memory fallback otherwise).

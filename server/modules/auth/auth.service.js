@@ -5,6 +5,7 @@ const config = require('../../config/config')
 const { User, Role, Permission, RefreshToken, MasterDataCategory, MasterDataValue } = require('../../models')
 const { Op } = require('sequelize')
 const mailer = require('../../core/mailer')
+const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
 
 // ── Token generation (random, opaque, URL-safe) ──────────────────────────────
 const generateRawToken = () => crypto.randomBytes(32).toString('hex')
@@ -88,6 +89,8 @@ const resolveSession = async (userId) => {
     for (const role of user.roles) {
       for (const perm of role.permissions) slugSet.add(perm.slug)
     }
+    // Fold in grants from HRMS roles attached to the user's Employee record.
+    for (const slug of await employeePermissionSlugs(user.id)) slugSet.add(slug)
     permissions = [...slugSet]
   }
 

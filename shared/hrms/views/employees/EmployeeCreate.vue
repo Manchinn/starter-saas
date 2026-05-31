@@ -128,6 +128,28 @@
               </p>
             </div>
 
+            <!-- Role Assignments -->
+            <div class="pt-4 border-t border-[#E2E8F0]">
+              <div class="flex items-center justify-between mb-2">
+                <FieldLabel :text="t('hrms.empRoles.label')" />
+                <span class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-widest">
+                  {{ form.roleIds.length }} {{ t('hrms.empRoles.selected') }}
+                </span>
+              </div>
+              <p class="text-xs text-[#9BA7B0] mb-2">{{ t('hrms.empRoles.hint') }}</p>
+              <div class="grid grid-cols-2 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/80 max-h-48 overflow-y-auto">
+                <label v-for="r in roles" :key="r.id" class="flex items-center gap-2 px-2 py-1.5 hover:bg-white cursor-pointer transition-colors">
+                  <input type="checkbox" v-model="form.roleIds" :value="r.id" class="text-primary-500 focus:ring-primary-500" />
+                  <span class="w-2 h-2 flex-shrink-0" :style="{ backgroundColor: r.color }" />
+                  <span class="text-xs font-medium text-[#374151] truncate" :title="r.name">{{ r.name }}</span>
+                </label>
+              </div>
+              <p v-if="!roles.length" class="text-xs text-[#9BA7B0] mt-2 italic flex items-center gap-1.5">
+                <InformationCircleIcon class="w-3.5 h-3.5" />
+                {{ t('hrms.empRoles.none') }}
+              </p>
+            </div>
+
           </div>
         </FormCard>
 
@@ -170,6 +192,7 @@ const router        = useRouter()
 const autoCode      = useAutoCode('EMP')
 const users         = ref([])
 const departments   = ref([])
+const roles         = ref([])
 const error         = ref('')
 const saving        = ref(false)
 const createAccount = ref(false)
@@ -182,6 +205,7 @@ const form = ref({
   lastName:      '',
   position:      '',
   departmentIds: [],
+  roleIds:       [],
   phone:         '',
   startDate:     '',
   status:        'active',
@@ -194,12 +218,14 @@ const form = ref({
 
 onMounted(async () => {
   try {
-    const [staffRes, deptRes] = await Promise.all([
+    const [staffRes, deptRes, rolesRes] = await Promise.all([
       api.get('/organizations/staff', { params: { limit: 500 } }),
       api.get('/hrms/departments', { params: { limit: 1000 } }),
+      api.get('/hrms/roles'),
     ])
     users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
+    roles.value       = rolesRes.data.data.roles
   } catch (err) {
     console.error('Failed to load initial data:', err)
   }

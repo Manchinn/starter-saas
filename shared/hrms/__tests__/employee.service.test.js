@@ -30,7 +30,7 @@ describe('employee.list', () => {
     await expect(service.list({})).rejects.toEqual({ status: 400, message: 'Organization ID is required' })
   })
 
-  test('paginates, scopes by org, excludes soft-deleted, eager-loads user + departments', async () => {
+  test('paginates, scopes by org, excludes soft-deleted, eager-loads user + departments + roles', async () => {
     Employee.findAndCountAll.mockResolvedValue({ count: 2, rows: [{ id: 'e1' }] })
     const out = await service.list({ organizationId: 'o', page: 2, limit: 5 })
     expect(out).toEqual({ total: 2, page: 2, limit: 5, employees: [{ id: 'e1' }] })
@@ -38,7 +38,7 @@ describe('employee.list', () => {
     expect(args.offset).toBe(5)
     expect(args.where.organizationId).toBe('o')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.include.map(i => i.as).sort()).toEqual(['departments', 'user'])
+    expect(args.include.map(i => i.as).sort()).toEqual(['departments', 'roles', 'user'])
   })
 
   test('search applies across firstName / lastName / employeeCode / position', async () => {

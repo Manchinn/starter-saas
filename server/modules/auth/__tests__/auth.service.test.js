@@ -20,6 +20,9 @@ jest.mock('../../../models', () => ({
   RefreshToken:       { create: jest.fn(), findOne: jest.fn(), update: jest.fn(), destroy: jest.fn() },
   MasterDataCategory: { findOrCreate: jest.fn() },
   MasterDataValue:    { findOrCreate: jest.fn() },
+  Employee:           { findOne: jest.fn() },
+  HrmsRole:           {},
+  HrmsPermission:     {},
 }))
 jest.mock('../../../core/mailer', () => ({ sendEmailVerification: jest.fn(), sendPasswordReset: jest.fn() }))
 jest.mock('../../../core/logger', () => ({ forLabel: () => ({ warn: jest.fn() }) }))

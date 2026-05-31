@@ -36,4 +36,14 @@ async function seedSequences() {
   else log.debug('Per-user sequences already present — skipped')
 }
 
-module.exports = { seedSequences, SEQUENCE_SEEDS }
+// ── HRMS permission catalog ───────────────────────────────────────────────────
+// Idempotent (findOrCreate by slug). Mirrors the CLI core seed so the HRMS
+// roles/permissions UI has a populated catalog on first boot.
+async function seedHrmsPermissions() {
+  const models = require('../models')
+  const seed = require('../../shared/hrms/seeds/hrms-permissions')
+  await seed.run({ models, set: () => {} })
+  log.debug('HRMS permission catalog ensured')
+}
+
+module.exports = { seedSequences, seedHrmsPermissions, SEQUENCE_SEEDS }
