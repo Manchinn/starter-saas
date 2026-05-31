@@ -2,18 +2,11 @@ import {
   CalendarDaysIcon,
   ListBulletIcon,
   PencilSquareIcon,
-  ChartBarIcon,
   LockClosedIcon,
   BanknotesIcon,
   DocumentTextIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  TableCellsIcon,
-  BookOpenIcon,
-  ScaleIcon,
-  PresentationChartLineIcon,
-  DocumentChartBarIcon,
-  ClipboardDocumentListIcon,
 } from '@heroicons/vue/24/outline'
 
 export const routes = [
@@ -261,13 +254,6 @@ export const navChildren = [
   { label: 'nav.fiscalYears',     to: '/erp/accounting/fiscal-years',      icon: CalendarDaysIcon, permission: 'erp.accounting.list' },
   { label: 'nav.chartOfAccounts', to: '/erp/accounting/chart-of-accounts', icon: ListBulletIcon,   permission: 'erp.accounting.list' },
   { label: 'nav.journals',        to: '/erp/accounting/journals',          icon: PencilSquareIcon, permission: 'erp.accounting.list' },
-  { label: 'nav.trialBalance',    to: '/erp/accounting/reports/trial-balance',  icon: TableCellsIcon, permission: 'erp.accounting.list' },
-  { label: 'nav.generalLedger',   to: '/erp/accounting/reports/general-ledger', icon: BookOpenIcon,   permission: 'erp.accounting.list' },
-  { label: 'nav.balanceSheet',    to: '/erp/accounting/financial-statements/balance-sheet',     icon: ScaleIcon,                  permission: 'erp.accounting.list' },
-  { label: 'nav.incomeStatement', to: '/erp/accounting/financial-statements/income-statement',  icon: PresentationChartLineIcon,  permission: 'erp.accounting.list' },
-  { label: 'nav.changesInEquity', to: '/erp/accounting/financial-statements/changes-in-equity', icon: DocumentChartBarIcon,       permission: 'erp.accounting.list' },
-  { label: 'nav.notes',           to: '/erp/accounting/financial-statements/notes',             icon: ClipboardDocumentListIcon,  permission: 'erp.accounting.list' },
-  { label: 'nav.arAging',         to: '/erp/accounting/ar-aging',          icon: ChartBarIcon,     permission: 'erp.accounting.list' },
   { label: 'nav.taxPeriods',      to: '/erp/accounting/tax-periods',       icon: LockClosedIcon,   permission: 'erp.tax-periods.list' },
 ]
 
