@@ -28,6 +28,8 @@ starter-saas/
 │   │              receipts, purchasing, inventory/stock, accounting, alerts, settings, …
 │   ├── hrms/      departments, employees
 │   └── ai-agent/  local-LLM chat, tool registry, provider adapters (Ollama / LM Studio)
+├── scripts/       schema + diagram generators (introspect models/routes → docs/*.html)
+├── docs/          generated reference: schema.html, ER-schema.html, swimlane-process.html, data-flow.html
 └── package.json   workspace root
 ```
 
@@ -270,6 +272,25 @@ npx jest shared/erp/...  # a subset
 ## Internationalization
 
 Locale messages are split per module (e.g. `client/src/modules/*/i18n/{en,th}.js` and `shared/erp/*/i18n/{en,th}.js`) and merged automatically at build time. The active language is stored client-side and chosen during install; demo data is seeded in the selected language.
+
+## Documentation & diagrams
+
+The `scripts/` folder holds standalone generators that introspect the live Sequelize
+model registry and the Express route files — no database connection or running server
+required — and emit self-contained, interactive HTML into `docs/`. Run any of them from
+the repo root and re-run after schema or route changes to refresh the output:
+
+| Command | Output | What it shows |
+|---|---|---|
+| `node scripts/export-schema.js` | `docs/schema.html` | Tabular schema — every table's columns, flags (PK/FK/unique/…), and relations; grouped and filterable by module |
+| `node scripts/export-er-diagram.js` | `docs/ER-schema.html` | Entity-relationship diagram (Mermaid `erDiagram`); toggle modules to re-render a filtered view |
+| `node scripts/export-swimlane-process.js` | `docs/swimlane-process.html` | BPMN-style **business-process** swimlanes derived from the route files — Order-to-Cash and Procure-to-Pay document flows, with modules as lanes |
+| `node scripts/export-data-flow.js` | `docs/data-flow.html` | Level-1 **data-flow diagram** — the Client as external entity, one Process + Data Store per module, and cross-module FK dependencies as data flows |
+
+Each diagram supports per-module filter chips, layout/label toggles, and pan/zoom. The
+diagrams load Mermaid and svg-pan-zoom from a CDN, so viewing them needs internet access;
+`schema.html` is fully offline. The shared `scripts/_introspect.js` helper maps every model
+to its module from the source path.
 
 ## License
 
