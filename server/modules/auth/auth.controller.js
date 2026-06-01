@@ -26,7 +26,7 @@ module.exports = {
   async register(req, res) {
     try {
       const { user, permissions, accessToken, refreshToken } = await authService.register(req.body, reqMeta(req))
-      setRefreshCookie(res, refreshToken, { persist: wantsPersist(req) })
+      setRefreshCookie(req, res, refreshToken, { persist: wantsPersist(req) })
       return created(res, { user, permissions, accessToken }, 'Registration successful')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -36,7 +36,7 @@ module.exports = {
   async login(req, res) {
     try {
       const { user, permissions, accessToken, refreshToken } = await authService.login(req.body, reqMeta(req))
-      setRefreshCookie(res, refreshToken, { persist: wantsPersist(req) })
+      setRefreshCookie(req, res, refreshToken, { persist: wantsPersist(req) })
       return ok(res, { user, permissions, accessToken }, 'Login successful')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -49,12 +49,12 @@ module.exports = {
       if (!refreshToken) return fail(res, 'Refresh token required', 401)
       const tokens = await authService.refresh(refreshToken, reqMeta(req))
       // Rotate the cookie; keep it persistent (a silent refresh has no "remember" signal).
-      setRefreshCookie(res, tokens.refreshToken, { persist: true })
+      setRefreshCookie(req, res, tokens.refreshToken, { persist: true })
       return ok(res, { accessToken: tokens.accessToken }, 'Token refreshed')
     } catch (err) {
       // A bad/expired refresh token is unrecoverable — clear it so the client
       // stops retrying and falls back to the login screen.
-      if ((err.status || 0) === 401) clearRefreshCookie(res)
+      if ((err.status || 0) === 401) clearRefreshCookie(req, res)
       return fail(res, err.message, err.status || 401)
     }
   },
@@ -66,8 +66,8 @@ module.exports = {
       // If logging out mid-impersonation, drop the parked admin token too.
       const impersonator = readCookie(req, IMPERSONATOR_COOKIE)
       if (impersonator) await authService.logout(impersonator)
-      clearRefreshCookie(res)
-      clearImpersonatorCookie(res)
+      clearRefreshCookie(req, res)
+      clearImpersonatorCookie(req, res)
       return ok(res, null, 'Logged out successfully')
     } catch (err) {
       return serverError(res)
@@ -108,7 +108,7 @@ module.exports = {
   async install(req, res) {
     try {
       const { user, permissions, accessToken, refreshToken } = await authService.install(req.body, reqMeta(req))
-      setRefreshCookie(res, refreshToken, { persist: wantsPersist(req) })
+      setRefreshCookie(req, res, refreshToken, { persist: wantsPersist(req) })
       return created(res, { user, permissions, accessToken }, 'Installation complete')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -121,8 +121,8 @@ module.exports = {
       // Park the admin's own refresh token (still valid) so we can return later.
       const adminRefresh = readCookie(req, REFRESH_COOKIE)
       const { user, permissions, accessToken, refreshToken } = await authService.loginAs(req.params.userId, reqMeta(req))
-      if (adminRefresh) setImpersonatorCookie(res, adminRefresh)
-      setRefreshCookie(res, refreshToken, { persist: true })
+      if (adminRefresh) setImpersonatorCookie(req, res, adminRefresh)
+      setRefreshCookie(req, res, refreshToken, { persist: true })
       return ok(res, { user, permissions, accessToken, impersonating: true }, 'Session switched')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -140,8 +140,8 @@ module.exports = {
       if (impersonated) await authService.logout(impersonated)
       // Rotate the parked admin token forward and resolve the admin session.
       const { user, permissions, accessToken, refreshToken } = await authService.returnToAdmin(impersonator, reqMeta(req))
-      setRefreshCookie(res, refreshToken, { persist: true })
-      clearImpersonatorCookie(res)
+      setRefreshCookie(req, res, refreshToken, { persist: true })
+      clearImpersonatorCookie(req, res)
       return ok(res, { user, permissions, accessToken, impersonating: false }, 'Returned to admin')
     } catch (err) {
       return fail(res, err.message, err.status || 400)

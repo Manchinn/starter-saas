@@ -2,6 +2,11 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
+// Dev proxy target — override with VITE_API_TARGET to point at the server's
+// https port (e.g. https://localhost:3443). secure:false accepts a self-signed
+// dev cert. The /socket.io ws target follows the same host.
+const apiTarget = process.env.VITE_API_TARGET || 'http://localhost:3000'
+
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -18,16 +23,19 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: apiTarget,
         changeOrigin: true,
+        secure: false,
       },
       '/uploads': {
-        target: 'http://localhost:3000',
+        target: apiTarget,
         changeOrigin: true,
+        secure: false,
       },
       '/socket.io': {
-        target: 'http://localhost:3000',
+        target: apiTarget,
         changeOrigin: true,
+        secure: false,
         ws: true,
       },
     },

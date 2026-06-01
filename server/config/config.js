@@ -13,9 +13,34 @@ function resolveSecret(name, value) {
   return crypto.randomBytes(48).toString('hex')
 }
 
+// Express "trust proxy" setting. Accepts true/false, a hop count, or a
+// subnet/IP string (passed through to Express). Empty → false (no proxy).
+function parseTrustProxy(value) {
+  if (value === undefined || value === '') return false
+  if (value === 'true') return true
+  if (value === 'false') return false
+  const n = Number(value)
+  return Number.isNaN(n) ? value : n
+}
+
 module.exports = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT) || 3000,
+  // HTTPS is served alongside HTTP when enabled (the app listens on both).
+  // Point KEY/CERT at PEM files; see .env.example for generating a dev cert.
+  https: {
+    enabled:      process.env.HTTPS_ENABLED === 'true',
+    port:         parseInt(process.env.HTTPS_PORT, 10) || 3443,
+    keyPath:      process.env.HTTPS_KEY_PATH  || '',
+    certPath:     process.env.HTTPS_CERT_PATH || '',
+    // Redirect plain-HTTP requests to the HTTPS port (only when HTTPS is on).
+    redirectHttp: process.env.HTTPS_REDIRECT === 'true',
+  },
+  // Cookie Secure flag: 'auto' mirrors the request scheme (Secure over https,
+  // not over http) so both schemes work; 'true'/'false' force it either way.
+  cookieSecure: (process.env.COOKIE_SECURE || 'auto').toLowerCase(),
+  // Needed for req.secure / x-forwarded-proto to be trusted behind a proxy.
+  trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   db: {
     // Supported Sequelize dialects: sqlite | postgres | mysql | mariadb | mssql
     dialect:  process.env.DB_DIALECT  || 'sqlite',

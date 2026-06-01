@@ -12,13 +12,16 @@ const roomMod   = (orgId, slug)   => `mod:${orgId}:${slug}`
 
 const orgKeyOf = (user) => user.organizationId || user.id
 
-// Attach Socket.IO to the HTTP server. Sockets authenticate with the JWT access
-// token (same secret as the REST API) and join scoped rooms so realtime alerts
-// reach exactly the eligible recipients.
+// Attach Socket.IO to the HTTP server(s). Accepts a single server or an array
+// (e.g. an http + https pair) so realtime works over either scheme. Sockets
+// authenticate with the JWT access token (same secret as the REST API) and join
+// scoped rooms so realtime alerts reach exactly the eligible recipients.
 const init = (server) => {
-  io = new Server(server, {
+  const servers = Array.isArray(server) ? server : [server]
+  io = new Server(servers[0], {
     cors: { origin: config.clientUrl, credentials: true },
   })
+  for (let i = 1; i < servers.length; i++) io.attach(servers[i])
 
   io.use(async (socket, next) => {
     try {
