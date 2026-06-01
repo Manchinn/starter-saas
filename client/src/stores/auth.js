@@ -3,37 +3,27 @@ import { ref, computed } from 'vue'
 import api from '@/api'
 import { disconnectSocket } from '@/api/socket'
 
-// Tokens are stored in localStorage (persist across tabs/restarts) when the
-// user checks "Remember me", otherwise in sessionStorage (cleared on tab close).
-function readToken(key) {
-  return localStorage.getItem(key) ?? sessionStorage.getItem(key)
-}
+// Tokens are NOT kept in client-readable storage. The refresh token lives in an
+// httpOnly cookie managed by the server; the access token is held only in
+// memory here and re-minted from the cookie on page load (see `bootstrap`).
 
-function saveToken(key, value, persist) {
-  if (persist) {
-    localStorage.setItem(key, value)
-    sessionStorage.removeItem(key)
-  } else {
-    sessionStorage.setItem(key, value)
-    localStorage.removeItem(key)
+// One-time cleanup of tokens left in web storage by older builds.
+function scrubLegacyStorage() {
+  for (const k of ['accessToken', 'refreshToken', 'impersonatedFrom']) {
+    localStorage.removeItem(k)
+    sessionStorage.removeItem(k)
   }
-}
-
-function removeToken(key) {
-  localStorage.removeItem(key)
-  sessionStorage.removeItem(key)
 }
 
 export const useAuthStore = defineStore('auth', () => {
   const user        = ref(null)
   const roles       = ref([])
   const permissions = ref([])
-  const accessToken  = ref(readToken('accessToken'))
-  const refreshToken = ref(readToken('refreshToken'))
+  const accessToken = ref(null)        // in-memory only
+  const impersonating = ref(false)
 
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
   const isAdmin         = computed(() => user.value?.role === 'admin')
-  const impersonating   = computed(() => !!localStorage.getItem('impersonatedFrom'))
 
   function hasPermission(slug) {
     if (isAdmin.value) return true
@@ -45,35 +35,29 @@ export const useAuthStore = defineStore('auth', () => {
     return roles.value.some((r) => r.slug === slug)
   }
 
-  function setTokens(access, refresh, persist = true) {
-    accessToken.value  = access
-    refreshToken.value = refresh
-    saveToken('accessToken',  access,  persist)
-    saveToken('refreshToken', refresh, persist)
+  function setAccessToken(token) {
+    accessToken.value = token
   }
 
   function clearSession() {
     accessToken.value  = null
-    refreshToken.value = null
     user.value         = null
     roles.value        = []
     permissions.value  = []
-    removeToken('accessToken')
-    removeToken('refreshToken')
+    impersonating.value = false
     disconnectSocket()
   }
 
-  // Called by the API interceptor after a silent token refresh so the store
-  // stays in sync with storage (storage is already updated by the interceptor).
-  function syncTokensFromRefresh(access, refresh) {
-    accessToken.value  = access
-    refreshToken.value = refresh
+  // Called by the API interceptor after a silent token refresh.
+  function syncTokensFromRefresh(access) {
+    accessToken.value = access
   }
 
   function applySession(data) {
     user.value        = data.user
     roles.value       = data.user?.roles ?? []
     permissions.value = data.permissions ?? []
+    if (typeof data.impersonating === 'boolean') impersonating.value = data.impersonating
   }
 
   async function fetchMe() {
@@ -81,27 +65,40 @@ export const useAuthStore = defineStore('auth', () => {
     applySession(data.data)
   }
 
+  // Restore the session on app load: the httpOnly refresh cookie (if any) mints
+  // a fresh access token, then we load the profile. Stays logged out on 401.
+  async function bootstrap() {
+    scrubLegacyStorage()
+    try {
+      const { data } = await api.post('/auth/refresh')
+      setAccessToken(data.data.accessToken)
+      await fetchMe()
+    } catch {
+      clearSession()
+    }
+  }
+
   async function login(email, password, remember = true) {
-    const { data } = await api.post('/auth/login', { email, password })
-    setTokens(data.data.accessToken, data.data.refreshToken, remember)
+    const { data } = await api.post('/auth/login', { email, password, remember })
+    setAccessToken(data.data.accessToken)
     applySession(data.data)
   }
 
   async function register(name, email, password) {
     const { data } = await api.post('/auth/register', { name, email, password })
-    setTokens(data.data.accessToken, data.data.refreshToken, true)
+    setAccessToken(data.data.accessToken)
     applySession(data.data)
   }
 
   async function install(name, email, password) {
     const { data } = await api.post('/auth/install', { name, email, password })
-    setTokens(data.data.accessToken, data.data.refreshToken, true)
+    setAccessToken(data.data.accessToken)
     applySession(data.data)
   }
 
   async function logout() {
     try {
-      await api.post('/auth/logout', { refreshToken: refreshToken.value })
+      await api.post('/auth/logout')
     } finally {
       clearSession()
     }
@@ -111,35 +108,28 @@ export const useAuthStore = defineStore('auth', () => {
     await api.put('/auth/change-password', { currentPassword, newPassword })
   }
 
+  // Impersonation is server-side: login-as parks the admin's refresh token in a
+  // separate httpOnly cookie; returnToAdmin restores it. No tokens touch JS.
   async function loginAs(targetUserId) {
-    localStorage.setItem('impersonatedFrom', JSON.stringify({
-      user:         user.value,
-      permissions:  permissions.value,
-      accessToken:  accessToken.value,
-      refreshToken: refreshToken.value,
-    }))
     const { data } = await api.post(`/auth/login-as/${targetUserId}`)
-    setTokens(data.data.accessToken, data.data.refreshToken, true)
+    setAccessToken(data.data.accessToken)
     applySession(data.data)
+    impersonating.value = true
   }
 
-  function returnToAdmin() {
-    const raw = localStorage.getItem('impersonatedFrom')
-    if (!raw) return
-    const prev = JSON.parse(raw)
-    localStorage.removeItem('impersonatedFrom')
-    setTokens(prev.accessToken, prev.refreshToken, true)
-    user.value        = prev.user
-    roles.value       = prev.user?.roles ?? []
-    permissions.value = prev.permissions ?? []
+  async function returnToAdmin() {
+    const { data } = await api.post('/auth/return')
+    setAccessToken(data.data.accessToken)
+    applySession(data.data)
+    impersonating.value = false
   }
 
   return {
-    user, roles, permissions, accessToken,
-    isAuthenticated, isAdmin, impersonating,
+    user, roles, permissions, accessToken, impersonating,
+    isAuthenticated, isAdmin,
     hasPermission, hasRole,
-    fetchMe, login, register, install, logout, changePassword,
+    fetchMe, bootstrap, login, register, install, logout, changePassword,
     loginAs, returnToAdmin,
-    clearSession, syncTokensFromRefresh,
+    setAccessToken, clearSession, syncTokensFromRefresh,
   }
 })

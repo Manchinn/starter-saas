@@ -1,40 +1,23 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
+// withCredentials so the httpOnly refresh cookie rides along on /api requests.
 const api = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
-// Helpers — mirror the store's storage strategy (localStorage vs sessionStorage)
-function getToken(key) {
-  return localStorage.getItem(key) ?? sessionStorage.getItem(key)
-}
-
-function setToken(key, value) {
-  // Preserve whichever storage was originally used
-  if (localStorage.getItem(key) !== null) {
-    localStorage.setItem(key, value)
-  } else {
-    sessionStorage.setItem(key, value)
-  }
-}
-
-function removeTokens() {
-  ['accessToken', 'refreshToken'].forEach((k) => {
-    localStorage.removeItem(k)
-    sessionStorage.removeItem(k)
-  })
-}
-
-// Attach access token to every request
+// Attach the in-memory access token to every request.
 api.interceptors.request.use((config) => {
-  const token = getToken('accessToken')
+  let token = null
+  try { token = useAuthStore().accessToken } catch {}
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
-// Auto-refresh on 401 TOKEN_EXPIRED
+// Auto-refresh on 401 TOKEN_EXPIRED — the refresh token is sent automatically
+// as the httpOnly cookie, so the call carries no token in the body.
 let isRefreshing = false
 let refreshQueue = []
 
@@ -58,15 +41,12 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const refreshToken = getToken('refreshToken')
-        const { data: res } = await axios.post('/api/auth/refresh', { refreshToken })
-        const { accessToken, refreshToken: newRefresh } = res.data
+        // Bare axios call (no interceptors); cookie is sent via withCredentials.
+        const { data: res } = await axios.post('/api/auth/refresh', {}, { withCredentials: true })
+        const accessToken = res.data.accessToken
 
-        setToken('accessToken', accessToken)
-        setToken('refreshToken', newRefresh)
-
-        // Keep Pinia store in sync so auth state (isAuthenticated, logout) stays correct
-        try { useAuthStore().syncTokensFromRefresh(accessToken, newRefresh) } catch {}
+        // Keep the Pinia store in sync so auth state stays correct.
+        try { useAuthStore().syncTokensFromRefresh(accessToken) } catch {}
 
         refreshQueue.forEach(({ resolve }) => resolve(accessToken))
         refreshQueue = []
@@ -77,11 +57,10 @@ api.interceptors.response.use(
         refreshQueue.forEach(({ reject }) => reject(refreshErr))
         refreshQueue = []
 
-        // Only force-logout on an explicit 401 from the refresh endpoint (invalid/expired
-        // refresh token). Network errors or 5xx responses should NOT clear the session —
-        // the access token may still become valid once the server recovers.
+        // Only force-logout on an explicit 401 from the refresh endpoint (invalid/
+        // expired refresh cookie). Network errors or 5xx should NOT clear the
+        // session — the access token may still become valid once the server recovers.
         if (refreshErr.response?.status === 401) {
-          removeTokens()
           try { useAuthStore().clearSession() } catch {}
           window.location.href = '/login'
         }

@@ -415,6 +415,16 @@ const install = async ({ name, email, password }, meta = {}) => {
   return { ...session, accessToken, refreshToken }
 }
 
+// Restore the admin session from the parked impersonator refresh token: rotate
+// it forward and resolve the admin's own session (the request is authenticated
+// as the impersonated user, so the admin identity must come from the token).
+const returnToAdmin = async (impersonatorToken, meta = {}) => {
+  const tokens = await refresh(impersonatorToken, meta)
+  const { id } = jwt.decode(tokens.accessToken)
+  const session = await resolveSession(id)
+  return { ...session, ...tokens }
+}
+
 const loginAs = async (targetUserId, meta = {}) => {
   const target = await User.findByPk(targetUserId)
   if (!target) throw { status: 404, message: 'User not found' }
@@ -505,7 +515,7 @@ const resetPassword = async ({ token, newPassword }) => {
 }
 
 module.exports = {
-  register, login, loginAs, refresh, logout, getMe, changePassword,
+  register, login, loginAs, returnToAdmin, refresh, logout, getMe, changePassword,
   pruneExpiredTokens, getInstallStatus, install,
   forgotPassword, resetPassword, verifyEmail, resendVerification,
 }

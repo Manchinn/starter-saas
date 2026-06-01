@@ -65,6 +65,8 @@ router.get('/install-status', (req, res) => controller.installStatus(req, res))
 
 router.post('/login-as/:userId', authenticate, (req, res) => controller.loginAs(req, res))
 
+router.post('/return', authenticate, (req, res) => controller.returnToAdmin(req, res))
+
 router.post('/install', installRules, validate, (req, res) => controller.install(req, res))
 
 module.exports = router

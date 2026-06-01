@@ -15,20 +15,15 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(i18n)
 
-// Restore session BEFORE the router starts navigating.
-// This ensures auth.user is populated on the first beforeEach call,
-// preventing a spurious redirect to /login on page refresh.
+// Restore session BEFORE the router starts navigating, so auth.user is
+// populated on the first beforeEach call and a page refresh doesn't bounce to
+// /login. bootstrap() silently mints an access token from the httpOnly refresh
+// cookie (no-op when there's no valid cookie).
 const auth = useAuthStore()
-if (auth.accessToken) {
-  try {
-    await auth.fetchMe()
-  } catch {
-    auth.clearSession()
-  }
-}
+await auth.bootstrap()
 
 const settings = useSettingsStore()
-if (auth.accessToken) await settings.load()
+if (auth.isAuthenticated) await settings.load()
 
 app.use(router)
 app.directive('can', vCan)
