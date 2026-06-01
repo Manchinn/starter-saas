@@ -18,7 +18,7 @@ export const useModulesStore = defineStore('modules', () => {
   }
 
   async function fetchMyModules() {
-    const { data } = await api.get('/users/my-modules')
+    const { data } = await api.get('/organizations/my-modules')
     userModules.value = data.data.modules
   }
 
