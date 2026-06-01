@@ -49,9 +49,4 @@ export default {
     desc:    "The page you're looking for doesn't exist or has been moved.",
     goHome:  'Go to Dashboard',
   },
-  forbidden: {
-    heading: 'Access denied',
-    desc:    "You don't have permission to view this page. Contact an administrator if you need access.",
-    goHome:  'Go to Home',
-  },
 }

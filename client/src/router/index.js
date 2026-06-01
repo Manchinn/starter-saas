@@ -35,12 +35,6 @@ const router = createRouter({
     },
     ...getModuleRoutes(),
     {
-      path: '/403',
-      name: 'forbidden',
-      component: () => import('@/modules/dashboard/views/Forbidden.vue'),
-      meta: { requiresAuth: true, title: 'forbidden.heading' },
-    },
-    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/modules/dashboard/views/NotFound.vue'),
@@ -91,11 +85,13 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAdmin && !auth.isAdmin) return next('/erp/dashboard')
 
   // Block direct-URL access to permissioned pages the user can't see in the nav.
+  // We render the 404 page (rather than a 403) so restricted pages don't reveal
+  // their existence. The attempted URL is preserved via the catch-all params.
   // Admins pass (hasPermission short-circuits); unguarded pages return null.
-  if (requiresAuth && auth.isAuthenticated) {
+  if (requiresAuth && auth.isAuthenticated && to.name !== 'not-found') {
     const requiredPermission = getRoutePermission(to.path)
     if (requiredPermission && !auth.hasPermission(requiredPermission)) {
-      return next('/403')
+      return next({ name: 'not-found', params: { pathMatch: to.path.substring(1).split('/') } })
     }
   }
 
