@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../server/config/database')
+const { auditFields } = require('../../erp/model-fields')
 
 // One row per user — stores their personal LLM connection config.
 const AiSetting = sequelize.define('AiSetting', {
@@ -18,6 +19,7 @@ const AiSetting = sequelize.define('AiSetting', {
   // When true, actions the assistant returns (e.g. navigate) run automatically
   // without the user having to click the action chip.
   autoAction:  { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+  ...auditFields,
 })
 
 module.exports = AiSetting

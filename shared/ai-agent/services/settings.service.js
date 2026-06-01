@@ -30,11 +30,13 @@ const defaults = () => ({
 })
 
 // Full settings incl. apiKey — for server-side LLM calls only.
-const getRaw = async (userId) => {
-  const row = await AiSetting.findOne({ where: { userId } })
-  if (!row) return { ...defaults(), userId }
+const getRaw = async (userId, organizationId) => {
+  const where = organizationId ? { userId, organizationId } : { userId }
+  const row = await AiSetting.findOne({ where })
+  if (!row) return { ...defaults(), userId, organizationId }
   return {
     userId,
+    organizationId,
     provider:     row.provider,
     baseUrl:      row.baseUrl,
     model:        row.model,
@@ -47,16 +49,16 @@ const getRaw = async (userId) => {
 }
 
 // Client-facing view — never leaks the apiKey, just whether one is set.
-const get = async (userId) => {
-  const raw = await getRaw(userId)
+const get = async (userId, organizationId) => {
+  const raw = await getRaw(userId, organizationId)
   const out = {}
   for (const f of PUBLIC_FIELDS) out[f] = raw[f]
   out.hasApiKey = !!raw.apiKey
   return out
 }
 
-const save = async (userId, patch = {}) => {
-  const current = await getRaw(userId)
+const save = async (userId, organizationId, patch = {}) => {
+  const current = await getRaw(userId, organizationId)
   const next = { ...current }
 
   for (const f of ['provider', 'baseUrl', 'model', 'systemPrompt']) {
@@ -70,6 +72,9 @@ const save = async (userId, patch = {}) => {
 
   await AiSetting.upsert({
     userId,
+    organizationId,
+    createdBy:    userId,
+    modifiedBy:   userId,
     provider:     next.provider,
     baseUrl:      next.baseUrl,
     model:        next.model,
@@ -79,7 +84,7 @@ const save = async (userId, patch = {}) => {
     enabled:      next.enabled,
     autoAction:   next.autoAction,
   })
-  return get(userId)
+  return get(userId, organizationId)
 }
 
 module.exports = { get, getRaw, save, defaults, PRESETS, DEFAULT_SYSTEM_PROMPT }

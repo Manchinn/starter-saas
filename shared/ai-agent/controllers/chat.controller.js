@@ -21,7 +21,7 @@ module.exports = {
 
   async conversations(req, res) {
     try {
-      return ok(res, await agent.listConversations(req.user.id))
+      return ok(res, await agent.listConversations(ctxUser(req)))
     } catch (err) {
       return serverError(res)
     }
@@ -29,7 +29,7 @@ module.exports = {
 
   async conversation(req, res) {
     try {
-      return ok(res, await agent.getConversation(req.user.id, req.params.id))
+      return ok(res, await agent.getConversation(ctxUser(req), req.params.id))
     } catch (err) {
       return fail(res, err.message, err.status || 404)
     }
@@ -37,7 +37,7 @@ module.exports = {
 
   async remove(req, res) {
     try {
-      await agent.removeConversation(req.user.id, req.params.id)
+      await agent.removeConversation(ctxUser(req), req.params.id)
       return ok(res, null, 'Conversation deleted')
     } catch (err) {
       return fail(res, err.message, err.status || 404)

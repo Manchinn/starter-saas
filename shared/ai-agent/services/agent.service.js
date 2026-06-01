@@ -35,13 +35,14 @@ const langDirective = (lang) => {
 
 // ── Conversation persistence ──────────────────────────────────────────────────
 
-const ensureConversation = async (userId, conversationId) => {
+const ensureConversation = async (user, conversationId) => {
+  const { id: userId, organizationId } = user
   if (conversationId) {
-    const conv = await AiConversation.findOne({ where: { id: conversationId, userId } })
+    const conv = await AiConversation.findOne({ where: { id: conversationId, userId, organizationId } })
     if (!conv) throw { status: 404, message: 'Conversation not found' }
     return conv
   }
-  return AiConversation.create({ userId, title: 'New chat' })
+  return AiConversation.create({ userId, title: 'New chat', organizationId, createdBy: userId, modifiedBy: userId })
 }
 
 const titleFrom = (text) => {
@@ -68,12 +69,12 @@ const buildBaseMessages = async (settings, conversationId) => {
 const chat = async ({ user, conversationId, content, lang }) => {
   if (!content || !content.trim()) throw { status: 400, message: 'Message is required' }
 
-  const settings = await settingsSvc.getRaw(user.id)
+  const settings = await settingsSvc.getRaw(user.id, user.organizationId)
   if (!settings.enabled) {
     throw { status: 400, message: 'The AI assistant is disabled. Enable it in Settings.' }
   }
 
-  const conv = await ensureConversation(user.id, conversationId)
+  const conv = await ensureConversation(user, conversationId)
 
   const messages = await buildBaseMessages(settings, conv.id)
   // Reinforce the system prompt (first message): always enforce data integrity,
@@ -129,9 +130,10 @@ const chat = async ({ user, conversationId, content, lang }) => {
   }
 
   // Persist the user + assistant turns (transient tool turns are not stored).
-  await AiMessage.create({ conversationId: conv.id, role: 'user', content })
+  const msgMeta = { conversationId: conv.id, organizationId: user.organizationId, createdBy: user.id, modifiedBy: user.id }
+  await AiMessage.create({ ...msgMeta, role: 'user', content })
   const assistantRow = await AiMessage.create({
-    conversationId: conv.id,
+    ...msgMeta,
     role: 'assistant',
     content: reply,
     actions: actions.length ? JSON.stringify(actions) : null,
@@ -140,6 +142,7 @@ const chat = async ({ user, conversationId, content, lang }) => {
   // First user message names the thread.
   if (conv.title === 'New chat') {
     conv.title = titleFrom(content)
+    conv.modifiedBy = user.id
     await conv.save()
   }
 
@@ -152,17 +155,19 @@ const chat = async ({ user, conversationId, content, lang }) => {
 
 // ── Conversation listing ──────────────────────────────────────────────────────
 
-const listConversations = async (userId) => {
+const listConversations = async (user) => {
+  const { id: userId, organizationId } = user
   const rows = await AiConversation.findAll({
-    where: { userId },
+    where: { userId, organizationId },
     order: [['updatedAt', 'DESC']],
     limit: 50,
   })
   return rows.map((c) => ({ id: c.id, title: c.title, updatedAt: c.updatedAt }))
 }
 
-const getConversation = async (userId, id) => {
-  const conv = await AiConversation.findOne({ where: { id, userId } })
+const getConversation = async (user, id) => {
+  const { id: userId, organizationId } = user
+  const conv = await AiConversation.findOne({ where: { id, userId, organizationId } })
   if (!conv) throw { status: 404, message: 'Conversation not found' }
   const rows = await AiMessage.findAll({ where: { conversationId: id }, order: [['createdAt', 'ASC']] })
   return {
@@ -178,8 +183,9 @@ const getConversation = async (userId, id) => {
   }
 }
 
-const removeConversation = async (userId, id) => {
-  const conv = await AiConversation.findOne({ where: { id, userId } })
+const removeConversation = async (user, id) => {
+  const { id: userId, organizationId } = user
+  const conv = await AiConversation.findOne({ where: { id, userId, organizationId } })
   if (!conv) throw { status: 404, message: 'Conversation not found' }
   await AiMessage.destroy({ where: { conversationId: id } })
   await conv.destroy()

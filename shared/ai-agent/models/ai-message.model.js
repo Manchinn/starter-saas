@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../server/config/database')
+const { auditFields } = require('../../erp/model-fields')
 
 // A single message in a conversation. Only user/assistant turns are persisted
 // for display; the transient tool/assistant-tool-call turns of the agent loop
@@ -12,6 +13,7 @@ const AiMessage = sequelize.define('AiMessage', {
   content:        { type: DataTypes.TEXT, allowNull: true },
   // JSON string: array of { type, ... } client actions performed for this turn.
   actions:        { type: DataTypes.TEXT, allowNull: true },
+  ...auditFields,
 })
 
 module.exports = AiMessage
