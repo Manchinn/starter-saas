@@ -365,8 +365,8 @@ function setLang(code) {
   langOpen.value = false
 }
 
-function handleReturnToAdmin() {
-  auth.returnToAdmin()
+async function handleReturnToAdmin() {
+  await auth.returnToAdmin()
   router.push('/admin/organizations')
 }
 

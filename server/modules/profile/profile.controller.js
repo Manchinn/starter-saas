@@ -1,11 +1,12 @@
 const { ok, fail } = require('../../core/response')
 const service = require('./profile.service')
+const { REFRESH_COOKIE, readCookie } = require('../auth/auth.cookies')
 
-// The client sends its current refresh token in the X-Refresh-Token header so
-// the server can mark the matching session row as "current" in the list view
-// and refuse to revoke it. Falls back to body for endpoints with a JSON body.
+// The caller's current refresh token lives in an httpOnly cookie, so the server
+// reads it from there to mark the matching session row as "current" in the list
+// view and refuse to revoke it.
 function currentRefreshToken(req) {
-  return req.get('x-refresh-token') || req.body?.refreshToken || null
+  return readCookie(req, REFRESH_COOKIE) || null
 }
 
 module.exports = {

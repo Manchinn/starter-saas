@@ -94,14 +94,6 @@ const revokingAll = ref(false)
 
 const hasOthers = computed(() => sessions.value.some((s) => !s.isCurrent))
 
-function currentRefreshToken() {
-  return localStorage.getItem('refreshToken') ?? sessionStorage.getItem('refreshToken') ?? ''
-}
-
-function authHeaders() {
-  return { headers: { 'X-Refresh-Token': currentRefreshToken() } }
-}
-
 function formatDate(d) {
   if (!d) return t('profile.never')
   return fmtDateTime(d)
@@ -111,7 +103,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await api.get('/profile/sessions', authHeaders())
+    const { data } = await api.get('/profile/sessions')
     sessions.value = data.data.sessions || []
   } catch (err) {
     error.value = err.response?.data?.message || t('profile.revokeFailed')
@@ -125,7 +117,7 @@ async function revoke(id) {
   revokingId.value = id
   toast.value = ''
   try {
-    await api.delete(`/profile/sessions/${id}`, authHeaders())
+    await api.delete(`/profile/sessions/${id}`)
     sessions.value = sessions.value.filter((s) => s.id !== id)
     toast.value = t('profile.revokedToast')
   } catch (err) {
@@ -139,7 +131,7 @@ async function revokeAllOthers() {
   revokingAll.value = true
   toast.value = ''
   try {
-    const { data } = await api.delete('/profile/sessions', authHeaders())
+    const { data } = await api.delete('/profile/sessions')
     toast.value = data.message
     await load()
   } catch (err) {

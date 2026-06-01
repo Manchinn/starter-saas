@@ -356,8 +356,8 @@ watch(sidebarOpen, (open) => {
   document.body.style.overflow = open && isMobile ? 'hidden' : ''
 })
 
-function handleReturnToAdmin() {
-  auth.returnToAdmin()
+async function handleReturnToAdmin() {
+  await auth.returnToAdmin()
   router.push('/admin/organizations')
 }
 

@@ -1,8 +1,11 @@
 import { io } from 'socket.io-client'
+import { useAuthStore } from '@/stores/auth'
 
-// Mirror the token storage strategy used by the REST client (api/index.js).
-function readToken(key) {
-  return localStorage.getItem(key) ?? sessionStorage.getItem(key)
+// The access token lives in memory (Pinia), so the socket reads it from the
+// store. Used lazily inside the auth callback, so the store/socket import cycle
+// resolves fine (neither is referenced at module-eval time).
+function currentToken() {
+  try { return useAuthStore().accessToken } catch { return null }
 }
 
 let socket = null
@@ -16,7 +19,7 @@ export function getSocket() {
       autoConnect: false,
       path: '/socket.io',
       transports: ['websocket', 'polling'],
-      auth: (cb) => cb({ token: readToken('accessToken') }),
+      auth: (cb) => cb({ token: currentToken() }),
     })
   }
   return socket
@@ -24,7 +27,7 @@ export function getSocket() {
 
 export function connectSocket() {
   const s = getSocket()
-  s.auth = (cb) => cb({ token: readToken('accessToken') })
+  s.auth = (cb) => cb({ token: currentToken() })
   if (!s.connected) s.connect()
   return s
 }
