@@ -19,6 +19,16 @@ export default {
     saved:           'Saved ✓',
     updateFailed:    'Could not save changes.',
 
+    // ── Roles & permissions (read-only) ───────────────────────────────────────
+    accessTitle:     'Roles & permissions',
+    accessDesc:      'Your assigned roles and the permissions they grant. Contact an administrator to change these.',
+    rolesLabel:      'Roles',
+    permissionsLabel: 'Permissions',
+    systemAdmin:     'System administrator',
+    allPermissions:  'Full access — all permissions granted.',
+    noRoles:         'No roles assigned.',
+    noPermissions:   'No permissions granted.',
+
     // ── Password ─────────────────────────────────────────────────────────────
     passwordTitle:   'Change password',
     passwordDesc:    'Use a strong password you haven\'t used elsewhere.',
