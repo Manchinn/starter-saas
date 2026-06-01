@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { getModuleRoutes } from '@/core/ModuleRegistry'
+import { getModuleRoutes, getRoutePermission } from '@/core/ModuleRegistry'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api'
 
@@ -34,6 +34,12 @@ const router = createRouter({
       },
     },
     ...getModuleRoutes(),
+    {
+      path: '/403',
+      name: 'forbidden',
+      component: () => import('@/modules/dashboard/views/Forbidden.vue'),
+      meta: { requiresAuth: true, title: 'forbidden.heading' },
+    },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
@@ -83,6 +89,15 @@ router.beforeEach(async (to, from, next) => {
   if (isGuest && auth.isAuthenticated) return next(defaultHome)
   if (requiresAuth && !auth.isAuthenticated) return next('/login')
   if (requiresAdmin && !auth.isAdmin) return next('/erp/dashboard')
+
+  // Block direct-URL access to permissioned pages the user can't see in the nav.
+  // Admins pass (hasPermission short-circuits); unguarded pages return null.
+  if (requiresAuth && auth.isAuthenticated) {
+    const requiredPermission = getRoutePermission(to.path)
+    if (requiredPermission && !auth.hasPermission(requiredPermission)) {
+      return next('/403')
+    }
+  }
 
   next()
 })

@@ -34,6 +34,44 @@ export function getModuleRoutes() {
   return registry.flatMap((m) => m.routes || [])
 }
 
+// ── Route permission guard ──────────────────────────────────────────────────
+// Flattened [{ to, permission }] derived from every module's nav tree. Lets the
+// router block direct-URL access to pages a user can't see in the sidebar,
+// mirroring the per-item `permission` gating used by getNavSections.
+let _permIndex = null
+
+function collectPermEntries(node, out) {
+  if (!node) return
+  if (Array.isArray(node)) { for (const n of node) collectPermEntries(n, out); return }
+  if (node.to && node.permission) out.push({ to: node.to, permission: node.permission })
+  if (node.children) collectPermEntries(node.children, out)
+}
+
+function permIndex() {
+  if (_permIndex) return _permIndex
+  const out = []
+  for (const mod of registry) {
+    collectPermEntries(mod.navItem, out)
+    collectPermEntries(mod.adminNavItem, out)
+  }
+  // Longest `to` first so the most specific entry wins (e.g. /erp/customers/create
+  // resolves against /erp/customers, not a shorter ancestor).
+  _permIndex = out.sort((a, b) => b.to.length - a.to.length)
+  return _permIndex
+}
+
+/**
+ * Permission slug required to view `path`, or null if the page is unguarded.
+ * Matches the closest nav entry whose `to` equals or is a path-segment prefix
+ * of `path` (so list permissions also cover their /create and /:id/edit pages).
+ */
+export function getRoutePermission(path) {
+  for (const { to, permission } of permIndex()) {
+    if (path === to || path.startsWith(to + '/')) return permission
+  }
+  return null
+}
+
 // ── Nav helpers ───────────────────────────────────────────────────────────────
 
 function filterChildren(item, can) {
