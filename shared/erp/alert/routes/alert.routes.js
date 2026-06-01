@@ -9,11 +9,14 @@ const router = Router()
 
 router.use(authenticate)
 
-// ── Current-user bell feed (any user with list permission) ────────────────────
-router.get('/feed',          requirePermission('erp.alerts.list'),   (req, res) => controller.feed(req, res))
-router.get('/unread-count',  requirePermission('erp.alerts.list'),   (req, res) => controller.unreadCount(req, res))
-router.post('/read-all',     requirePermission('erp.alerts.list'),   (req, res) => controller.markAllRead(req, res))
-router.post('/:id/read',     requirePermission('erp.alerts.list'),   (req, res) => controller.markRead(req, res))
+// ── Current-user bell feed (any authenticated user) ───────────────────────────
+// These operate solely on req.user and return only alerts targeted to that user
+// (global + their module/department), so they carry no permission gate — the
+// notification bell is available to everyone. Authoring/management stays gated.
+router.get('/feed',          (req, res) => controller.feed(req, res))
+router.get('/unread-count',  (req, res) => controller.unreadCount(req, res))
+router.post('/read-all',     (req, res) => controller.markAllRead(req, res))
+router.post('/:id/read',     (req, res) => controller.markRead(req, res))
 
 // ── Author form helpers ───────────────────────────────────────────────────────
 router.get('/options',       requirePermission('erp.alerts.manage'), (req, res) => controller.options(req, res))

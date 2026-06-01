@@ -106,8 +106,9 @@
           </ul>
         </div>
 
-        <!-- Footer -->
+        <!-- Footer — only links to the management page when the user can reach it -->
         <RouterLink
+          v-if="canViewAll"
           to="/erp/alerts"
           @click="open = false"
           class="px-4 py-2.5 border-t border-[#E2E8F0] text-center text-[12px] font-medium
@@ -139,6 +140,9 @@ const menuRef = ref(null)
 const filter = ref('all')
 
 const canManage = computed(() => auth.hasPermission('erp.alerts.manage'))
+// The bell is visible to everyone, but "View all" / delete point at the gated
+// management surface, so keep those behind their permissions.
+const canViewAll = computed(() => auth.hasPermission('erp.alerts.list'))
 
 const FILTERS = [
   { key: 'all',        label: 'erp.alerts.filterAll' },

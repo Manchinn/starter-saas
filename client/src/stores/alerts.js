@@ -16,6 +16,10 @@ export const useAlertsStore = defineStore('alerts', () => {
       const { data } = await api.get('/erp/alerts/feed', { params: { limit: 50 } })
       alerts.value = data.data.alerts
       unread.value = data.data.unread
+    } catch {
+      // A failed feed load shouldn't crash the bell (start() fires this unawaited).
+      alerts.value = []
+      unread.value = 0
     } finally {
       loading.value = false
     }

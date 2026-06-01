@@ -223,7 +223,7 @@
           </div>
 
           <!-- Notification bell -->
-          <AlertBell v-if="auth.hasPermission('erp.alerts.list')" class="hidden sm:block" />
+          <AlertBell class="hidden sm:block" />
 
           <!-- User avatar / dropdown -->
           <div class="relative" ref="userMenuRef">
