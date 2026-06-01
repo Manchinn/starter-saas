@@ -88,7 +88,8 @@ layout — no central registry edits are needed; the route/nav auto-discovery pi
 
 The `shared/erp/alert` module powers the notification bell in the topbar.
 Alerts can be authored for everyone (`global`), a specific module, or an HRMS department,
-and are delivered live over **Socket.IO** — the server wraps Express in an HTTP server,
+and are delivered live over **Socket.IO** — the server wraps Express in an HTTP server
+(and an HTTPS server too when [HTTPS](#https) is enabled),
 authenticates each socket with the JWT access token, and joins per-org / per-module /
 per-department rooms so a change reaches only the eligible recipients. The bell shows an
 unread badge and a panel with All / Module / Department filters; read state is tracked
@@ -226,8 +227,14 @@ The server reads configuration from environment variables (a `server/.env` file 
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `PORT` | `3000` | API port |
+| `PORT` | `3000` | HTTP API port |
 | `NODE_ENV` | `development` | `production` requires the JWT secrets below |
+| `HTTPS_ENABLED` | `false` | Also serve HTTPS alongside HTTP (see [HTTPS](#https)) |
+| `HTTPS_PORT` | `3443` | HTTPS port when `HTTPS_ENABLED=true` |
+| `HTTPS_KEY_PATH` / `HTTPS_CERT_PATH` | — | Paths to the TLS private key / certificate (PEM) |
+| `HTTPS_REDIRECT` | `false` | Redirect plain HTTP requests to the HTTPS port |
+| `COOKIE_SECURE` | `auto` | Refresh-cookie `Secure` flag — `auto` mirrors the request scheme; `true`/`false` force it |
+| `TRUST_PROXY` | `false` | Trust `X-Forwarded-Proto`/`-For` behind a reverse proxy (`true`, a hop count, or a subnet) |
 | `DB_DIALECT` | `sqlite` | `sqlite` \| `postgres` \| `mysql` \| `mariadb` \| `mssql` |
 | `DB_STORAGE` | `./data/database.sqlite` | SQLite file path (relative paths anchor to the repo root) |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | — | Relational DB connection |
@@ -237,6 +244,36 @@ The server reads configuration from environment variables (a `server/.env` file 
 | `SMTP_*` | — | Outgoing mail for email verification / password reset |
 
 Most of these can also be set through the install wizard, which writes them and restarts the API when needed.
+
+### HTTPS
+
+The server speaks **HTTP and HTTPS at the same time**. HTTP on `PORT` is always on; set
+`HTTPS_ENABLED=true` with a key/cert pair to additionally listen on `HTTPS_PORT`. Socket.IO
+is attached to both servers, so realtime works over either scheme.
+
+```bash
+# Generate a self-signed certificate for local development (needs openssl)
+mkdir certs
+openssl req -x509 -newkey rsa:2048 -nodes -keyout certs/key.pem \
+  -out certs/cert.pem -days 365 -subj "/CN=localhost"
+```
+
+```ini
+# server/.env
+HTTPS_ENABLED=true
+HTTPS_PORT=3443
+HTTPS_KEY_PATH=./certs/key.pem
+HTTPS_CERT_PATH=./certs/cert.pem
+# HTTPS_REDIRECT=true   # optional: bounce http → https
+```
+
+The refresh-token cookie's `Secure` flag follows the request scheme by default
+(`COOKIE_SECURE=auto`), so the same login/refresh flow works over both `http://` and
+`https://` without changes. When TLS is terminated by a reverse proxy, set `TRUST_PROXY=true`
+so the original scheme is detected (and typically `COOKIE_SECURE=true` in production).
+
+To point the Vite dev server's proxy at the HTTPS API, set
+`VITE_API_TARGET=https://localhost:3443` for the client — self-signed certs are accepted.
 
 ## Scripts
 
