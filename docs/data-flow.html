@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Flow — starter-saas</title>
+<style>
+  :root { --indigo:#4f46e5; --indigo-d:#3730a3; --slate-50:#f8fafc; --slate-100:#f1f5f9;
+    --slate-200:#e2e8f0; --slate-300:#cbd5e1; --slate-500:#64748b; --slate-700:#334155; --slate-900:#0f172a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--slate-900); background:var(--slate-50); }
+  header { background:var(--indigo); color:#fff; padding:12px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:17px; }
+  header .meta { font-size:13px; opacity:.85; }
+  .toolbar { display:flex; gap:6px; margin-left:auto; }
+  .toolbar button { background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3);
+    border-radius:6px; padding:4px 12px; font-size:13px; cursor:pointer; }
+  .toolbar button:hover { background:rgba(255,255,255,.28); }
+  .toolbar button.on { background:#fff; color:var(--indigo); }
+  .filters { background:#fff; border-bottom:1px solid var(--slate-200); padding:10px 20px; display:flex;
+    gap:8px; align-items:center; flex-wrap:wrap; }
+  .filters .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--slate-500); margin-right:4px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+    border:1px solid var(--slate-300); background:#fff; color:var(--slate-500); font-size:12px; cursor:pointer; }
+  .chip i { font-style:normal; background:var(--slate-100); border-radius:999px; padding:0 6px; font-size:11px; }
+  .chip.active { background:var(--indigo); border-color:var(--indigo); color:#fff; }
+  .chip.active i { background:rgba(255,255,255,.25); color:#fff; }
+  .mini { padding:3px 9px; border:1px solid var(--slate-300); background:var(--slate-50); border-radius:6px;
+    font-size:12px; cursor:pointer; color:var(--slate-700); }
+  .mini:hover { background:var(--slate-100); }
+  #wrap { width:100%; height:calc(100vh - 53px - 49px); overflow:hidden; position:relative; background:
+    radial-gradient(circle, var(--slate-200) 1px, transparent 1px) 0 0 / 22px 22px, var(--slate-50); }
+  .mermaid { width:100%; height:100%; } .mermaid svg { max-width:none !important; }
+  .store-models { font-size:10px; color:#64748b; }
+  #status { position:absolute; top:16px; left:16px; padding:8px 14px; background:#fff; border:1px solid var(--slate-200);
+    border-radius:8px; font-size:13px; color:var(--slate-500); box-shadow:0 1px 3px rgba(15,23,42,.08); }
+  #err { color:#b91c1c; font-family:ui-monospace,monospace; font-size:12px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Data Flow (DFD) — starter-saas</h1>
+  <span class="meta"><b>20</b> modules · <b>85</b> data stores · <b id="fcount">36</b> cross-module flows</span>
+  <div class="toolbar">
+    <button id="dir">Layout: ⬌</button>
+    <button id="lbl" class="on">Labels</button>
+    <button id="mdl" class="on">Tables</button>
+    <button id="zin">+</button><button id="zout">−</button><button id="zreset">fit</button>
+  </div>
+</header>
+<div class="filters">
+  <span class="lbl">Modules</span>
+  <button class="mini" id="all">All</button>
+  <button class="mini" id="none">None</button>
+  <span id="chips"></span>
+</div>
+<div id="wrap">
+  <div id="status">Rendering…</div>
+  <div class="mermaid" id="mmd"></div>
+</div>
+
+<script id="data" type="application/json">{"modules":[{"name":"AI Agent","models":["AiConversation","AiMessage","AiSetting"],"count":3},{"name":"Core / Auth","models":["Module","Permission","RefreshToken","Role","RoleModule","RolePermission","User","UserModule","UserRole"],"count":9},{"name":"ERP / Accounting","models":["BillingNote","BillingNoteInvoice","ChartOfAccount","CreditNote","DebitNote","FiscalYear","Journal","JournalLine","ReceivePayment","ReceivePaymentInvoice","TaxPeriod","VendorBill","VendorBillItem"],"count":13},{"name":"ERP / Alert","models":["Alert","AlertRead"],"count":2},{"name":"ERP / Attachments","models":["Attachment"],"count":1},{"name":"ERP / Audit","models":["AuditLog"],"count":1},{"name":"ERP / Customers","models":["Customer","CustomerGroup"],"count":2},{"name":"ERP / Inventory","models":["Store","StoreStock","UOM","UOMConversion"],"count":4},{"name":"ERP / Invoices","models":["Invoice","InvoiceItem"],"count":2},{"name":"ERP / Orders","models":["DeliveryOrder","DeliveryOrderItem","Order","SalesOrderItem"],"count":4},{"name":"ERP / Pricing","models":["Pricing"],"count":1},{"name":"ERP / Products","models":["Item","Product","ProductCategory","ProductStore","ProductVendor"],"count":5},{"name":"ERP / Purchasing","models":["PurchaseOrder","PurchaseOrderItem","PurchaseRequisition","PurchaseRequisitionItem"],"count":4},{"name":"ERP / Quotations","models":["Quotation","QuotationItem"],"count":2},{"name":"ERP / Receipts","models":["Receipt"],"count":1},{"name":"ERP / Sale","models":["SaleItem","SalePackage","SalePackageItem"],"count":3},{"name":"ERP / Settings","models":["ApprovalThreshold","Currency","ExchangeRate","MasterDataCategory","MasterDataValue","Sequence","Setting"],"count":7},{"name":"ERP / Stock","models":["GoodReceive","GoodReceiveItem","StockAdjust","StockAdjustItem","StockCount","StockCountItem","StockIssue","StockIssueItem","StockMovement","StockRequest","StockRequestItem","StockReturn","StockReturnItem"],"count":13},{"name":"ERP / Vendors","models":["Vendor"],"count":1},{"name":"HRMS","models":["Department","Employee","EmployeeDepartment","EmployeeRole","HrmsPermission","HrmsRole","HrmsRolePermission"],"count":7}],"flows":[{"from":"Core / Auth","to":"HRMS","count":3},{"from":"ERP / Customers","to":"ERP / Accounting","count":4},{"from":"ERP / Invoices","to":"ERP / Accounting","count":4},{"from":"ERP / Vendors","to":"ERP / Accounting","count":1},{"from":"ERP / Purchasing","to":"ERP / Accounting","count":1},{"from":"ERP / Stock","to":"ERP / Accounting","count":1},{"from":"ERP / Customers","to":"ERP / Invoices","count":1},{"from":"ERP / Customers","to":"ERP / Orders","count":2},{"from":"ERP / Customers","to":"ERP / Quotations","count":1},{"from":"ERP / Customers","to":"ERP / Receipts","count":1},{"from":"ERP / Customers","to":"ERP / Pricing","count":1},{"from":"ERP / Inventory","to":"ERP / Orders","count":2},{"from":"ERP / Products","to":"ERP / Inventory","count":2},{"from":"ERP / Inventory","to":"ERP / Quotations","count":1},{"from":"ERP / Orders","to":"ERP / Invoices","count":1},{"from":"ERP / Invoices","to":"ERP / Receipts","count":1},{"from":"Core / Auth","to":"ERP / Invoices","count":1},{"from":"ERP / Sale","to":"ERP / Invoices","count":2},{"from":"ERP / Products","to":"ERP / Invoices","count":1},{"from":"ERP / Inventory","to":"ERP / Invoices","count":1},{"from":"Core / Auth","to":"ERP / Orders","count":2},{"from":"ERP / Products","to":"ERP / Orders","count":3},{"from":"ERP / Sale","to":"ERP / Orders","count":4},{"from":"ERP / Sale","to":"ERP / Pricing","count":1},{"from":"ERP / Inventory","to":"ERP / Products","count":2},{"from":"ERP / Products","to":"ERP / Vendors","count":1},{"from":"ERP / Products","to":"ERP / Sale","count":1},{"from":"ERP / Products","to":"ERP / Stock","count":7},{"from":"ERP / Vendors","to":"ERP / Purchasing","count":2},{"from":"ERP / Products","to":"ERP / Purchasing","count":2},{"from":"Core / Auth","to":"ERP / Quotations","count":1},{"from":"ERP / Sale","to":"ERP / Quotations","count":2},{"from":"ERP / Products","to":"ERP / Quotations","count":1},{"from":"ERP / Inventory","to":"ERP / Stock","count":10},{"from":"ERP / Customers","to":"ERP / Stock","count":1},{"from":"ERP / Vendors","to":"ERP / Stock","count":1}]}</script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  import svgPanZoom from 'https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/+esm';
+
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  mermaid.initialize({ startOnLoad:false, theme:'neutral', securityLevel:'loose', maxTextSize:5_000_000,
+    flowchart:{ useMaxWidth:false, htmlLabels:true, nodeSpacing:34, rankSpacing:75, padding:10 } });
+
+  const selected = new Set(DATA.modules.map(m => m.name));
+  let pz = null, rid = 0, dir = 'LR', showLabels = true, showModels = true;
+
+  const lid = {}; let lseq = 0;
+  const laneId = (name) => lid[name] || (lid[name] = 'L' + (lseq++));
+  const procId = (name) => 'P' + laneId(name);
+  const storeId = (name) => 'S' + laneId(name);
+
+  const LANE_FILL = ['#eef2ff','#ecfeff','#f0fdf4','#fef9c3','#fef2f2','#faf5ff','#fff7ed','#f0f9ff','#f5f3ff','#fdf2f8'];
+  const MAX_MODELS = 8;
+
+  const chipsEl = document.getElementById('chips');
+  for (const m of DATA.modules) {
+    const b = document.createElement('button');
+    b.className = 'chip active'; b.dataset.mod = m.name;
+    b.innerHTML = m.name + ' <i>' + m.count + '</i>';
+    b.onclick = () => { if (selected.has(m.name)) { selected.delete(m.name); b.classList.remove('active'); }
+      else { selected.add(m.name); b.classList.add('active'); } render(); };
+    chipsEl.appendChild(b);
+  }
+
+  function esc(s){ return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+  function storeLabel(m) {
+    let h = '<b>' + esc(m.name) + '</b> data';
+    if (showModels && m.models.length) {
+      const shown = m.models.slice(0, MAX_MODELS).map(esc).join(' · ');
+      const extra = m.models.length > MAX_MODELS ? ' · +' + (m.models.length - MAX_MODELS) + ' more' : '';
+      h += '<br/><span class=&quot;store-models&quot;>' + shown + extra + '</span>';
+    }
+    return h;
+  }
+
+  function buildSource() {
+    const mods = DATA.modules.filter(m => selected.has(m.name));
+    const names = new Set(mods.map(m => m.name));
+    const fl = DATA.flows.filter(f => names.has(f.from) && names.has(f.to));
+    document.getElementById('fcount').textContent = fl.length;
+    if (!mods.length) return null;
+
+    const top = dir;
+    const inner = dir === 'LR' ? 'TB' : 'LR';
+    let s = 'flowchart ' + top + '\n';
+    // External entity.
+    s += '  client[/"🧑 Client"/]\n';
+
+    // One swimlane per module: a Process and its Data Store.
+    for (const m of mods) {
+      const ln = laneId(m.name);
+      s += '  subgraph G' + ln + '["' + esc(m.name) + '"]\n    direction ' + inner + '\n';
+      s += '    ' + procId(m.name) + '(["' + esc(m.name) + ' API"])\n';
+      s += '    ' + storeId(m.name) + '[("' + storeLabel(m) + '")]\n';
+      s += '    ' + procId(m.name) + ' -->|read/write| ' + storeId(m.name) + '\n';
+      s += '  end\n';
+    }
+
+    // Client → each process (requests).
+    for (const m of mods) s += '  client --> ' + procId(m.name) + '\n';
+
+    // Cross-module data flows: provider store → consumer process (bold).
+    for (const f of fl) {
+      const lab = showLabels ? '|' + f.count + (f.count > 1 ? ' refs' : ' ref') + '|' : '';
+      s += '  ' + storeId(f.from) + ' ==>' + lab + ' ' + procId(f.to) + '\n';
+    }
+
+    // Styling: client entity + lane fills.
+    s += '  style client fill:#0f172a,color:#fff,stroke:#0f172a\n';
+    mods.forEach((m, i) => {
+      s += '  style G' + laneId(m.name) + ' fill:' + LANE_FILL[i % LANE_FILL.length] + ',stroke:#cbd5e1,stroke-width:1px,color:#334155\n';
+    });
+    return s;
+  }
+
+  async function render() {
+    const status = document.getElementById('status');
+    const src = buildSource();
+    const el = document.getElementById('mmd');
+    if (!src) { el.innerHTML = ''; status.style.display='block'; status.textContent = 'No modules selected.'; return; }
+    status.style.display='block'; status.textContent = 'Rendering…';
+    try {
+      const { svg, bindFunctions } = await mermaid.render('df' + (++rid), src);
+      el.innerHTML = svg;
+      bindFunctions && bindFunctions(el);
+      const svgEl = el.querySelector('svg');
+      svgEl.style.width='100%'; svgEl.style.height='100%';
+      if (pz) { try { pz.destroy(); } catch {} }
+      pz = svgPanZoom(svgEl, { zoomEnabled:true, controlIconsEnabled:false, fit:true, center:true,
+        minZoom:0.04, maxZoom:40, zoomScaleSensitivity:0.4 });
+      status.style.display='none';
+    } catch (e) {
+      status.style.display='block';
+      status.innerHTML = '<span id="err">Render failed:\n' + ((e && e.message) || e) + '</span>';
+    }
+  }
+
+  document.getElementById('all').onclick = () => { DATA.modules.forEach(m => selected.add(m.name));
+    document.querySelectorAll('.chip').forEach(c => c.classList.add('active')); render(); };
+  document.getElementById('none').onclick = () => { selected.clear();
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); render(); };
+  document.getElementById('dir').onclick = (ev) => { dir = dir === 'LR' ? 'TB' : 'LR';
+    ev.currentTarget.textContent = 'Layout: ' + (dir === 'LR' ? '⬌' : '⬍'); render(); };
+  document.getElementById('lbl').onclick = (ev) => { showLabels = !showLabels;
+    ev.currentTarget.classList.toggle('on', showLabels); render(); };
+  document.getElementById('mdl').onclick = (ev) => { showModels = !showModels;
+    ev.currentTarget.classList.toggle('on', showModels); render(); };
+  document.getElementById('zin').onclick = () => pz && pz.zoomIn();
+  document.getElementById('zout').onclick = () => pz && pz.zoomOut();
+  document.getElementById('zreset').onclick = () => { if (pz) { pz.resetZoom(); pz.fit(); pz.center(); } };
+
+  render();
+</script>
+</body>
+</html>
