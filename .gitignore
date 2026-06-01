@@ -12,4 +12,5 @@ Thumbs.db
 data/
 tmp/
 test-results/
+semgrep-report.json
 
