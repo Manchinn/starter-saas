@@ -274,7 +274,7 @@ ${sectionsHtml}
 </body>
 </html>`
 
-const outPath = path.resolve(__dirname, '..', 'schema.html')
+const outPath = path.resolve(__dirname, '..', 'docs', 'schema.html')
 fs.writeFileSync(outPath, html, 'utf8')
 console.log(`Wrote ${outPath}`)
 console.log(`Tables: ${data.length}  Modules: ${modules.length}  Columns: ${totalCols}  Relations: ${totalRels}`)

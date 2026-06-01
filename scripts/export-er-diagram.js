@@ -199,7 +199,7 @@ const html = `<!DOCTYPE html>
 </body>
 </html>`
 
-const outPath = path.resolve(__dirname, '..', 'ER-schema.html')
+const outPath = path.resolve(__dirname, '..', 'docs', 'ER-schema.html')
 fs.writeFileSync(outPath, html, 'utf8')
 console.log(`Wrote ${outPath}`)
 console.log(`Entities: ${entities.length}  Modules: ${modules.length}  Relationships: ${edges.length}`)
