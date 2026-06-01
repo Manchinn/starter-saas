@@ -3,17 +3,17 @@ const sequelize = require('../../../../server/config/database')
 const { auditFields } = require('../../model-fields')
 
 const ReceivePayment = sequelize.define('ReceivePayment', {
-  id:            { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  refNo:         { type: DataTypes.STRING, allowNull: false },
-  date:          { type: DataTypes.DATEONLY, allowNull: false },
-  customerId:    { type: DataTypes.UUID, allowNull: false },
-  paymentMethod: { type: DataTypes.STRING(100), allowNull: true },
+  id:            { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true , comment: 'ID (รหัส)'},
+  refNo:         { type: DataTypes.STRING, allowNull: false , comment: 'Reference No. (เลขอ้างอิง)'},
+  date:          { type: DataTypes.DATEONLY, allowNull: false , comment: 'Date (วันที่)'},
+  customerId:    { type: DataTypes.UUID, allowNull: false , comment: 'Customer (ลูกค้า)'},
+  paymentMethod: { type: DataTypes.STRING(100), allowNull: true , comment: 'Payment Method (วิธีการชำระ)'},
   reference:      { type: DataTypes.STRING(200), allowNull: true },
-  amount:         { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 },
-  currency:       { type: DataTypes.STRING(3), allowNull: true },
-  exchangeRate:   { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 },
-  notes:          { type: DataTypes.TEXT, allowNull: true },
-  status:         { type: DataTypes.ENUM('draft', 'confirmed', 'cancelled'), defaultValue: 'draft' },
+  amount:         { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 , comment: 'Amount (จำนวนเงิน)'},
+  currency:       { type: DataTypes.STRING(3), allowNull: true , comment: 'Currency (สกุลเงิน)'},
+  exchangeRate:   { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 , comment: 'Exchange Rate (อัตราแลกเปลี่ยน)'},
+  notes:          { type: DataTypes.TEXT, allowNull: true , comment: 'Notes (หมายเหตุ)'},
+  status:         { type: DataTypes.ENUM('draft', 'confirmed', 'cancelled'), defaultValue: 'draft' , comment: 'Status (สถานะ)'},
   ...auditFields,
 }, { tableName: 'ReceivePayments', timestamps: true })
 

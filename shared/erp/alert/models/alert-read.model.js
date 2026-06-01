@@ -9,10 +9,11 @@ const AlertRead = sequelize.define('AlertRead', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
+    comment: 'ID (รหัส)',
   },
-  alertId: { type: DataTypes.UUID, allowNull: false },
-  userId:  { type: DataTypes.UUID, allowNull: false },
-  readAt:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+  alertId: { type: DataTypes.UUID, allowNull: false , comment: 'Alert (การแจ้งเตือน)'},
+  userId:  { type: DataTypes.UUID, allowNull: false , comment: 'User (ผู้ใช้)'},
+  readAt:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW , comment: 'Read At (อ่านเมื่อ)'},
 }, {
   indexes: [
     { unique: true, fields: ['alertId', 'userId'] },

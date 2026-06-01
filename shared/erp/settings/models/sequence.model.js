@@ -2,10 +2,10 @@ const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 
 const Sequence = sequelize.define('Sequence', {
-  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  code:         { type: DataTypes.STRING(20),  allowNull: false },
-  userId:       { type: DataTypes.UUID,        allowNull: true },
-  name:         { type: DataTypes.STRING,      allowNull: false },
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true , comment: 'ID (รหัส)'},
+  code:         { type: DataTypes.STRING(20),  allowNull: false , comment: 'Code (รหัส)'},
+  userId:       { type: DataTypes.UUID,        allowNull: true , comment: 'User (ผู้ใช้)'},
+  name:         { type: DataTypes.STRING,      allowNull: false , comment: 'Name (ชื่อ)'},
   initialValue: { type: DataTypes.INTEGER,     allowNull: false, defaultValue: 1 },
   runningValue: { type: DataTypes.INTEGER,     allowNull: false, defaultValue: 1 },
   reseedPeriod: {

@@ -6,10 +6,12 @@ const RoleModule = sequelize.define('RoleModule', {
   roleId: {
     type: DataTypes.UUID,
     allowNull: false,
+    comment: 'Role (บทบาท)',
   },
   moduleId: {
     type: DataTypes.UUID,
     allowNull: false,
+    comment: 'Module (โมดูล)',
   },
 }, {
   timestamps: false,

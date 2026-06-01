@@ -5,10 +5,12 @@ const ProductStore = sequelize.define('ProductStore', {
   productId: {
     type: DataTypes.UUID,
     allowNull: false,
+    comment: 'Product (สินค้า)',
   },
   storeId: {
     type: DataTypes.UUID,
     allowNull: false,
+    comment: 'Store / Warehouse (คลังสินค้า)',
   },
 }, {
   indexes: [{ unique: true, fields: ['productId', 'storeId'] }],

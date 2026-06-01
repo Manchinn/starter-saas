@@ -6,19 +6,23 @@ const RefreshToken = sequelize.define('RefreshToken', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
+    comment: 'ID (รหัส)',
   },
   token: {
     type: DataTypes.STRING(512),
     allowNull: false,
     unique: true,
+    comment: 'Token (โทเค็น)',
   },
   userId: {
     type: DataTypes.UUID,
     allowNull: false,
+    comment: 'User (ผู้ใช้)',
   },
   expiresAt: {
     type: DataTypes.DATE,
     allowNull: false,
+    comment: 'Expires At (หมดอายุเมื่อ)',
   },
   isRevoked: {
     type: DataTypes.BOOLEAN,
@@ -27,6 +31,7 @@ const RefreshToken = sequelize.define('RefreshToken', {
   userAgent: {
     type: DataTypes.STRING(512),
     allowNull: true,
+    comment: 'User Agent (User Agent)',
   },
   ip: {
     type: DataTypes.STRING(64),
@@ -39,6 +44,7 @@ const RefreshToken = sequelize.define('RefreshToken', {
   lastUsedAt: {
     type: DataTypes.DATE,
     allowNull: true,
+    comment: 'Last Used At (ใช้งานล่าสุด)',
   },
 })
 

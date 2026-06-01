@@ -7,10 +7,12 @@ const Alert = sequelize.define('Alert', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
+    comment: 'ID (รหัส)',
   },
   title: {
     type: DataTypes.STRING,
     allowNull: false,
+    comment: 'Title (หัวข้อ)',
   },
   body: {
     type: DataTypes.TEXT,
@@ -25,6 +27,7 @@ const Alert = sequelize.define('Alert', {
     type: DataTypes.ENUM('global', 'module', 'department'),
     defaultValue: 'global',
     allowNull: false,
+    comment: 'Scope (ขอบเขต)',
   },
   // Set when scope === 'module' — the installed module slug (erp, hrms, …).
   moduleSlug: {
@@ -35,11 +38,13 @@ const Alert = sequelize.define('Alert', {
   departmentId: {
     type: DataTypes.UUID,
     allowNull: true,
+    comment: 'Department (แผนก)',
   },
   // Distinguishes admin-authored alerts from ones emitted by app events.
   source: {
     type: DataTypes.ENUM('manual', 'system'),
     defaultValue: 'manual',
+    comment: 'Source (ที่มา)',
   },
   // Optional in-app route to open when the alert is clicked.
   link: {
@@ -50,6 +55,7 @@ const Alert = sequelize.define('Alert', {
   expiresAt: {
     type: DataTypes.DATE,
     allowNull: true,
+    comment: 'Expires At (หมดอายุเมื่อ)',
   },
   ...auditFields,
 })

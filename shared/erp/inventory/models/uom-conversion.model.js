@@ -7,14 +7,17 @@ const UOMConversion = sequelize.define('UOMConversion', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
+    comment: 'ID (รหัส)',
   },
   fromUomId: {
     type: DataTypes.UUID,
     allowNull: false,
+    comment: 'From UOM (จากหน่วย)',
   },
   toUomId: {
     type: DataTypes.UUID,
     allowNull: false,
+    comment: 'To UOM (ถึงหน่วย)',
   },
   factor: {
     type: DataTypes.DECIMAL(18, 6),
@@ -25,6 +28,7 @@ const UOMConversion = sequelize.define('UOMConversion', {
   notes: {
     type: DataTypes.TEXT,
     allowNull: true,
+    comment: 'Notes (หมายเหตุ)',
   },
   ...auditFields,
 })

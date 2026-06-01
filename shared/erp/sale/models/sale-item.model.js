@@ -7,22 +7,27 @@ const SaleItem = sequelize.define('SaleItem', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
+    comment: 'ID (รหัส)',
   },
   code: {
     type: DataTypes.STRING(50),
     allowNull: true,
+    comment: 'Code (รหัส)',
   },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
+    comment: 'Name (ชื่อ)',
   },
   productId: {
     type: DataTypes.UUID,
     allowNull: true,
+    comment: 'Product (สินค้า)',
   },
   status: {
     type: DataTypes.ENUM('active', 'inactive'),
     defaultValue: 'active',
+    comment: 'Status (สถานะ)',
   },
   ...auditFields,
 }, {

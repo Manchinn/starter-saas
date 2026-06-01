@@ -3,13 +3,13 @@ const sequelize = require('../../../../../server/config/database')
 const { auditFields } = require('../../../model-fields')
 
 const StockRequest = sequelize.define('StockRequest', {
-  id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  refNo:       { type: DataTypes.STRING, allowNull: false, unique: true },
-  date:        { type: DataTypes.DATEONLY, allowNull: false },
+  id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true , comment: 'ID (รหัส)'},
+  refNo:       { type: DataTypes.STRING, allowNull: false, unique: true , comment: 'Reference No. (เลขอ้างอิง)'},
+  date:        { type: DataTypes.DATEONLY, allowNull: false , comment: 'Date (วันที่)'},
   fromStoreId: { type: DataTypes.UUID, allowNull: false },
   toStoreId:   { type: DataTypes.UUID, allowNull: false },
-  notes:       { type: DataTypes.TEXT, allowNull: true },
-  status:      { type: DataTypes.STRING, defaultValue: 'draft' },
+  notes:       { type: DataTypes.TEXT, allowNull: true , comment: 'Notes (หมายเหตุ)'},
+  status:      { type: DataTypes.STRING, defaultValue: 'draft' , comment: 'Status (สถานะ)'},
   ...auditFields,
 })
 

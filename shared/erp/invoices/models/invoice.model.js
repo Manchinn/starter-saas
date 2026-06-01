@@ -3,38 +3,39 @@ const sequelize = require('../../../../server/config/database')
 const { auditFields } = require('../../model-fields')
 
 const Invoice = sequelize.define('Invoice', {
-  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  invoiceNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
-  customerId:      { type: DataTypes.UUID, allowNull: true },
-  orderId:         { type: DataTypes.UUID, allowNull: true },
-  deliveryOrderId: { type: DataTypes.UUID, allowNull: true },
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true , comment: 'ID (รหัส)'},
+  invoiceNumber: { type: DataTypes.STRING, allowNull: false, unique: true , comment: 'Invoice Number (เลขที่ใบแจ้งหนี้)'},
+  customerId:      { type: DataTypes.UUID, allowNull: true , comment: 'Customer (ลูกค้า)'},
+  orderId:         { type: DataTypes.UUID, allowNull: true , comment: 'Sales Order (ใบสั่งขาย)'},
+  deliveryOrderId: { type: DataTypes.UUID, allowNull: true , comment: 'Delivery Order (ใบส่งสินค้า)'},
   status: {
     type: DataTypes.ENUM('draft', 'sent', 'paid', 'cancelled'),
     defaultValue: 'draft',
+    comment: 'Status (สถานะ)',
   },
-  invoiceDate: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
-  dueDate:     { type: DataTypes.DATEONLY, allowNull: true },
-  subtotal:    { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
-  tax:         { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
-  total:       { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
+  invoiceDate: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW , comment: 'Invoice Date (วันที่ใบแจ้งหนี้)'},
+  dueDate:     { type: DataTypes.DATEONLY, allowNull: true , comment: 'Due Date (วันครบกำหนด)'},
+  subtotal:    { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 , comment: 'Subtotal (ยอดก่อนภาษี)'},
+  tax:         { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 , comment: 'Tax (ภาษี)'},
+  total:       { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 , comment: 'Total (ยอดรวม)'},
   // Sum of all confirmed receive-payments, credit-notes, and other applications
   // against this invoice. balanceDue = total - amountPaid (virtual below).
-  amountPaid:  { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
-  notes:        { type: DataTypes.TEXT, allowNull: true },
-  currency:     { type: DataTypes.STRING(3), allowNull: true },
-  exchangeRate: { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 },
+  amountPaid:  { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 , comment: 'Amount Paid (จำนวนเงินที่ชำระ)'},
+  notes:        { type: DataTypes.TEXT, allowNull: true , comment: 'Notes (หมายเหตุ)'},
+  currency:     { type: DataTypes.STRING(3), allowNull: true , comment: 'Currency (สกุลเงิน)'},
+  exchangeRate: { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 , comment: 'Exchange Rate (อัตราแลกเปลี่ยน)'},
 
   // Sales-order parity: header extras
-  referenceNumber: { type: DataTypes.STRING, allowNull: true },
-  paymentTerms:    { type: DataTypes.STRING(20), allowNull: true },
-  salespersonId:   { type: DataTypes.UUID, allowNull: true },
-  shippingAddress: { type: DataTypes.TEXT, allowNull: true },
-  billingAddress:  { type: DataTypes.TEXT, allowNull: true },
+  referenceNumber: { type: DataTypes.STRING, allowNull: true , comment: 'Reference Number (เลขที่อ้างอิง)'},
+  paymentTerms:    { type: DataTypes.STRING(20), allowNull: true , comment: 'Payment Terms (เงื่อนไขการชำระเงิน)'},
+  salespersonId:   { type: DataTypes.UUID, allowNull: true , comment: 'Salesperson (พนักงานขาย)'},
+  shippingAddress: { type: DataTypes.TEXT, allowNull: true , comment: 'Shipping Address (ที่อยู่จัดส่ง)'},
+  billingAddress:  { type: DataTypes.TEXT, allowNull: true , comment: 'Billing Address (ที่อยู่ใบกำกับ)'},
 
   // Order-level discount applied to subtotal+tax
-  discountType:   { type: DataTypes.ENUM('percent', 'fixed'), allowNull: true },
-  discountValue:  { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
-  discountAmount: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+  discountType:   { type: DataTypes.ENUM('percent', 'fixed'), allowNull: true , comment: 'Discount Type (ประเภทส่วนลด)'},
+  discountValue:  { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 , comment: 'Discount Value (มูลค่าส่วนลด)'},
+  discountAmount: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 , comment: 'Discount Amount (จำนวนส่วนลด)'},
 
   ...auditFields,
 
@@ -43,6 +44,7 @@ const Invoice = sequelize.define('Invoice', {
     get() {
       return Math.max(0, Number(this.getDataValue('total') || 0) - Number(this.getDataValue('amountPaid') || 0))
     },
+    comment: 'Balance Due (ยอดคงค้าง)',
   },
 })
 
