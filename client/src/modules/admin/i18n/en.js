@@ -98,6 +98,7 @@ export default {
     colStatus:  'Status',
     colActions: 'Actions',
     noFound:    'No staff found',
+    permissions: 'permissions',
 
     createTitle: 'New Staff Member',
     createDesc:  'Create a login account for an organization.',

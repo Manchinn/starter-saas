@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
-const { User, Module, Role, Permission } = require('../../models')
+const { User, Module, Role, Permission, Employee, HrmsRole, HrmsPermission } = require('../../models')
 const { Op } = require('sequelize')
 const { resolvePermissions } = require('../../middleware/permission')
 const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
@@ -305,8 +305,16 @@ const listAllStaff = async ({ page = 1, limit = 20, search = '', organizationId 
     attributes: ['id', 'name', 'email', 'role', 'isActive', 'organizationId'],
     include: [
       { model: User, as: 'organization', attributes: ['id', 'name'] },
+      {
+        model: Employee, as: 'employee', attributes: ['id'], required: false,
+        include: [{
+          model: HrmsRole, as: 'roles', attributes: ['id', 'name', 'color'], through: { attributes: [] },
+          include: [{ model: HrmsPermission, as: 'permissions', attributes: ['slug', 'name'], through: { attributes: [] } }],
+        }],
+      },
     ],
     order: [['createdAt', 'DESC']],
+    distinct: true,
   })
 
   return { total: count, page, limit, staff: rows }

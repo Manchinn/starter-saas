@@ -228,6 +228,13 @@ function statusDot(s) {
 
 function confirmDelete(emp) { deleteModal.emp = emp; deleteModal.error = ''; deleteModal.open = true }
 
+// Distinct permission display-names resolved from an employee's HRMS roles.
+function rolePermNames(roles) {
+  const map = new Map()
+  for (const r of roles || []) for (const p of (r.permissions || [])) map.set(p.slug, p.name || p.slug)
+  return [...map.values()]
+}
+
 async function doDelete() {
   deleteModal.saving = true; deleteModal.error = ''
   try {
@@ -277,6 +284,27 @@ const columns = [
         ))
       }
       return h('span', { class: 'text-[#9BA7B0]' }, '—')
+    },
+  }),
+  columnHelper.display({
+    id: 'roles',
+    header: () => t('erp.employees.colRoles'),
+    cell: info => {
+      const roles = info.row.original.roles || []
+      if (!roles.length) return h('span', { class: 'text-[#9BA7B0]' }, '—')
+      const children = roles.map(r => h('span', {
+        key: r.id,
+        class: 'inline-block px-2 py-0.5 text-[11px] font-medium text-white whitespace-nowrap',
+        style: { backgroundColor: r.color || '#6366f1' },
+      }, r.name))
+      const perms = rolePermNames(roles)
+      if (perms.length) {
+        children.push(h('span', {
+          class: 'text-[11px] text-[#9BA7B0] whitespace-nowrap cursor-help',
+          title: perms.join(', '),
+        }, `· ${perms.length} ${t('erp.employees.permissions')}`))
+      }
+      return h('div', { class: 'flex flex-wrap items-center gap-1' }, children)
     },
   }),
   columnHelper.accessor('startDate', {

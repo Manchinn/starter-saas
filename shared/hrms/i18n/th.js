@@ -34,6 +34,8 @@ export default {
       colEmployee:      'พนักงาน',
       colPosition:      'ตำแหน่ง',
       colDepartment:    'แผนก',
+      colRoles:         'บทบาท',
+      permissions:      'สิทธิ์',
       colStartDate:     'วันเริ่มงาน',
       colLogin:         'เข้าสู่ระบบ',
       colStatus:        'สถานะ',

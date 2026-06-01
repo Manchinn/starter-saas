@@ -98,6 +98,7 @@ export default {
     colStatus:  'สถานะ',
     colActions: 'การดำเนินการ',
     noFound:    'ไม่พบพนักงาน',
+    permissions: 'สิทธิ์',
 
     createTitle: 'พนักงานใหม่',
     createDesc:  'สร้างบัญชีเข้าสู่ระบบสำหรับองค์กร',

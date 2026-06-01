@@ -85,7 +85,21 @@
                 <span class="text-sm text-[#637381]">{{ member.organization?.name || '—' }}</span>
               </td>
               <td class="td">
-                <span class="badge badge-gray capitalize">{{ member.role }}</span>
+                <div class="space-y-1.5">
+                  <span class="badge badge-gray capitalize">{{ member.role }}</span>
+                  <div v-if="member.employee?.roles?.length" class="flex flex-wrap items-center gap-1">
+                    <span
+                      v-for="r in member.employee.roles" :key="r.id"
+                      class="inline-block px-2 py-0.5 text-[11px] font-medium text-white whitespace-nowrap"
+                      :style="{ backgroundColor: r.color || '#6366f1' }"
+                    >{{ r.name }}</span>
+                    <span
+                      v-if="permNames(member).length"
+                      class="text-[11px] text-[#9BA7B0] whitespace-nowrap cursor-help"
+                      :title="permNames(member).join(', ')"
+                    >· {{ permNames(member).length }} {{ t('staff.permissions') }}</span>
+                  </div>
+                </div>
               </td>
               <td class="td">
                 <span :class="member.isActive ? 'badge-green' : 'badge-red'" class="badge">
@@ -185,6 +199,15 @@ async function load() {
   } finally {
     loading.value = false
   }
+}
+
+// Distinct permission display-names resolved from a staff member's HRMS roles.
+function permNames(member) {
+  const map = new Map()
+  for (const r of member.employee?.roles || []) {
+    for (const p of (r.permissions || [])) map.set(p.slug, p.name || p.slug)
+  }
+  return [...map.values()]
 }
 
 function onSearch() {

@@ -1,4 +1,4 @@
-const { Employee, User, Department, HrmsRole } = require('../../../server/models')
+const { Employee, User, Department, HrmsRole, HrmsPermission } = require('../../../server/models')
 const { Op } = require('sequelize')
 const seqService  = require('../../erp/settings/services/sequence.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
@@ -26,11 +26,15 @@ const list = async ({ organizationId, page = 1, limit = 20, search = '', status 
     include: [
       { model: User, as: 'user', attributes: USER_ATTRS },
       { model: Department, as: 'departments', through: { attributes: [] } },
-      { model: HrmsRole, as: 'roles', attributes: ['id', 'name', 'color'], through: { attributes: [] } },
+      {
+        model: HrmsRole, as: 'roles', attributes: ['id', 'name', 'color'], through: { attributes: [] },
+        include: [{ model: HrmsPermission, as: 'permissions', attributes: ['slug', 'name'], through: { attributes: [] } }],
+      },
     ],
     limit,
     offset,
     order: [['createdAt', 'DESC']],
+    distinct: true,
   })
   return { total: count, page, limit, employees: rows }
 }

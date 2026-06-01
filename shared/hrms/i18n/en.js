@@ -34,6 +34,8 @@ export default {
       colEmployee:      'Employee',
       colPosition:      'Position',
       colDepartment:    'Department',
+      colRoles:         'Roles',
+      permissions:      'permissions',
       colStartDate:     'Start Date',
       colLogin:         'Login',
       colStatus:        'Status',
