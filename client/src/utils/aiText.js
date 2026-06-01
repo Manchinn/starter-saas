@@ -1,34 +1,37 @@
 // Minimal, safe rich text for AI assistant messages.
 //
 // The local LLM often replies with light markdown (bold labels, bullet lists,
-// short headings) — especially for summaries. We render a small whitelist so
-// those look structured and professional, WITHOUT pulling in a markdown
-// dependency and without ever injecting raw model HTML: the input is
-// HTML-escaped first, then only our own tags are added back.
+// short headings) — especially for summaries. We parse a small whitelist into a
+// structured block tree which <RichText> renders with real Vue elements, so the
+// model's text is interpolated (auto-escaped) and never injected as raw HTML.
+//
+// Block:
+//   { type: 'heading', spans }            #..###### heading → emphasized line
+//   { type: 'ul' | 'ol', items: spans[] } -, *, • / 1. → list
+//   { type: 'para', spans }               anything else → paragraph
+// Span (inline): { t: 'text' | 'b' | 'code', v: string }
 
-const escapeHtml = (s) =>
-  String(s == null ? '' : s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+// Inline tokenizer: **bold** and `code`; everything else is plain text.
+function parseInline(s) {
+  const spans = []
+  const re = /\*\*(.+?)\*\*|`([^`]+?)`/g
+  let last = 0
+  let m
+  while ((m = re.exec(s)) !== null) {
+    if (m.index > last) spans.push({ t: 'text', v: s.slice(last, m.index) })
+    if (m[1] !== undefined) spans.push({ t: 'b', v: m[1] })
+    else spans.push({ t: 'code', v: m[2] })
+    last = re.lastIndex
+  }
+  if (last < s.length) spans.push({ t: 'text', v: s.slice(last) })
+  return spans
+}
 
-// Inline spans: **bold** and `code`. Operates on already-escaped text.
-const inline = (s) =>
-  s
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-[#1C2434]">$1</strong>')
-    .replace(/`([^`]+?)`/g, '<code class="px-1 py-0.5 bg-black/5 font-mono text-[12px]">$1</code>')
-
-// Render to a safe HTML string. Block grammar handled line-by-line:
-//   #..###### heading → emphasized line
-//   -, *, •           → unordered list
-//   1.                → ordered list
-//   blank line        → block separator
-//   anything else     → paragraph
-export function renderRich(text) {
-  const lines = escapeHtml(text).split('\n')
-  let html = ''
-  let list = null // 'ul' | 'ol' | null
-  const closeList = () => { if (list) { html += `</${list}>`; list = null } }
+export function parseRich(text) {
+  const lines = String(text == null ? '' : text).split('\n')
+  const blocks = []
+  let list = null // { type: 'ul' | 'ol', items: [] }
+  const closeList = () => { if (list) { blocks.push(list); list = null } }
 
   for (const raw of lines) {
     const line = raw.trim()
@@ -40,18 +43,18 @@ export function renderRich(text) {
 
     if (heading) {
       closeList()
-      html += `<p class="font-semibold text-[#1C2434]">${inline(heading[1])}</p>`
+      blocks.push({ type: 'heading', spans: parseInline(heading[1]) })
     } else if (bullet) {
-      if (list !== 'ul') { closeList(); html += '<ul class="list-disc pl-4 space-y-0.5">'; list = 'ul' }
-      html += `<li>${inline(bullet[1])}</li>`
+      if (!list || list.type !== 'ul') { closeList(); list = { type: 'ul', items: [] } }
+      list.items.push(parseInline(bullet[1]))
     } else if (ordered) {
-      if (list !== 'ol') { closeList(); html += '<ol class="list-decimal pl-4 space-y-0.5">'; list = 'ol' }
-      html += `<li>${inline(ordered[1])}</li>`
+      if (!list || list.type !== 'ol') { closeList(); list = { type: 'ol', items: [] } }
+      list.items.push(parseInline(ordered[1]))
     } else {
       closeList()
-      html += `<p>${inline(line)}</p>`
+      blocks.push({ type: 'para', spans: parseInline(line) })
     }
   }
   closeList()
-  return html
+  return blocks
 }

@@ -34,7 +34,7 @@ const TIERS = ['core', 'demo']
 
 function seedFilesIn(dir) {
   if (!fs.existsSync(dir)) return []
-  return fs.readdirSync(dir).filter((f) => f.endsWith('.js')).map((f) => path.join(dir, f))
+  return fs.readdirSync(dir).filter((f) => f.endsWith('.js')).map((f) => path.join(dir, f)) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- fixed seeds dir; names come from readdirSync, not request input
 }
 
 function walkForSeedDirs(root) {
@@ -42,7 +42,7 @@ function walkForSeedDirs(root) {
   const out = []
   for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name === 'node_modules') continue
-    const full = path.join(root, entry.name)
+    const full = path.join(root, entry.name) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- fixed __dirname base; names come from readdirSync, not request input
     if (entry.name === 'seeds') out.push(...seedFilesIn(full))
     else out.push(...walkForSeedDirs(full))
   }

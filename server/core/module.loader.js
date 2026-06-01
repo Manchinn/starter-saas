@@ -14,7 +14,7 @@ const loadAll = async (app) => {
     if (!fs.existsSync(dir)) return []
     return fs.readdirSync(dir, { recursive: true })
       .filter((f) => f.endsWith('.module.js'))
-      .map((f) => path.join(dir, f))
+      .map((f) => path.join(dir, f)) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- fixed module search dirs; names come from readdirSync, not request input
   })
 
   for (const modulePath of files) {

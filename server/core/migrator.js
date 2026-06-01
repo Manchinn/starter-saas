@@ -38,7 +38,7 @@ function filesInDir(dir) {
   if (!fs.existsSync(dir)) return []
   return fs.readdirSync(dir)
     .filter((f) => f.endsWith('.js'))
-    .map((f) => path.join(dir, f))
+    .map((f) => path.join(dir, f)) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- fixed migrations dir; names come from readdirSync, not request input
 }
 
 // Recursively find every `migrations/` directory below `root` and return the
@@ -50,7 +50,7 @@ function walkForMigrationDirs(root) {
   for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue
     if (entry.name === 'node_modules') continue
-    const full = path.join(root, entry.name)
+    const full = path.join(root, entry.name) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- fixed __dirname base; names come from readdirSync, not request input
     if (entry.name === 'migrations') out.push(...filesInDir(full))
     else out.push(...walkForMigrationDirs(full))
   }

@@ -19,7 +19,7 @@ const globSync = (() => {
   try { return require('glob').globSync } catch {}
   function walk(dir, out = []) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-      const f = path.join(dir, e.name)
+      const f = path.join(dir, e.name) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- build-time script over a fixed dir; names come from readdirSync, not request input
       if (e.isDirectory() && e.name !== 'node_modules') walk(f, out)
       else if (e.isFile() && e.name.endsWith('.model.js')) out.push(f)
     }
@@ -407,7 +407,7 @@ let modelFiles
 function walkModels(dir, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules') continue
-    const full = path.join(dir, e.name)
+    const full = path.join(dir, e.name) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- build-time script over a fixed dir; names come from readdirSync, not request input
     if (e.isDirectory()) walkModels(full, out)
     else if (e.isFile() && e.name.endsWith('.model.js')) out.push(full)
   }

@@ -50,7 +50,9 @@ const deviceLabelFromUA = (ua = '') => {
 }
 
 const saveRefreshToken = async (userId, token, meta = {}) => {
-  const decoded = jwt.decode(token)
+  // Verify (not just decode) so a tampered/forged token can never be persisted —
+  // the refresh secret guarantees we only store tokens this server actually minted.
+  const decoded = jwt.verify(token, config.jwt.refreshSecret)
   const userAgent   = truncate(meta.userAgent || null, 500)
   const ip          = truncate(meta.ip        || null, 60)
   const deviceLabel = truncate(meta.deviceLabel || deviceLabelFromUA(meta.userAgent || ''), 120)
@@ -420,8 +422,12 @@ const install = async ({ name, email, password }, meta = {}) => {
 // as the impersonated user, so the admin identity must come from the token).
 const returnToAdmin = async (impersonatorToken, meta = {}) => {
   const tokens = await refresh(impersonatorToken, meta)
-  const { id } = jwt.decode(tokens.accessToken)
+  // Verify the freshly-minted access token before trusting its id claim.
+  const { id } = jwt.verify(tokens.accessToken, config.jwt.secret)
   const session = await resolveSession(id)
+  // The parked token must belong to an admin — guards against a tampered or
+  // mismatched impersonator cookie being used to resolve a non-admin session.
+  if (session.user.role !== 'admin') throw { status: 403, message: 'Impersonation session is not an administrator' }
   return { ...session, ...tokens }
 }
 
@@ -429,6 +435,9 @@ const loginAs = async (targetUserId, meta = {}) => {
   const target = await User.findByPk(targetUserId)
   if (!target) throw { status: 404, message: 'User not found' }
   if (!target.isActive) throw { status: 400, message: 'Cannot impersonate an inactive user' }
+  // Never let one admin step into another admin's session — impersonation is
+  // for supporting non-admin accounts, not for escalating between admins.
+  if (target.role === 'admin') throw { status: 403, message: 'Cannot impersonate another administrator' }
 
   const accessToken  = signAccess(target)
   const refreshToken = signRefresh(target)

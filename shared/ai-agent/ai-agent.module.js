@@ -7,7 +7,7 @@ const API_PREFIX = '/api/ai-agent'
 const findRouteFiles = (dir) => {
   const out = []
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name)
+    const full = path.join(dir, entry.name) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- fixed __dirname base; names come from readdirSync, not request input
     if (entry.isDirectory()) out.push(...findRouteFiles(full))
     else if (entry.isFile() && entry.name.endsWith('.routes.js')) out.push(full)
   }

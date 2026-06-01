@@ -159,12 +159,12 @@ const uploadLogo = async (id, { dataBase64, contentType }) => {
   ensureDir(LOGO_ROOT)
   // Random suffix so the browser breaks its cache when the logo changes.
   const filename = `${id}-${crypto.randomBytes(4).toString('hex')}${ext}`
-  const fullPath = path.join(LOGO_ROOT, filename)
+  const fullPath = path.join(LOGO_ROOT, filename) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- filename is server-generated (id + random hex + validated ext), not user-supplied
   fs.writeFileSync(fullPath, buf)
 
   // Cleanup the old file so we don't accumulate orphans.
   if (organization.logoPath) {
-    const old = path.join(LOGO_ROOT, path.basename(organization.logoPath))
+    const old = path.join(LOGO_ROOT, path.basename(organization.logoPath)) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- basename() strips any path, confining to LOGO_ROOT
     try { if (fs.existsSync(old)) fs.unlinkSync(old) } catch (_) { /* ignore */ }
   }
 
@@ -177,7 +177,7 @@ const removeLogo = async (id) => {
   const organization = await User.findByPk(id)
   if (!organization) throw { status: 404, message: 'Organization not found' }
   if (organization.logoPath) {
-    const full = path.join(LOGO_ROOT, path.basename(organization.logoPath))
+    const full = path.join(LOGO_ROOT, path.basename(organization.logoPath)) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- basename() strips any path, confining to LOGO_ROOT
     try { if (fs.existsSync(full)) fs.unlinkSync(full) } catch (_) { /* ignore */ }
   }
   await organization.update({ logoPath: null })

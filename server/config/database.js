@@ -29,7 +29,7 @@ function buildSequelize(dbCfg) {
     const rawStorage  = dbCfg.storage || './data/database.sqlite'
     const storagePath = path.isAbsolute(rawStorage)
       ? rawStorage
-      : path.resolve(PROJECT_ROOT, rawStorage)
+      : path.resolve(PROJECT_ROOT, rawStorage) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- rawStorage is operator DB config resolved against a fixed PROJECT_ROOT, not request input
     const storageDir  = path.dirname(storagePath)
     if (!fs.existsSync(storageDir)) fs.mkdirSync(storageDir, { recursive: true })
     return new Sequelize({

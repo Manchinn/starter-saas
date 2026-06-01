@@ -35,7 +35,7 @@ function moduleLabel(file) {
 function walk(dir, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name === '.git' || e.name === 'dist') continue
-    const fp = path.join(dir, e.name)
+    const fp = path.join(dir, e.name) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- build-time script over a fixed dir; names come from readdirSync, not request input
     if (e.isDirectory()) walk(fp, out)
     else if (/\.routes\.js$/.test(e.name)) out.push(fp)
   }

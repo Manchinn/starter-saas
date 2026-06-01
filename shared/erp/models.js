@@ -23,7 +23,7 @@ const CROSS_DOMAIN_ASSOCIATIONS = new Set([])
 const findFiles = (dir, suffix) => {
   const out = []
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name)
+    const full = path.join(dir, entry.name) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- fixed __dirname base; names come from readdirSync, not request input
     if (entry.isDirectory()) out.push(...findFiles(full, suffix))
     else if (entry.isFile() && entry.name.endsWith(suffix)) out.push(full)
   }

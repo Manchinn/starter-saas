@@ -306,6 +306,42 @@ npm test                 # all suites
 npx jest shared/erp/...  # a subset
 ```
 
+## Security
+
+Baseline hardening is built in: security response headers
+(`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, HSTS in
+production, …), stateless JWT auth (short-lived access token + an `httpOnly`,
+`SameSite=Strict` refresh cookie), per-organization data isolation, rate
+limiting on the auth endpoints, and tight request-body size limits. See
+[HTTPS](#https) for TLS and proxy-aware secure cookies.
+
+### Static analysis (Semgrep)
+
+The codebase is scanned with [Semgrep](https://semgrep.dev) using the registry
+`p/default` ruleset:
+
+```bash
+semgrep scan --config p/default          # human-readable
+semgrep scan --config p/default --json   # machine-readable (semgrep-report.json)
+```
+
+The scan is **clean — zero findings**. The handful of audit-rule matches that
+are false positives for this architecture are *not* suppressed globally;
+instead each carries an inline `// nosemgrep: <rule-id>` comment stating why the
+finding is safe, so the reasoning is reviewable next to the code:
+
+- **path-traversal** in the module / seed / migration loaders — they join a
+  fixed `__dirname` base with `fs.readdirSync` entries, never request input.
+- **using-http-server** — the plain-HTTP listener is intentional for the
+  HTTP/HTTPS dual-serving described under [HTTPS](#https).
+- **csurf middleware** — the API is stateless Bearer-token auth whose only
+  cookie (the refresh token) is `httpOnly` + `SameSite=Strict`, so CSRF is
+  already mitigated without a token middleware.
+
+When a real issue is found, fix it in code (e.g. verify JWTs rather than decode
+them, avoid `v-html` sinks); reserve `nosemgrep` for reviewed, justified
+exceptions only.
+
 ## Internationalization
 
 Locale messages are split per module (e.g. `client/src/modules/*/i18n/{en,th}.js` and `shared/erp/*/i18n/{en,th}.js`) and merged automatically at build time. The active language is stored client-side and chosen during install; demo data is seeded in the selected language.

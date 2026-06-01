@@ -57,7 +57,7 @@
                 <SparklesIcon class="w-3.5 h-3.5 text-primary-500" />
               </div>
               <div class="flex-1 min-w-0 space-y-2 pt-0.5">
-                <div v-if="m.content" class="text-[13px] leading-relaxed text-[#374151] space-y-1.5" v-html="renderRich(m.content)" />
+                <RichText v-if="m.content" :text="m.content" class="text-[13px] leading-relaxed text-[#374151]" />
                 <div v-if="m.actions && m.actions.length" class="flex flex-wrap gap-1.5">
                   <button v-for="(a, i) in m.actions" :key="i" @click="runAction(a)"
                     class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium text-primary-600 bg-white border border-[#E2E8F0] hover:border-primary-300 hover:bg-primary-50 transition-colors">
@@ -107,7 +107,7 @@ import {
   SparklesIcon, XMarkIcon, PaperAirplaneIcon, ArrowTopRightOnSquareIcon,
 } from '@heroicons/vue/24/outline'
 import { useAiAgentStore } from '@/stores/aiAgent'
-import { renderRich } from '@/utils/aiText'
+import RichText from '@/components/RichText.vue'
 
 const props = defineProps({ modelValue: Boolean })
 const emit  = defineEmits(['update:modelValue'])
