@@ -150,7 +150,10 @@
       "Bash(find shared/erp -type d -name \"ai-tools\")",
       "Bash(ls -la shared/erp/customers/)",
       "Bash(find shared *)",
-      "Bash(grep -rl \"ai-tools\" shared/**/__tests__/)"
+      "Bash(grep -rl \"ai-tools\" shared/**/__tests__/)",
+      "Bash(ls server/src/modules)",
+      "Bash(ls server/modules)",
+      "PowerShell(git *)"
     ]
   }
 }
