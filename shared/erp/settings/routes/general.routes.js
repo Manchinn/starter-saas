@@ -6,9 +6,7 @@ const service = require('../services/general.service')
 const router = Router()
 router.use(authenticate)
 
-// NOTE: ERP settings have no dedicated slug yet; the nav gates these pages with
-// `erp.stock.edit`, mirrored here. Phase 2 should add `erp.settings.{view,manage}`.
-router.get('/', requirePermission('erp.stock.edit'), async (req, res) => {
+router.get('/', requirePermission('erp.settings.view'), async (req, res) => {
   try {
     const data = await service.get(req.user?.id)
     res.json({ success: true, data })
@@ -17,7 +15,7 @@ router.get('/', requirePermission('erp.stock.edit'), async (req, res) => {
   }
 })
 
-router.put('/', requirePermission('erp.stock.edit'), async (req, res) => {
+router.put('/', requirePermission('erp.settings.manage'), async (req, res) => {
   try {
     const data = await service.save(req.user?.id, req.body)
     res.json({ success: true, data })

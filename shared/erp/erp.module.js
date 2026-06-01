@@ -25,6 +25,7 @@ module.exports = defineModule({
     'erp.customers.list', 'erp.customers.edit', 'erp.customers.delete',
     'erp.customer-groups.list', 'erp.customer-groups.edit', 'erp.customer-groups.delete',
     'erp.products.list', 'erp.products.edit', 'erp.products.delete',
+    'erp.vendors.list', 'erp.vendors.edit', 'erp.vendors.delete',
     'erp.orders.list', 'erp.orders.edit', 'erp.orders.delete',
     'erp.pricing.list', 'erp.pricing.manage',
     'erp.stores.list', 'erp.stores.edit', 'erp.stores.delete',
@@ -44,6 +45,7 @@ module.exports = defineModule({
     'erp.currencies.list', 'erp.currencies.edit',
     'erp.tax-periods.list', 'erp.tax-periods.edit',
     'erp.alerts.list', 'erp.alerts.manage',
+    'erp.settings.view', 'erp.settings.manage',
   ],
   meta: { mountPath: API_PREFIX },
   register(app) {

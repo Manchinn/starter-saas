@@ -77,11 +77,11 @@ export const routes = [
 ]
 
 export const navChildren = [
-  { label: 'nav.general',              to: '/erp/settings/general',               icon: CurrencyDollarIcon,         permission: 'erp.stock.edit' },
+  { label: 'nav.general',              to: '/erp/settings/general',               icon: CurrencyDollarIcon,         permission: 'erp.settings.view' },
   { label: 'nav.approvalThresholds',   to: '/erp/settings/approval-thresholds',   icon: ShieldCheckIcon,            permission: 'erp.thresholds.list' },
   { label: 'nav.auditLog',             to: '/erp/settings/audit-log',             icon: ClipboardDocumentCheckIcon, permission: 'erp.audit.list' },
   { label: 'nav.currencies',           to: '/erp/settings/currencies',            icon: CurrencyDollarIcon,         permission: 'erp.currencies.list' },
-  { label: 'nav.sequenceNumbers',      to: '/erp/settings/sequence',              icon: HashtagIcon,                permission: 'erp.stock.edit' },
+  { label: 'nav.sequenceNumbers',      to: '/erp/settings/sequence',              icon: HashtagIcon,                permission: 'erp.settings.view' },
   { label: 'nav.masterData',           to: '/erp/settings/master-data',           icon: CircleStackIcon,            permission: 'erp.stock.edit' },
   { label: 'nav.demoData',             to: '/erp/settings/demo-data',             icon: SparklesIcon,               permission: 'erp.stock.edit' },
 ]

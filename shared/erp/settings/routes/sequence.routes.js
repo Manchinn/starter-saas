@@ -27,12 +27,12 @@ router.get('/preview/:code', async (req, res, next) => {
 
 // /preview/:code stays authenticate-only — it's a cross-module utility used by
 // every create form to show the next number. The sequence config CRUD below is
-// the Settings page, gated like its nav entry (`erp.stock.edit`).
-router.get('/',             requirePermission('erp.stock.edit'), (req, res) => controller.list(req, res))
-router.get('/:id',          requirePermission('erp.stock.edit'), (req, res) => controller.getById(req, res))
-router.post('/',            requirePermission('erp.stock.edit'), (req, res) => controller.create(req, res))
-router.put('/:id',          requirePermission('erp.stock.edit'), (req, res) => controller.update(req, res))
-router.post('/:id/reset',   requirePermission('erp.stock.edit'), (req, res) => controller.reset(req, res))
-router.delete('/:id',       requirePermission('erp.stock.edit'), (req, res) => controller.remove(req, res))
+// the Settings page, gated by erp.settings.{view,manage}.
+router.get('/',             requirePermission('erp.settings.view'),   (req, res) => controller.list(req, res))
+router.get('/:id',          requirePermission('erp.settings.view'),   (req, res) => controller.getById(req, res))
+router.post('/',            requirePermission('erp.settings.manage'), (req, res) => controller.create(req, res))
+router.put('/:id',          requirePermission('erp.settings.manage'), (req, res) => controller.update(req, res))
+router.post('/:id/reset',   requirePermission('erp.settings.manage'), (req, res) => controller.reset(req, res))
+router.delete('/:id',       requirePermission('erp.settings.manage'), (req, res) => controller.remove(req, res))
 
 module.exports = { mountPath: '/sequences', router }

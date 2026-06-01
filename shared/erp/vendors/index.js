@@ -22,5 +22,5 @@ export const routes = [
 ]
 
 export const navChildren = [
-  { label: 'nav.vendors', to: '/erp/vendors', icon: BuildingLibraryIcon, permission: 'erp.products.list' },
+  { label: 'nav.vendors', to: '/erp/vendors', icon: BuildingLibraryIcon, permission: 'erp.vendors.list' },
 ]
