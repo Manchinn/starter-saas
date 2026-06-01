@@ -1,4 +1,4 @@
-const { Router } = require('express')
+const { Router, json } = require('express')
 const controller = require('./organization.controller')
 const { authenticate } = require('../../middleware/auth')
 const { requirePermission } = require('../../middleware/permission')
@@ -27,7 +27,10 @@ router.put('/:id', requirePermission('organizations.edit'), (req, res) => contro
 router.delete('/:id', requirePermission('organizations.delete'), (req, res) => controller.remove(req, res))
 router.put('/:id/modules', requirePermission('organizations.edit'), (req, res) => controller.assignModules(req, res))
 router.put('/:id/roles', requirePermission('organizations.edit'), (req, res) => controller.assignRoles(req, res))
-router.post('/:id/logo', requirePermission('organizations.edit'), (req, res) => controller.uploadLogo(req, res))
+// Logo is sent as a base64 image; the global parser skips this path (see
+// server/app.js) so it gets a higher per-route cap. The service rejects the
+// decoded image over 2 MB; 3 MB of JSON leaves room for base64 inflation.
+router.post('/:id/logo', requirePermission('organizations.edit'), json({ limit: '3mb' }), (req, res) => controller.uploadLogo(req, res))
 router.delete('/:id/logo', requirePermission('organizations.edit'), (req, res) => controller.removeLogo(req, res))
 
 module.exports = router

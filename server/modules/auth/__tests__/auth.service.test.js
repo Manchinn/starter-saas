@@ -210,9 +210,41 @@ describe('auth.loginAs', () => {
     await expect(service.loginAs('u1')).rejects.toEqual({ status: 400, message: 'Cannot impersonate an inactive user' })
   })
 
+  test('403 when the target is an admin (no admin-to-admin impersonation)', async () => {
+    User.findByPk.mockResolvedValue(makeUser({ role: 'admin' }))
+    await expect(service.loginAs('u1')).rejects.toEqual({ status: 403, message: 'Cannot impersonate another administrator' })
+  })
+
   test('issues a session for an active target', async () => {
     User.findByPk.mockResolvedValue(makeUser())
     const out = await service.loginAs('u1')
+    expect(out.accessToken).toBe('signed-token')
+  })
+})
+
+describe('auth.returnToAdmin', () => {
+  // returnToAdmin rotates the parked impersonator token (via refresh) then
+  // resolves the session it points at. Wire up the refresh happy path.
+  const armRefresh = () => {
+    RefreshToken.findOne.mockResolvedValue({
+      expiresAt: future(), userAgent: null, ip: null, deviceLabel: null,
+      update: jest.fn().mockResolvedValue(),
+    })
+  }
+
+  test('403 when the parked token resolves to a non-admin session', async () => {
+    armRefresh()
+    User.findByPk.mockResolvedValue(makeUser({ role: 'user' }))
+    await expect(service.returnToAdmin('parked-token')).rejects.toEqual({
+      status: 403, message: 'Impersonation session is not an administrator',
+    })
+  })
+
+  test('restores the admin session when the parked token is an admin', async () => {
+    armRefresh()
+    User.findByPk.mockResolvedValue(makeUser({ role: 'admin' }))
+    const out = await service.returnToAdmin('parked-token')
+    expect(out.user.role).toBe('admin')
     expect(out.accessToken).toBe('signed-token')
   })
 })

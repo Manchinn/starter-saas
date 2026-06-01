@@ -422,6 +422,9 @@ const returnToAdmin = async (impersonatorToken, meta = {}) => {
   const tokens = await refresh(impersonatorToken, meta)
   const { id } = jwt.decode(tokens.accessToken)
   const session = await resolveSession(id)
+  // The parked token must belong to an admin — guards against a tampered or
+  // mismatched impersonator cookie being used to resolve a non-admin session.
+  if (session.user.role !== 'admin') throw { status: 403, message: 'Impersonation session is not an administrator' }
   return { ...session, ...tokens }
 }
 
@@ -429,6 +432,9 @@ const loginAs = async (targetUserId, meta = {}) => {
   const target = await User.findByPk(targetUserId)
   if (!target) throw { status: 404, message: 'User not found' }
   if (!target.isActive) throw { status: 400, message: 'Cannot impersonate an inactive user' }
+  // Never let one admin step into another admin's session — impersonation is
+  // for supporting non-admin accounts, not for escalating between admins.
+  if (target.role === 'admin') throw { status: 403, message: 'Cannot impersonate another administrator' }
 
   const accessToken  = signAccess(target)
   const refreshToken = signRefresh(target)

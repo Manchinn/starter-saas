@@ -51,9 +51,23 @@ app.use((req, res, next) => {
 
 // Core middleware
 app.use(cors({ origin: config.clientUrl, credentials: true }))
-// Logos are uploaded as base64; the JSON body cap needs to be larger than a
-// typical PNG/JPEG (the upload service still rejects > 2 MB per file).
-app.use(express.json({ limit: '5mb' }))
+
+// Most endpoints exchange small JSON only, so cap the body tightly to limit the
+// memory-exhaustion surface from oversized payloads. A handful of routes
+// legitimately accept large base64 bodies (file/logo uploads) and mount their
+// own express.json with a higher limit — skip the global parser for those so
+// the route-level parser runs. (A global parser consumes the request stream
+// first, so without this carve-out it would reject large uploads at the smaller
+// cap before they ever reach their own parser.)
+const smallJson = express.json({ limit: '1mb' })
+const LARGE_BODY_ROUTES = [
+  /^\/api\/erp\/attachments(?:\/|$)/,    // base64 file attachments (≤ 15 MB)
+  /^\/api\/organizations\/[^/]+\/logo$/, // base64 org logo upload
+]
+app.use((req, res, next) => {
+  if (LARGE_BODY_ROUTES.some((re) => re.test(req.path))) return next()
+  return smallJson(req, res, next)
+})
 app.use(express.urlencoded({ extended: true }))
 app.use(requestLogger)
 
