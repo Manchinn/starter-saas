@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swimlane Flow — starter-saas</title>
+<style>
+  :root { --indigo:#4f46e5; --indigo-d:#3730a3; --slate-50:#f8fafc; --slate-100:#f1f5f9;
+    --slate-200:#e2e8f0; --slate-300:#cbd5e1; --slate-500:#64748b; --slate-700:#334155; --slate-900:#0f172a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--slate-900); background:var(--slate-50); }
+  header { background:var(--indigo); color:#fff; padding:12px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:17px; }
+  header .meta { font-size:13px; opacity:.85; }
+  .toolbar { display:flex; gap:6px; margin-left:auto; }
+  .toolbar button { background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3);
+    border-radius:6px; padding:4px 12px; font-size:13px; cursor:pointer; }
+  .toolbar button:hover { background:rgba(255,255,255,.28); }
+  .toolbar button.on { background:#fff; color:var(--indigo); }
+  .filters { background:#fff; border-bottom:1px solid var(--slate-200); padding:10px 20px; display:flex;
+    gap:8px; align-items:center; flex-wrap:wrap; }
+  .filters .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--slate-500); margin-right:4px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+    border:1px solid var(--slate-300); background:#fff; color:var(--slate-500); font-size:12px; cursor:pointer; }
+  .chip i { font-style:normal; background:var(--slate-100); border-radius:999px; padding:0 6px; font-size:11px; }
+  .chip.active { background:var(--indigo); border-color:var(--indigo); color:#fff; }
+  .chip.active i { background:rgba(255,255,255,.25); color:#fff; }
+  .mini { padding:3px 9px; border:1px solid var(--slate-300); background:var(--slate-50); border-radius:6px;
+    font-size:12px; cursor:pointer; color:var(--slate-700); }
+  .mini:hover { background:var(--slate-100); }
+  #wrap { width:100%; height:calc(100vh - 53px - 49px); overflow:hidden; position:relative; background:
+    radial-gradient(circle, var(--slate-200) 1px, transparent 1px) 0 0 / 22px 22px, var(--slate-50); }
+  .mermaid { width:100%; height:100%; } .mermaid svg { max-width:none !important; }
+  #status { position:absolute; top:16px; left:16px; padding:8px 14px; background:#fff; border:1px solid var(--slate-200);
+    border-radius:8px; font-size:13px; color:var(--slate-500); box-shadow:0 1px 3px rgba(15,23,42,.08); }
+  #err { color:#b91c1c; font-family:ui-monospace,monospace; font-size:12px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Swimlane Flow — starter-saas</h1>
+  <span class="meta"><b id="ncount">85</b> entities · <b id="fcount">118</b> flows · <b>20</b> lanes</span>
+  <div class="toolbar">
+    <button id="dir">Lanes: ⬌</button>
+    <button id="lbl">Labels</button>
+    <button id="zin">+</button><button id="zout">−</button><button id="zreset">fit</button>
+  </div>
+</header>
+<div class="filters">
+  <span class="lbl">Lanes</span>
+  <button class="mini" id="all">All</button>
+  <button class="mini" id="none">None</button>
+  <span id="chips"></span>
+</div>
+<div id="wrap">
+  <div id="status">Rendering…</div>
+  <div class="mermaid" id="mmd"></div>
+</div>
+
+<script id="data" type="application/json">{"nodes":[{"name":"AiConversation","module":"AI Agent"},{"name":"AiMessage","module":"AI Agent"},{"name":"AiSetting","module":"AI Agent"},{"name":"Module","module":"Core / Auth"},{"name":"Permission","module":"Core / Auth"},{"name":"RefreshToken","module":"Core / Auth"},{"name":"Role","module":"Core / Auth"},{"name":"RoleModule","module":"Core / Auth"},{"name":"RolePermission","module":"Core / Auth"},{"name":"User","module":"Core / Auth"},{"name":"UserModule","module":"Core / Auth"},{"name":"UserRole","module":"Core / Auth"},{"name":"BillingNote","module":"ERP / Accounting"},{"name":"BillingNoteInvoice","module":"ERP / Accounting"},{"name":"ChartOfAccount","module":"ERP / Accounting"},{"name":"CreditNote","module":"ERP / Accounting"},{"name":"DebitNote","module":"ERP / Accounting"},{"name":"FiscalYear","module":"ERP / Accounting"},{"name":"Journal","module":"ERP / Accounting"},{"name":"JournalLine","module":"ERP / Accounting"},{"name":"ReceivePayment","module":"ERP / Accounting"},{"name":"ReceivePaymentInvoice","module":"ERP / Accounting"},{"name":"TaxPeriod","module":"ERP / Accounting"},{"name":"VendorBill","module":"ERP / Accounting"},{"name":"VendorBillItem","module":"ERP / Accounting"},{"name":"Alert","module":"ERP / Alert"},{"name":"AlertRead","module":"ERP / Alert"},{"name":"Attachment","module":"ERP / Attachments"},{"name":"AuditLog","module":"ERP / Audit"},{"name":"Customer","module":"ERP / Customers"},{"name":"CustomerGroup","module":"ERP / Customers"},{"name":"Store","module":"ERP / Inventory"},{"name":"StoreStock","module":"ERP / Inventory"},{"name":"UOM","module":"ERP / Inventory"},{"name":"UOMConversion","module":"ERP / Inventory"},{"name":"Invoice","module":"ERP / Invoices"},{"name":"InvoiceItem","module":"ERP / Invoices"},{"name":"DeliveryOrder","module":"ERP / Orders"},{"name":"DeliveryOrderItem","module":"ERP / Orders"},{"name":"Order","module":"ERP / Orders"},{"name":"SalesOrderItem","module":"ERP / Orders"},{"name":"Pricing","module":"ERP / Pricing"},{"name":"Item","module":"ERP / Products"},{"name":"Product","module":"ERP / Products"},{"name":"ProductCategory","module":"ERP / Products"},{"name":"ProductStore","module":"ERP / Products"},{"name":"ProductVendor","module":"ERP / Products"},{"name":"PurchaseOrder","module":"ERP / Purchasing"},{"name":"PurchaseOrderItem","module":"ERP / Purchasing"},{"name":"PurchaseRequisition","module":"ERP / Purchasing"},{"name":"PurchaseRequisitionItem","module":"ERP / Purchasing"},{"name":"Quotation","module":"ERP / Quotations"},{"name":"QuotationItem","module":"ERP / Quotations"},{"name":"Receipt","module":"ERP / Receipts"},{"name":"SaleItem","module":"ERP / Sale"},{"name":"SalePackage","module":"ERP / Sale"},{"name":"SalePackageItem","module":"ERP / Sale"},{"name":"ApprovalThreshold","module":"ERP / Settings"},{"name":"Currency","module":"ERP / Settings"},{"name":"ExchangeRate","module":"ERP / Settings"},{"name":"MasterDataCategory","module":"ERP / Settings"},{"name":"MasterDataValue","module":"ERP / Settings"},{"name":"Sequence","module":"ERP / Settings"},{"name":"Setting","module":"ERP / Settings"},{"name":"GoodReceive","module":"ERP / Stock"},{"name":"GoodReceiveItem","module":"ERP / Stock"},{"name":"StockAdjust","module":"ERP / Stock"},{"name":"StockAdjustItem","module":"ERP / Stock"},{"name":"StockCount","module":"ERP / Stock"},{"name":"StockCountItem","module":"ERP / Stock"},{"name":"StockIssue","module":"ERP / Stock"},{"name":"StockIssueItem","module":"ERP / Stock"},{"name":"StockMovement","module":"ERP / Stock"},{"name":"StockRequest","module":"ERP / Stock"},{"name":"StockRequestItem","module":"ERP / Stock"},{"name":"StockReturn","module":"ERP / Stock"},{"name":"StockReturnItem","module":"ERP / Stock"},{"name":"Vendor","module":"ERP / Vendors"},{"name":"Department","module":"HRMS"},{"name":"Employee","module":"HRMS"},{"name":"EmployeeDepartment","module":"HRMS"},{"name":"EmployeeRole","module":"HRMS"},{"name":"HrmsPermission","module":"HRMS"},{"name":"HrmsRole","module":"HRMS"},{"name":"HrmsRolePermission","module":"HRMS"}],"edges":[{"from":"AiConversation","to":"AiMessage","label":"conversationId","cross":false},{"from":"Module","to":"User","label":"UserModule","cross":false},{"from":"Module","to":"Role","label":"RoleModule","cross":false},{"from":"Permission","to":"Role","label":"RolePermission","cross":false},{"from":"User","to":"RefreshToken","label":"userId","cross":false},{"from":"Role","to":"User","label":"UserRole","cross":false},{"from":"User","to":"User","label":"organizationId","cross":false},{"from":"User","to":"User","label":"parentId","cross":false},{"from":"User","to":"Employee","label":"userId","cross":true},{"from":"User","to":"Employee","label":"organizationId","cross":true},{"from":"User","to":"Department","label":"organizationId","cross":true},{"from":"BillingNote","to":"BillingNoteInvoice","label":"billingNoteId","cross":false},{"from":"Customer","to":"BillingNote","label":"customerId","cross":true},{"from":"Invoice","to":"BillingNoteInvoice","label":"invoiceId","cross":true},{"from":"ChartOfAccount","to":"ChartOfAccount","label":"parentId","cross":false},{"from":"Customer","to":"CreditNote","label":"customerId","cross":true},{"from":"Invoice","to":"CreditNote","label":"invoiceId","cross":true},{"from":"Customer","to":"DebitNote","label":"customerId","cross":true},{"from":"Invoice","to":"DebitNote","label":"invoiceId","cross":true},{"from":"Journal","to":"JournalLine","label":"journalId","cross":false},{"from":"ChartOfAccount","to":"JournalLine","label":"accountId","cross":false},{"from":"ReceivePayment","to":"ReceivePaymentInvoice","label":"receivePaymentId","cross":false},{"from":"Customer","to":"ReceivePayment","label":"customerId","cross":true},{"from":"Invoice","to":"ReceivePaymentInvoice","label":"invoiceId","cross":true},{"from":"VendorBill","to":"VendorBillItem","label":"billId","cross":false},{"from":"Vendor","to":"VendorBill","label":"vendorId","cross":true},{"from":"PurchaseOrder","to":"VendorBill","label":"purchaseOrderId","cross":true},{"from":"GoodReceive","to":"VendorBill","label":"goodReceiveId","cross":true},{"from":"Alert","to":"AlertRead","label":"alertId","cross":false},{"from":"CustomerGroup","to":"Customer","label":"customerGroupId","cross":false},{"from":"Customer","to":"Invoice","label":"customerId","cross":true},{"from":"Customer","to":"Order","label":"customerId","cross":true},{"from":"Customer","to":"Quotation","label":"customerId","cross":true},{"from":"Customer","to":"Receipt","label":"customerId","cross":true},{"from":"CustomerGroup","to":"Pricing","label":"customerGroupId","cross":true},{"from":"Store","to":"StoreStock","label":"storeId","cross":false},{"from":"Store","to":"SalesOrderItem","label":"storeId","cross":true},{"from":"Product","to":"Store","label":"ProductStore","cross":true},{"from":"Store","to":"QuotationItem","label":"storeId","cross":true},{"from":"Product","to":"StoreStock","label":"productId","cross":true},{"from":"UOM","to":"UOMConversion","label":"fromUomId","cross":false},{"from":"UOM","to":"UOMConversion","label":"toUomId","cross":false},{"from":"Order","to":"Invoice","label":"orderId","cross":true},{"from":"Invoice","to":"InvoiceItem","label":"invoiceId","cross":false},{"from":"Invoice","to":"Receipt","label":"invoiceId","cross":true},{"from":"User","to":"Invoice","label":"salespersonId","cross":true},{"from":"SaleItem","to":"InvoiceItem","label":"saleItemId","cross":true},{"from":"SalePackage","to":"InvoiceItem","label":"salePackageId","cross":true},{"from":"Product","to":"InvoiceItem","label":"productId","cross":true},{"from":"Store","to":"InvoiceItem","label":"storeId","cross":true},{"from":"InvoiceItem","to":"InvoiceItem","label":"parentItemId","cross":false},{"from":"DeliveryOrder","to":"DeliveryOrderItem","label":"deliveryOrderId","cross":false},{"from":"Customer","to":"DeliveryOrder","label":"customerId","cross":true},{"from":"Order","to":"DeliveryOrder","label":"orderId","cross":false},{"from":"User","to":"DeliveryOrder","label":"salespersonId","cross":true},{"from":"Product","to":"DeliveryOrderItem","label":"productId","cross":true},{"from":"SaleItem","to":"DeliveryOrderItem","label":"saleItemId","cross":true},{"from":"SalePackage","to":"DeliveryOrderItem","label":"salePackageId","cross":true},{"from":"Store","to":"DeliveryOrderItem","label":"storeId","cross":true},{"from":"Order","to":"SalesOrderItem","label":"orderId","cross":false},{"from":"User","to":"Order","label":"salespersonId","cross":true},{"from":"Product","to":"SalesOrderItem","label":"productId","cross":true},{"from":"Item","to":"SalesOrderItem","label":"itemId","cross":true},{"from":"SaleItem","to":"SalesOrderItem","label":"saleItemId","cross":true},{"from":"SalePackage","to":"SalesOrderItem","label":"salePackageId","cross":true},{"from":"SalesOrderItem","to":"SalesOrderItem","label":"parentItemId","cross":false},{"from":"SaleItem","to":"Pricing","label":"saleItemId","cross":true},{"from":"UOM","to":"Product","label":"sellingUomId","cross":true},{"from":"UOM","to":"Product","label":"purchasingUomId","cross":true},{"from":"Product","to":"Vendor","label":"ProductVendor","cross":true},{"from":"Product","to":"SaleItem","label":"productId","cross":true},{"from":"Product","to":"GoodReceiveItem","label":"productId","cross":true},{"from":"Product","to":"StockAdjustItem","label":"productId","cross":true},{"from":"Product","to":"StockIssueItem","label":"productId","cross":true},{"from":"Product","to":"StockMovement","label":"productId","cross":true},{"from":"Product","to":"StockRequestItem","label":"productId","cross":true},{"from":"ProductCategory","to":"ProductCategory","label":"parentId","cross":false},{"from":"PurchaseOrder","to":"PurchaseOrderItem","label":"purchaseOrderId","cross":false},{"from":"Vendor","to":"PurchaseOrder","label":"vendorId","cross":true},{"from":"PurchaseRequisition","to":"PurchaseOrder","label":"requisitionId","cross":false},{"from":"Product","to":"PurchaseOrderItem","label":"productId","cross":true},{"from":"PurchaseRequisition","to":"PurchaseRequisitionItem","label":"requisitionId","cross":false},{"from":"Vendor","to":"PurchaseRequisition","label":"vendorId","cross":true},{"from":"Product","to":"PurchaseRequisitionItem","label":"productId","cross":true},{"from":"Quotation","to":"QuotationItem","label":"quotationId","cross":false},{"from":"User","to":"Quotation","label":"salespersonId","cross":true},{"from":"SaleItem","to":"QuotationItem","label":"saleItemId","cross":true},{"from":"Product","to":"QuotationItem","label":"productId","cross":true},{"from":"SalePackage","to":"QuotationItem","label":"salePackageId","cross":true},{"from":"QuotationItem","to":"QuotationItem","label":"parentItemId","cross":false},{"from":"SalePackage","to":"SalePackageItem","label":"packageId","cross":false},{"from":"SaleItem","to":"SalePackage","label":"SalePackageItem","cross":false},{"from":"SaleItem","to":"SalePackageItem","label":"saleItemId","cross":false},{"from":"MasterDataCategory","to":"MasterDataValue","label":"categoryId","cross":false},{"from":"GoodReceive","to":"GoodReceiveItem","label":"goodReceiveId","cross":false},{"from":"Store","to":"GoodReceive","label":"storeId","cross":true},{"from":"UOM","to":"GoodReceiveItem","label":"qtyUomId","cross":true},{"from":"UOM","to":"GoodReceiveItem","label":"freeQtyUomId","cross":true},{"from":"StockAdjust","to":"StockAdjustItem","label":"stockAdjustId","cross":false},{"from":"Store","to":"StockAdjust","label":"storeId","cross":true},{"from":"Store","to":"StockCount","label":"storeId","cross":true},{"from":"StockCount","to":"StockCountItem","label":"stockCountId","cross":false},{"from":"Product","to":"StockCountItem","label":"productId","cross":true},{"from":"Store","to":"StockIssue","label":"storeId","cross":true},{"from":"StockIssue","to":"StockIssueItem","label":"stockIssueId","cross":false},{"from":"Store","to":"StockMovement","label":"storeId","cross":true},{"from":"Store","to":"StockRequest","label":"fromStoreId","cross":true},{"from":"Store","to":"StockRequest","label":"toStoreId","cross":true},{"from":"StockRequest","to":"StockRequestItem","label":"stockRequestId","cross":false},{"from":"Store","to":"StockReturn","label":"storeId","cross":true},{"from":"Customer","to":"StockReturn","label":"customerId","cross":true},{"from":"Vendor","to":"StockReturn","label":"vendorId","cross":true},{"from":"StockReturn","to":"StockReturnItem","label":"stockReturnId","cross":false},{"from":"Product","to":"StockReturnItem","label":"productId","cross":true},{"from":"Department","to":"Employee","label":"EmployeeDepartment","cross":false},{"from":"Employee","to":"HrmsRole","label":"EmployeeRole","cross":false},{"from":"User","to":"Employee","label":"userId","cross":true},{"from":"HrmsPermission","to":"HrmsRole","label":"HrmsRolePermission","cross":false}],"modules":[{"name":"AI Agent","count":3},{"name":"Core / Auth","count":9},{"name":"ERP / Accounting","count":13},{"name":"ERP / Alert","count":2},{"name":"ERP / Attachments","count":1},{"name":"ERP / Audit","count":1},{"name":"ERP / Customers","count":2},{"name":"ERP / Inventory","count":4},{"name":"ERP / Invoices","count":2},{"name":"ERP / Orders","count":4},{"name":"ERP / Pricing","count":1},{"name":"ERP / Products","count":5},{"name":"ERP / Purchasing","count":4},{"name":"ERP / Quotations","count":2},{"name":"ERP / Receipts","count":1},{"name":"ERP / Sale","count":3},{"name":"ERP / Settings","count":7},{"name":"ERP / Stock","count":13},{"name":"ERP / Vendors","count":1},{"name":"HRMS","count":7}]}</script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  import svgPanZoom from 'https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/+esm';
+
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  mermaid.initialize({ startOnLoad:false, theme:'neutral', securityLevel:'loose', maxTextSize:5_000_000,
+    flowchart:{ useMaxWidth:false, htmlLabels:true, nodeSpacing:30, rankSpacing:55, padding:8 } });
+
+  const selected = new Set(DATA.modules.map(m => m.name));
+  let pz = null, rid = 0, laneDir = 'LR', showLabels = false;
+
+  // Stable, mermaid-safe id per entity name.
+  const ids = {}; let seq = 0;
+  const idOf = (name) => ids[name] || (ids[name] = 'n' + (seq++));
+  // Stable, mermaid-safe id per module (lane).
+  const lid = {}; let lseq = 0;
+  const laneId = (name) => lid[name] || (lid[name] = 'L' + (lseq++));
+
+  // Per-lane fill colours (lane index -> pastel).
+  const LANE_FILL = ['#eef2ff','#ecfeff','#f0fdf4','#fef9c3','#fef2f2','#faf5ff','#fff7ed','#f0f9ff','#f5f3ff','#fdf2f8'];
+
+  // build chips
+  const chipsEl = document.getElementById('chips');
+  for (const m of DATA.modules) {
+    const b = document.createElement('button');
+    b.className = 'chip active'; b.dataset.mod = m.name;
+    b.innerHTML = m.name + ' <i>' + m.count + '</i>';
+    b.onclick = () => { if (selected.has(m.name)) { selected.delete(m.name); b.classList.remove('active'); }
+      else { selected.add(m.name); b.classList.add('active'); } render(); };
+    chipsEl.appendChild(b);
+  }
+
+  function esc(s){ return String(s).replace(/"/g,'&quot;'); }
+
+  function buildSource() {
+    const visMods = DATA.modules.filter(m => selected.has(m.name)).map(m => m.name);
+    const nodes = DATA.nodes.filter(n => selected.has(n.module));
+    const names = new Set(nodes.map(n => n.name));
+    const eds = DATA.edges.filter(e => names.has(e.from) && names.has(e.to));
+    document.getElementById('ncount').textContent = nodes.length;
+    document.getElementById('fcount').textContent = eds.length;
+    if (!nodes.length) return null;
+
+    // Top-level direction: lanes laid out, each lane stacks its nodes the other way.
+    const top = laneDir === 'LR' ? 'LR' : 'TB';
+    const inner = laneDir === 'LR' ? 'TB' : 'LR';
+    let s = 'flowchart ' + top + '\n';
+
+    // One subgraph (lane) per module.
+    for (const mod of visMods) {
+      const ln = laneId(mod);
+      s += '  subgraph ' + ln + '["' + esc(mod) + '"]\n    direction ' + inner + '\n';
+      for (const n of nodes.filter(x => x.module === mod)) {
+        s += '    ' + idOf(n.name) + '["' + esc(n.name) + '"]\n';
+      }
+      s += '  end\n';
+    }
+
+    // Flows: bold (==>) when crossing a lane, thin (-->) within a lane.
+    for (const e of eds) {
+      const arrow = e.cross ? '==>' : '-->';
+      const lab = showLabels && e.label ? '|' + esc(e.label) + '|' : '';
+      s += '  ' + idOf(e.from) + ' ' + arrow + lab + ' ' + idOf(e.to) + '\n';
+    }
+
+    // Lane styling.
+    visMods.forEach((mod, i) => {
+      const fill = LANE_FILL[i % LANE_FILL.length];
+      s += '  style ' + laneId(mod) + ' fill:' + fill + ',stroke:#cbd5e1,stroke-width:1px,color:#334155\n';
+    });
+    return s;
+  }
+
+  async function render() {
+    const status = document.getElementById('status');
+    const src = buildSource();
+    const el = document.getElementById('mmd');
+    if (!src) { el.innerHTML = ''; status.style.display='block'; status.textContent = 'No lanes selected.'; return; }
+    status.style.display='block'; status.textContent = 'Rendering…';
+    try {
+      const { svg, bindFunctions } = await mermaid.render('fl' + (++rid), src);
+      el.innerHTML = svg;
+      bindFunctions && bindFunctions(el);
+      const svgEl = el.querySelector('svg');
+      svgEl.style.width='100%'; svgEl.style.height='100%';
+      if (pz) { try { pz.destroy(); } catch {} }
+      pz = svgPanZoom(svgEl, { zoomEnabled:true, controlIconsEnabled:false, fit:true, center:true,
+        minZoom:0.03, maxZoom:40, zoomScaleSensitivity:0.4 });
+      status.style.display='none';
+    } catch (e) {
+      status.style.display='block';
+      status.innerHTML = '<span id="err">Render failed:\n' + ((e && e.message) || e) + '</span>';
+    }
+  }
+
+  document.getElementById('all').onclick = () => { DATA.modules.forEach(m => selected.add(m.name));
+    document.querySelectorAll('.chip').forEach(c => c.classList.add('active')); render(); };
+  document.getElementById('none').onclick = () => { selected.clear();
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); render(); };
+  document.getElementById('dir').onclick = (ev) => { laneDir = laneDir === 'LR' ? 'TB' : 'LR';
+    ev.currentTarget.textContent = 'Lanes: ' + (laneDir === 'LR' ? '⬌' : '⬍'); render(); };
+  document.getElementById('lbl').onclick = (ev) => { showLabels = !showLabels;
+    ev.currentTarget.classList.toggle('on', showLabels); render(); };
+  document.getElementById('zin').onclick = () => pz && pz.zoomIn();
+  document.getElementById('zout').onclick = () => pz && pz.zoomOut();
+  document.getElementById('zreset').onclick = () => { if (pz) { pz.resetZoom(); pz.fit(); pz.center(); } };
+
+  render();
+</script>
+</body>
+</html>
