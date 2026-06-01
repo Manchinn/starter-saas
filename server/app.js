@@ -16,7 +16,7 @@ const realtime = require('./core/realtime')
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
 
-const app = express()
+const app = express() // nosemgrep: javascript.express.security.audit.express-check-csurf-middleware-usage.express-check-csurf-middleware-usage -- stateless Bearer-token API; the only cookie (refresh) is httpOnly + SameSite=Strict, so CSRF is already mitigated without a token middleware
 
 // Don't advertise the framework.
 app.disable('x-powered-by')
@@ -113,7 +113,7 @@ async function bootstrap() {
 
   // Always serve HTTP; additionally serve HTTPS when configured. Socket.IO is
   // attached to every server so realtime works over either scheme.
-  const httpServer = http.createServer(app)
+  const httpServer = http.createServer(app) // nosemgrep: problem-based-packs.insecure-transport.js-node.using-http-server.using-http-server -- intentional HTTP listener for HTTP/HTTPS dual-serving; TLS is provided by the HTTPS listener below or terminated by an upstream proxy
   const servers = [httpServer]
 
   let httpsServer = null

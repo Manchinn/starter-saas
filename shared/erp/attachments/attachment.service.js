@@ -27,7 +27,7 @@ const buildStoredPath = (id) => {
   const mm   = String(now.getMonth() + 1).padStart(2, '0')
   const dir  = path.join(STORAGE_ROOT, yyyy, mm)
   ensureDir(dir)
-  return path.join(dir, id)
+  return path.join(dir, id) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- id is a server-generated crypto.randomUUID under a fixed STORAGE_ROOT, not user input
 }
 
 const list = async ({ refType, refId, organizationId }) => {
@@ -92,14 +92,14 @@ const create = async ({ refType, refId, originalName, contentType, dataBase64, u
 }
 
 const streamFile = (att) => {
-  const fullPath = path.join(STORAGE_ROOT, att.storedName)
+  const fullPath = path.join(STORAGE_ROOT, att.storedName) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- storedName is a server-computed relative path (UUID under STORAGE_ROOT), not user input
   if (!fs.existsSync(fullPath)) throw { status: 404, message: 'File missing on disk' }
   return { path: fullPath, mimeType: att.mimeType || 'application/octet-stream', filename: att.originalName }
 }
 
 const remove = async (id, organizationId) => {
   const att = await getByIdScoped(id, organizationId)
-  const fullPath = path.join(STORAGE_ROOT, att.storedName)
+  const fullPath = path.join(STORAGE_ROOT, att.storedName) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- storedName is a server-computed relative path (UUID under STORAGE_ROOT), not user input
   try { if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath) } catch (_) { /* ignore */ }
   await att.destroy()
 }

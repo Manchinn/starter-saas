@@ -23,9 +23,9 @@ const findAiToolFiles = (dir) => {
   const out = []
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue
-    const full = path.join(dir, entry.name)
+    const full = path.join(dir, entry.name) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- fixed ERP dir; names come from readdirSync, not request input
     if (entry.name === 'ai-tools') {
-      const idx = path.join(full, 'index.js')
+      const idx = path.join(full, 'index.js') // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- joins a discovered dir with a constant filename, not request input
       if (fs.existsSync(idx)) out.push(idx)
     } else {
       out.push(...findAiToolFiles(full))

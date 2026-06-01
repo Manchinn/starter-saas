@@ -77,7 +77,7 @@
                   <SparklesIcon class="w-4 h-4 text-primary-500" />
                 </div>
                 <div class="flex-1 min-w-0 space-y-2 pt-0.5">
-                  <div v-if="m.content" class="text-[13px] leading-relaxed text-[#374151] space-y-1.5" v-html="renderRich(m.content)" />
+                  <RichText v-if="m.content" :text="m.content" class="text-[13px] leading-relaxed text-[#374151]" />
                   <!-- Action chips -->
                   <div v-if="m.actions && m.actions.length" class="flex flex-wrap gap-1.5">
                     <button v-for="(a, i) in m.actions" :key="i" @click="runAction(a)"
@@ -130,7 +130,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAiAgentStore } from '@/stores/aiAgent'
-import { renderRich } from '@/utils/aiText'
+import RichText from '@/components/RichText.vue'
 
 const { t } = useI18n()
 const router = useRouter()

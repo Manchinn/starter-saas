@@ -37,7 +37,7 @@ describe('system.testConnection — payload validation', () => {
       .rejects.toEqual({ status: 400, message: 'Host is required' })
     await expect(service.testConnection({ dialect: 'postgres', host: 'h' }))
       .rejects.toEqual({ status: 400, message: 'Database name is required' })
-    await expect(service.testConnection({ dialect: 'postgres', host: 'h', database: 'd' }))
+    await expect(service.testConnection({ dialect: 'postgres', host: 'h', database: 'd', dialectOptions: { ssl: { require: true } } }))
       .rejects.toEqual({ status: 400, message: 'Username is required' })
   })
 })
