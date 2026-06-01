@@ -302,7 +302,7 @@ const listAllStaff = async ({ page = 1, limit = 20, search = '', organizationId 
     where,
     limit,
     offset,
-    attributes: ['id', 'name', 'email', 'role', 'isActive', 'organizationId'],
+    attributes: ['id', 'name', 'email', 'role', 'isActive', 'organizationId', 'createdAt'],
     include: [
       { model: User, as: 'organization', attributes: ['id', 'name'] },
       {
