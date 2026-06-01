@@ -3,6 +3,7 @@ const controller = require('../controllers/sequence.controller')
 const svc = require('../services/sequence.service')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requireRole } = require('../../../../server/middleware/role')
+const { requirePermission } = require('../../../../server/middleware/permission')
 
 const router = Router()
 router.use(authenticate)
@@ -24,11 +25,14 @@ router.get('/preview/:code', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-router.get('/',             (req, res) => controller.list(req, res))
-router.get('/:id',          (req, res) => controller.getById(req, res))
-router.post('/',            (req, res) => controller.create(req, res))
-router.put('/:id',          (req, res) => controller.update(req, res))
-router.post('/:id/reset',   (req, res) => controller.reset(req, res))
-router.delete('/:id',       (req, res) => controller.remove(req, res))
+// /preview/:code stays authenticate-only — it's a cross-module utility used by
+// every create form to show the next number. The sequence config CRUD below is
+// the Settings page, gated like its nav entry (`erp.stock.edit`).
+router.get('/',             requirePermission('erp.stock.edit'), (req, res) => controller.list(req, res))
+router.get('/:id',          requirePermission('erp.stock.edit'), (req, res) => controller.getById(req, res))
+router.post('/',            requirePermission('erp.stock.edit'), (req, res) => controller.create(req, res))
+router.put('/:id',          requirePermission('erp.stock.edit'), (req, res) => controller.update(req, res))
+router.post('/:id/reset',   requirePermission('erp.stock.edit'), (req, res) => controller.reset(req, res))
+router.delete('/:id',       requirePermission('erp.stock.edit'), (req, res) => controller.remove(req, res))
 
 module.exports = { mountPath: '/sequences', router }
