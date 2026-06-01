@@ -2,7 +2,8 @@
  * auth.cookies.js — httpOnly cookie helpers for the refresh-token flow.
  *
  * The refresh token never touches client-readable storage: it lives in an
- * httpOnly, SameSite=Strict cookie (Secure in production). The access token
+ * httpOnly, SameSite=Strict cookie (Secure follows the request scheme — see
+ * config.cookieSecure — so the same flow works over http and https). The access token
  * stays in browser memory and is re-minted from this cookie on page load.
  * During impersonation the admin's own refresh token is parked in a second
  * cookie so "return to admin" can restore it without exposing it to JS.
@@ -24,13 +25,21 @@ function refreshMaxAgeMs() {
   return n * mult * 1000
 }
 
+// Whether to set the Secure flag for this request. 'auto' (default) mirrors the
+// request scheme: Secure over https, not over http — so the cookie is usable
+// under both. 'true'/'false' force it regardless of scheme.
+function secureFor(req) {
+  if (config.cookieSecure === 'true')  return true
+  if (config.cookieSecure === 'false') return false
+  return !!(req && (req.secure || req.headers?.['x-forwarded-proto'] === 'https'))
+}
+
 // Shared attributes. Path=/api so the cookie reaches every API route (auth +
-// profile session detection) but nothing else. Secure only in production so it
-// still works over http://localhost in dev.
-function baseOpts() {
+// profile session detection) but nothing else.
+function baseOpts(req) {
   return {
     httpOnly: true,
-    secure: config.env === 'production',
+    secure: secureFor(req),
     sameSite: 'strict',
     path: '/api',
   }
@@ -51,22 +60,22 @@ function readCookie(req, name) {
   return ''
 }
 
-function setRefreshCookie(res, token, { persist = true } = {}) {
-  const opts = baseOpts()
+function setRefreshCookie(req, res, token, { persist = true } = {}) {
+  const opts = baseOpts(req)
   if (persist) opts.maxAge = refreshMaxAgeMs() // omit → session cookie
   res.cookie(REFRESH_COOKIE, token, opts)
 }
 
-function clearRefreshCookie(res) {
-  res.clearCookie(REFRESH_COOKIE, baseOpts())
+function clearRefreshCookie(req, res) {
+  res.clearCookie(REFRESH_COOKIE, baseOpts(req))
 }
 
-function setImpersonatorCookie(res, token) {
-  res.cookie(IMPERSONATOR_COOKIE, token, { ...baseOpts(), maxAge: refreshMaxAgeMs() })
+function setImpersonatorCookie(req, res, token) {
+  res.cookie(IMPERSONATOR_COOKIE, token, { ...baseOpts(req), maxAge: refreshMaxAgeMs() })
 }
 
-function clearImpersonatorCookie(res) {
-  res.clearCookie(IMPERSONATOR_COOKIE, baseOpts())
+function clearImpersonatorCookie(req, res) {
+  res.clearCookie(IMPERSONATOR_COOKIE, baseOpts(req))
 }
 
 module.exports = {

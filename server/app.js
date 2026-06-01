@@ -1,6 +1,8 @@
 require('dotenv').config()
 const path = require('path')
+const fs = require('fs')
 const http = require('http')
+const https = require('https')
 const express = require('express')
 const cors = require('cors')
 const config = require('./config/config')
@@ -18,6 +20,20 @@ const app = express()
 
 // Don't advertise the framework.
 app.disable('x-powered-by')
+
+// Trust the reverse proxy (if any) so req.secure / req.protocol reflect the
+// original scheme via X-Forwarded-Proto — required for correct https detection
+// and Secure cookies when TLS is terminated upstream.
+if (config.trustProxy !== false) app.set('trust proxy', config.trustProxy)
+
+// When both schemes are served, optionally bounce http → https.
+if (config.https.enabled && config.https.redirectHttp) {
+  app.use((req, res, next) => {
+    if (req.secure) return next()
+    const host = (req.headers.host || 'localhost').split(':')[0]
+    return res.redirect(308, `https://${host}:${config.https.port}${req.originalUrl}`)
+  })
+}
 
 // Baseline security headers. CSP is intentionally omitted here — the SPA is
 // served separately (Vite/static host), so its CSP belongs with that host.
@@ -81,12 +97,34 @@ async function bootstrap() {
     res.status(err.status || 500).json({ success: false, message: 'Internal server error' })
   })
 
-  const server = http.createServer(app)
-  realtime.init(server)
+  // Always serve HTTP; additionally serve HTTPS when configured. Socket.IO is
+  // attached to every server so realtime works over either scheme.
+  const httpServer = http.createServer(app)
+  const servers = [httpServer]
 
-  server.listen(config.port, () => {
+  let httpsServer = null
+  if (config.https.enabled) {
+    if (!config.https.keyPath || !config.https.certPath) {
+      throw new Error('HTTPS_ENABLED is true but HTTPS_KEY_PATH / HTTPS_CERT_PATH are not set')
+    }
+    const credentials = {
+      key:  fs.readFileSync(config.https.keyPath),
+      cert: fs.readFileSync(config.https.certPath),
+    }
+    httpsServer = https.createServer(credentials, app)
+    servers.push(httpsServer)
+  }
+
+  realtime.init(servers)
+
+  httpServer.listen(config.port, () => {
     logger.info(`Server running on http://localhost:${config.port} (${config.env})`, { label: 'server' })
   })
+  if (httpsServer) {
+    httpsServer.listen(config.https.port, () => {
+      logger.info(`Server running on https://localhost:${config.https.port} (${config.env})`, { label: 'server' })
+    })
+  }
 
   // Prune expired refresh tokens every hour
   setInterval(pruneExpiredTokens, 60 * 60 * 1000)
