@@ -135,7 +135,36 @@ async function bootstrap() {
   })
 
   // Prune expired refresh tokens every hour
-  setInterval(pruneExpiredTokens, 60 * 60 * 1000)
+  const pruneInterval = setInterval(pruneExpiredTokens, 60 * 60 * 1000)
+
+  // Graceful shutdown handler
+  const shutdown = async (signal) => {
+    logger.info(`${signal} received, closing connections gracefully...`, { label: 'shutdown' })
+    clearInterval(pruneInterval)
+
+    server.close(async () => {
+      logger.info('HTTP server closed', { label: 'shutdown' })
+      try {
+        await sequelize.close()
+        logger.info('Database connection closed', { label: 'shutdown' })
+        await cache.disconnect()
+        logger.info('Redis connection closed', { label: 'shutdown' })
+        process.exit(0)
+      } catch (err) {
+        logger.error('Error during shutdown', { label: 'shutdown', error: err.message })
+        process.exit(1)
+      }
+    })
+
+    // Force exit after 10 seconds if graceful shutdown hangs
+    setTimeout(() => {
+      logger.error('Shutdown timeout, forcing exit', { label: 'shutdown' })
+      process.exit(1)
+    }, 10000)
+  }
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'))
+  process.on('SIGINT', () => shutdown('SIGINT'))
 }
 
 bootstrap().catch((err) => {
