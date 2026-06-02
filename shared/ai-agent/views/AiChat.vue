@@ -38,6 +38,15 @@
               </li>
             </ul>
           </div>
+
+          <!-- Clear all chat history -->
+          <div v-if="store.conversations.length" class="border-t border-[#E2E8F0] p-2">
+            <button type="button" @click="confirmClearAll" :disabled="clearing"
+              class="w-full flex items-center justify-center gap-2 px-3 py-2 text-[13px] text-[#637381] hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50">
+              <TrashIcon class="w-3.5 h-3.5 flex-shrink-0" />
+              {{ clearing ? t('aiAgent.chat.clearing') : t('aiAgent.chat.clearAll') }}
+            </button>
+          </div>
         </aside>
 
         <!-- Thread -->
@@ -165,6 +174,7 @@ const store = useAiAgentStore()
 const draft = ref('')
 const scrollEl = ref(null)
 const inputEl = ref(null)
+const clearing = ref(false)
 
 // Clickable starter prompts, grouped by module. Each maps to a real
 // tool/navigation the agent supports. The desktop right rail renders the
@@ -225,5 +235,16 @@ function runAction(a) {
 async function confirmDelete(c) {
   if (!confirm(t('aiAgent.chat.confirmDelete'))) return
   await store.removeConversation(c.id)
+}
+
+async function confirmClearAll() {
+  if (clearing.value || !store.conversations.length) return
+  if (!confirm(t('aiAgent.chat.confirmClearAll'))) return
+  clearing.value = true
+  try {
+    await store.clearAllConversations()
+  } finally {
+    clearing.value = false
+  }
 }
 </script>

@@ -1,6 +1,6 @@
 jest.mock('../../../server/models', () => ({
-  AiConversation: { findOne: jest.fn(), create: jest.fn() },
-  AiMessage: { findAll: jest.fn(), create: jest.fn() },
+  AiConversation: { findOne: jest.fn(), create: jest.fn(), findAll: jest.fn(), destroy: jest.fn() },
+  AiMessage: { findAll: jest.fn(), create: jest.fn(), destroy: jest.fn() },
 }))
 jest.mock('../services/settings.service')
 jest.mock('../services/provider.service')
@@ -118,5 +118,27 @@ describe('agent.chat — tool loop', () => {
     const toolMsg = provider.chat.mock.calls[1][0].messages.find((m) => m.role === 'tool')
     expect(toolMsg.content).toContain('SKU already exists')
     expect(res.message.content).toBe('Sorry, that SKU exists.')
+  })
+})
+
+describe('removeAllConversations', () => {
+  test('deletes every conversation and its messages, scoped to the user/org', async () => {
+    AiConversation.findAll.mockResolvedValue([{ id: 'c1' }, { id: 'c2' }])
+
+    const out = await agent.removeAllConversations(USER)
+
+    expect(AiMessage.destroy).toHaveBeenCalledWith({ where: { conversationId: ['c1', 'c2'] } })
+    expect(AiConversation.destroy).toHaveBeenCalledWith({ where: { userId: 'u1', organizationId: 'o1' } })
+    expect(out).toEqual({ deleted: 2 })
+  })
+
+  test('is a no-op when there is no history', async () => {
+    AiConversation.findAll.mockResolvedValue([])
+
+    const out = await agent.removeAllConversations(USER)
+
+    expect(out).toEqual({ deleted: 0 })
+    expect(AiMessage.destroy).not.toHaveBeenCalled()
+    expect(AiConversation.destroy).not.toHaveBeenCalled()
   })
 })

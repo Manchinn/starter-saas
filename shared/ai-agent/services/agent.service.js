@@ -191,6 +191,18 @@ const removeConversation = async (user, id) => {
   await conv.destroy()
 }
 
+// Wipe the user's entire chat history (all conversations + their messages),
+// scoped to this org. Returns how many conversations were removed.
+const removeAllConversations = async (user) => {
+  const { id: userId, organizationId } = user
+  const convs = await AiConversation.findAll({ where: { userId, organizationId }, attributes: ['id'] })
+  const ids = convs.map((c) => c.id)
+  if (!ids.length) return { deleted: 0 }
+  await AiMessage.destroy({ where: { conversationId: ids } })
+  await AiConversation.destroy({ where: { userId, organizationId } })
+  return { deleted: ids.length }
+}
+
 const safeParse = (s) => { try { return JSON.parse(s) } catch { return [] } }
 
-module.exports = { chat, listConversations, getConversation, removeConversation }
+module.exports = { chat, listConversations, getConversation, removeConversation, removeAllConversations }
