@@ -2,7 +2,35 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.stores.edit')" back-to="/erp/stores" />
+      <PageHeader :title="t('erp.stores.edit')" back-to="/erp/stores">
+        <template #actions>
+          <!-- Keyboard shortcuts popover -->
+          <div class="relative" ref="shortcutsRef">
+            <button @click="showShortcuts = !showShortcuts"
+              class="h-8 px-2 flex items-center gap-1 border border-[#E2E8F0] text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F7F9FC] transition-colors text-sm font-semibold"
+              title="Keyboard shortcuts">
+              <span>?</span>
+              <span class="text-xs font-medium">Shortcuts</span>
+            </button>
+            <Transition
+              enter-active-class="transition-all duration-150 ease-out"
+              enter-from-class="opacity-0 translate-y-1"
+              enter-to-class="opacity-100 translate-y-0"
+              leave-active-class="transition-all duration-100 ease-in"
+              leave-from-class="opacity-100 translate-y-0"
+              leave-to-class="opacity-0 translate-y-1">
+              <div v-if="showShortcuts"
+                class="absolute right-0 top-10 z-50 w-56 bg-white border border-[#E2E8F0] shadow-lg p-4 space-y-2">
+                <p class="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-3">Keyboard Shortcuts</p>
+                <div v-for="s in SHORTCUTS" :key="s.key" class="flex items-center justify-between gap-3">
+                  <span class="text-xs text-[#637381]">{{ s.label }}</span>
+                  <kbd class="inline-flex items-center px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] text-[10px] font-mono text-[#374151] whitespace-nowrap">{{ s.key }}</kbd>
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </template>
+      </PageHeader>
 
       <LoadingSpinner v-if="loading" />
       <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3">
@@ -11,7 +39,11 @@
 
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
-          <FormField v-model="form.code" name="code" :label="t('erp.stores.code')" input-class="font-mono" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField name="code" :label="t('erp.stores.code')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="codeInputRef" v-model="form.code" type="text" :class="['input font-mono', errorClass]" />
+            </template>
+          </FormField>
           <FormField v-model="form.name" name="name" :label="t('erp.stores.name')" required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.phone" name="phone" :label="t('erp.stores.phone')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.email" name="email" type="email" :label="t('erp.stores.email')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
@@ -50,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -80,7 +112,33 @@ const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
+const showShortcuts = ref(false)
+const shortcutsRef  = ref(null)
+const codeInputRef  = ref(null)
+
+const SHORTCUTS = [
+  { key: 'Ctrl+S', label: 'Save changes' },
+  { key: 'Escape', label: 'Cancel / back' },
+]
+
+function onClickOutsideShortcuts(e) {
+  if (shortcutsRef.value && !shortcutsRef.value.contains(e.target)) {
+    showShortcuts.value = false
+  }
+}
+
+function onKeydown(e) {
+  if (e.key === 'Escape') {
+    router.push('/erp/stores')
+  } else if (e.ctrlKey && e.key === 's') {
+    e.preventDefault()
+    save()
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
+  document.addEventListener('mousedown', onClickOutsideShortcuts)
   try {
     const { data } = await api.get(`/erp/stores/${route.params.id}`)
     const s = data.data.store
@@ -89,7 +147,13 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('mousedown', onClickOutsideShortcuts)
 })
 
 async function save() {
