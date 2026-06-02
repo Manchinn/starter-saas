@@ -4,7 +4,7 @@ export default {
   slug: 'admin',
   isCore: true,
   adminOnly: false,   // routes below use per-route meta instead
-  order: 90,
+  order: 999,
   routes: [
     {
       path: '/admin/organizations',
