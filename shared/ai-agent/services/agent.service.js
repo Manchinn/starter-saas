@@ -16,12 +16,9 @@ const HISTORY_LIMIT = 20   // prior turns fed back to the model
 // customized it). Stops the model from fabricating figures — every numeric /
 // business answer must come from a tool result, not the model's imagination.
 const DATA_INTEGRITY_DIRECTIVE =
-  '\n\nIMPORTANT — data integrity: Base every factual answer only on data returned by a tool. '
-  + 'For any request about metrics, counts, money, sales, AR/AP, VAT, inventory, customers, products, '
-  + 'orders, or any business figures — including summaries and executive briefings — you MUST call the '
-  + 'relevant tool first and report ONLY the values it returns. Never invent, estimate, guess, or use '
-  + 'placeholder/example numbers. If a tool returns zero or no data, say so honestly. If no tool covers '
-  + 'the question, say you do not have that data rather than making something up.'
+  '\n\nData integrity: for any business figure (metrics, money, sales, AR/AP, VAT, inventory, counts), '
+  + 'call the relevant tool first and report ONLY the values it returns — never invent, estimate or guess. '
+  + 'If a tool returns no data, say so; if no tool covers it, say you do not have that data.'
 
 // Map the UI locale to a directive appended to the system prompt so the model
 // replies in the user's selected language even when tool data is in English.

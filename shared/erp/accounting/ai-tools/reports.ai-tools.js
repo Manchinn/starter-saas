@@ -19,7 +19,7 @@ const tools = [
   {
     name: 'trial_balance_report',
     kind: 'server',
-    description: 'Run the Trial Balance — every account with a non-zero balance from posted journal lines as of a date, with debit/credit column totals (which tie out). Use for "trial balance" or to check the books balance.',
+    description: 'Trial Balance: each account balance with debit/credit totals as of a date.',
     parameters: {
       type: 'object',
       properties: {
@@ -43,7 +43,7 @@ const tools = [
   {
     name: 'general_ledger_report',
     kind: 'server',
-    description: 'Run the General Ledger for ONE account: opening balance, every posted entry over a date range with a running balance, and the closing balance. Identify the account by code or name.',
+    description: 'General Ledger for one account (by code or name): opening balance, entries over a date range, closing balance.',
     parameters: {
       type: 'object',
       properties: {

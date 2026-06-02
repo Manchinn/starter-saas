@@ -16,7 +16,7 @@ const tools = [
   {
     name: 'ar_aging_report',
     kind: 'server',
-    description: 'Accounts Receivable aging — outstanding customer invoices bucketed by age (current, 1-30, 31-60, 61-90, 90+ days overdue), with an org summary and per-customer breakdown. Use for "AR aging", "who owes us money", or "overdue receivables".',
+    description: 'AR aging: outstanding customer invoices bucketed by days overdue, with a per-customer breakdown. Use for "who owes us money" / "overdue receivables".',
     parameters: {
       type: 'object',
       properties: {

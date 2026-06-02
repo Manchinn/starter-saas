@@ -57,7 +57,7 @@ const tools = [
   {
     name: 'list_journals',
     kind: 'server',
-    description: 'List or search journal entries. Use when the user asks about journal entries, recent postings, or draft entries awaiting posting.',
+    description: 'List or search journal entries (by ref no / description / status).',
     parameters: {
       type: 'object',
       properties: {
@@ -83,7 +83,7 @@ const tools = [
   {
     name: 'get_journal',
     kind: 'server',
-    description: "Look up a single journal entry's full details (all debit/credit lines) by its reference number.",
+    description: 'Get one journal entry with all its debit/credit lines, by reference number.',
     parameters: {
       type: 'object',
       properties: {

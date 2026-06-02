@@ -19,7 +19,7 @@ const tools = [
   {
     name: 'balance_sheet',
     kind: 'server',
-    description: 'Statement of Financial Position (Balance Sheet) as of a date: assets, liabilities and equity with totals. Use for "balance sheet", "financial position", or "what are our assets/liabilities".',
+    description: 'Balance Sheet as of a date: assets, liabilities and equity with totals.',
     parameters: {
       type: 'object',
       properties: {
@@ -39,7 +39,7 @@ const tools = [
   {
     name: 'income_statement',
     kind: 'server',
-    description: 'Income Statement (Profit & Loss) for a period: revenue, cost of sales, gross profit, expenses and net profit. Use for "P&L", "income statement", "profit", or "how much did we make".',
+    description: 'Income Statement (P&L) for a period: revenue, cost of sales, gross profit, expenses, net profit.',
     parameters: {
       type: 'object',
       properties: {

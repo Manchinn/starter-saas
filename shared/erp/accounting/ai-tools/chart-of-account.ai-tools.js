@@ -55,7 +55,7 @@ const tools = [
   {
     name: 'list_accounts',
     kind: 'server',
-    description: 'List or search the chart of accounts. Use when the user asks what accounts exist or to find an account by code or name.',
+    description: 'List or search the chart of accounts (by code, name or type).',
     parameters: {
       type: 'object',
       properties: {

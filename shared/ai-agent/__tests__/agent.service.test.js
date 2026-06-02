@@ -96,7 +96,7 @@ describe('agent.chat — tool loop', () => {
     await agent.chat({ user: USER, conversationId: null, content: 'how are sales?' })
 
     const sys = provider.chat.mock.calls[0][0].messages.find((m) => m.role === 'system')
-    expect(sys.content).toContain('data integrity')
+    expect(sys.content).toMatch(/data integrity/i)
     expect(sys.content).toMatch(/only the values it returns/i)
   })
 

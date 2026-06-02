@@ -41,7 +41,7 @@ const tools = [
   {
     name: 'list_tax_periods',
     kind: 'server',
-    description: 'List VAT/tax periods and their open/closed status. Use when the user asks about tax periods or which periods are still open.',
+    description: 'List VAT/tax periods and their open/closed status.',
     parameters: {
       type: 'object',
       properties: {
@@ -60,7 +60,7 @@ const tools = [
   {
     name: 'vat_report',
     kind: 'server',
-    description: 'VAT report for a tax period: total output tax (sales), total input tax (purchases) and the net VAT payable. Identify the period by name.',
+    description: 'VAT report for a tax period (by name): output tax, input tax, net VAT payable.',
     parameters: {
       type: 'object',
       properties: {
