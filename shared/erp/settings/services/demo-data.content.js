@@ -28,8 +28,10 @@ const en = {
   },
 
   customerGroups: {
-    retail:    { name: 'Retail',    desc: 'Walk-in & direct customers' },
-    wholesale: { name: 'Wholesale', desc: 'Bulk-buy distributors' },
+    retail:     { code: 'CG-001', name: 'Retail',     desc: 'Walk-in and direct sales customers at standard pricing' },
+    wholesale:  { code: 'CG-002', name: 'Wholesale',  desc: 'Bulk-buy distributors and resellers with volume discounts' },
+    vip:        { code: 'CG-003', name: 'VIP',        desc: 'High-value accounts with premium pricing and dedicated support' },
+    government: { code: 'CG-004', name: 'Government', desc: 'Government agencies and public-sector institutions' },
   },
 
   customers: {
@@ -230,8 +232,10 @@ const th = {
   },
 
   customerGroups: {
-    retail:    { name: 'ขายปลีก', desc: 'ลูกค้าหน้าร้านและลูกค้าตรง' },
-    wholesale: { name: 'ขายส่ง',  desc: 'ตัวแทนจำหน่ายแบบซื้อจำนวนมาก' },
+    retail:     { code: 'CG-001', name: 'ขายปลีก',   desc: 'ลูกค้าหน้าร้านและลูกค้าตรงในราคามาตรฐาน' },
+    wholesale:  { code: 'CG-002', name: 'ขายส่ง',    desc: 'ตัวแทนจำหน่ายและผู้ซื้อจำนวนมากที่มีส่วนลดพิเศษ' },
+    vip:        { code: 'CG-003', name: 'VIP',       desc: 'ลูกค้ามูลค่าสูงที่มีราคาพิเศษและบริการดูแลเฉพาะ' },
+    government: { code: 'CG-004', name: 'หน่วยงานรัฐ', desc: 'หน่วยงานราชการและองค์กรภาครัฐ' },
   },
 
   customers: {

@@ -1,9 +1,9 @@
-// Demo customer groups. Ordered array: [Retail, Wholesale, VIP, Government].
+// Demo customer groups. Ordered array mirrors the CG-00x codes.
 const GROUPS = [
-  { name: 'Retail',     description: 'Walk-in retail customers' },
-  { name: 'Wholesale',  description: 'Bulk purchase accounts' },
-  { name: 'VIP',        description: 'High-value accounts' },
-  { name: 'Government', description: 'Government agencies' },
+  { code: 'CG-001', name: 'Retail',     description: 'Walk-in retail customers' },
+  { code: 'CG-002', name: 'Wholesale',  description: 'Bulk purchase accounts' },
+  { code: 'CG-003', name: 'VIP',        description: 'High-value accounts with premium pricing' },
+  { code: 'CG-004', name: 'Government', description: 'Government agencies and public institutions' },
 ]
 
 module.exports = {
