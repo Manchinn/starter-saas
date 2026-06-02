@@ -181,20 +181,51 @@ A handler returns `{ result, action? }`: `result` is fed back to the model, and 
 Modules with several controllers can split their tools one file per controller (e.g.
 `product.ai-tools.js` + `product-category.ai-tools.js`) and merge them in `index.js` — the
 registry only loads `index.js`. Modules with nav targets but no tools yet still export
-`{ tools: [], navTargets }` so the `navigate` tool knows about their pages. Current coverage:
+`{ tools: [], navTargets }` so the `navigate` tool knows about their pages.
 
-| Module | Nav targets | Tools |
+Coverage spans the whole ERP surface — **~90 tools across 24 modules** (plus the core
+`navigate`). Capabilities follow a deliberate tiering:
+
+- **Master data** → full `create` / `list` / `get` / `update` / `delete`.
+- **Reporting** → read-only query tools that return data only (no `action`), so the model
+  narrates an answer.
+- **Financial & stock workflow documents** → intentionally **read-only lookups + navigation**.
+  The agent finds and links to them, but authoring, confirming, and posting stay on the
+  validating document pages (these operations move stock, post journals, enforce approval
+  thresholds, etc., so they shouldn't be driven blind from chat).
+
+| Module | Tier | Capability |
 |---|---|---|
-| `dashboard` | `dashboard` | `executive_summary`, `financial_summary`, `inventory_summary` (read-only KPI reporting) |
-| `products` | `products_list`, `product_create`, `product_categories_list`, `product_category_create` | `create`/`list`/`get`/`update`/`delete_product`, `create`/`list_product_categories` |
-| `customers` | `customers_list`, `customer_create`, `customer_groups_list`, `customer_group_create` | `create`/`list`/`get`/`update`/`delete_customer`, `create`/`list_customer_groups` |
-| `orders` | `orders_list`, `order_create` | — |
-| `invoices` | `invoices_list`, `invoice_create` | — |
-| `settings` | `settings` | — |
+| `products` | master data | products + product categories |
+| `customers` | master data | customers + customer groups |
+| `vendors` | master data | vendors / suppliers |
+| `sale` | master data | sale items + sale packages (bundles) |
+| `pricing` | master data | price lists |
+| `inventory` | master data | stores/warehouses, units of measure, UoM conversions |
+| `alert` | master data | announcements (global / module / department scope) |
+| `dashboard` | reporting | executive / financial / inventory KPI summaries |
+| `accounting` | reporting | accounts, journals, trial balance, P&L, balance sheet, AR aging, VAT |
+| `audit` | reporting | audit-log search + per-entity history |
+| `stock/stock-balance` | reporting | on-hand balances + per-product summary |
+| `stock/stock-movement` | reporting | the stock movement ledger |
+| `quotations` | document (read-only) | list / get |
+| `orders` | document (read-only) | navigation only |
+| `invoices` | document (read-only) | navigation only |
+| `purchasing` | document (read-only) | purchase orders + requisitions |
+| `receipts` | document (read-only) | payment receipts |
+| `stock/good-receive` | document (read-only) | goods receipts |
+| `stock/stock-adjust` | document (read-only) | stock adjustments |
+| `stock/stock-count` | document (read-only) | physical counts |
+| `stock/stock-issue` | document (read-only) | stock issues |
+| `stock/stock-request` | document (read-only) | store-to-store transfers |
+| `stock/stock-return` | document (read-only) | customer / vendor returns |
+| `settings` | — | navigation only |
 
 Mutating/lookup tools resolve records by name (the model never sees UUIDs): a free-text term
 is matched to exactly one record, and ambiguous or empty matches return a clarifying message
-instead of acting.
+instead of acting. Cross-references are resolved the same way — e.g. a price list links to a
+sale item and customer group by name, and a sale package's bundle lines reference sale items
+by name.
 
 **Adding tools for a new ERP module**
 
