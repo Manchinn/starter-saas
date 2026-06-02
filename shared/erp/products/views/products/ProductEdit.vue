@@ -2,11 +2,39 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/item-master" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.products.edit') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/item-master" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.products.edit') }}</h1>
+        </div>
+
+        <!-- Keyboard shortcuts popover -->
+        <div class="relative" ref="shortcutsRef">
+          <button @click="showShortcuts = !showShortcuts"
+            class="h-8 px-2 flex items-center gap-1 border border-[#E2E8F0] text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F7F9FC] transition-colors text-sm font-semibold"
+            title="Keyboard shortcuts">
+            <span>?</span>
+            <span class="text-xs font-medium">Shortcuts</span>
+          </button>
+          <Transition
+            enter-active-class="transition-all duration-150 ease-out"
+            enter-from-class="opacity-0 translate-y-1"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition-all duration-100 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 translate-y-1">
+            <div v-if="showShortcuts"
+              class="absolute right-0 top-10 z-50 w-56 bg-white border border-[#E2E8F0] shadow-lg p-4 space-y-2">
+              <p class="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-3">Keyboard Shortcuts</p>
+              <div v-for="s in SHORTCUTS" :key="s.key" class="flex items-center justify-between gap-3">
+                <span class="text-xs text-[#637381]">{{ s.label }}</span>
+                <kbd class="inline-flex items-center px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] text-[10px] font-mono text-[#374151] whitespace-nowrap">{{ s.key }}</kbd>
+              </div>
+            </div>
+          </Transition>
+        </div>
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">{{ t('common.loading') }}</div>
@@ -20,7 +48,11 @@
         <!-- Left: product fields -->
         <div class="flex-1 bg-white border border-[#E2E8F0] p-6 space-y-5">
           <div class="grid grid-cols-2 gap-4">
-            <FormField v-model="form.sku" name="sku" :label="t('erp.products.codeSku')" :errors="fieldErrors" />
+            <FormField name="sku" :label="t('erp.products.codeSku')" :errors="fieldErrors">
+              <template #default="{ id, errorClass }">
+                <input :id="id" ref="skuInputRef" v-model="form.sku" type="text" :class="['input', errorClass]" />
+              </template>
+            </FormField>
             <FormField v-model="form.name" name="name" :label="t('erp.products.name')" required :errors="fieldErrors" />
             <SearchSelectWithLabel v-model="form.category" :label="t('erp.products.category')" :options="categoryOptions" track-by="name" label-key="name" placeholder="— None —" />
             <FormField v-model="form.cost" name="cost" type="number" :label="t('erp.products.costPrice')" :errors="fieldErrors" min="0" step="0.01" />
@@ -130,7 +162,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
@@ -169,6 +201,15 @@ const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
+const showShortcuts = ref(false)
+const shortcutsRef  = ref(null)
+const skuInputRef   = ref(null)
+
+const SHORTCUTS = [
+  { key: 'Ctrl+S', label: 'Save changes' },
+  { key: 'Escape', label: 'Cancel / back' },
+]
+
 const availableStores   = computed(() => stores.value.filter(s => !linkedStores.value.some(l => l.id === s.id)))
 const availableVendors  = computed(() => vendors.value.filter(v => !linkedVendors.value.some(l => l.id === v.id)))
 const categoryOptions   = computed(() => categories.value.map(cat => ({
@@ -179,7 +220,24 @@ const uomOptions             = computed(() => uoms.value.map(u => ({ id: u.id, n
 const availableStoreOptions  = computed(() => availableStores.value.map(s => ({ id: s.id, name: `${s.name}${s.code ? ` (${s.code})` : ''}` })))
 const availableVendorOptions = computed(() => availableVendors.value.map(v => ({ id: v.id, name: `${v.name}${v.code ? ` (${v.code})` : ''}` })))
 
+function onClickOutsideShortcuts(e) {
+  if (shortcutsRef.value && !shortcutsRef.value.contains(e.target)) {
+    showShortcuts.value = false
+  }
+}
+
+function onKeydown(e) {
+  if (e.key === 'Escape') {
+    router.push('/erp/item-master')
+  } else if (e.ctrlKey && e.key === 's') {
+    e.preventDefault()
+    save()
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
+  document.addEventListener('mousedown', onClickOutsideShortcuts)
   try {
     const [productRes, storesRes, uomRes, catRes, stockRes, vendorRes] = await Promise.all([
       api.get(`/erp/item-master/${route.params.id}`),
@@ -213,7 +271,13 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    skuInputRef.value?.focus()
   }
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('mousedown', onClickOutsideShortcuts)
 })
 
 function addStore() {
