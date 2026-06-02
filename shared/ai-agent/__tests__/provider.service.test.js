@@ -29,6 +29,39 @@ describe('provider.chat — Ollama', () => {
     expect(out.tool_calls[0].arguments).toEqual({ target: 'products_list' })
   })
 
+  test('unlimited maxTokens sends num_predict:-1 and no think flag by default', async () => {
+    global.fetch = jest.fn().mockResolvedValue(jsonRes({ message: { content: 'hi' } }))
+    await provider.chat({
+      settings: { provider: 'ollama', baseUrl: 'http://host:11434', model: 'm', temperature: 0 },
+      messages: [], tools: [],
+    })
+    const body = JSON.parse(global.fetch.mock.calls[0][1].body)
+    expect(body.options.num_predict).toBe(-1)
+    expect(body.think).toBeUndefined()
+  })
+
+  test('a maxTokens cap and thinkingModel are forwarded', async () => {
+    global.fetch = jest.fn().mockResolvedValue(jsonRes({ message: { content: 'hi' } }))
+    await provider.chat({
+      settings: { provider: 'ollama', baseUrl: 'http://host:11434', model: 'm', temperature: 0, maxTokens: 256, thinkingModel: true },
+      messages: [], tools: [],
+    })
+    const body = JSON.parse(global.fetch.mock.calls[0][1].body)
+    expect(body.options.num_predict).toBe(256)
+    expect(body.think).toBe(true)
+  })
+
+  test('strips <think> reasoning from the reply content', async () => {
+    global.fetch = jest.fn().mockResolvedValue(jsonRes({
+      message: { content: '<think>let me reason about this</think>The answer is 42.' },
+    }))
+    const out = await provider.chat({
+      settings: { provider: 'ollama', baseUrl: 'http://host:11434', model: 'm', temperature: 0 },
+      messages: [], tools: [],
+    })
+    expect(out.content).toBe('The answer is 42.')
+  })
+
   test('converts OpenAI-format history (string args, tool_call_id) to Ollama shape', async () => {
     global.fetch = jest.fn().mockResolvedValue(jsonRes({ message: { content: 'ok' } }))
 
@@ -67,6 +100,18 @@ describe('provider.chat — LM Studio', () => {
 
     expect(out.tool_calls[0].name).toBe('create_product')
     expect(out.tool_calls[0].arguments).toEqual({ name: 'Widget' })
+  })
+
+  test('forwards max_tokens only when a cap is set', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce(jsonRes({ choices: [{ message: { content: 'a' } }] }))
+      .mockResolvedValueOnce(jsonRes({ choices: [{ message: { content: 'b' } }] }))
+
+    await provider.chat({ settings: { provider: 'lmstudio', baseUrl: 'http://h/v1', model: 'm', temperature: 0, maxTokens: 512 }, messages: [], tools: [] })
+    await provider.chat({ settings: { provider: 'lmstudio', baseUrl: 'http://h/v1', model: 'm', temperature: 0 }, messages: [], tools: [] })
+
+    expect(JSON.parse(global.fetch.mock.calls[0][1].body).max_tokens).toBe(512)
+    expect(JSON.parse(global.fetch.mock.calls[1][1].body)).not.toHaveProperty('max_tokens')
   })
 })
 

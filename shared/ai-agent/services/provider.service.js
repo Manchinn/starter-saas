@@ -55,6 +55,12 @@ async function httpJson(url, options = {}) {
 // Returns an assistant message: { role:'assistant', content, tool_calls? }
 // where each tool_call is { id, name, arguments(object) }.
 async function chat({ settings, messages, tools }) {
+  // null/unset maxTokens ⇒ unlimited. Ollama uses num_predict (-1 = infinite);
+  // OpenAI uses max_tokens (omitted = model default / unlimited).
+  const maxTokens = Number.isFinite(Number(settings.maxTokens)) && Number(settings.maxTokens) > 0
+    ? Math.floor(Number(settings.maxTokens))
+    : null
+
   if (settings.provider === 'ollama') {
     const base = trimSlash(settings.baseUrl)
     const data = await httpJson(`${base}/api/chat`, {
@@ -65,9 +71,16 @@ async function chat({ settings, messages, tools }) {
         messages: toOllamaMessages(messages),
         tools,
         stream: false,
+        // Reasoning models: ask Ollama to think; the trace comes back on
+        // message.thinking (not content), so the visible reply stays clean.
+        ...(settings.thinkingModel ? { think: true } : {}),
         // num_ctx loads the model with a context big enough for the full tool
         // schema set; the small default overflows ("n_keep >= n_ctx").
-        options: { temperature: settings.temperature, num_ctx: config.ai.numCtx },
+        options: {
+          temperature: settings.temperature,
+          num_ctx: config.ai.numCtx,
+          num_predict: maxTokens ?? -1,   // -1 = generate until done
+        },
       }),
     })
     return normalizeOllama(data?.message)
@@ -86,9 +99,17 @@ async function chat({ settings, messages, tools }) {
       tools,
       temperature: settings.temperature,
       stream: false,
+      ...(maxTokens ? { max_tokens: maxTokens } : {}),
     }),
   })
   return normalizeOpenAI(data?.choices?.[0]?.message)
+}
+
+// Reasoning models often inline their chain-of-thought in the reply as a
+// <think>…</think> block. Strip it so only the answer is shown/stored.
+function stripThinking(text) {
+  if (!text) return ''
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/^\s+/, '')
 }
 
 // The agent keeps history in OpenAI format (assistant.tool_calls[].function
@@ -124,7 +145,7 @@ function normalizeOllama(message) {
       ? safeParse(tc.function.arguments)
       : (tc.function?.arguments || {}),
   }))
-  return { role: 'assistant', content: message.content || '', tool_calls: toolCalls }
+  return { role: 'assistant', content: stripThinking(message.content), tool_calls: toolCalls }
 }
 
 function normalizeOpenAI(message) {
@@ -134,7 +155,7 @@ function normalizeOpenAI(message) {
     name: tc.function?.name,
     arguments: safeParse(tc.function?.arguments),
   }))
-  return { role: 'assistant', content: message.content || '', tool_calls: toolCalls }
+  return { role: 'assistant', content: stripThinking(message.content), tool_calls: toolCalls }
 }
 
 function safeParse(s) {
