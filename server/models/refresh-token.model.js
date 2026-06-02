@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 const RefreshToken = sequelize.define('RefreshToken', {
   id: {
@@ -46,6 +47,7 @@ const RefreshToken = sequelize.define('RefreshToken', {
     allowNull: true,
     comment: 'Last Used At (ใช้งานล่าสุด)',
   },
+  ...recordFields,
 })
 
 module.exports = RefreshToken

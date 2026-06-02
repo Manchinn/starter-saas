@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 // Junction table: which modules each user has access to
 const UserModule = sequelize.define('UserModule', {
@@ -13,8 +14,7 @@ const UserModule = sequelize.define('UserModule', {
     allowNull: false,
     comment: 'Module (โมดูล)',
   },
-}, {
-  timestamps: false,
+  ...recordFields,
 })
 
 module.exports = UserModule

@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { recordFields } = require('../../model-fields')
 
 const SalePackageItem = sequelize.define('SalePackageItem', {
   id: {
@@ -37,6 +38,7 @@ const SalePackageItem = sequelize.define('SalePackageItem', {
     allowNull: true,
     comment: 'Notes (หมายเหตุ)',
   },
+  ...recordFields,
 }, {
   tableName: 'sale_package_items',
 })

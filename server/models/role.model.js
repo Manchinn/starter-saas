@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 const Role = sequelize.define('Role', {
   id: {
@@ -34,6 +35,7 @@ const Role = sequelize.define('Role', {
     defaultValue: false,
     comment: 'System Role (บทบาทระบบ) — System roles cannot be deleted',
   },
+  ...recordFields,
 })
 
 module.exports = Role
