@@ -3,6 +3,11 @@ export default {
   org: {
     title:    'Organizations',
     subtitle: '{n} organization | {n} organizations',
+    subscriptionPlan:       'Subscription Plan',
+    subscriptionPlanDesc:   'Set which subscription plan this organization is on.',
+    plan:                   'Plan',
+    planDefaultPlaceholder: 'Default plan',
+    currentPlan:            'Current plan: {name}',
     new:      'New Organization',
     newDesc:  'Fill in account details and assign roles for the new organization.',
     edit:     'Edit Organization',

@@ -43,4 +43,13 @@ module.exports = {
       return fail(res, err.message, err.status || 404)
     }
   },
+
+  async removeAll(req, res) {
+    try {
+      const result = await agent.removeAllConversations(ctxUser(req))
+      return ok(res, result, 'Chat history cleared')
+    } catch (err) {
+      return serverError(res)
+    }
+  },
 }

@@ -1,0 +1,160 @@
+const { ok, created, fail, serverError } = require('../../core/response')
+const service = require('./billing.service')
+const { orgKeyOf } = require('../../middleware/plan')
+const { getProvider } = require('./providers')
+const config = require('../../config/config')
+
+// A staff user borrows their org's plan but must not change billing — only the
+// org-owner account (a top-level User) or a system admin may mutate it.
+const isBillingOwner = (req) => req.user?.role === 'admin' || !req.user?.organizationId
+
+module.exports = {
+  // ── Self-service ──────────────────────────────────────────────────────────
+  async listPlans(req, res) {
+    try {
+      return ok(res, { plans: await service.listPublicPlans() })
+    } catch (err) {
+      return serverError(res)
+    }
+  },
+
+  // Current org's subscription + effective plan + usage summary in one call.
+  async mySubscription(req, res) {
+    try {
+      const orgId = orgKeyOf(req)
+      const [subscription, plan, usage] = await Promise.all([
+        service.getSubscription(orgId),
+        service.getEffectivePlan(orgId),
+        service.getUsage(orgId),
+      ])
+      return ok(res, { subscription, plan, usage, canManage: isBillingOwner(req) })
+    } catch (err) {
+      return serverError(res)
+    }
+  },
+
+  async myInvoices(req, res) {
+    try {
+      return ok(res, { invoices: await service.listInvoices(orgKeyOf(req)) })
+    } catch (err) {
+      return serverError(res)
+    }
+  },
+
+  async subscribe(req, res) {
+    try {
+      if (!isBillingOwner(req)) return fail(res, 'Only the organization owner can change the plan', 403)
+      const orgId = orgKeyOf(req)
+      const plan = await service.getPlan(req.body.planId)
+
+      // Gateway providers redirect to a hosted checkout; manual/disabled ones
+      // (and free plans) activate the subscription inline.
+      const provider = getProvider(config.billing.provider)
+      if (provider.enabled() && provider.name !== 'manual' && Number(plan.price) > 0) {
+        const session = await provider.createCheckout(
+          { id: orgId },
+          plan,
+          { successUrl: `${config.clientUrl}/billing`, cancelUrl: `${config.clientUrl}/billing/plans` },
+        )
+        if (session?.checkoutUrl) return ok(res, { checkoutUrl: session.checkoutUrl })
+      }
+
+      const subscription = await service.subscribe(orgId, plan.id)
+      return ok(res, { subscription }, 'Subscription updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async cancel(req, res) {
+    try {
+      if (!isBillingOwner(req)) return fail(res, 'Only the organization owner can cancel the plan', 403)
+      const atPeriodEnd = req.body?.immediate !== true
+      const subscription = await service.cancel(orgKeyOf(req), { atPeriodEnd })
+      return ok(res, { subscription }, 'Subscription canceled')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  // ── Admin: plan catalog ─────────────────────────────────────────────────────
+  async adminListPlans(req, res) {
+    try {
+      return ok(res, { plans: await service.listPlans({ includeInactive: true }) })
+    } catch (err) {
+      return serverError(res)
+    }
+  },
+
+  async adminGetPlan(req, res) {
+    try {
+      return ok(res, { plan: await service.getPlan(req.params.id) })
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async adminCreatePlan(req, res) {
+    try {
+      const plan = await service.createPlan(req.body)
+      return created(res, { plan }, 'Plan created')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async adminUpdatePlan(req, res) {
+    try {
+      const plan = await service.updatePlan(req.params.id, req.body)
+      return ok(res, { plan }, 'Plan updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async adminDeletePlan(req, res) {
+    try {
+      await service.deletePlan(req.params.id)
+      return ok(res, null, 'Plan deleted')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  // ── Admin: subscriptions ────────────────────────────────────────────────────
+  async adminListSubscriptions(req, res) {
+    try {
+      return ok(res, { subscriptions: await service.listSubscriptions() })
+    } catch (err) {
+      return serverError(res)
+    }
+  },
+
+  async adminSetSubscription(req, res) {
+    try {
+      const subscription = await service.adminSetSubscription(req.params.orgId, {
+        planId: req.body.planId,
+        status: req.body.status,
+      })
+      return ok(res, { subscription }, 'Subscription updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  // ── Gateway webhook ───────────────────────────────────────────────────────────
+  // Mounted with a raw-body parser so the provider can verify the signature over
+  // the exact bytes received. The scaffolded providers reject until configured.
+  async webhook(req, res) {
+    try {
+      const provider = getProvider(req.params.provider)
+      const signature = req.headers['stripe-signature'] || req.headers['x-webhook-signature']
+      provider.verifyWebhook(req.body, signature)
+      // A configured provider would dispatch on event.type here and sync the
+      // subscription via service.adminSetSubscription / service.cancel.
+      return ok(res, null, 'ok')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+}

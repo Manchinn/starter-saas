@@ -10,6 +10,9 @@
         <h1 class="text-xl font-bold text-[#1C2434]">{{ title }}</h1>
         <slot name="badge" />
       </div>
+      <p v-if="subtitle || $slots.subtitle" class="text-sm text-[#637381] mt-0.5">
+        <slot name="subtitle">{{ subtitle }}</slot>
+      </p>
       <nav v-if="breadcrumb && breadcrumb.length" class="flex items-center gap-1.5 mt-1">
         <template v-for="(crumb, idx) in breadcrumb" :key="idx">
           <RouterLink v-if="crumb.to" :to="crumb.to"
@@ -30,6 +33,7 @@ import { ArrowLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 defineProps({
   title:      { type: String, required: true },
+  subtitle:   { type: String, default: '' },
   backTo:     { type: [String, Object], default: '' },
   breadcrumb: { type: Array, default: () => [] },
 })

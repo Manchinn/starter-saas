@@ -57,6 +57,12 @@ export const useAiAgentStore = defineStore('aiAgent', () => {
     if (conversationId.value === id) newConversation()
   }
 
+  async function clearAllConversations() {
+    await api.delete('/ai-agent/chat/conversations')
+    conversations.value = []
+    newConversation()
+  }
+
   // Run client-side actions returned by the agent (e.g. SPA navigation).
   function applyActions(actions = []) {
     for (const a of actions) {
@@ -106,7 +112,7 @@ export const useAiAgentStore = defineStore('aiAgent', () => {
   return {
     settings, conversations, messages, conversationId, loading, loadingThread,
     loadSettings, saveSettings, testConnection,
-    loadConversations, openConversation, newConversation, removeConversation,
+    loadConversations, openConversation, newConversation, removeConversation, clearAllConversations,
     send,
   }
 })

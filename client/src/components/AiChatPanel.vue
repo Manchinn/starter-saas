@@ -23,23 +23,31 @@
 
         <!-- Messages -->
         <div ref="scrollEl" class="flex-1 overflow-y-auto scrollbar-thin px-4 py-4 space-y-3">
-          <div v-if="!store.messages.length"
-            class="h-full flex flex-col items-center justify-center text-center gap-2 py-12">
-            <div class="w-10 h-10 bg-primary-50 flex items-center justify-center">
-              <SparklesIcon class="w-5 h-5 text-primary-500" />
+          <div v-if="!store.messages.length" class="flex flex-col">
+            <div class="flex flex-col items-center text-center gap-2 pt-8 pb-5">
+              <div class="w-10 h-10 bg-primary-50 flex items-center justify-center">
+                <SparklesIcon class="w-5 h-5 text-primary-500" />
+              </div>
+              <p class="text-sm font-medium text-[#1C2434]">{{ t('aiAgent.chat.empty') }}</p>
+              <p class="text-[12px] text-[#9BA7B0] max-w-[240px]">{{ t('aiAgent.chat.emptyHint') }}</p>
             </div>
-            <p class="text-sm font-medium text-[#1C2434]">{{ t('aiAgent.chat.empty') }}</p>
-            <p class="text-[12px] text-[#9BA7B0] max-w-[220px]">{{ t('aiAgent.chat.emptyHint') }}</p>
 
-            <!-- Clickable sample prompts -->
-            <p class="mt-3 text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('aiAgent.chat.samplesTitle') }}</p>
-            <div class="flex flex-wrap items-center justify-center gap-1.5 max-w-[280px]">
-              <button v-for="(s, i) in samples" :key="i" type="button" @click="useSample(s)"
-                :disabled="store.loading"
-                class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] text-[#374151] bg-white border border-[#E2E8F0] hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition-colors disabled:opacity-50">
-                <SparklesIcon class="w-2.5 h-2.5 text-primary-400" />
-                {{ s }}
-              </button>
+            <!-- Sample prompts, grouped by module (matches /ai/chat) -->
+            <p class="px-1 mb-2 text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('aiAgent.chat.samplesTitle') }}</p>
+            <div class="space-y-3">
+              <div v-for="g in sampleGroups" :key="g.key">
+                <p class="px-1 mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#637381] uppercase tracking-wide">
+                  <component :is="g.icon" class="w-3.5 h-3.5 text-primary-400" />
+                  {{ g.title }}
+                </p>
+                <div class="space-y-1">
+                  <button v-for="s in g.items" :key="s.key" type="button" @click="useSample(s.text)"
+                    :disabled="store.loading"
+                    class="w-full text-left px-2.5 py-1.5 text-[12px] text-[#374151] bg-white border border-[#E2E8F0] hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition-colors disabled:opacity-50">
+                    {{ s.text }}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -105,6 +113,7 @@ import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   SparklesIcon, XMarkIcon, PaperAirplaneIcon, ArrowTopRightOnSquareIcon,
+  ChartBarIcon, UserGroupIcon, CubeIcon, BanknotesIcon,
 } from '@heroicons/vue/24/outline'
 import { useAiAgentStore } from '@/stores/aiAgent'
 import RichText from '@/components/RichText.vue'
@@ -121,10 +130,20 @@ const draft   = ref('')
 const scrollEl = ref(null)
 const inputEl  = ref(null)
 
-// Clickable starter prompts shown on the empty state. Each maps to a real
-// tool/navigation the agent supports.
-const SAMPLE_KEYS = ['execSummary', 'financialSummary', 'inventorySummary', 'productList', 'newCustomer', 'listCustomers', 'findCustomer', 'newProduct', 'openOrders']
-const samples = computed(() => SAMPLE_KEYS.map((k) => t(`aiAgent.chat.samples.${k}`)))
+// Clickable starter prompts, grouped by module — mirrors /ai/chat. Each maps to
+// a real tool/navigation the agent supports.
+const SAMPLE_GROUPS = [
+  { key: 'business',   icon: ChartBarIcon,  items: ['execSummary', 'financialSummary', 'inventorySummary'] },
+  { key: 'customers',  icon: UserGroupIcon, items: ['listCustomers', 'findCustomer', 'newCustomer'] },
+  { key: 'products',   icon: CubeIcon,      items: ['productList', 'newProduct', 'openOrders'] },
+  { key: 'accounting', icon: BanknotesIcon, items: ['trialBalance', 'balanceSheet', 'incomeStatement', 'arAging', 'vatReport'] },
+]
+const sampleGroups = computed(() => SAMPLE_GROUPS.map((g) => ({
+  key:   g.key,
+  icon:  g.icon,
+  title: t(`aiAgent.chat.groups.${g.key}`),
+  items: g.items.map((k) => ({ key: k, text: t(`aiAgent.chat.samples.${k}`) })),
+})))
 
 function close() { emit('update:modelValue', false) }
 
