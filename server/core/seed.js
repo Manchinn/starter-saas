@@ -46,4 +46,14 @@ async function seedHrmsPermissions() {
   log.debug('HRMS permission catalog ensured')
 }
 
-module.exports = { seedSequences, seedHrmsPermissions, SEQUENCE_SEEDS }
+// ── Billing plan catalog ───────────────────────────────────────────────────────
+// Idempotent (findOrCreate by slug). Reuses the module seed so the default plans
+// exist on first boot and getDefaultPlan() always resolves.
+async function seedBillingPlans() {
+  const models = require('../models')
+  const seed = require('../modules/billing/seeds/plans')
+  await seed.run({ models, log, set: () => {} })
+  log.debug('Billing plan catalog ensured')
+}
+
+module.exports = { seedSequences, seedHrmsPermissions, seedBillingPlans, SEQUENCE_SEEDS }

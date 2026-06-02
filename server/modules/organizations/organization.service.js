@@ -5,6 +5,7 @@ const { User, Module, Role, Permission, Employee, HrmsRole, HrmsPermission } = r
 const { Op } = require('sequelize')
 const { resolvePermissions } = require('../../middleware/permission')
 const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
+const billing = require('../billing/billing.service')
 
 // ── Privilege-escalation guards ───────────────────────────────────────────────
 // `organizations.edit` is a delegable permission, so without these guards a
@@ -78,7 +79,18 @@ const create = async ({ name, email, password, role = 'user', defaultPage = null
   const exists = await User.findOne({ where: { email } })
   if (exists) throw { status: 409, message: 'Email already registered' }
 
+  // Creating a staff member (organizationId set) consumes a seat — enforce the
+  // owning org's plan limit before adding the user.
+  if (organizationId) await billing.assertSeatAvailable(organizationId)
+
   const organization = await User.create({ name, email, password, role, defaultPage, organizationId, parentId: parentId || null })
+
+  // A brand-new top-level organization starts on the default plan so its billing
+  // state is always resolvable. Best-effort — never blocks org creation.
+  if (!organizationId) {
+    try { await billing.ensureDefaultSubscription(organization.id) }
+    catch (_) { /* plans not seeded yet — org still usable on the fallback plan */ }
+  }
 
   if (roleIds.length) {
     const roles = await Role.findAll({ where: { id: roleIds } })

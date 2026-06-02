@@ -9,7 +9,7 @@ const config = require('./config/config')
 const { sequelize } = require('./models')
 const moduleLoader = require('./core/module.loader')
 const migrator = require('./core/migrator')
-const { seedSequences, seedHrmsPermissions } = require('./core/seed')
+const { seedSequences, seedHrmsPermissions, seedBillingPlans } = require('./core/seed')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
 const cache = require('./config/redis')
 const realtime = require('./core/realtime')
@@ -63,6 +63,7 @@ const smallJson = express.json({ limit: '1mb' })
 const LARGE_BODY_ROUTES = [
   /^\/api\/erp\/attachments(?:\/|$)/,    // base64 file attachments (≤ 15 MB)
   /^\/api\/organizations\/[^/]+\/logo$/, // base64 org logo upload
+  /^\/api\/billing\/webhook\//,          // gateway webhook — needs the raw body for signature checks
 ]
 app.use((req, res, next) => {
   if (LARGE_BODY_ROUTES.some((re) => re.test(req.path))) return next()
@@ -86,6 +87,7 @@ async function bootstrap() {
   await migrator.up(sequelize)
   await seedSequences()
   await seedHrmsPermissions()
+  await seedBillingPlans()
   logger.info('Database connected and synced', { label: 'db' })
 
   // Initialise the cache (Redis when enabled, in-memory fallback otherwise).

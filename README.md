@@ -96,6 +96,34 @@ unread badge and a panel with All / Module / Department filters; read state is t
 per user. Other modules can raise alerts programmatically via the service's
 `emitSystem()` helper. Guarded by the `erp.alerts.list` / `erp.alerts.manage` permissions.
 
+## Subscriptions & billing
+
+The `server/modules/billing` module adds the platform-monetization layer: subscription
+plans, per-organization subscriptions, usage metering and quota enforcement. An
+*organization* is a top-level user, and each one has exactly one subscription.
+
+- **Plans** — a system-admin–managed catalog of tiers (Free / Pro / Enterprise seeded by
+  default). Each plan carries a `price`/`interval`, a `features` flag map, and a `limits`
+  quota map (use `-1` for unlimited). Manage them under **Admin → Billing → Plans**.
+- **Subscriptions** — new organizations land on the default plan automatically; owners
+  switch plans from **Billing** in the topbar user menu. Admins can override any
+  organization's plan/status under **Admin → Billing → Subscriptions**.
+- **Plan limits & usage metering** — `server/middleware/plan.js` exposes three guards:
+  `requireFeature('ai-agent')` gates a route on a plan feature, `enforceLimit('metric')`
+  rejects an over-quota request, and `meter('metric')` counts successful requests against
+  the period. Monthly metrics (`*.monthly`) reset each calendar month; others accumulate.
+  `shared/erp/invoices/invoice.routes.js` is a live reference: invoice creation is gated
+  by `erp.invoices.monthly` and metered. **Seats** are enforced on staff creation against
+  the plan's `seats` limit.
+- **Billing history** — paid plan changes record a `SubscriptionInvoice`, listed on the
+  Billing page.
+- **Payment provider** — pluggable. The default `manual` provider assigns plans instantly
+  with no gateway; a scaffolded `stripe` provider (`providers/stripe.provider.js`) is wired
+  into the registry and the `POST /api/billing/webhook/:provider` endpoint but stays inert
+  until `BILLING_PROVIDER=stripe` and the Stripe keys are configured. Guarded by the
+  `billing.manage` permission (admin routes); self-service mutations are limited to the
+  organization owner.
+
 ## AI assistant
 
 The `shared/ai-agent` module provides a conversational AI assistant that connects to a

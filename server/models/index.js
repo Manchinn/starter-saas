@@ -11,6 +11,12 @@ const RolePermission = require('./role-permission.model')
 const RoleModule     = require('./role-module.model')
 const UserRole       = require('./user-role.model')
 
+// ── Billing / subscriptions (platform monetization) ───────────────────────────
+const Plan                = require('./plan.model')
+const Subscription        = require('./subscription.model')
+const UsageCounter        = require('./usage-counter.model')
+const SubscriptionInvoice = require('./subscription-invoice.model')
+
 // ── Shared-layer models ───────────────────────────────────────────────────────
 const erpModels  = require('../../shared/erp/models')
 const hrmsModels = require('../../shared/hrms/models')
@@ -21,6 +27,7 @@ const models = {
   sequelize,
   User, Module, UserModule, RefreshToken,
   Role, Permission, RolePermission, RoleModule, UserRole,
+  Plan, Subscription, UsageCounter, SubscriptionInvoice,
   ...erpModels,
   ...hrmsModels,
   ...aiModels,
@@ -28,6 +35,9 @@ const models = {
 
 // ── Core associations (auth / roles / permissions) ────────────────────────────
 require('./core.associations')(models)
+
+// ── Billing associations (plans / subscriptions / usage ↔ core User) ──────────
+require('./billing.associations')(models)
 
 // ── Cross-domain associations (HRMS ↔ core User) ─────────────────────────────
 require('../../shared/hrms/models/hrms.association')(models)

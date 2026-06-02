@@ -87,4 +87,18 @@ module.exports = {
     passwordResetExpiresMinutes: parseInt(process.env.PASSWORD_RESET_EXPIRES_MINUTES) || 60,
     emailVerificationExpiresHours: parseInt(process.env.EMAIL_VERIFICATION_EXPIRES_HOURS) || 24,
   },
+  billing: {
+    // Active billing provider. `manual` (default) means plans are assigned by an
+    // admin/owner with no external gateway; `stripe` activates the (scaffolded)
+    // gateway adapter, which is inert until the keys below are also set.
+    provider: process.env.BILLING_PROVIDER || 'manual',
+    // Plan slug new organizations land on automatically (see organizations
+    // service). Falls back to the lowest-priced active plan when absent.
+    defaultPlanSlug: process.env.BILLING_DEFAULT_PLAN || 'free',
+    currency: process.env.BILLING_CURRENCY || 'USD',
+    stripe: {
+      secretKey:      process.env.STRIPE_SECRET_KEY || '',
+      webhookSecret:  process.env.STRIPE_WEBHOOK_SECRET || '',
+    },
+  },
 }
