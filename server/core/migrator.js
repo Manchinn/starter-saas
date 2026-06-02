@@ -252,39 +252,70 @@ async function recordReverted(sequelize, name) {
 
 async function up(sequelize, { only } = {}) {
   await ensureTrackingTable(sequelize)
-  const applied = await appliedNames(sequelize)
-  const ctx = makeContext(sequelize)
-  let migrations = collectMigrationFiles()
 
-  if (only) {
-    const target = resolveMigration(only, migrations)
-    if (applied.has(target.name)) {
-      log.info(`Already applied: ${target.name}`)
-      return 0
-    }
-    migrations = [target]
-  }
+  // Acquire advisory lock to prevent concurrent migrations
+  const lockId = 1337 // arbitrary unique ID for migration lock
+  const dialect = sequelize.getDialect()
+  let lockAcquired = false
 
-  let count = 0
-  for (const { name, file } of migrations) {
-    if (applied.has(name)) continue
-    const migration = require(file)
-    if (typeof migration.up !== 'function') {
-      log.warn(`Migration "${name}" has no up() — skipping`)
-      continue
+  try {
+    if (dialect === 'postgres') {
+      const [result] = await sequelize.query('SELECT pg_advisory_lock(?)', { replacements: [lockId] })
+      lockAcquired = true
+      log.debug('Acquired PostgreSQL advisory lock for migrations')
+    } else if (dialect === 'mysql' || dialect === 'mariadb') {
+      const [result] = await sequelize.query('SELECT GET_LOCK(?, 10)', { replacements: ['migration_lock'] })
+      lockAcquired = result[0]['GET_LOCK(?, 10)'] === 1
+      if (!lockAcquired) throw new Error('Could not acquire MySQL lock within 10 seconds')
+      log.debug('Acquired MySQL named lock for migrations')
     }
-    try {
-      await migration.up(ctx)
-      await recordApplied(sequelize, name)
-      count++
-      log.debug(`Applied: ${name}`)
-    } catch (err) {
-      log.error(`Migration failed: ${name}`, { error: err.message })
-      throw err
+    // SQLite is single-file, no concurrent writers possible
+
+    const applied = await appliedNames(sequelize)
+    const ctx = makeContext(sequelize)
+    let migrations = collectMigrationFiles()
+
+    if (only) {
+      const target = resolveMigration(only, migrations)
+      if (applied.has(target.name)) {
+        log.info(`Already applied: ${target.name}`)
+        return 0
+      }
+      migrations = [target]
+    }
+
+    let count = 0
+    for (const { name, file } of migrations) {
+      if (applied.has(name)) continue
+      const migration = require(file)
+      if (typeof migration.up !== 'function') {
+        log.warn(`Migration "${name}" has no up() — skipping`)
+        continue
+      }
+      try {
+        await migration.up(ctx)
+        await recordApplied(sequelize, name)
+        count++
+        log.debug(`Applied: ${name}`)
+      } catch (err) {
+        log.error(`Migration failed: ${name}`, { error: err.message })
+        throw err
+      }
+    }
+    log.info(count > 0 ? `Applied ${count} migration(s)` : 'No pending migrations')
+    return count
+  } finally {
+    // Release lock
+    if (lockAcquired) {
+      if (dialect === 'postgres') {
+        await sequelize.query('SELECT pg_advisory_unlock(?)', { replacements: [lockId] })
+        log.debug('Released PostgreSQL advisory lock')
+      } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        await sequelize.query('SELECT RELEASE_LOCK(?)', { replacements: ['migration_lock'] })
+        log.debug('Released MySQL named lock')
+      }
     }
   }
-  log.info(count > 0 ? `Applied ${count} migration(s)` : 'No pending migrations')
-  return count
 }
 
 async function down(sequelize, { steps = 1, name } = {}) {
