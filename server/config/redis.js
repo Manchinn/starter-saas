@@ -175,6 +175,16 @@ async function wrap(key, ttlSeconds, producer) {
   return fresh
 }
 
+/**
+ * Health check: verify Redis is reachable. Throws if Redis is enabled but
+ * unreachable; returns true otherwise.
+ */
+async function ping() {
+  if (!useRedis || !client) return true
+  await client.ping()
+  return true
+}
+
 function isRedis() { return useRedis }
 
 module.exports = {
@@ -186,6 +196,7 @@ module.exports = {
   del,
   flush,
   wrap,
+  ping,
   isRedis,
   buildRedisClient,
 }

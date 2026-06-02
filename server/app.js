@@ -44,9 +44,56 @@ app.use(requestLogger)
 // Public static — org logos and similar customer-facing assets.
 app.use('/uploads/logos', express.static(path.join(__dirname, '..', 'uploads', 'logos')))
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', env: config.env, timestamp: new Date().toISOString() })
+// Health check endpoints
+app.get('/api/health', async (req, res) => {
+  try {
+    // Check database connection
+    await sequelize.authenticate()
+
+    // Check Redis connection (if enabled)
+    let redisStatus = 'disabled'
+    if (config.redis.enabled) {
+      try {
+        await cache.ping()
+        redisStatus = 'connected'
+      } catch (err) {
+        redisStatus = 'error'
+      }
+    }
+
+    res.json({
+      status: 'ok',
+      env: config.env,
+      timestamp: new Date().toISOString(),
+      services: {
+        database: 'connected',
+        redis: redisStatus
+      }
+    })
+  } catch (error) {
+    logger.error('Health check failed:', error)
+    res.status(503).json({
+      status: 'error',
+      env: config.env,
+      timestamp: new Date().toISOString(),
+      error: error.message
+    })
+  }
+})
+
+// Readiness check (for Kubernetes/Docker)
+app.get('/api/ready', async (req, res) => {
+  try {
+    await sequelize.authenticate()
+    res.json({ status: 'ready' })
+  } catch (error) {
+    res.status(503).json({ status: 'not ready', error: error.message })
+  }
+})
+
+// Liveness check (for Kubernetes/Docker)
+app.get('/api/live', (req, res) => {
+  res.json({ status: 'alive' })
 })
 
 async function bootstrap() {
