@@ -74,13 +74,18 @@ module.exports = {
   },
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   appName: process.env.APP_NAME || 'Starter SaaS',
-  smtp: {
-    host: process.env.SMTP_HOST || '',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for others
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASS || '',
-    from: process.env.SMTP_FROM || 'no-reply@example.com',
+  // A live getter (not a snapshot) so SMTP settings edited at runtime via the
+  // Settings → Email Setting tab — which rewrites .env and process.env — are
+  // reflected immediately by the mailer without a server restart.
+  get smtp() {
+    return {
+      host: process.env.SMTP_HOST || '',
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for others
+      user: process.env.SMTP_USER || '',
+      pass: process.env.SMTP_PASS || '',
+      from: process.env.SMTP_FROM || 'no-reply@example.com',
+    }
   },
   auth: {
     requireEmailVerification: process.env.REQUIRE_EMAIL_VERIFICATION === 'true',
