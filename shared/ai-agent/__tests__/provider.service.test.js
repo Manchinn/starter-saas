@@ -21,6 +21,8 @@ describe('provider.chat — Ollama', () => {
     const body = JSON.parse(opts.body)
     expect(body.stream).toBe(false)
     expect(body.options.temperature).toBe(0.2)
+    // Loads the model with a large enough context for the full tool schema set.
+    expect(body.options.num_ctx).toBeGreaterThanOrEqual(8192)
 
     expect(out.tool_calls).toHaveLength(1)
     expect(out.tool_calls[0].name).toBe('navigate')

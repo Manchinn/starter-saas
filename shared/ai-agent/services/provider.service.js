@@ -10,6 +10,7 @@
  * a friendly { status, message } so callers can surface them without a 500.
  */
 const log = require('../../../server/core/logger').forLabel('ai-agent')
+const config = require('../../../server/config/config')
 
 const TIMEOUT_MS = 120000
 
@@ -64,7 +65,9 @@ async function chat({ settings, messages, tools }) {
         messages: toOllamaMessages(messages),
         tools,
         stream: false,
-        options: { temperature: settings.temperature },
+        // num_ctx loads the model with a context big enough for the full tool
+        // schema set; the small default overflows ("n_keep >= n_ctx").
+        options: { temperature: settings.temperature, num_ctx: config.ai.numCtx },
       }),
     })
     return normalizeOllama(data?.message)
