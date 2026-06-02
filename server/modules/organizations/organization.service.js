@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
-const { User, Module, Role, Permission, Employee, HrmsRole, HrmsPermission } = require('../../models')
+const { User, Module, Role, Permission, Employee, HrmsRole, HrmsPermission, Subscription, Plan } = require('../../models')
 const { Op } = require('sequelize')
 const { resolvePermissions } = require('../../middleware/permission')
 const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
@@ -21,6 +21,18 @@ function assertCanSetAdminRole(actor, role) {
   if (role === 'admin' && actor.role !== 'admin') {
     throw { status: 403, message: 'Only system administrators can grant the admin role.' }
   }
+}
+
+// Assigning a subscription plan is a billing action — restrict it to system
+// admins or holders of `billing.manage`, even though the org routes themselves
+// are gated by the (delegable) `organizations.edit`. Only called when a planId
+// is actually supplied, so a plain org edit by a delegate is unaffected.
+async function assertCanSetPlan(actor) {
+  if (!actor) return // internal/trusted (seeders, tests, programmatic setup)
+  if (actor.role === 'admin') return
+  const perms = await resolvePermissions(actor)
+  if (perms.has('*') || perms.has('billing.manage')) return
+  throw { status: 403, message: 'You need the billing.manage permission to set a subscription plan.' }
 }
 
 async function assertCanAssignRoles(actor, roleIds) {
@@ -70,11 +82,16 @@ const organizationIncludes = [
   },
   { model: User, as: 'parent',   attributes: ['id', 'name', 'email'] },
   { model: User, as: 'children', attributes: ['id', 'name', 'email', 'isActive'] },
+  {
+    model: Subscription, as: 'subscription', required: false,
+    include: [{ model: Plan, as: 'plan', attributes: ['id', 'slug', 'name', 'price', 'currency', 'interval'] }],
+  },
 ]
 
-const create = async ({ name, email, password, role = 'user', defaultPage = null, roleIds = [], organizationId = null, parentId = null }, actor) => {
+const create = async ({ name, email, password, role = 'user', defaultPage = null, roleIds = [], organizationId = null, parentId = null, planId = null }, actor) => {
   assertCanSetAdminRole(actor, role)
   await assertCanAssignRoles(actor, roleIds)
+  if (planId) await assertCanSetPlan(actor)
 
   const exists = await User.findOne({ where: { email } })
   if (exists) throw { status: 409, message: 'Email already registered' }
@@ -85,11 +102,17 @@ const create = async ({ name, email, password, role = 'user', defaultPage = null
 
   const organization = await User.create({ name, email, password, role, defaultPage, organizationId, parentId: parentId || null })
 
-  // A brand-new top-level organization starts on the default plan so its billing
-  // state is always resolvable. Best-effort — never blocks org creation.
+  // A brand-new top-level organization gets a subscription: the plan the admin
+  // chose, or the default plan otherwise so its billing state is always
+  // resolvable. The default path is best-effort (never blocks creation); an
+  // explicit plan surfaces errors (e.g. an unknown plan id).
   if (!organizationId) {
-    try { await billing.ensureDefaultSubscription(organization.id) }
-    catch (_) { /* plans not seeded yet — org still usable on the fallback plan */ }
+    if (planId) {
+      await billing.subscribe(organization.id, planId)
+    } else {
+      try { await billing.ensureDefaultSubscription(organization.id) }
+      catch (_) { /* plans not seeded yet — org still usable on the fallback plan */ }
+    }
   }
 
   if (roleIds.length) {
@@ -148,6 +171,15 @@ const update = async (id, data, actor) => {
   if ('role' in patch) assertCanSetAdminRole(actor, patch.role)
   if ('parentId' in patch) patch.parentId = patch.parentId || null
   await organization.update(patch)
+
+  // Plan change applies only to top-level organizations, and only when it
+  // actually differs from the current plan (avoids minting a needless invoice).
+  if (data.planId && !organization.organizationId) {
+    await assertCanSetPlan(actor)
+    const current = await billing.getSubscription(id)
+    if (!current || current.planId !== data.planId) await billing.subscribe(id, data.planId)
+  }
+
   return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
 }
 

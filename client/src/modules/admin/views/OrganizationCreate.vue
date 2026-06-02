@@ -91,6 +91,18 @@
         </div>
       </div>
 
+      <!-- Subscription Plan -->
+      <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-[#E2E8F0]">
+          <h2 class="text-sm font-semibold text-[#374151]">{{ $t('org.subscriptionPlan') }}</h2>
+          <p class="text-xs text-[#9BA7B0] mt-0.5">{{ $t('org.subscriptionPlanDesc') }}</p>
+        </div>
+        <div class="px-6 py-5">
+          <label class="label">{{ $t('org.plan') }}</label>
+          <SearchSelect v-model="form.planId" :options="planOptions" :placeholder="$t('org.planDefaultPlaceholder')" />
+        </div>
+      </div>
+
       <!-- Assigned Roles -->
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#E2E8F0]">
@@ -161,8 +173,17 @@ const ROLE_OPTIONS = computed(() => [
 
 const allRoles = ref([])
 const allOrgs  = ref([])
+const allPlans = ref([])
 const error    = ref('')
 const saving   = ref(false)
+
+const planOptions = computed(() => allPlans.value.map((p) => ({ id: p.id, name: planLabel(p) })))
+
+function planLabel(p) {
+  const n = Number(p.price)
+  const price = n === 0 ? t('billing.freePrice') : `${n.toLocaleString()} ${p.currency}`
+  return `${p.name} · ${price}`
+}
 const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = reactive({
@@ -173,15 +194,18 @@ const form = reactive({
   defaultPage: '',
   parentId:    '',
   roleIds:     [],
+  planId:      '',
 })
 
 onMounted(async () => {
-  const [rolesRes, orgsRes] = await Promise.all([
+  const [rolesRes, orgsRes, plansRes] = await Promise.all([
     api.get('/roles'),
     api.get('/organizations/all'),
+    api.get('/billing/admin/plans'),
   ])
   allRoles.value = rolesRes.data.data.roles
   allOrgs.value  = orgsRes.data.data.organizations
+  allPlans.value = (plansRes.data.data.plans || []).filter((p) => p.isActive)
 })
 
 async function save() {
@@ -197,6 +221,7 @@ async function save() {
       defaultPage: form.defaultPage || null,
       parentId:    form.parentId    || null,
       roleIds:     form.roleIds,
+      planId:      form.planId       || null,
     })
     router.push('/admin/organizations')
   } catch (err) {

@@ -162,6 +162,19 @@
           </div>
         </div>
 
+        <!-- Subscription Plan -->
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.subscriptionPlan') }}</h2>
+            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('org.subscriptionPlanDesc') }}</p>
+          </div>
+          <div class="px-6 py-5">
+            <label class="label">{{ t('org.plan') }}</label>
+            <SearchSelect v-model="form.planId" :options="planOptions" :placeholder="t('org.planDefaultPlaceholder')" />
+            <p v-if="currentPlanName" class="text-xs text-[#9BA7B0] mt-1.5">{{ t('org.currentPlan', { name: currentPlanName }) }}</p>
+          </div>
+        </div>
+
         <!-- Assigned Roles -->
         <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-[#E2E8F0]">
@@ -233,12 +246,22 @@ const saving   = ref(false)
 const error    = ref('')
 const allRoles = ref([])
 const allOrgs  = ref([])
+const allPlans = ref([])
 const children = ref([])
+const currentPlanName = ref('')
 const { fieldErrors, setFromError, reset: resetErrors, errorOf } = useFieldErrors()
+
+const planOptions = computed(() => allPlans.value.map((p) => ({ id: p.id, name: planLabel(p) })))
+
+function planLabel(p) {
+  const n = Number(p.price)
+  const price = n === 0 ? t('billing.freePrice') : `${n.toLocaleString()} ${p.currency}`
+  return `${p.name} · ${price}`
+}
 
 const form = reactive({
   id: null, name: '', email: '', role: 'user', isActive: true, defaultPage: '', parentId: '', roleIds: [],
-  companyName: '', address: '', phone: '', taxId: '', website: '', logoPath: '',
+  companyName: '', address: '', phone: '', taxId: '', website: '', logoPath: '', planId: '',
 })
 
 const logoFileRef = ref(null)
@@ -304,15 +327,18 @@ const parentOrgOptions = computed(() => allOrgs.value.filter(o => o.id !== form.
 
 onMounted(async () => {
   try {
-    const [orgRes, rolesRes, orgsRes] = await Promise.all([
+    const [orgRes, rolesRes, orgsRes, plansRes] = await Promise.all([
       api.get(`/organizations/${route.params.id}`),
       api.get('/roles'),
       api.get('/organizations/all'),
+      api.get('/billing/admin/plans'),
     ])
     const u = orgRes.data.data.organization
     allRoles.value = rolesRes.data.data.roles
     allOrgs.value  = orgsRes.data.data.organizations
+    allPlans.value = (plansRes.data.data.plans || []).filter((p) => p.isActive)
     children.value = u.children || []
+    currentPlanName.value = u.subscription?.plan?.name || ''
     Object.assign(form, {
       id:          u.id,
       name:        u.name,
@@ -328,6 +354,7 @@ onMounted(async () => {
       taxId:       u.taxId       || '',
       website:     u.website     || '',
       logoPath:    u.logoPath    || '',
+      planId:      u.subscription?.planId || '',
     })
   } catch {
     router.push('/admin/organizations')
@@ -352,6 +379,7 @@ async function save() {
       phone:       form.phone?.trim()       || null,
       taxId:       form.taxId?.trim()       || null,
       website:     form.website?.trim()     || null,
+      planId:      form.planId               || null,
     })
     await api.put(`/organizations/${form.id}/roles`, { roleIds: form.roleIds })
     router.push('/admin/organizations')
