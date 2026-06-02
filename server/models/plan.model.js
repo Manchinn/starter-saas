@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 /**
  * Plan — the subscription tier catalog (global, system-admin managed).
@@ -87,6 +88,7 @@ const Plan = sequelize.define('Plan', {
     defaultValue: 0,
     comment: 'Display order (ลำดับ)',
   },
+  ...recordFields,
 })
 
 module.exports = Plan

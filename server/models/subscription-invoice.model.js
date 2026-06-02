@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 /**
  * SubscriptionInvoice — billing history for the SaaS subscription itself.
@@ -74,6 +75,7 @@ const SubscriptionInvoice = sequelize.define('SubscriptionInvoice', {
     allowNull: true,
     comment: 'Gateway invoice id (รหัสใบแจ้งหนี้ในเกตเวย์)',
   },
+  ...recordFields,
 })
 
 module.exports = SubscriptionInvoice

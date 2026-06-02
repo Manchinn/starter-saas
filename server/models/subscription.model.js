@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 /**
  * Subscription — one row per organization (the top-level User).
@@ -74,6 +75,7 @@ const Subscription = sequelize.define('Subscription', {
     allowNull: true,
     comment: 'Gateway subscription id (รหัสการสมัครในเกตเวย์)',
   },
+  ...recordFields,
 })
 
 module.exports = Subscription

@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 /**
  * UsageCounter — metered usage per organization, per metric, per period.
@@ -37,6 +38,7 @@ const UsageCounter = sequelize.define('UsageCounter', {
     defaultValue: 0,
     comment: 'Usage count (จำนวนการใช้งาน)',
   },
+  ...recordFields,
 }, {
   indexes: [
     { unique: true, fields: ['organizationId', 'metric', 'period'] },

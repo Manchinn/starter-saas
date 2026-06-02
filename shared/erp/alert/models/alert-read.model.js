@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { recordFields } = require('../../model-fields')
 
 // Per-user read receipts. The presence of a row means the user has read the
 // alert; absence means unread. Kept separate from Alert so one announcement
@@ -14,6 +15,7 @@ const AlertRead = sequelize.define('AlertRead', {
   alertId: { type: DataTypes.UUID, allowNull: false , comment: 'Alert (การแจ้งเตือน)'},
   userId:  { type: DataTypes.UUID, allowNull: false , comment: 'User (ผู้ใช้)'},
   readAt:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW , comment: 'Read At (อ่านเมื่อ)'},
+  ...recordFields,
 }, {
   indexes: [
     { unique: true, fields: ['alertId', 'userId'] },
