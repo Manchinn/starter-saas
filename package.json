@@ -11,7 +11,9 @@
     "dev:server": "npm --workspace=server run dev",
     "dev:client": "npm --workspace=client run dev",
     "install:all": "npm install && npm --workspace=server install && npm --workspace=client install",
-    "build": "npm --workspace=client run build"
+    "build": "npm --workspace=client run build",
+    "test": "npm --workspace=server test",
+    "test:server": "npm --workspace=server test"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

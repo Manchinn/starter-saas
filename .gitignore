@@ -13,3 +13,11 @@ data/
 tmp/
 test-results/
 
+# VSCode settings (keep local)
+.vscode/
+
+# Claude docs (keep local)
+CLAUDE.md
+CONTEXT.md
+docs/
+

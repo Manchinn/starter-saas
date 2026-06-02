@@ -12,7 +12,7 @@
     "migrate:up": "node tools/migrate.js up",
     "migrate:down": "node tools/migrate.js down",
     "migrate:status": "node tools/migrate.js status",
-    "test": "jest"
+    "test": "npx jest"
   },
   "dependencies": {
     "accounting-js": "^2.0.3",
