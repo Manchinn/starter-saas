@@ -1,0 +1,84 @@
+# Development docker-compose with hot-reload
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: starter-saas-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: starter_saas_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - starter-saas-dev
+
+  redis:
+    image: redis:7-alpine
+    container_name: starter-saas-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - starter-saas-dev
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: starter-saas-api-dev
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_DIALECT: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: starter_saas_dev
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      REDIS_ENABLED: true
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: dev-secret-key-change-in-production
+      JWT_REFRESH_SECRET: dev-refresh-secret-key-change-in-production
+      CLIENT_URL: http://localhost:5173
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    command: npm run dev
+    networks:
+      - starter-saas-dev
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: starter-saas-client-dev
+    restart: unless-stopped
+    depends_on:
+      - api
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: npm run dev -- --host
+    networks:
+      - starter-saas-dev
+
+volumes:
+  postgres_dev_data:
+
+networks:
+  starter-saas-dev:
+    driver: bridge
