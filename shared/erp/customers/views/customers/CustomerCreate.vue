@@ -43,7 +43,7 @@
           <div>
             <FormField name="code" :label="t('erp.customers.customerCode')" :errors="fieldErrors">
               <template #default="{ id }">
-                <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text" placeholder="e.g. CUS-001" class="input" />
+                <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text" placeholder="e.g. CUS-001" class="input" />
                 <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
               </template>
             </FormField>
@@ -110,6 +110,7 @@ const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErro
 
 const showShortcuts = ref(false)
 const shortcutsRef  = ref(null)
+const codeInputRef  = ref(null)
 
 const SHORTCUTS = [
   { key: 'Ctrl+Enter', label: 'Save' },
@@ -136,6 +137,7 @@ onMounted(async () => {
   groups.value = data.data.groups
   window.addEventListener('keydown', onKeydown)
   document.addEventListener('mousedown', onClickOutsideShortcuts)
+  if (!autoCode.enabled.value) codeInputRef.value?.focus()
 })
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
