@@ -37,17 +37,14 @@ RUN ln -s /app /server
 # Copy server application code
 COPY --chown=nodejs:nodejs server .
 
-# Create data directory for SQLite (if used)
-RUN mkdir -p /app/data && chown nodejs:nodejs /app/data
-
 # Switch to non-root user
 USER nodejs
 
 # Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+# Health check - increase start-period to 60s for slow migrations
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Use dumb-init to handle signals properly
