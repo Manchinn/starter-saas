@@ -114,7 +114,7 @@ const shortcutsRef  = ref(null)
 const nameInputRef  = ref(null)
 
 const SHORTCUTS = [
-  { key: 'Ctrl+Enter', label: 'Save changes' },
+  { key: 'Ctrl+S', label: 'Save changes' },
   { key: 'Escape',     label: 'Cancel / back' },
 ]
 
@@ -127,7 +127,7 @@ function onClickOutsideShortcuts(e) {
 function onKeydown(e) {
   if (e.key === 'Escape') {
     router.push('/erp/customers')
-  } else if (e.ctrlKey && e.key === 'Enter') {
+  } else if (e.ctrlKey && e.key === 's') {
     e.preventDefault()
     save()
   }
