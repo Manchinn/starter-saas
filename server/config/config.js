@@ -91,9 +91,15 @@ module.exports = {
     // Context window (num_ctx) Ollama loads the model with. The agent sends all
     // tool schemas on every call, so the fixed prompt (system + tools) is large
     // and grows as modules add tools; Ollama's small default (2048/4096) makes
-    // it overflow with "n_keep >= n_ctx". 8192 gives comfortable headroom — raise
-    // it if you add many more tools or want longer histories.
-    numCtx: parseInt(process.env.AI_NUM_CTX) || 8192,
+    // it overflow with "n_keep >= n_ctx". With the full ERP tool set the fixed
+    // prompt is ~8.5k tokens (even with prompt compression on), so 16384 leaves
+    // room for the tools, history, and the reply — raise it further if you add
+    // many more tools or want longer histories.
+    //
+    // NOTE: this only applies to Ollama. LM Studio's context length is fixed when
+    // the model is loaded (set it in LM Studio's UI / server tab); num_ctx is not
+    // sent to it, so a model loaded at 4096 there will still overflow.
+    numCtx: parseInt(process.env.AI_NUM_CTX) || 16384,
   },
   billing: {
     // Active billing provider. `manual` (default) means plans are assigned by an
