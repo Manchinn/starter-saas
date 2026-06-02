@@ -21,14 +21,14 @@ module.exports = {
     for (const [col, kind] of Object.entries(ITEM)) await ctx.addColumn('invoice_items', col, attr(ctx, kind))
 
     // Invoices already marked paid get amountPaid = total.
-    await ctx.rawSafe(`UPDATE Invoices SET amountPaid = total WHERE status = 'paid' AND (amountPaid IS NULL OR amountPaid = 0)`)
+    await ctx.rawSafe(`UPDATE "Invoices" SET "amountPaid" = total WHERE status = 'paid' AND ("amountPaid" IS NULL OR "amountPaid" = 0)`)
 
     // Freeze itemCode from the source record (sale item → package → product sku).
-    await ctx.rawSafe(`UPDATE invoice_items SET itemCode = (SELECT code FROM sale_items WHERE sale_items.id = invoice_items.saleItemId) WHERE itemCode IS NULL AND saleItemId IS NOT NULL`)
-    await ctx.rawSafe(`UPDATE invoice_items SET itemCode = (SELECT code FROM sale_packages WHERE sale_packages.id = invoice_items.salePackageId) WHERE itemCode IS NULL AND salePackageId IS NOT NULL`)
-    await ctx.rawSafe(`UPDATE invoice_items SET itemCode = (SELECT sku FROM Products WHERE Products.id = invoice_items.productId) WHERE itemCode IS NULL AND productId IS NOT NULL`)
+    await ctx.rawSafe(`UPDATE invoice_items SET "itemCode" = (SELECT code FROM sale_items WHERE sale_items.id = invoice_items."saleItemId") WHERE "itemCode" IS NULL AND "saleItemId" IS NOT NULL`)
+    await ctx.rawSafe(`UPDATE invoice_items SET "itemCode" = (SELECT code FROM sale_packages WHERE sale_packages.id = invoice_items."salePackageId") WHERE "itemCode" IS NULL AND "salePackageId" IS NOT NULL`)
+    await ctx.rawSafe(`UPDATE invoice_items SET "itemCode" = (SELECT sku FROM "Products" WHERE "Products".id = invoice_items."productId") WHERE "itemCode" IS NULL AND "productId" IS NOT NULL`)
     // Legacy seed rows carry only productName — match by name within the org.
-    await ctx.rawSafe(`UPDATE invoice_items SET itemCode = (SELECT code FROM sale_items WHERE sale_items.name = invoice_items.productName AND COALESCE(sale_items.organizationId, '') = COALESCE(invoice_items.organizationId, '') LIMIT 1) WHERE itemCode IS NULL AND saleItemId IS NULL AND salePackageId IS NULL AND productId IS NULL`)
+    await ctx.rawSafe(`UPDATE invoice_items SET "itemCode" = (SELECT code FROM sale_items WHERE sale_items.name = invoice_items."productName" AND sale_items."organizationId" IS NOT DISTINCT FROM invoice_items."organizationId" LIMIT 1) WHERE "itemCode" IS NULL AND "saleItemId" IS NULL AND "salePackageId" IS NULL AND "productId" IS NULL`)
   },
   async down(ctx) {
     for (const col of Object.keys(ITEM).reverse()) await ctx.removeColumn('invoice_items', col)

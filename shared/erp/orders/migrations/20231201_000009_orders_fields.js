@@ -17,7 +17,7 @@ module.exports = {
 
     // Backfill: copy legacy single-address into shippingAddress where unset.
     if (await ctx.columnExists('DeliveryOrders', 'address')) {
-      await ctx.rawSafe('UPDATE DeliveryOrders SET shippingAddress = address WHERE shippingAddress IS NULL AND address IS NOT NULL')
+      await ctx.rawSafe('UPDATE "DeliveryOrders" SET "shippingAddress" = address WHERE "shippingAddress" IS NULL AND address IS NOT NULL')
     }
   },
   async down(ctx) {

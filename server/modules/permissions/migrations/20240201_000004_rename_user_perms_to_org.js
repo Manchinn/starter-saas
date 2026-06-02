@@ -11,8 +11,8 @@ const RENAMES = [
 
 async function rename(ctx, from, to, name, group) {
   await ctx.rawSafe(
-    `UPDATE Permissions SET slug = ?, name = ?, "group" = ?
-       WHERE slug = ? AND NOT EXISTS (SELECT 1 FROM Permissions WHERE slug = ?)`,
+    `UPDATE "Permissions" SET slug = ?, name = ?, "group" = ?
+       WHERE slug = ? AND NOT EXISTS (SELECT 1 FROM "Permissions" WHERE slug = ?)`,
     { replacements: [to, name, group, from, to] }
   )
 }

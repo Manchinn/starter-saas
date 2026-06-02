@@ -5,10 +5,10 @@ module.exports = {
   async up(ctx) {
     await ctx.rawSafe(`
       UPDATE audit_logs
-      SET organizationId = (
-        SELECT COALESCE(u.organizationId, u.id) FROM Users u WHERE u.id = audit_logs.userId
+      SET "organizationId" = (
+        SELECT COALESCE(u."organizationId", u.id) FROM "Users" u WHERE u.id = audit_logs."userId"
       )
-      WHERE organizationId IS NULL AND userId IS NOT NULL
+      WHERE "organizationId" IS NULL AND "userId" IS NOT NULL
     `)
   },
   // Pure data backfill — nothing to reverse.
