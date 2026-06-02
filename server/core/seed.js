@@ -12,7 +12,8 @@ const SEQUENCE_SEEDS = [
   { code: 'STR', name: 'Stock Transfer',   format: 'RQ{YY}{MM}{####}',  initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
   { code: 'RTN', name: 'Stock Return',     format: 'RTN{YY}{MM}{####}', initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
   { code: 'ISS', name: 'Stock Issue',      format: 'ISS{YY}{MM}{####}', initialValue: 1, runningValue: 1, reseedPeriod: 'M', maxValue: 9999 },
-  { code: 'DEP', name: 'Department Code',  format: 'DEP{####}',         initialValue: 1, runningValue: 1, reseedPeriod: 'F', maxValue: 99999 },
+  { code: 'CGP', name: 'Customer Group Code', format: 'CGP{####}',       initialValue: 1, runningValue: 1, reseedPeriod: 'F', maxValue: 99999 },
+  { code: 'DEP', name: 'Department Code',     format: 'DEP{####}',       initialValue: 1, runningValue: 1, reseedPeriod: 'F', maxValue: 99999 },
 ]
 
 async function seedSequences() {
