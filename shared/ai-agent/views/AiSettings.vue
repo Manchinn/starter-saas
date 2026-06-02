@@ -88,6 +88,21 @@
             <input v-model.number="form.temperature" type="range" min="0" max="1" step="0.05" class="w-full accent-primary-500" />
           </div>
 
+          <!-- Max tokens -->
+          <div>
+            <label class="label">{{ t('aiAgent.settings.maxTokens') }}</label>
+            <div class="flex items-center gap-3">
+              <input v-model.number="form.maxTokens" type="number" min="1" step="1"
+                :disabled="unlimitedTokens" :placeholder="t('aiAgent.settings.unlimited')"
+                class="input w-40 disabled:bg-[#F7F9FC] disabled:text-[#9BA7B0] disabled:cursor-not-allowed" />
+              <label class="flex items-center gap-2 text-sm text-[#374151] cursor-pointer">
+                <input type="checkbox" v-model="unlimitedTokens" class="w-4 h-4 accent-primary-500" />
+                {{ t('aiAgent.settings.unlimited') }}
+              </label>
+            </div>
+            <p class="text-xs text-[#9BA7B0] mt-1">{{ t('aiAgent.settings.maxTokensHint') }}</p>
+          </div>
+
           <!-- System prompt -->
           <div>
             <label class="label">{{ t('aiAgent.settings.systemPrompt') }}</label>
@@ -110,6 +125,24 @@
               <span class="block text-xs text-[#9BA7B0]">{{ t('aiAgent.settings.autoActionHint') }}</span>
             </span>
             <input v-model="form.autoAction" type="checkbox" class="w-5 h-5 accent-primary-500" />
+          </label>
+
+          <!-- Thinking model -->
+          <label class="flex items-center justify-between gap-3 cursor-pointer">
+            <span>
+              <span class="block text-sm font-medium text-[#1C2434]">{{ t('aiAgent.settings.thinkingModel') }}</span>
+              <span class="block text-xs text-[#9BA7B0]">{{ t('aiAgent.settings.thinkingModelHint') }}</span>
+            </span>
+            <input v-model="form.thinkingModel" type="checkbox" class="w-5 h-5 accent-primary-500" />
+          </label>
+
+          <!-- Prompt compression -->
+          <label class="flex items-center justify-between gap-3 cursor-pointer">
+            <span>
+              <span class="block text-sm font-medium text-[#1C2434]">{{ t('aiAgent.settings.promptCompression') }}</span>
+              <span class="block text-xs text-[#9BA7B0]">{{ t('aiAgent.settings.promptCompressionHint') }}</span>
+            </span>
+            <input v-model="form.promptCompression" type="checkbox" class="w-5 h-5 accent-primary-500" />
           </label>
         </div>
 
@@ -156,6 +189,12 @@ const PRESETS = {
 const settings = ref(null)
 const form = ref(null)
 const models = ref([])
+
+// Max-tokens "Unlimited" toggle ⇄ form.maxTokens (null = unlimited).
+const unlimitedTokens = computed({
+  get: () => !form.value || form.value.maxTokens == null,
+  set: (v) => { if (form.value) form.value.maxTokens = v ? null : 2048 },
+})
 const testing = ref(false)
 const testResult = ref(null)
 const saving = ref(false)
@@ -255,6 +294,9 @@ async function save() {
       systemPrompt: form.value.systemPrompt,
       enabled: form.value.enabled,
       autoAction: form.value.autoAction,
+      maxTokens: unlimitedTokens.value ? null : form.value.maxTokens,
+      thinkingModel: form.value.thinkingModel,
+      promptCompression: form.value.promptCompression,
     }
     // Only send apiKey when the user typed one (blank keeps the saved key).
     if (form.value.apiKey) patch.apiKey = form.value.apiKey

@@ -19,6 +19,15 @@ const AiSetting = sequelize.define('AiSetting', {
   // When true, actions the assistant returns (e.g. navigate) run automatically
   // without the user having to click the action chip.
   autoAction:  { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true , comment: 'Auto Action (ทำงานอัตโนมัติ)'},
+
+  // Max tokens the model may generate per reply. null = unlimited (no cap).
+  maxTokens:   { type: DataTypes.INTEGER, allowNull: true , comment: 'Max Tokens (null = unlimited)'},
+  // Reasoning/"thinking" model: ask the model to think (Ollama `think`) and strip
+  // its <think> reasoning out of the visible reply.
+  thinkingModel:    { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false , comment: 'Thinking Model (โมเดลคิดวิเคราะห์)'},
+  // Send a leaner prompt (compact tool schemas + shorter history) to fit small
+  // context windows.
+  promptCompression:{ type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false , comment: 'Prompt Compression (บีบอัดพรอมต์)'},
   ...auditFields,
 })
 

@@ -10,18 +10,16 @@ const provider = require('./provider.service')
 const toolsRegistry = require('./tools')
 
 const MAX_ITERATIONS = 5
-const HISTORY_LIMIT = 20   // prior turns fed back to the model
+const HISTORY_LIMIT = 20            // prior turns fed back to the model
+const COMPRESSED_HISTORY_LIMIT = 6 // when prompt compression is on (small contexts)
 
 // Always-on guardrail appended to the system prompt (even when the user has
 // customized it). Stops the model from fabricating figures — every numeric /
 // business answer must come from a tool result, not the model's imagination.
 const DATA_INTEGRITY_DIRECTIVE =
-  '\n\nIMPORTANT — data integrity: Base every factual answer only on data returned by a tool. '
-  + 'For any request about metrics, counts, money, sales, AR/AP, VAT, inventory, customers, products, '
-  + 'orders, or any business figures — including summaries and executive briefings — you MUST call the '
-  + 'relevant tool first and report ONLY the values it returns. Never invent, estimate, guess, or use '
-  + 'placeholder/example numbers. If a tool returns zero or no data, say so honestly. If no tool covers '
-  + 'the question, say you do not have that data rather than making something up.'
+  '\n\nData integrity: for any business figure (metrics, money, sales, AR/AP, VAT, inventory, counts), '
+  + 'call the relevant tool first and report ONLY the values it returns — never invent, estimate or guess. '
+  + 'If a tool returns no data, say so; if no tool covers it, say you do not have that data.'
 
 // Map the UI locale to a directive appended to the system prompt so the model
 // replies in the user's selected language even when tool data is in English.
@@ -51,11 +49,11 @@ const titleFrom = (text) => {
 }
 
 // Build the OpenAI-format message list for the model: system + stored history.
-const buildBaseMessages = async (settings, conversationId) => {
+const buildBaseMessages = async (settings, conversationId, historyLimit = HISTORY_LIMIT) => {
   const history = await AiMessage.findAll({
     where: { conversationId },
     order: [['createdAt', 'ASC']],
-    limit: HISTORY_LIMIT,
+    limit: historyLimit,
   })
   const messages = [{ role: 'system', content: settings.systemPrompt }]
   for (const m of history) {
@@ -76,7 +74,9 @@ const chat = async ({ user, conversationId, content, lang }) => {
 
   const conv = await ensureConversation(user, conversationId)
 
-  const messages = await buildBaseMessages(settings, conv.id)
+  // Prompt compression: leaner tool schemas + shorter history for small contexts.
+  const compress = !!settings.promptCompression
+  const messages = await buildBaseMessages(settings, conv.id, compress ? COMPRESSED_HISTORY_LIMIT : HISTORY_LIMIT)
   // Reinforce the system prompt (first message): always enforce data integrity,
   // and steer the reply language to the user's UI locale.
   if (messages[0]?.role === 'system') {
@@ -94,7 +94,7 @@ const chat = async ({ user, conversationId, content, lang }) => {
     const assistant = await provider.chat({
       settings,
       messages,
-      tools: toolsRegistry.schemas(),
+      tools: toolsRegistry.schemas({ compact: compress }),
     })
 
     const toolCalls = assistant.tool_calls || []
@@ -191,6 +191,18 @@ const removeConversation = async (user, id) => {
   await conv.destroy()
 }
 
+// Wipe the user's entire chat history (all conversations + their messages),
+// scoped to this org. Returns how many conversations were removed.
+const removeAllConversations = async (user) => {
+  const { id: userId, organizationId } = user
+  const convs = await AiConversation.findAll({ where: { userId, organizationId }, attributes: ['id'] })
+  const ids = convs.map((c) => c.id)
+  if (!ids.length) return { deleted: 0 }
+  await AiMessage.destroy({ where: { conversationId: ids } })
+  await AiConversation.destroy({ where: { userId, organizationId } })
+  return { deleted: ids.length }
+}
+
 const safeParse = (s) => { try { return JSON.parse(s) } catch { return [] } }
 
-module.exports = { chat, listConversations, getConversation, removeConversation }
+module.exports = { chat, listConversations, getConversation, removeConversation, removeAllConversations }

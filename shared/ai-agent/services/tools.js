@@ -76,10 +76,32 @@ const tools = [
 
 const byName = new Map(tools.map((t) => [t.name, t]))
 
-// OpenAI-style tool schema array sent to the LLM.
-const schemas = () => tools.map((t) => ({
+// Drop per-property `description` fields from a JSON-schema params object —
+// keeps type/enum/required so the model can still call the tool, just leaner.
+const stripParamDescriptions = (params) => {
+  if (!params || typeof params !== 'object' || !params.properties) return params
+  const properties = {}
+  for (const [key, spec] of Object.entries(params.properties)) {
+    const { description, ...rest } = spec || {}
+    properties[key] = rest
+  }
+  return { ...params, properties }
+}
+
+// First sentence/line of a description — enough signal for the model to pick a
+// tool without the full prose.
+const shortDesc = (d) => (d || '').split(/(?<=\.)\s|\n/)[0].trim()
+
+// OpenAI-style tool schema array sent to the LLM. `compact` drops parameter
+// descriptions and shortens tool descriptions to fit small context windows
+// (prompt compression).
+const schemas = ({ compact = false } = {}) => tools.map((t) => ({
   type: 'function',
-  function: { name: t.name, description: t.description, parameters: t.parameters },
+  function: {
+    name: t.name,
+    description: compact ? shortDesc(t.description) : t.description,
+    parameters: compact ? stripParamDescriptions(t.parameters) : t.parameters,
+  },
 }))
 
 // Execute a tool by name. Returns { content, action? } where content is a

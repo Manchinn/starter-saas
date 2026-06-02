@@ -3,6 +3,11 @@ export default {
   org: {
     title:    'องค์กร',
     subtitle: '{n} องค์กร',
+    subscriptionPlan:       'แผนการสมัครสมาชิก',
+    subscriptionPlanDesc:   'กำหนดแผนการสมัครสมาชิกขององค์กรนี้',
+    plan:                   'แผน',
+    planDefaultPlaceholder: 'แผนเริ่มต้น',
+    currentPlan:            'แผนปัจจุบัน: {name}',
     new:      'สร้างองค์กรใหม่',
     newDesc:  'กรอกข้อมูลบัญชีและมอบหมายบทบาทให้กับองค์กรใหม่',
     edit:     'แก้ไของค์กร',

@@ -7,6 +7,10 @@ const settingsRules = [
   body('temperature').optional().isFloat({ min: 0, max: 2 }).withMessage('Temperature must be 0–2'),
   body('enabled').optional().isBoolean().withMessage('Invalid enabled flag'),
   body('autoAction').optional().isBoolean().withMessage('Invalid autoAction flag'),
+  // null = unlimited; otherwise a positive token cap.
+  body('maxTokens').optional({ nullable: true }).isInt({ min: 1, max: 131072 }).withMessage('Max tokens must be a positive integer'),
+  body('thinkingModel').optional().isBoolean().withMessage('Invalid thinkingModel flag'),
+  body('promptCompression').optional().isBoolean().withMessage('Invalid promptCompression flag'),
 ]
 
 const chatRules = [

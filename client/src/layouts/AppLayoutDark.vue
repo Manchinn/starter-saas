@@ -278,6 +278,11 @@
                     <ComputerDesktopIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('profile.tabSessions') }}</span>
                   </RouterLink>
+                  <RouterLink to="/billing" @click="userOpen = false"
+                    class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
+                    <CreditCardIcon class="w-4 h-4 text-[#637381]" />
+                    <span>{{ t('billing.nav') }}</span>
+                  </RouterLink>
                 </div>
                 <div class="p-1.5 border-t border-[#E2E8F0]">
                   <button type="button" @click="handleLogout"
@@ -321,7 +326,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import {
   ChevronDownIcon, ArrowRightOnRectangleIcon,
-  Bars3Icon, XMarkIcon, SparklesIcon, UserCircleIcon, ComputerDesktopIcon,
+  Bars3Icon, XMarkIcon, SparklesIcon, UserCircleIcon, ComputerDesktopIcon, CreditCardIcon,
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { useAppLayout } from '@/composables/useAppLayout'

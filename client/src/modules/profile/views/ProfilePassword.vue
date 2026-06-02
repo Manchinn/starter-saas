@@ -42,12 +42,8 @@
             :errors="confirmFieldErrors"
           />
 
-          <div v-if="error" class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm">
-            {{ error }}
-          </div>
-          <div v-if="success" class="px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
-            {{ success }}
-          </div>
+          <ErrorBanner :message="error" />
+          <SuccessBanner :message="success" />
 
           <div class="flex justify-end pt-2 border-t border-[#E2E8F0]">
             <button type="submit" :disabled="saving" class="btn-primary">
@@ -66,6 +62,8 @@ import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ProfileTabs from './ProfileTabs.vue'
 import FormField from '@/components/form/FormField.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import SuccessBanner from '@/components/form/SuccessBanner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import { useAuthStore } from '@/stores/auth'
 

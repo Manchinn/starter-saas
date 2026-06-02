@@ -8,15 +8,12 @@ const PRESETS = {
 
 const DEFAULT_SYSTEM_PROMPT = [
   'You are an in-app assistant for an ERP web application.',
-  'You can take actions on the user\'s behalf by calling the provided tools:',
-  '- To open or show a page, call the `navigate` tool.',
-  '- To create or list products/customers, call the matching tool.',
-  'Prefer calling a tool over describing how to do something manually.',
-  'When the user asks to "open", "show", "go to" or "list" something, navigate there.',
+  'Prefer calling a tool over explaining how to do something manually; to open a page use the `navigate` tool.',
+  'Report financial figures only from a tool result — never invent numbers. You cannot post or edit journals.',
   'Keep replies short and confirm what you did.',
 ].join('\n')
 
-const PUBLIC_FIELDS = ['provider', 'baseUrl', 'model', 'temperature', 'systemPrompt', 'enabled', 'autoAction']
+const PUBLIC_FIELDS = ['provider', 'baseUrl', 'model', 'temperature', 'systemPrompt', 'enabled', 'autoAction', 'maxTokens', 'thinkingModel', 'promptCompression']
 
 const defaults = () => ({
   provider:     'ollama',
@@ -27,6 +24,9 @@ const defaults = () => ({
   systemPrompt: DEFAULT_SYSTEM_PROMPT,
   enabled:      true,
   autoAction:   true,
+  maxTokens:        null,   // null = unlimited
+  thinkingModel:    false,
+  promptCompression:false,
 })
 
 // Full settings incl. apiKey — for server-side LLM calls only.
@@ -45,6 +45,9 @@ const getRaw = async (userId, organizationId) => {
     systemPrompt: row.systemPrompt || DEFAULT_SYSTEM_PROMPT,
     enabled:      row.enabled,
     autoAction:   row.autoAction,
+    maxTokens:        row.maxTokens ?? null,
+    thinkingModel:    !!row.thinkingModel,
+    promptCompression:!!row.promptCompression,
   }
 }
 
@@ -67,6 +70,15 @@ const save = async (userId, organizationId, patch = {}) => {
   if (patch.temperature !== undefined) next.temperature = Number(patch.temperature)
   if (patch.enabled !== undefined) next.enabled = !!patch.enabled
   if (patch.autoAction !== undefined) next.autoAction = !!patch.autoAction
+  if (patch.thinkingModel !== undefined) next.thinkingModel = !!patch.thinkingModel
+  if (patch.promptCompression !== undefined) next.promptCompression = !!patch.promptCompression
+  // maxTokens: null/'' (or any non-positive) ⇒ unlimited (stored as null).
+  if (patch.maxTokens !== undefined) {
+    const n = Number(patch.maxTokens)
+    next.maxTokens = patch.maxTokens === null || patch.maxTokens === '' || !Number.isFinite(n) || n <= 0
+      ? null
+      : Math.floor(n)
+  }
   // apiKey: only overwrite when a non-undefined value is sent (empty string clears it)
   if (patch.apiKey !== undefined) next.apiKey = patch.apiKey
 
@@ -83,6 +95,9 @@ const save = async (userId, organizationId, patch = {}) => {
     systemPrompt: next.systemPrompt,
     enabled:      next.enabled,
     autoAction:   next.autoAction,
+    maxTokens:        next.maxTokens,
+    thinkingModel:    next.thinkingModel,
+    promptCompression:next.promptCompression,
   })
   return get(userId, organizationId)
 }

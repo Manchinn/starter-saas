@@ -61,10 +61,7 @@
             </div>
           </div>
 
-          <div v-if="error"
-               class="px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm">
-            {{ error }}
-          </div>
+          <ErrorBanner :message="error" />
 
           <div class="flex justify-end gap-3 pt-2 border-t border-[#E2E8F0]">
             <button @click="router.back()" class="btn-secondary">{{ t('common.cancel') }}</button>
@@ -87,6 +84,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import FormField from '@/components/form/FormField.vue'
 import FieldError from '@/components/form/FieldError.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import { ArrowLeftIcon, UserIcon } from '@heroicons/vue/24/outline'
 import api from '@/api'
