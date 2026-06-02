@@ -1,5 +1,3 @@
-import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
-
 export default {
   slug: 'settings',
   isCore: true,
@@ -12,10 +10,5 @@ export default {
       meta: { requiresAuth: true, requiresAdmin: true, title: 'settings.title' },
     },
   ],
-  // Admin-only entry, rendered in the Core section by the nav registry.
-  adminNavItem: {
-    label: 'nav.settings',
-    to: '/admin/settings',
-    icon: Cog6ToothIcon,
-  },
+  // Nav entry lives under the Admin group (see modules/admin adminNavItem children).
 }
