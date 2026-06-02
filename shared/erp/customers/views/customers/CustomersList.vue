@@ -15,9 +15,10 @@
           <!-- Keyboard shortcuts popover -->
           <div class="relative" ref="shortcutsRef">
             <button @click="showShortcuts = !showShortcuts"
-              class="h-8 w-8 flex items-center justify-center border border-[#E2E8F0] text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F7F9FC] transition-colors text-sm font-semibold"
+              class="h-8 px-2 flex items-center gap-1 border border-[#E2E8F0] text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F7F9FC] transition-colors text-sm font-semibold"
               title="Keyboard shortcuts">
-              ?
+              <span>?</span>
+              <span class="text-xs font-medium">Shortcuts</span>
             </button>
             <Transition
               enter-active-class="transition-all duration-150 ease-out"
