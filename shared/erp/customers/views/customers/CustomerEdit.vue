@@ -45,7 +45,11 @@
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
 
         <div class="grid grid-cols-2 gap-4">
-          <FormField v-model="form.name" name="name" :label="t('erp.customers.name')" required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField name="name" :label="t('erp.customers.name')" required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="nameInputRef" v-model="form.name" type="text" :class="['input', errorClass]" />
+            </template>
+          </FormField>
           <FormField v-model="form.company" name="company" :label="t('erp.customers.company')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.email" name="email" type="email" :label="t('erp.customers.email')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.phone" name="phone" :label="t('erp.customers.phone')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
@@ -77,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
@@ -107,6 +111,7 @@ const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErro
 
 const showShortcuts = ref(false)
 const shortcutsRef  = ref(null)
+const nameInputRef  = ref(null)
 
 const SHORTCUTS = [
   { key: 'Ctrl+Enter', label: 'Save changes' },
@@ -146,6 +151,8 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    nameInputRef.value?.focus()
   }
 
   window.addEventListener('keydown', onKeydown)
