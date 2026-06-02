@@ -2,7 +2,7 @@ const path = require('path')
 const fs = require('fs')
 const winston = require('winston')
 
-const projectRoot = path.resolve(__dirname, '..', '..')
+const projectRoot = path.resolve(__dirname, '..')
 const logsDir = process.env.LOG_DIR
   ? path.resolve(process.env.LOG_DIR)
   : path.join(projectRoot, 'logs')

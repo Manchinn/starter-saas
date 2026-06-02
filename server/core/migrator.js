@@ -30,7 +30,7 @@ const CORE_PLATFORM_DIR = path.join(__dirname, '..', 'migrations')
 const CORE_MODULES_DIR   = path.join(__dirname, '..', 'modules')
 const SHARED_DIR         = path.join(__dirname, '..', '..', 'shared')
 
-const TRACKING_TABLE = 'SchemaMigrations'
+const TRACKING_TABLE = 'schema_migrations'
 
 // ── Discovery ─────────────────────────────────────────────────────────────────
 
@@ -176,11 +176,52 @@ function makeContext(sequelize) {
 
 async function ensureTrackingTable(sequelize) {
   const qi = sequelize.getQueryInterface()
-  try { await qi.describeTable(TRACKING_TABLE); return } catch { /* needs creating */ }
-  await qi.createTable(TRACKING_TABLE, {
-    name:      { type: DataTypes.STRING, primaryKey: true },
-    appliedAt: { type: DataTypes.DATE, allowNull: false },
-  })
+
+  // Check if table exists
+  let tableExists = true
+  try {
+    await qi.describeTable(TRACKING_TABLE)
+  } catch {
+    tableExists = false
+  }
+
+  if (!tableExists) {
+    // Create table with correct schema (use applied_at to match Sequelize default)
+    await qi.createTable(TRACKING_TABLE, {
+      name:       { type: DataTypes.STRING, primaryKey: true },
+      applied_at: { type: DataTypes.DATE, allowNull: false },
+    })
+    return
+  }
+
+  // Table exists - ensure it has applied_at column
+  const columns = await qi.describeTable(TRACKING_TABLE)
+  if (!columns.appliedAt && !columns.applied_at) {
+    // SQLite doesn't support adding columns with non-constant defaults
+    // PostgreSQL/MySQL support CURRENT_TIMESTAMP
+    const dialect = sequelize.getDialect()
+
+    if (dialect === 'sqlite') {
+      // For SQLite: add column as nullable first, backfill, then make NOT NULL
+      await qi.addColumn(TRACKING_TABLE, 'applied_at', {
+        type: DataTypes.DATE,
+        allowNull: true,
+      })
+      // Backfill with current timestamp
+      await sequelize.query(
+        `UPDATE ${TRACKING_TABLE} SET applied_at = datetime('now') WHERE applied_at IS NULL`
+      )
+      // SQLite doesn't support ALTER COLUMN, so we leave it nullable
+      // This is acceptable for the tracking table
+    } else {
+      // PostgreSQL, MySQL, etc.
+      await qi.addColumn(TRACKING_TABLE, 'applied_at', {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: sequelize.literal('CURRENT_TIMESTAMP'),
+      })
+    }
+  }
 }
 
 async function appliedNames(sequelize) {
@@ -191,14 +232,14 @@ async function appliedNames(sequelize) {
 // Most-recently-applied first (for rollback ordering).
 async function appliedNamesDesc(sequelize) {
   const [rows] = await sequelize.query(
-    `SELECT name FROM ${TRACKING_TABLE} ORDER BY appliedAt DESC, name DESC`
+    `SELECT name FROM ${TRACKING_TABLE} ORDER BY applied_at DESC, name DESC`
   )
   return rows.map((r) => r.name)
 }
 
 async function recordApplied(sequelize, name) {
   await sequelize.query(
-    `INSERT INTO ${TRACKING_TABLE} (name, appliedAt) VALUES (?, ?)`,
+    `INSERT INTO ${TRACKING_TABLE} (name, applied_at) VALUES (?, ?)`,
     { replacements: [name, new Date().toISOString()] }
   )
 }
