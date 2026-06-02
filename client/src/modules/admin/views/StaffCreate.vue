@@ -96,10 +96,7 @@
             </section>
           </div>
 
-          <div v-if="error"
-               class="mt-6 px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm">
-            {{ error }}
-          </div>
+          <ErrorBanner :message="error" class="mt-6" />
         </div>
       </div>
 
@@ -115,6 +112,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import FormField from '@/components/form/FormField.vue'
 import FieldError from '@/components/form/FieldError.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import { ArrowLeftIcon, UserPlusIcon } from '@heroicons/vue/24/outline'
 import api from '@/api'

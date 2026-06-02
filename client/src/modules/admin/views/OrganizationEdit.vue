@@ -2,29 +2,18 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/admin/organizations" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('org.edit') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ t('org.editDesc') }}</p>
-        </div>
-      </div>
+      <PageHeader :title="t('org.edit')" :subtitle="t('org.editDesc')" back-to="/admin/organizations" />
 
-      <div v-if="loading" class="text-center py-12 text-[#9BA7B0]">
-        <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin" />
-      </div>
+      <LoadingSpinner v-if="loading" padding="md" />
 
       <template v-else>
 
         <!-- Account Details -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.details') }}</h2>
+        <FormCard :title="t('org.details')">
+          <template #actions>
             <span class="badge badge-blue text-xs">{{ form.email }}</span>
-          </div>
-          <div class="px-6 py-5 space-y-5">
+          </template>
+          <div class="space-y-5">
 
             <FormField
               v-model="form.name"
@@ -63,15 +52,11 @@
             </div>
 
           </div>
-        </div>
+        </FormCard>
 
         <!-- Company Profile (used on printable documents) -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0]">
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.companyProfile') }}</h2>
-            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('org.companyProfileDesc') }}</p>
-          </div>
-          <div class="px-6 py-5 grid grid-cols-1 md:grid-cols-[160px_1fr] gap-6">
+        <FormCard :title="t('org.companyProfile')" :subtitle="t('org.companyProfileDesc')">
+          <div class="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-6">
 
             <!-- Logo column -->
             <div>
@@ -111,10 +96,14 @@
                 :hint="t('org.companyNameHint')"
                 :errors="fieldErrors"
               />
-              <div>
-                <label class="label">{{ t('org.companyAddress') }}</label>
-                <textarea v-model="form.address" rows="3" :placeholder="t('org.companyAddressPh')" class="input resize-none" />
-              </div>
+              <FormField
+                v-model="form.address"
+                name="address"
+                textarea
+                :label="t('org.companyAddress')"
+                :placeholder="t('org.companyAddressPh')"
+                :errors="fieldErrors"
+              />
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   v-model="form.phone"
@@ -141,14 +130,10 @@
             </div>
 
           </div>
-        </div>
+        </FormCard>
 
         <!-- Child Organizations -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0]">
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.childOrgs') }}</h2>
-          </div>
-          <div class="px-6 py-5">
+        <FormCard :title="t('org.childOrgs')">
             <div v-if="children.length" class="divide-y divide-[#F1F5F9]">
               <div v-for="child in children" :key="child.id" class="flex items-center justify-between py-2">
                 <div>
@@ -159,29 +144,17 @@
               </div>
             </div>
             <p v-else class="text-sm text-[#9BA7B0] italic">{{ t('org.noChildren') }}</p>
-          </div>
-        </div>
+        </FormCard>
 
         <!-- Subscription Plan -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0]">
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.subscriptionPlan') }}</h2>
-            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('org.subscriptionPlanDesc') }}</p>
-          </div>
-          <div class="px-6 py-5">
+        <FormCard :title="t('org.subscriptionPlan')" :subtitle="t('org.subscriptionPlanDesc')">
             <label class="label">{{ t('org.plan') }}</label>
             <SearchSelect v-model="form.planId" :options="planOptions" :placeholder="t('org.planDefaultPlaceholder')" />
             <p v-if="currentPlanName" class="text-xs text-[#9BA7B0] mt-1.5">{{ t('org.currentPlan', { name: currentPlanName }) }}</p>
-          </div>
-        </div>
+        </FormCard>
 
         <!-- Assigned Roles -->
-        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-[#E2E8F0]">
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('org.assignedRoles') }}</h2>
-            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('org.assignedRolesDesc') }}</p>
-          </div>
-          <div class="px-6 py-5">
+        <FormCard :title="t('org.assignedRoles')" :subtitle="t('org.assignedRolesDesc')">
             <div class="border border-[#E2E8F0] divide-y divide-[#E2E8F0] max-h-64 overflow-y-auto scrollbar-thin">
               <label v-for="role in allRoles" :key="role.id"
                 class="flex items-center gap-3 px-4 py-2.5 hover:bg-[#F7F9FC] cursor-pointer">
@@ -195,25 +168,18 @@
               </label>
               <div v-if="!allRoles.length" class="px-4 py-3 text-sm text-[#9BA7B0] italic">{{ t('org.noRolesAvailable') }}</div>
             </div>
-          </div>
-        </div>
+        </FormCard>
 
-        <div v-if="error"
-          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-          <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
-          {{ error }}
-        </div>
+        <ErrorBanner :message="error" />
 
-        <div class="flex justify-end gap-3">
-          <RouterLink to="/admin/organizations"
-            class="px-4 py-2.5 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition text-[#637381]">
-            {{ t('common.cancel') }}
-          </RouterLink>
-          <button @click="save" :disabled="saving"
-            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition shadow-sm">
-            {{ saving ? t('common.saving') : t('common.saveChanges') }}
-          </button>
-        </div>
+        <FormFooter
+          cancel-to="/admin/organizations"
+          :cancel-label="t('common.cancel')"
+          :save-label="t('common.saveChanges')"
+          :saving-label="t('common.saving')"
+          :saving="saving"
+          @save="save"
+        />
 
       </template>
     </div>
@@ -224,11 +190,16 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon, ExclamationCircleIcon, ArrowUpTrayIcon, ArrowPathIcon, PhotoIcon } from '@heroicons/vue/24/outline'
+import { ArrowUpTrayIcon, ArrowPathIcon, PhotoIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
 import FieldError from '@/components/form/FieldError.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import FormFooter from '@/components/form/FormFooter.vue'
+import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 

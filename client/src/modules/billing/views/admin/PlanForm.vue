@@ -1,30 +1,15 @@
 <template>
   <div class="space-y-6">
-    <div class="card overflow-hidden">
-      <div class="px-6 py-4 border-b border-[#E2E8F0]">
-        <h2 class="text-sm font-semibold text-[#374151]">{{ t('billing.planDetails') }}</h2>
-      </div>
-      <div class="px-6 py-5 grid grid-cols-2 gap-5">
-        <div>
-          <label class="label">{{ t('common.name') }}<span class="text-red-500">*</span></label>
-          <input v-model="form.name" class="input" />
-        </div>
-        <div>
-          <label class="label">{{ t('common.slug') }}<span class="text-red-500">*</span></label>
-          <input v-model="form.slug" class="input font-mono" :disabled="lockSlug" placeholder="pro" />
-        </div>
-        <div class="col-span-2">
-          <label class="label">{{ t('common.description') }}</label>
-          <textarea v-model="form.description" rows="2" class="input resize-none" />
-        </div>
-        <div>
-          <label class="label">{{ t('billing.price') }}</label>
-          <input v-model.number="form.price" type="number" min="0" step="0.01" class="input" />
-        </div>
-        <div>
-          <label class="label">{{ t('billing.currency') }}</label>
-          <input v-model="form.currency" class="input" placeholder="USD" />
-        </div>
+    <FormCard :title="t('billing.planDetails')">
+      <div class="grid grid-cols-2 gap-5">
+        <FormField v-model="form.name" name="name" :label="t('common.name')" required />
+        <FormField v-model="form.slug" name="slug" :label="t('common.slug')" required
+          :disabled="lockSlug" placeholder="pro" input-class="font-mono" />
+        <FormField v-model="form.description" name="description" textarea :rows="2"
+          :label="t('common.description')" wrapper-class="col-span-2" />
+        <FormField v-model.number="form.price" name="price" type="number" min="0" step="0.01"
+          :label="t('billing.price')" />
+        <FormField v-model="form.currency" name="currency" :label="t('billing.currency')" placeholder="USD" />
         <div>
           <label class="label">{{ t('billing.intervalLabel') }}</label>
           <select v-model="form.interval" class="input">
@@ -32,10 +17,8 @@
             <option value="year">{{ t('billing.interval.year') }}</option>
           </select>
         </div>
-        <div>
-          <label class="label">{{ t('billing.trialDays') }}</label>
-          <input v-model.number="form.trialDays" type="number" min="0" class="input" />
-        </div>
+        <FormField v-model.number="form.trialDays" name="trialDays" type="number" min="0"
+          :label="t('billing.trialDays')" />
         <label class="flex items-center gap-2 text-sm text-slate-600">
           <input type="checkbox" v-model="form.isActive" /> {{ t('billing.active') }}
         </label>
@@ -43,14 +26,10 @@
           <input type="checkbox" v-model="form.isPublic" /> {{ t('billing.public') }}
         </label>
       </div>
-    </div>
+    </FormCard>
 
-    <div class="card overflow-hidden">
-      <div class="px-6 py-4 border-b border-[#E2E8F0]">
-        <h2 class="text-sm font-semibold text-[#374151]">{{ t('billing.limitsAndFeatures') }}</h2>
-        <p class="text-xs text-slate-400 mt-1">{{ t('billing.jsonHint') }}</p>
-      </div>
-      <div class="px-6 py-5 grid grid-cols-2 gap-5">
+    <FormCard :title="t('billing.limitsAndFeatures')" :subtitle="t('billing.jsonHint')">
+      <div class="grid grid-cols-2 gap-5">
         <div>
           <label class="label">{{ t('billing.limits') }}</label>
           <textarea v-model="limitsText" rows="6" class="input font-mono text-xs resize-none"
@@ -62,29 +41,28 @@
             placeholder='{ "ai-agent": true }'></textarea>
         </div>
       </div>
-    </div>
+    </FormCard>
 
-    <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded">
-      <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
-      {{ error }}
-    </div>
+    <ErrorBanner :message="error" />
 
-    <div class="flex justify-end gap-3">
-      <RouterLink to="/admin/billing/plans"
-        class="px-4 py-2.5 text-sm border border-[#E2E8F0] hover:bg-[#F7F9FC] transition text-[#637381]">
-        {{ t('common.cancel') }}
-      </RouterLink>
-      <button @click="submit" :disabled="saving" class="btn-primary">
-        {{ saving ? t('common.saving') : submitLabel }}
-      </button>
-    </div>
+    <FormFooter
+      cancel-to="/admin/billing/plans"
+      :cancel-label="t('common.cancel')"
+      :save-label="submitLabel"
+      :saving-label="t('common.saving')"
+      :saving="saving"
+      @save="submit"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
+import FormCard from '@/components/form/FormCard.vue'
+import FormField from '@/components/form/FormField.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import FormFooter from '@/components/form/FormFooter.vue'
 
 const props = defineProps({
   initial:     { type: Object, default: () => ({}) },

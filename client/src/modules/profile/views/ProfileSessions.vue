@@ -63,12 +63,8 @@
           </li>
         </ul>
 
-        <div v-if="error" class="mt-4 px-4 py-3 bg-red-50 border border-red-100 text-red-700 text-sm">
-          {{ error }}
-        </div>
-        <div v-if="toast" class="mt-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
-          {{ toast }}
-        </div>
+        <ErrorBanner :message="error" class="mt-4" />
+        <SuccessBanner :message="toast" class="mt-4" />
       </ProfileTabs>
     </div>
   </AppLayout>
@@ -80,6 +76,8 @@ import { useI18n } from 'vue-i18n'
 import { ComputerDesktopIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ProfileTabs from './ProfileTabs.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import SuccessBanner from '@/components/form/SuccessBanner.vue'
 import api from '@/api'
 import { fmtDateTime } from '@/utils/fmt'
 
