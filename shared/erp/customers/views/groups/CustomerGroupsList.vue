@@ -8,31 +8,7 @@
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} group{{ total !== 1 ? 's' : '' }}</p>
         </div>
         <div class="flex items-center gap-2">
-          <!-- Keyboard shortcuts popover -->
-          <div class="relative" ref="shortcutsRef">
-            <button @click="showShortcuts = !showShortcuts"
-              class="h-8 px-2 flex items-center gap-1 border border-[#E2E8F0] text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F7F9FC] transition-colors text-sm font-semibold"
-              title="Keyboard shortcuts">
-              <span>?</span>
-              <span class="text-xs font-medium">Shortcuts</span>
-            </button>
-            <Transition
-              enter-active-class="transition-all duration-150 ease-out"
-              enter-from-class="opacity-0 translate-y-1"
-              enter-to-class="opacity-100 translate-y-0"
-              leave-active-class="transition-all duration-100 ease-in"
-              leave-from-class="opacity-100 translate-y-0"
-              leave-to-class="opacity-0 translate-y-1">
-              <div v-if="showShortcuts"
-                class="absolute right-0 top-10 z-50 w-64 bg-white border border-[#E2E8F0] shadow-lg p-4 space-y-2">
-                <p class="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-3">Keyboard Shortcuts</p>
-                <div v-for="s in SHORTCUTS" :key="s.key" class="flex items-center justify-between gap-3">
-                  <span class="text-xs text-[#637381]">{{ s.label }}</span>
-                  <kbd class="inline-flex items-center px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] text-[10px] font-mono text-[#374151] whitespace-nowrap">{{ s.key }}</kbd>
-                </div>
-              </div>
-            </Transition>
-          </div>
+          <KeyboardShortcuts :shortcuts="shortcuts" />
 
           <AppButton v-can="'erp.customer-groups.edit'" to="/erp/customer-groups/create" variant="primary">
             <PlusIcon class="w-4 h-4" />
@@ -136,7 +112,7 @@
 </template>
 
 <script setup>
-import { h, ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { h, ref, computed, watch, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -147,8 +123,10 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
 
@@ -157,15 +135,6 @@ const FILTER_LABEL = 'block text-xs font-medium text-[#637381] mb-1.5'
 const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
-
-const SHORTCUTS = [
-  { key: '↑ / ↓',   label: 'Move row selection' },
-  { key: '← / →',   label: 'Previous / next page' },
-  { key: 'Enter',    label: 'Edit selected row' },
-  { key: 'Shift+S',  label: 'Focus search' },
-  { key: 'Shift+C',  label: 'New group' },
-  { key: 'Shift+D',  label: 'Delete selected row' },
-]
 
 const groups           = ref([])
 const total            = ref(0)
@@ -177,10 +146,7 @@ const filterActiveFrom = ref('')
 const filterActiveTo   = ref('')
 const showFilters      = ref(false)
 const loading          = ref(false)
-const selectedRowIndex = ref(-1)
 const dataTableRef     = ref(null)
-const showShortcuts    = ref(false)
-const shortcutsRef     = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterActiveFrom.value, filterActiveTo.value].filter(Boolean).length)
 const totalPages        = computed(() => Math.ceil(total.value / limit))
@@ -189,43 +155,14 @@ const statusOptions = computed(() => [
   { id: 'inactive', name: t('common.inactive') },
 ])
 
-function onClickOutsideShortcuts(e) {
-  if (shortcutsRef.value && !shortcutsRef.value.contains(e.target)) {
-    showShortcuts.value = false
-  }
-}
-
-function onKeydown(e) {
-  const tag = document.activeElement?.tagName?.toLowerCase()
-  if (tag === 'input' || tag === 'textarea' || tag === 'select') return
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    selectedRowIndex.value = Math.min(selectedRowIndex.value + 1, groups.value.length - 1)
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    selectedRowIndex.value = Math.max(selectedRowIndex.value - 1, 0)
-  } else if (e.key === 'ArrowRight' && page.value < totalPages.value) {
-    e.preventDefault()
-    page.value++
-  } else if (e.key === 'ArrowLeft' && page.value > 1) {
-    e.preventDefault()
-    page.value--
-  } else if (e.key === 'Enter' && selectedRowIndex.value >= 0) {
-    const g = groups.value[selectedRowIndex.value]
-    if (g) router.push(`/erp/customer-groups/${g.id}/edit`)
-  } else if (e.shiftKey && e.key === 'C') {
-    e.preventDefault()
-    router.push('/erp/customer-groups/create')
-  } else if (e.shiftKey && e.key === 'S') {
-    e.preventDefault()
-    dataTableRef.value?.focusSearch()
-  } else if (e.shiftKey && e.key === 'D') {
-    e.preventDefault()
-    const g = groups.value[selectedRowIndex.value]
-    if (g) confirmDelete(g)
-  }
-}
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: groups, page, totalPages,
+  open:        g => router.push(`/erp/customer-groups/${g.id}/edit`),
+  create:      () => router.push('/erp/customer-groups/create'),
+  remove:      g => confirmDelete(g),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New group',
+})
 
 async function fetchGroups() {
   loading.value = true
@@ -243,15 +180,7 @@ function onFilterChange() { page.value = 1; fetchGroups() }
 function clearFilters() { filterStatus.value = ''; filterActiveFrom.value = ''; filterActiveTo.value = ''; page.value = 1; fetchGroups() }
 
 watch([page, search], fetchGroups)
-onMounted(() => {
-  fetchGroups()
-  window.addEventListener('keydown', onKeydown)
-  document.addEventListener('mousedown', onClickOutsideShortcuts)
-})
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
-  document.removeEventListener('mousedown', onClickOutsideShortcuts)
-})
+onMounted(fetchGroups)
 
 async function confirmDelete(g) {
   if (!confirm(`Delete "${g.name}"? This cannot be undone.`)) return

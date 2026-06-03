@@ -10,31 +10,7 @@
           <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.customerGroups.edit') }}</h1>
         </div>
 
-        <!-- Keyboard shortcuts popover -->
-        <div class="relative" ref="shortcutsRef">
-          <button @click="showShortcuts = !showShortcuts"
-            class="h-8 px-2 flex items-center gap-1 border border-[#E2E8F0] text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F7F9FC] transition-colors text-sm font-semibold"
-            title="Keyboard shortcuts">
-            <span>?</span>
-            <span class="text-xs font-medium">Shortcuts</span>
-          </button>
-          <Transition
-            enter-active-class="transition-all duration-150 ease-out"
-            enter-from-class="opacity-0 translate-y-1"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-active-class="transition-all duration-100 ease-in"
-            leave-from-class="opacity-100 translate-y-0"
-            leave-to-class="opacity-0 translate-y-1">
-            <div v-if="showShortcuts"
-              class="absolute right-0 top-10 z-50 w-56 bg-white border border-[#E2E8F0] shadow-lg p-4 space-y-2">
-              <p class="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-3">Keyboard Shortcuts</p>
-              <div v-for="s in SHORTCUTS" :key="s.key" class="flex items-center justify-between gap-3">
-                <span class="text-xs text-[#637381]">{{ s.label }}</span>
-                <kbd class="inline-flex items-center px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] text-[10px] font-mono text-[#374151] whitespace-nowrap">{{ s.key }}</kbd>
-              </div>
-            </div>
-          </Transition>
-        </div>
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
@@ -77,17 +53,19 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import FormField from '@/components/form/FormField.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
@@ -104,34 +82,14 @@ const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
-const showShortcuts = ref(false)
-const shortcutsRef  = ref(null)
-const codeInputRef  = ref(null)
+const codeInputRef = ref(null)
 
-const SHORTCUTS = [
-  { key: 'Ctrl+S',  label: 'Save changes' },
-  { key: 'Escape',  label: 'Cancel / back' },
-]
-
-function onClickOutsideShortcuts(e) {
-  if (shortcutsRef.value && !shortcutsRef.value.contains(e.target)) {
-    showShortcuts.value = false
-  }
-}
-
-function onKeydown(e) {
-  if (e.key === 'Escape') {
-    router.push('/erp/customer-groups')
-  } else if (e.ctrlKey && e.key === 's') {
-    e.preventDefault()
-    save()
-  }
-}
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/customer-groups'),
+})
 
 onMounted(async () => {
-  window.addEventListener('keydown', onKeydown)
-  document.addEventListener('mousedown', onClickOutsideShortcuts)
-
   try {
     const { data } = await api.get(`/erp/customer-groups/${route.params.id}`)
     const g = data.data.group
@@ -143,10 +101,6 @@ onMounted(async () => {
     await nextTick()
     codeInputRef.value?.focus()
   }
-})
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
-  document.removeEventListener('mousedown', onClickOutsideShortcuts)
 })
 
 async function save() {
