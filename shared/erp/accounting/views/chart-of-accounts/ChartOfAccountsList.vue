@@ -11,17 +11,20 @@
             <template v-else>{{ t('common.loading') }}</template>
           </p>
         </div>
-        <RouterLink v-can="'erp.accounting.edit'" to="/erp/accounting/chart-of-accounts/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.accounting.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink v-can="'erp.accounting.edit'" to="/erp/accounting/chart-of-accounts/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.accounting.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <!-- Toolbar: search · show inactive · expand toggle -->
       <div class="flex flex-col sm:flex-row sm:items-center gap-3">
         <div class="relative flex-1 sm:max-w-md">
           <MagnifyingGlassIcon class="w-4 h-4 text-[#9BA7B0] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input v-model="search" type="text" class="input pl-9" :placeholder="t('erp.accounting.searchPh')" />
+          <input v-model="search" ref="searchInputRef" type="text" class="input pl-9" :placeholder="t('erp.accounting.searchPh')" />
         </div>
         <div class="flex items-center gap-4 sm:ml-auto">
           <label class="flex items-center gap-2 text-sm text-[#637381] cursor-pointer select-none">
@@ -85,7 +88,8 @@
           <!-- Account rows -->
           <div v-if="s.expanded" class="border-t border-[#F1F5F9] divide-y divide-[#F8FAFC]">
             <div v-for="r in s.rows" :key="r.id"
-              class="group flex items-center gap-2.5 pr-3 py-2 hover:bg-primary-50/40 transition-colors"
+              class="group flex items-center gap-2.5 pr-3 py-2 transition-colors"
+              :class="rowIndexById.get(r.id) === selectedRowIndex ? 'bg-primary-50 ring-1 ring-inset ring-primary-200' : 'hover:bg-primary-50/40'"
               :style="{ paddingLeft: (16 + r.depth * 22) + 'px' }">
 
               <!-- Expand toggle (or spacer to keep alignment) -->
@@ -127,18 +131,22 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, PencilIcon, TrashIcon,
   ChevronRightIcon, MagnifyingGlassIcon, BookOpenIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const router = useRouter()
+const searchInputRef = ref(null)
 
 // Standard accounting presentation order; any custom types are appended after.
 const TYPE_ORDER = ['asset', 'liability', 'equity', 'revenue', 'expense']
@@ -226,6 +234,29 @@ const sections = computed(() => {
 
 const allOpen = computed(() => collapsedTypes.value.size === 0)
 
+// Flatten the visible (rendered) rows across all sections so keyboard
+// navigation can step through them in display order, and map each row id to
+// its flat index for the selection highlight.
+const flatRows = computed(() => sections.value.flatMap(s => s.rows))
+const rowIndexById = computed(() => {
+  const m = new Map()
+  flatRows.value.forEach((r, i) => m.set(r.id, i))
+  return m
+})
+
+const page = ref(1)
+const totalPages = computed(() => 1)
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: flatRows, page, totalPages,
+  open:        r => router.push(`/erp/accounting/chart-of-accounts/${r.account.id}/edit`),
+  create:      () => router.push('/erp/accounting/chart-of-accounts/create'),
+  remove:      r => confirmDelete(r.account),
+  focusSearch: () => searchInputRef.value?.focus(),
+  newLabel: 'New account',
+  openLabel: 'Edit selected account',
+})
+
 function toggleType(code) {
   const next = new Set(collapsedTypes.value)
   next.has(code) ? next.delete(code) : next.add(code)
@@ -244,6 +275,7 @@ async function fetch() {
   try {
     const { data } = await api.get('/erp/accounting/chart-of-accounts', { params: { page: 1, limit: 1000 } })
     accounts.value = data.data.accounts
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

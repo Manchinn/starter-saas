@@ -13,6 +13,7 @@
           <StatusPill :label="t('erp.purchasing.statusDraft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/purchasing/requisitions/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -401,6 +402,7 @@ import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -709,13 +711,15 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-useFormShortcuts({
+const { shortcuts } = useFormShortcuts({
   save: () => save(),
   saveDraft: () => saveDraft(),
+  cancel: () => discard(),
   enabled: () => !vendorCreateOpen.value && !confirmOpen.value,
+  cancelLabel: 'Back to detail',
   extra: [
-    { combo: 'ctrl+a', handler: () => openBulkPicker() },
-    { combo: 'alt+v',  handler: () => openVendorCreate() },
+    { combo: 'ctrl+a', handler: () => openBulkPicker(), hint: { key: 'Ctrl+A', label: 'Add item' } },
+    { combo: 'alt+v',  handler: () => openVendorCreate(), hint: { key: 'Alt+V', label: 'New vendor' } },
   ],
 })
 

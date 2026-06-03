@@ -11,16 +11,20 @@
             <template v-else>{{ t('common.loading') }}</template>
           </p>
         </div>
-        <RouterLink v-can="'erp.purchasing.edit'" to="/erp/purchasing/requisitions/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.purchasing.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink v-can="'erp.purchasing.edit'" to="/erp/purchasing/requisitions/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.purchasing.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <!-- Table card -->
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="requisitions" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="requisitions" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.purchasing.searchPh')">
 
           <template #toolbar>
@@ -76,19 +80,22 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, AdjustmentsHorizontalIcon, TrashIcon, ClipboardDocumentListIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const router = useRouter()
 
 const STATUS_FILTER_OPTIONS = computed(() => [
   { id: 'draft',    name: t('erp.purchasing.statusDraft') },
@@ -104,6 +111,18 @@ const search       = ref('')
 const filterStatus = ref('')
 const showFilters  = ref(false)
 const loading      = ref(false)
+const dataTableRef = ref(null)
+
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: requisitions, page, totalPages,
+  open:        r => router.push(`/erp/purchasing/requisitions/${r.id}`),
+  create:      () => router.push('/erp/purchasing/requisitions/create'),
+  remove:      r => confirmDelete(r),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New requisition',
+})
 
 const statusClass = {
   draft:    'bg-slate-100 text-slate-600',
@@ -119,6 +138,7 @@ async function fetch() {
     })
     requisitions.value = data.data.requisitions
     total.value        = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }
