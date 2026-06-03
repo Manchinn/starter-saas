@@ -12,6 +12,7 @@
           <StatusPill label="Draft" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/stock-adjust/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -323,6 +324,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -351,6 +353,12 @@ const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = use
 const loading = ref(true)
 const loadError = ref('')
 const pickerRef = ref(null)
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save' },
+  { key: 'Ctrl+L', label: 'Add items' },
+  { key: 'Ctrl+D', label: 'Duplicate last row' },
+]
 
 let rowKeySeq = 0
 const newKey = () => `r${++rowKeySeq}`
