@@ -353,6 +353,7 @@ const pageShortcuts = [
   { key: 'Ctrl+S', label: 'Save draft' },
   { key: 'Ctrl+L', label: 'Add items' },
   { key: 'Ctrl+D', label: 'Duplicate last row' },
+  { key: 'Escape', label: 'Back to list' },
 ]
 
 let rowKeySeq = 0
@@ -472,8 +473,8 @@ async function save() {
   }
 }
 
-// Keyboard shortcuts: Ctrl+S save, Ctrl+L add items, Ctrl+D duplicate last row.
 function onPageKeydown(e) {
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push('/erp/stock-adjust'); return }
   const ctrl = e.ctrlKey || e.metaKey
   if (!ctrl) return
   const key = e.key.toLowerCase()
