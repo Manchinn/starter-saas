@@ -29,8 +29,9 @@
         </div>
         <!-- Quick actions -->
         <div v-if="rp && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <button @click="onPrint" type="button"
-            title="Print this document"
+            title="Print this document (Ctrl+P)"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
             <PrinterIcon class="w-4 h-4" />
@@ -301,7 +302,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
@@ -310,6 +311,7 @@ import {
   ArrowPathIcon, ExclamationCircleIcon, PrinterIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import api from '@/api'
 import { fmtDate, fmtMoney, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
@@ -339,6 +341,26 @@ const companyLogoSrc = computed(() => {
   if (/^https?:\/\//i.test(p)) return p
   return p
 })
+
+const pageShortcuts = computed(() => [
+  { key: 'Ctrl+P', label: 'Print' },
+  { key: 'Escape', label: 'Back to list' },
+  { key: 'Backspace', label: 'Back to list' },
+])
+
+function isTyping() {
+  const el = document.activeElement
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+}
+
+function onKeydown(e) {
+  if (isTyping() || loading.value || !rp.value) return
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+    e.preventDefault(); onPrint()
+  } else if ((e.key === 'Escape' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey) {
+    router.push('/erp/billing/receive-payments')
+  }
+}
 
 function onPrint() { window.print() }
 
@@ -403,7 +425,8 @@ const stampClass = computed(() => {
 })
 
 // ── Data ──────────────────────────────────────────────────
-onMounted(fetchPayment)
+onMounted(() => { fetchPayment(); document.addEventListener('keydown', onKeydown) })
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 async function fetchPayment() {
   loading.value = true

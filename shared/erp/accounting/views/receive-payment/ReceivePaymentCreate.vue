@@ -11,6 +11,7 @@
           <StatusPill label="Draft" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/billing/receive-payments"
             cancel-label="Cancel"
@@ -193,9 +194,13 @@
       </div>
       <div class="flex items-center gap-2.5">
         <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1" title="Create Payment">
+          <span class="flex items-center gap-1">
             <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>save</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Esc</kbd>
+            <span>back</span>
           </span>
         </div>
         <button @click="discard" type="button"
@@ -250,6 +255,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -384,8 +390,13 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-// Ctrl/⌘+S → save (no Save-Draft here; receive-payments has no draft PUT yet)
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Create payment' },
+  { key: 'Escape', label: 'Back to list' },
+]
+
 function onPageKeydown(e) {
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { discard(); return }
   const ctrl = e.ctrlKey || e.metaKey
   if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
 }
