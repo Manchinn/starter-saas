@@ -1,16 +1,31 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/stock-count" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.stockCount.new') }}</h1>
-      </div>
-      
+
+      <PageHeader :title="t('erp.stockCount.new')" back-to="/erp/stock-count"
+        :breadcrumb="[
+          { label: t('erp.stockCount.title'), to: '/erp/stock-count' },
+          { label: t('erp.stockCount.new') },
+        ]">
+        <template #badge>
+          <StatusPill :label="t('erp.common.draft')" />
+        </template>
+        <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
+          <HeaderSaveActions
+            cancel-to="/erp/stock-count"
+            :cancel-label="t('common.cancel')"
+            :saving="saving"
+            :saving-label="t('erp.common.saving')"
+            :save-label="t('erp.common.saveDraft')"
+            @save="save"
+          />
+        </template>
+      </PageHeader>
+
       <!-- Existing Lock Warning -->
       <div v-if="lockedStoreInfo" class="bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
-        <div class="mt-0.5">⚠️</div>
+        <ExclamationTriangleIcon class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
         <div>
           <p class="text-sm font-semibold text-amber-800">{{ t('erp.stockCount.storeLocked') }}</p>
           <p class="text-xs text-amber-700 mt-1">
@@ -20,103 +35,157 @@
         </div>
       </div>
 
-      <!-- Header -->
-      <div class="bg-white border border-[#E2E8F0] p-6">
-        <h2 class="text-sm font-semibold text-[#374151] mb-4">{{ t('erp.common.header') }}</h2>
-        <div class="grid grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.date') }} <span class="text-red-500">*</span></label>
-            <DateInput v-model="form.date" :class="['w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500', errorOf('date') && 'input-error']" />
-            <FieldError name="date" :errors="fieldErrors" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.store') }} <span class="text-red-500">*</span></label>
-            <SearchSelect v-model="form.storeId" :options="storeOptions" :invalid="!!errorOf('storeId')" :placeholder="t('erp.common.selectStore')" @change="onStoreChange" />
-            <FieldError name="storeId" :errors="fieldErrors" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#374151] mb-1">{{ t('erp.common.notes') }}</label>
-            <input v-model="form.notes" type="text" placeholder="Optional notes"
-              class="w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-          </div>
-          <div class="flex items-end pb-1">
-            <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" v-model="form.movementLocked" class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-500">
-              <span class="text-sm font-medium text-[#374151] font-bold text-red-600">{{ t('erp.stockCount.lockMovement') }}</span>
-            </label>
-          </div>
-        </div>
-      </div>
+      <div class="space-y-5">
 
-      <!-- Products -->
-      <div class="bg-white border border-[#E2E8F0] p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.stockCount.colProduct') }}s</h2>
-            <p class="text-xs text-[#9BA7B0] mt-0.5">Enter the physically counted quantity for each product. Variance = Counted − System.</p>
+        <!-- Section 1: Count Info -->
+        <FormCard :title="t('erp.stockCount.countDetails')" :icon="ClipboardDocumentCheckIcon" icon-color="purple">
+          <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+
+            <div>
+              <FieldLabel :text="t('erp.common.date')" required />
+              <DateInput ref="dateRef" v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+              <FieldError name="date" :errors="fieldErrors" />
+            </div>
+
+            <div>
+              <FieldLabel :text="t('erp.common.store')" required />
+              <SearchSelect v-model="form.storeId" :options="storeOptions" :invalid="!!errorOf('storeId')" :placeholder="t('erp.common.selectStore')" @change="onStoreChange" />
+              <FieldError name="storeId" :errors="fieldErrors" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
+                {{ t('erp.common.notes') }}
+              </label>
+              <input v-model="form.notes" type="text" :placeholder="t('erp.common.optional')"
+                class="w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434]
+                       focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+                       transition-colors placeholder-[#CBD5E1]" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-[#637381] uppercase tracking-wider mb-1.5">
+                {{ t('erp.stockCount.stockMovement') }}
+              </label>
+              <label class="inline-flex items-center gap-2 px-3.5 py-2.5 border border-[#E2E8F0] cursor-pointer select-none w-full">
+                <input type="checkbox" v-model="form.movementLocked"
+                  class="w-4 h-4 border-[#CBD5E1] text-primary-500 focus:ring-primary-500/40" />
+                <LockClosedIcon v-if="form.movementLocked" class="w-4 h-4 text-red-600" />
+                <LockOpenIcon   v-else                    class="w-4 h-4 text-[#9BA7B0]" />
+                <span :class="form.movementLocked ? 'text-red-600 font-semibold' : 'text-[#637381]'"
+                  class="text-sm">
+                  {{ t('erp.stockCount.lockMovements') }}
+                </span>
+              </label>
+            </div>
+
           </div>
-          <div class="flex items-center gap-2">
-            <button v-if="form.storeId && !loadingProducts" @click="loadStoreProducts"
-              class="text-sm px-3 py-1.5 border border-[#CBD5E1] text-[#637381] hover:bg-[#F7F9FC] transition">
+        </FormCard>
+
+        <!-- Section 2: Products -->
+        <div class="bg-white border border-[#E2E8F0] shadow-card overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 bg-green-50 flex items-center justify-center flex-shrink-0">
+                <ClipboardDocumentListIcon class="w-4 h-4 text-green-600" />
+              </div>
+              <div>
+                <h2 class="text-sm font-semibold text-[#1C2434]">{{ t('erp.stockCount.colProduct') }}s</h2>
+                <p class="text-xs text-[#9BA7B0] mt-0.5">Enter the physically counted quantity for each product. Variance = Counted − System.</p>
+              </div>
+            </div>
+            <button v-if="form.storeId && !loadingProducts" @click="loadStoreProducts" type="button"
+              class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-[#637381]
+                     bg-white hover:bg-[#F7F9FC] border border-[#E2E8F0]
+                     transition-colors disabled:opacity-40">
+              <ArrowPathIcon class="w-3.5 h-3.5" />
               {{ t('erp.stockCount.reloadProducts') }}
             </button>
           </div>
-        </div>
 
-        <div v-if="!form.storeId" class="text-sm text-[#9BA7B0] text-center py-8">
-          {{ t('erp.stockCount.selectStore') }}
-        </div>
-        <div v-else-if="loadingProducts" class="text-sm text-[#9BA7B0] text-center py-8">{{ t('erp.stockCount.loadingProducts') }}</div>
-        <div v-else-if="!items.length" class="text-sm text-[#9BA7B0] text-center py-8">
-          {{ t('erp.stockIssue.noStoreProducts') }}
-        </div>
-        <template v-else>
-          <!-- Summary bar -->
-          <div class="flex items-center gap-6 mb-4 px-3 py-2 bg-[#F7F9FC] text-xs text-[#637381]">
-            <span>{{ items.length }} product{{ items.length !== 1 ? 's' : '' }}</span>
-            <span class="text-green-700 font-medium">+{{ positiveVarianceCount }} over</span>
-            <span class="text-red-600 font-medium">{{ negativeVarianceCount }} short</span>
-            <span class="text-[#637381]">{{ zeroVarianceCount }} matched</span>
+          <div v-if="!form.storeId" class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
+              <BuildingStorefrontIcon class="w-7 h-7 text-[#CBD5E1]" />
+            </div>
+            <p class="text-sm font-semibold text-[#637381]">{{ t('erp.stockCount.selectStore') }}</p>
           </div>
 
-          <table class="w-full text-sm">
-            <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
-              <tr>
-                <th class="px-3 py-2 font-medium text-[#637381]">{{ t('erp.stockCount.colProduct') }}</th>
-                <th class="px-3 py-2 font-medium text-[#637381]">{{ t('erp.stockCount.colSku') }}</th>
-                <th class="px-3 py-2 font-medium text-[#637381] text-right w-28">{{ t('erp.stockCount.colSystemQty') }}</th>
-                <th class="px-3 py-2 font-medium text-[#637381] text-right w-32">{{ t('erp.stockCount.colCountedQty') }} <span class="text-red-500">*</span></th>
-                <th class="px-3 py-2 font-medium text-[#637381] text-right w-28">{{ t('erp.stockCount.colVariance') }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#E2E8F0]">
-              <tr v-for="(item, i) in items" :key="i" class="hover:bg-[#F7F9FC]">
-                <td class="px-3 py-2 font-medium text-[#1C2434]">{{ item.name }}</td>
-                <td class="px-3 py-2 font-mono text-xs text-[#9BA7B0]">{{ item.sku || '—' }}</td>
-                <td class="px-3 py-2 text-right text-[#637381]">{{ item.systemQty }}</td>
-                <td class="px-3 py-2">
-                  <input v-model.number="item.countedQty" type="number" min="0"
-                    class="w-full px-2 py-1.5 border text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                </td>
-                <td class="px-3 py-2 text-right font-semibold"
-                  :class="variance(item) > 0 ? 'text-green-700' : variance(item) < 0 ? 'text-red-600' : 'text-[#9BA7B0]'">
+          <div v-else-if="loadingProducts" class="flex items-center justify-center py-16 text-[#9BA7B0] gap-2">
+            <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent animate-spin" />
+            <span class="text-sm">{{ t('erp.stockCount.loadingProducts') }}</span>
+          </div>
+
+          <div v-else-if="!items.length" class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-14 h-14 bg-[#F1F5F9] flex items-center justify-center mb-4">
+              <ClipboardDocumentListIcon class="w-7 h-7 text-[#CBD5E1]" />
+            </div>
+            <p class="text-sm font-semibold text-[#637381]">{{ t('erp.stockIssue.noStoreProducts') }}</p>
+          </div>
+
+          <div v-else>
+            <!-- Variance summary bar -->
+            <div class="flex items-center gap-6 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
+                        text-[11px] font-semibold text-[#637381]">
+              <span class="inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 bg-green-500"></span>
+                <span class="text-green-700">+{{ positiveVarianceCount }} over</span>
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 bg-red-500"></span>
+                <span class="text-red-600">{{ negativeVarianceCount }} short</span>
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 bg-[#CBD5E1]"></span>
+                <span class="text-[#637381]">{{ zeroVarianceCount }} matched</span>
+              </span>
+            </div>
+
+            <!-- Header row -->
+            <div class="grid items-center gap-3 px-5 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0]
+                        text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider"
+              style="grid-template-columns: 2.5fr 8rem 7rem 8rem 7rem">
+              <div>{{ t('erp.stockCount.colProduct') }}</div>
+              <div>{{ t('erp.stockCount.colSku') }}</div>
+              <div class="text-right">{{ t('erp.stockCount.colSystemQty') }}</div>
+              <div class="text-right">{{ t('erp.stockCount.colCountedQty') }} <span class="text-red-400 normal-case">*</span></div>
+              <div class="text-right">{{ t('erp.stockCount.colVariance') }}</div>
+            </div>
+
+            <div class="divide-y divide-[#E2E8F0]">
+              <div v-for="(item, i) in items" :key="i"
+                class="grid items-center gap-3 px-5 py-3 transition-colors hover:bg-[#F7F9FC]"
+                style="grid-template-columns: 2.5fr 8rem 7rem 8rem 7rem">
+
+                <div class="min-w-0 flex items-center gap-2">
+                  <span class="font-mono text-[11px] text-[#9BA7B0] tabular-nums w-5 text-right flex-shrink-0">{{ i + 1 }}</span>
+                  <p class="text-sm text-[#1C2434] truncate">{{ item.name }}</p>
+                </div>
+
+                <div class="font-mono text-[11px] text-[#9BA7B0] truncate">{{ item.sku || '—' }}</div>
+
+                <div class="text-right text-sm text-[#637381] font-mono tabular-nums">{{ item.systemQty }}</div>
+
+                <input v-model.number="item.countedQty" type="number" min="0" step="1" placeholder="0"
+                  class="w-full px-2.5 py-2 border border-[#E2E8F0] text-sm text-right tabular-nums text-[#1C2434]
+                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
+
+                <div class="text-right font-bold text-sm tabular-nums"
+                  :class="variance(item) > 0 ? 'text-green-700' : variance(item) < 0 ? 'text-red-600' : 'text-[#CBD5E1]'">
                   {{ variance(item) > 0 ? '+' : '' }}{{ variance(item) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
-      </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
+        <!-- Global error -->
+        <div v-if="error"
+          class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700
+                 text-sm px-4 py-3.5">
+          <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <span>{{ error }}</span>
+        </div>
 
-      <div class="flex justify-end gap-3">
-        <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
-        <RouterLink to="/erp/stock-count" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
-        <button @click="save" :disabled="saving || !items.length"
-          class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
-          {{ saving ? t('erp.common.saving') : t('erp.common.saveDraft') }}
-        </button>
       </div>
     </div>
   </AppLayout>
@@ -126,11 +195,20 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import {
+  ArrowPathIcon, ExclamationCircleIcon, ExclamationTriangleIcon,
+  ClipboardDocumentCheckIcon, ClipboardDocumentListIcon,
+  BuildingStorefrontIcon, LockClosedIcon, LockOpenIcon,
+} from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import PageHeader from '@/components/form/PageHeader.vue'
+import FormCard from '@/components/form/FormCard.vue'
+import FieldLabel from '@/components/form/FieldLabel.vue'
 import FieldError from '@/components/form/FieldError.vue'
+import StatusPill from '@/components/form/StatusPill.vue'
+import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 
@@ -160,6 +238,7 @@ function onPageKeydown(e) {
 }
 
 onMounted(async () => {
+  dateRef.value?.$el?.focus()
   document.addEventListener('keydown', onPageKeydown)
   try {
     const { data } = await api.get('/erp/stock-count/stores-lookup')
@@ -201,7 +280,7 @@ async function loadStoreProducts() {
       name: p.name,
       sku: p.sku,
       systemQty: p.systemQty,
-      countedQty: p.systemQty, // default to system qty so variance starts at 0
+      countedQty: p.systemQty,
     }))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load products'
