@@ -13,6 +13,7 @@
           <StatusPill :label="t('erp.quotations.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/quotations/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -481,6 +482,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -500,6 +502,14 @@ const { t }    = useI18n()
 const route    = useRoute()
 const router   = useRouter()
 const settings = useSettingsStore()
+
+const pageShortcuts = [
+  { key: 'Ctrl+S',       label: 'Save draft' },
+  { key: 'Ctrl+Shift+S', label: 'Save' },
+  { key: 'Ctrl+A',       label: 'Add item' },
+  { key: 'Alt+C',        label: 'New customer' },
+  { key: 'Escape',       label: 'Back to detail' },
+]
 
 const quotation    = ref(null)
 const customers    = ref([])
@@ -724,6 +734,7 @@ function onPageKeydown(e) {
     if (e.key === 'Escape') { e.preventDefault(); closeCustomerCreate() }
     return
   }
+  if      (e.key === 'Escape' && !ctrl && !shift) { discard(); return }
   if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
   else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
   else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }

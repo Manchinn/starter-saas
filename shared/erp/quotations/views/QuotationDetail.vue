@@ -32,6 +32,7 @@
         </div>
         <!-- Quick actions -->
         <div v-if="quotation && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             :title="t('erp.quotations.printDocument')"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -363,11 +364,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import {
   ArrowLeftIcon, ChevronRightIcon, ArrowRightIcon,
   CheckIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
@@ -390,6 +392,13 @@ const updatingStatus = ref(false)
 const statusError    = ref('')
 const converting     = ref(false)
 const convertError   = ref('')
+
+const pageShortcuts = computed(() => [
+  ...(quotation.value?.status === 'draft' ? [{ key: 'E', label: 'Edit' }] : []),
+  { key: 'Ctrl+P', label: 'Print' },
+  { key: 'Escape', label: 'Back to list' },
+  { key: 'Backspace', label: 'Back to list' },
+])
 
 // Company profile from auth.user.organization, mirrors Order detail.
 const org = computed(() => auth.user?.organization || {})
@@ -519,7 +528,24 @@ const stampClass = computed(() => {
 })
 
 // ── Data ──────────────────────────────────────────────────
-onMounted(fetchQuotation)
+function isTyping() {
+  const el = document.activeElement
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+}
+
+function onKeydown(e) {
+  if (isTyping() || loading.value || !quotation.value) return
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+    e.preventDefault(); onPrint()
+  } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'e') {
+    if (quotation.value.status === 'draft') router.push(`/erp/quotations/${quotation.value.id}/edit`)
+  } else if ((e.key === 'Escape' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey) {
+    router.push('/erp/quotations')
+  }
+}
+
+onMounted(() => { fetchQuotation(); document.addEventListener('keydown', onKeydown) })
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 async function fetchQuotation() {
   loading.value = true
