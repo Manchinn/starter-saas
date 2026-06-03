@@ -12,6 +12,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/billing/debit-notes"
             :cancel-label="t('common.cancel')"
@@ -126,6 +127,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -144,6 +147,13 @@ import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router         = useRouter()
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/billing/debit-notes'),
+  cancelLabel: 'Back to list',
+})
+
 const customers      = ref([])
 const invoices       = ref([])
 const loadingInvoices = ref(false)

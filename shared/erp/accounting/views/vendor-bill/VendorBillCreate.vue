@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.bills.statusDraft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/purchasing/bills"
             :cancel-label="t('common.cancel')"
@@ -406,6 +407,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useFormShortcuts } from '@/composables/useShortcuts'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -732,13 +734,13 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-useFormShortcuts({
+const { shortcuts } = useFormShortcuts({
   save: () => save(),
   saveDraft: () => saveDraft(),
   enabled: () => !vendorCreateOpen.value && !confirmOpen.value,
   extra: [
-    { combo: 'ctrl+a', handler: () => openBulkPicker() },
-    { combo: 'alt+v',  handler: () => openVendorCreate() },
+    { combo: 'ctrl+a', handler: () => openBulkPicker(),   hint: { key: 'Ctrl+A', label: 'Add item' } },
+    { combo: 'alt+v',  handler: () => openVendorCreate(), hint: { key: 'Alt+V', label: 'New vendor' } },
   ],
 })
 
