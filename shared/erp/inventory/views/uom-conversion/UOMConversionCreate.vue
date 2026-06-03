@@ -15,7 +15,7 @@
           <div class="grid grid-cols-2 gap-5">
             <div>
               <FieldLabel :text="t('erp.uomConversion.fromUom')" required />
-              <SearchSelect v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
+              <SearchSelect ref="fromUomRef" v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
               <FieldError name="fromUomId" :errors="fieldErrors" />
             </div>
             <div>
@@ -88,6 +88,8 @@ const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = use
 
 const form = reactive({ fromUomId: '', toUomId: '', factor: '', notes: '' })
 
+const fromUomRef = ref(null)
+
 const { shortcuts } = useFormShortcuts({
   save: () => save(),
   cancel: () => router.push('/erp/uom-conversion'),
@@ -100,6 +102,7 @@ const toUomLabel   = computed(() => uoms.value.find(u => u.id === form.toUomId)?
 onMounted(async () => {
   const { data } = await api.get('/erp/uom', { params: { limit: 200 } })
   uoms.value = data.data.uoms.filter(u => u.status === 'active')
+  fromUomRef.value?.focus()
 })
 
 async function save() {

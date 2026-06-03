@@ -19,7 +19,7 @@
             <div class="grid grid-cols-2 gap-5">
               <div>
                 <FieldLabel :text="t('erp.uomConversion.fromUom')" required />
-                <SearchSelect v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
+                <SearchSelect ref="fromUomRef" v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
                 <FieldError name="fromUomId" :errors="fieldErrors" />
               </div>
               <div>
@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -95,6 +95,8 @@ const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = use
 
 const form = ref({ fromUomId: '', toUomId: '', factor: '', notes: '' })
 
+const fromUomRef = ref(null)
+
 const { shortcuts } = useFormShortcuts({
   save: () => save(),
   cancel: () => router.push('/erp/uom-conversion'),
@@ -118,6 +120,8 @@ onMounted(async () => {
     router.push('/erp/uom-conversion')
   } finally {
     loading.value = false
+    await nextTick()
+    fromUomRef.value?.focus()
   }
 })
 
