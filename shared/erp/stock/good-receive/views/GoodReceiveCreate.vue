@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/good-receive"
             :cancel-label="t('common.cancel')"
@@ -418,6 +419,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useFormShortcuts } from '@/composables/useShortcuts'
 import { useI18n } from 'vue-i18n'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
@@ -613,12 +615,14 @@ function validate() {
 }
 
 // Keyboard shortcuts — Ctrl+S draft, Ctrl+Shift+S save+redirect, Ctrl+A add line.
-useFormShortcuts({
+const { shortcuts } = useFormShortcuts({
   save: () => save(),
   saveDraft: () => saveDraft(),
+  cancel: () => router.push('/erp/good-receive'),
+  cancelLabel: 'Back to list',
   enabled: () => !confirmOpen.value,
   extra: [
-    { combo: 'ctrl+a', handler: () => addRow() },
+    { combo: 'ctrl+a', handler: () => addRow(), hint: { key: 'Ctrl+A', label: 'Add item' } },
   ],
 })
 
