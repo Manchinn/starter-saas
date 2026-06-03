@@ -2,11 +2,14 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/alerts" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.alerts.edit') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/alerts" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.alerts.edit') }}</h1>
+        </div>
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <div v-if="loadError" class="bg-red-50 text-red-700 text-sm px-4 py-3 max-w-2xl">{{ t('erp.alerts.notFound') }}</div>
@@ -34,8 +37,10 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import AlertForm from './AlertForm.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { parseApiError } from '@/utils/apiError'
 import api from '@/api'
 
@@ -50,6 +55,7 @@ const error = ref('')
 const loadError = ref(false)
 const saving = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
+const { shortcuts } = useFormShortcuts({ save: () => save(), cancel: () => router.push('/erp/alerts') })
 
 onMounted(async () => {
   try {
