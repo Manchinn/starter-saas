@@ -9,6 +9,7 @@
         ]">
         <template #actions>
           <div class="flex items-center gap-2">
+            <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
             <button @click="confirmDelete"
               class="px-3.5 py-2 text-sm font-medium text-red-500 border border-red-200 hover:bg-red-50 transition">
               {{ t('common.delete') }}
@@ -148,12 +149,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, XMarkIcon, CubeIcon, ShoppingBagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -168,6 +170,11 @@ const { t } = useI18n()
 const router = useRouter()
 const route  = useRoute()
 const id     = route.params.id
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save' },
+  { key: 'Escape', label: 'Back to list' },
+]
 
 const form    = ref({ code: '', name: '', description: '', status: 'active', items: [] })
 const loading = ref(true)
@@ -264,6 +271,14 @@ async function save() {
     if (!had) error.value = parseApiError(err, 'Failed to save')
   } finally { saving.value = false }
 }
+
+function onPageKeydown(e) {
+  if (deleteModal.open) return
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push('/erp/sale-packages'); return }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
+}
+onMounted(() => document.addEventListener('keydown', onPageKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 function confirmDelete() { deleteModal.error = ''; deleteModal.open = true }
 
