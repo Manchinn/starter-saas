@@ -314,6 +314,7 @@ const error        = ref('')
 const pageShortcuts = computed(() => [
   ...(sr.value?.status === 'draft' ? [{ key: 'E', label: 'Edit' }] : []),
   { key: 'Ctrl+P', label: 'Print' },
+  { key: 'Escape', label: 'Back to list' },
   { key: 'Backspace', label: 'Back to list' },
 ])
 
@@ -381,7 +382,7 @@ function onKeydown(e) {
     e.preventDefault(); onPrint()
   } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'e') {
     if (sr.value.status === 'draft') router.push(`/erp/stock-return/${sr.value.id}/edit`)
-  } else if (e.key === 'Backspace' && !e.ctrlKey && !e.metaKey) {
+  } else if ((e.key === 'Escape' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey) {
     router.push('/erp/stock-return')
   }
 }
