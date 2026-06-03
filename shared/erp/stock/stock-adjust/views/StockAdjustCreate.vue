@@ -32,7 +32,7 @@
               <!-- Date -->
               <div>
                 <FieldLabel :text="t('erp.common.date')" required />
-                <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+                <DateInput ref="dateRef" v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
                 <FieldError name="date" :errors="fieldErrors" />
               </div>
 
@@ -348,6 +348,7 @@ const error = ref('')
 const saving = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 const pickerRef = ref(null)
+const dateRef   = ref(null)
 
 const pageShortcuts = [
   { key: 'Ctrl+S', label: 'Save draft' },
@@ -360,6 +361,7 @@ let rowKeySeq = 0
 const newKey = () => `r${++rowKeySeq}`
 
 onMounted(async () => {
+  dateRef.value?.$el?.focus()
   try {
     const [storesRes] = await Promise.allSettled([
       api.get('/erp/stock-adjust/stores-lookup'),

@@ -46,7 +46,7 @@
 
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
-              <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+              <DateInput ref="dateRef" v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
               <FieldError name="date" :errors="fieldErrors" />
             </div>
 
@@ -313,7 +313,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -353,6 +353,7 @@ const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = use
 const loading = ref(true)
 const loadError = ref('')
 const pickerRef = ref(null)
+const dateRef   = ref(null)
 
 const pageShortcuts = [
   { key: 'Ctrl+S', label: 'Save' },
@@ -413,6 +414,8 @@ onMounted(async () => {
     loadError.value = err.response?.data?.message || 'Failed to load adjustment'
   } finally {
     loading.value = false
+    await nextTick()
+    dateRef.value?.$el?.focus()
   }
 })
 
