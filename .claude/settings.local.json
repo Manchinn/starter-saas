@@ -154,7 +154,10 @@
       "Bash(ls server/src/modules)",
       "Bash(ls server/modules)",
       "PowerShell(git *)",
-      "Bash(powershell *)"
+      "Bash(powershell *)",
+      "Bash(ls shared/erp)",
+      "Bash(find . -type d -name components -not -path \"*/node_modules/*\")",
+      "Bash(find . -type d -name composables -not -path \"*/node_modules/*\")"
     ]
   }
 }
