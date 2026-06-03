@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/receipts"
             :cancel-label="t('common.cancel')"
@@ -132,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -141,6 +142,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -160,6 +162,19 @@ import { parseApiError } from '@/utils/apiError'
 const { t } = useI18n()
 const router           = useRouter()
 const masterDataStore  = useMasterDataStore()
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save' },
+  { key: 'Escape', label: 'Back to list' },
+]
+
+function onPageKeydown(e) {
+  const ctrl = e.ctrlKey || e.metaKey
+  if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
+  else if (e.key === 'Escape' && !ctrl && !e.shiftKey) { router.push('/erp/receipts') }
+}
+onMounted(() => document.addEventListener('keydown', onPageKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 const customers        = ref([])
 const invoices         = ref([])
 const paymentMethods   = ref([])
