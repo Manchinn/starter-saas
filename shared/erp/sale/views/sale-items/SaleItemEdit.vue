@@ -8,6 +8,7 @@
           { label: t('erp.saleItems.edit') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/sale-items"
             :cancel-label="t('common.cancel')"
@@ -50,12 +51,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { TagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -71,6 +73,11 @@ const { t } = useI18n()
 const router  = useRouter()
 const route   = useRoute()
 const id      = route.params.id
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save' },
+  { key: 'Escape', label: 'Back to list' },
+]
 
 const form     = ref({ code: '', name: '', productId: '', status: 'active' })
 const masterDataStore  = useMasterDataStore()
@@ -109,6 +116,13 @@ onMounted(async () => {
   }
   try { saleItemStatuses.value = await masterDataStore.getValues('sale-item-statuses') } catch {}
 })
+
+function onPageKeydown(e) {
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push('/erp/sale-items'); return }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
+}
+onMounted(() => document.addEventListener('keydown', onPageKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function save() {
   error.value = ''
