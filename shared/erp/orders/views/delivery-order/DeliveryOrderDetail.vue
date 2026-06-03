@@ -28,6 +28,7 @@
           </nav>
         </div>
         <div v-if="doc && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             :title="t('erp.deliveryOrders.printDocument')"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -328,7 +329,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -338,6 +339,7 @@ import {
   ArrowPathIcon, ExclamationCircleIcon, PrinterIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
@@ -353,6 +355,13 @@ const updatingStatus = ref(false)
 const statusError    = ref('')
 const converting     = ref(false)
 const convertError   = ref('')
+
+const pageShortcuts = computed(() => [
+  ...(doc.value?.status === 'draft' ? [{ key: 'E', label: 'Edit' }] : []),
+  { key: 'Ctrl+P', label: 'Print' },
+  { key: 'Escape', label: 'Back to list' },
+  { key: 'Backspace', label: 'Back to list' },
+])
 
 const org = computed(() => auth.user?.organization || {})
 const companyName    = computed(() => org.value.companyName || org.value.name || 'Your Company')
@@ -479,7 +488,24 @@ const stampClass = computed(() => {
   return 'text-[#1C2434] border-[#1C2434]'
 })
 
-onMounted(fetchDoc)
+function isTyping() {
+  const el = document.activeElement
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+}
+
+function onKeydown(e) {
+  if (isTyping() || loading.value || !doc.value) return
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+    e.preventDefault(); onPrint()
+  } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'e') {
+    if (doc.value.status === 'draft') router.push(`/erp/delivery-orders/${doc.value.id}/edit`)
+  } else if ((e.key === 'Escape' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey) {
+    router.push('/erp/delivery-orders')
+  }
+}
+
+onMounted(() => { fetchDoc(); document.addEventListener('keydown', onKeydown) })
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 async function fetchDoc() {
   loading.value = true

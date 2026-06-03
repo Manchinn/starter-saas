@@ -13,6 +13,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
           <HeaderSaveActions
             :cancel-to="`/erp/delivery-orders/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -316,6 +317,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -334,6 +336,12 @@ import { parseApiError } from '@/utils/apiError'
 const { t }    = useI18n()
 const route    = useRoute()
 const router   = useRouter()
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save' },
+  { key: 'Ctrl+A', label: 'Add item' },
+  { key: 'Escape', label: 'Back to detail' },
+]
 
 const doc          = ref(null)
 const customers    = ref([])
@@ -613,8 +621,10 @@ async function onBulkAdd(objects) {
 }
 
 function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const key   = e.key.toLowerCase()
+  if (confirmOpen.value) return
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { discard(); return }
+  const ctrl = e.ctrlKey || e.metaKey
+  const key  = e.key.toLowerCase()
   if (ctrl && key === 's') { e.preventDefault(); save() }
   else if (ctrl && key === 'a') { e.preventDefault(); openBulkPicker() }
 }

@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/delivery-orders"
             :cancel-label="t('common.cancel')"
@@ -295,16 +296,6 @@
         </span>
       </div>
       <div class="flex items-center gap-2.5">
-        <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1" :title="t('erp.deliveryOrders.create')">
-            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
-            <span>save</span>
-          </span>
-          <span class="flex items-center gap-1" :title="t('erp.deliveryOrders.addItem')">
-            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
-            <span>item</span>
-          </span>
-        </div>
         <button @click="discard" type="button"
           class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
           {{ t('erp.deliveryOrders.discard') }}
@@ -361,6 +352,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -378,6 +370,12 @@ import { fmtDate } from '@/utils/fmt'
 
 const { t }    = useI18n()
 const router   = useRouter()
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save' },
+  { key: 'Ctrl+A', label: 'Add item' },
+  { key: 'Escape', label: 'Back to list' },
+]
 
 const customers    = ref([])
 const orders       = ref([])
@@ -657,8 +655,10 @@ async function onBulkAdd(objects) {
 }
 
 function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const key   = e.key.toLowerCase()
+  if (confirmOpen.value) return
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { discard(); return }
+  const ctrl = e.ctrlKey || e.metaKey
+  const key  = e.key.toLowerCase()
   if (ctrl && key === 's') { e.preventDefault(); save() }
   else if (ctrl && key === 'a') { e.preventDefault(); openBulkPicker() }
 }
