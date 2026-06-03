@@ -30,6 +30,7 @@
           </nav>
         </div>
         <div v-if="req && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
@@ -257,7 +258,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -265,6 +266,7 @@ import {
   TrashIcon, PencilSquareIcon, PrinterIcon, ExclamationCircleIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
@@ -279,6 +281,12 @@ const req         = ref(null)
 const loading     = ref(true)
 const confirming  = ref(false)
 const error       = ref('')
+
+const pageShortcuts = computed(() => [
+  ...(req.value?.status === 'draft' ? [{ key: 'E', label: 'Edit' }] : []),
+  { key: 'Ctrl+P', label: 'Print' },
+  { key: 'Backspace', label: 'Back to list' },
+])
 
 const FLOW_STEPS = [
   { key: 'draft',     label: 'Draft' },
@@ -319,6 +327,22 @@ const companyLogoSrc = computed(() => {
 
 const totalQty = computed(() => (req.value?.items || []).reduce((s, i) => s + (Number(i.qty) || 0), 0))
 
+function isTyping() {
+  const el = document.activeElement
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+}
+
+function onKeydown(e) {
+  if (isTyping() || loading.value || !req.value) return
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+    e.preventDefault(); onPrint()
+  } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'e') {
+    if (req.value.status === 'draft') router.push(`/erp/stock-request/${req.value.id}/edit`)
+  } else if (e.key === 'Backspace' && !e.ctrlKey && !e.metaKey) {
+    router.push('/erp/stock-request')
+  }
+}
+
 async function load() {
   loading.value = true
   try {
@@ -330,7 +354,8 @@ async function load() {
     loading.value = false
   }
 }
-onMounted(load)
+onMounted(() => { load(); document.addEventListener('keydown', onKeydown) })
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 function onPrint() {
   window.print()
