@@ -15,9 +15,13 @@
 
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
-          <FormField v-model="form.abbreviation" name="abbreviation" :label="t('erp.uom.code')"
-            required :errors="fieldErrors" input-class="font-mono"
-            wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField name="abbreviation" :label="t('erp.uom.code')" required :errors="fieldErrors"
+            wrapper-class="col-span-2 sm:col-span-1">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="codeInputRef" v-model="form.abbreviation" type="text"
+                :class="['input font-mono', errorClass]" />
+            </template>
+          </FormField>
           <FormField v-model="form.name" name="name" :label="t('erp.uom.name')"
             required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.description" name="description" :label="t('erp.uom.description')"
@@ -55,7 +59,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -87,6 +91,8 @@ const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
+const codeInputRef = ref(null)
+
 const { shortcuts } = useFormShortcuts({
   save: () => save(),
   cancel: () => router.push('/erp/uom'),
@@ -101,6 +107,8 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
 
