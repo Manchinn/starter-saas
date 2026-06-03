@@ -5,6 +5,32 @@
       <PageHeader :title="t('erp.uomConversion.title')"
         :breadcrumb="[{ label: `${total} record${total !== 1 ? 's' : ''}` }]">
         <template #actions>
+          <!-- Keyboard shortcuts popover -->
+          <div class="relative" ref="shortcutsRef">
+            <button @click="showShortcuts = !showShortcuts"
+              class="h-8 px-2 flex items-center gap-1 border border-[#E2E8F0] text-[#9BA7B0] hover:text-[#374151] hover:bg-[#F7F9FC] transition-colors text-sm font-semibold"
+              title="Keyboard shortcuts">
+              <span>?</span>
+              <span class="text-xs font-medium">Shortcuts</span>
+            </button>
+            <Transition
+              enter-active-class="transition-all duration-150 ease-out"
+              enter-from-class="opacity-0 translate-y-1"
+              enter-to-class="opacity-100 translate-y-0"
+              leave-active-class="transition-all duration-100 ease-in"
+              leave-from-class="opacity-100 translate-y-0"
+              leave-to-class="opacity-0 translate-y-1">
+              <div v-if="showShortcuts"
+                class="absolute right-0 top-10 z-50 w-64 bg-white border border-[#E2E8F0] shadow-lg p-4 space-y-2">
+                <p class="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-3">Keyboard Shortcuts</p>
+                <div v-for="s in SHORTCUTS" :key="s.key" class="flex items-center justify-between gap-3">
+                  <span class="text-xs text-[#637381]">{{ s.label }}</span>
+                  <kbd class="inline-flex items-center px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] text-[10px] font-mono text-[#374151] whitespace-nowrap">{{ s.key }}</kbd>
+                </div>
+              </div>
+            </Transition>
+          </div>
+
           <RouterLink to="/erp/uom-conversion/create" class="btn-primary">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.uomConversion.new') }}
@@ -17,13 +43,14 @@
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
           <div class="relative flex-1 min-w-0">
             <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
-            <input v-model="search" type="search" :placeholder="t('erp.uomConversion.searchPh')"
+            <input ref="searchInputRef" v-model="search" type="search" :placeholder="t('erp.uomConversion.searchPh')"
               class="input pl-9 w-full" />
           </div>
         </div>
 
-        <DataTable :columns="columns" :data="filtered" :loading="loading" :total="filtered.length"
-          v-model:page="page" :page-size="20">
+        <DataTable ref="dataTableRef" :columns="columns" :data="filtered" :loading="loading" :total="filtered.length"
+          v-model:page="page" :page-size="20"
+          :selected-row-index="selectedRowIndex">
           <template #empty>
             <EmptyState :icon="ArrowsRightLeftIcon" :title="t('erp.uomConversion.noFound')"
               :subtitle="search ? t('erp.uomConversion.tryDifferentSearch') : ''" padding="md" />
@@ -62,8 +89,8 @@
 </template>
 
 <script setup>
-import { h, ref, computed, reactive, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { h, ref, computed, reactive, onMounted, onUnmounted } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
 import {
@@ -77,13 +104,34 @@ import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 
-const conversions = ref([])
-const loading     = ref(false)
-const page        = ref(1)
-const search      = ref('')
+const conversions      = ref([])
+const loading          = ref(false)
+const page             = ref(1)
+const search           = ref('')
+const selectedRowIndex = ref(-1)
+const dataTableRef     = ref(null)
+const searchInputRef   = ref(null)
+const showShortcuts    = ref(false)
+const shortcutsRef     = ref(null)
 
 const deleteModal = reactive({ open: false, item: null, saving: false, error: '' })
+
+const SHORTCUTS = [
+  { key: '↑ / ↓',   label: 'Move row selection' },
+  { key: '← / →',   label: 'Previous / next page' },
+  { key: 'Enter',    label: 'Open selected row' },
+  { key: 'Shift+S',  label: 'Focus search' },
+  { key: 'Shift+C',  label: 'New conversion' },
+  { key: 'Shift+D',  label: 'Delete selected row' },
+]
+
+function onClickOutsideShortcuts(e) {
+  if (shortcutsRef.value && !shortcutsRef.value.contains(e.target)) {
+    showShortcuts.value = false
+  }
+}
 
 const total = computed(() => conversions.value.length)
 
@@ -99,16 +147,60 @@ const filtered = computed(() => {
   )
 })
 
+const totalPages = computed(() => Math.ceil(filtered.value.length / 20))
+
+function onKeydown(e) {
+  const tag = document.activeElement?.tagName?.toLowerCase()
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    selectedRowIndex.value = Math.min(selectedRowIndex.value + 1, filtered.value.length - 1)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    selectedRowIndex.value = Math.max(selectedRowIndex.value - 1, 0)
+  } else if (e.key === 'ArrowRight' && page.value < totalPages.value) {
+    e.preventDefault()
+    page.value++
+  } else if (e.key === 'ArrowLeft' && page.value > 1) {
+    e.preventDefault()
+    page.value--
+  } else if (e.key === 'Enter' && selectedRowIndex.value >= 0) {
+    const c = filtered.value[selectedRowIndex.value]
+    if (c) router.push(`/erp/uom-conversion/${c.id}/edit`)
+  } else if (e.shiftKey && e.key === 'C') {
+    e.preventDefault()
+    router.push('/erp/uom-conversion/create')
+  } else if (e.shiftKey && e.key === 'S') {
+    e.preventDefault()
+    searchInputRef.value?.focus()
+  } else if (e.shiftKey && e.key === 'D') {
+    e.preventDefault()
+    const c = filtered.value[selectedRowIndex.value]
+    if (c) confirmDelete(c)
+  }
+}
+
 async function load() {
   loading.value = true
   try {
     const { data } = await api.get('/erp/uom-conversion')
     conversions.value = data.data.conversions
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }
 }
-onMounted(load)
+
+onMounted(() => {
+  load()
+  window.addEventListener('keydown', onKeydown)
+  document.addEventListener('mousedown', onClickOutsideShortcuts)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('mousedown', onClickOutsideShortcuts)
+})
 
 function confirmDelete(item) {
   deleteModal.item = item
