@@ -111,6 +111,7 @@
       <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
       <div class="flex justify-end gap-3">
+        <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
         <RouterLink to="/erp/stock-count" class="px-4 py-2 text-sm border hover:bg-[#F7F9FC] transition">{{ t('common.cancel') }}</RouterLink>
         <button @click="save" :disabled="saving || !items.length"
           class="px-5 py-2 text-sm bg-primary-500 text-white hover:bg-primary-700 disabled:opacity-50 transition">
@@ -122,12 +123,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import FieldError from '@/components/form/FieldError.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
@@ -143,8 +145,22 @@ const saving = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 const loadingProducts = ref(false)
 const lockedStoreInfo = ref(null)
+const dateRef = ref(null)
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save draft' },
+  { key: 'Escape', label: 'Back to list' },
+]
+
+function onPageKeydown(e) {
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push('/erp/stock-count'); return }
+  const ctrl = e.ctrlKey || e.metaKey
+  if (!ctrl) return
+  if (e.key.toLowerCase() === 's') { e.preventDefault(); save() }
+}
 
 onMounted(async () => {
+  document.addEventListener('keydown', onPageKeydown)
   try {
     const { data } = await api.get('/erp/stock-count/stores-lookup')
     stores.value = data.data.stores
@@ -152,6 +168,7 @@ onMounted(async () => {
     console.error('Failed to load stores:', err.message)
   }
 })
+onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function onStoreChange() {
   items.value = []

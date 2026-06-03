@@ -12,6 +12,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/stock-count/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -294,6 +295,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -317,6 +319,12 @@ const loading        = ref(true)
 const loadError      = ref('')
 const loadingProducts = ref(false)
 const lockedStoreInfo = ref(null)
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save' },
+  { key: 'Ctrl+R', label: 'Reload products' },
+  { key: 'Escape', label: 'Back to detail' },
+]
 
 let initialStoreId = ''
 let skipNextStoreWatch = false
@@ -455,14 +463,13 @@ async function save() {
   }
 }
 
-// Keyboard shortcuts: Ctrl+S save, Ctrl+R reload products.
 function onPageKeydown(e) {
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push(`/erp/stock-count/${route.params.id}`); return }
   const ctrl = e.ctrlKey || e.metaKey
   if (!ctrl) return
   const key = e.key.toLowerCase()
   if (key === 's') { e.preventDefault(); save() }
   else if (key === 'r') {
-    // Only intercept if a store is selected — otherwise let the browser refresh.
     if (!form.value.storeId) return
     e.preventDefault()
     reloadStoreProducts()
