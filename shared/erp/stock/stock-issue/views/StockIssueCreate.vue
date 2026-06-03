@@ -32,7 +32,7 @@
             <!-- Date -->
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
-              <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+              <DateInput ref="dateRef" v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
               <FieldError name="date" :errors="fieldErrors" />
             </div>
 
@@ -367,6 +367,7 @@ const error  = ref('')
 const saving = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 const pickerRef = ref(null)
+const dateRef   = ref(null)
 
 const { shortcuts } = useFormShortcuts({
   save: () => save(),
@@ -390,6 +391,7 @@ onMounted(async () => {
     console.error('Failed to load stores:', err.message)
   }
   issueReasons.value = await masterDataStore.getValues('issue-reasons')
+  dateRef.value?.$el?.focus()
 })
 
 watch(() => form.value.storeId, async (storeId) => {
