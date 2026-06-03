@@ -39,7 +39,7 @@
           </div>
         </div>
         <div v-if="receipt && !loading" class="flex items-center gap-2 flex-shrink-0">
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             title="Print this document"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -335,7 +335,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -347,6 +347,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtMoney, fmtDate, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
@@ -379,28 +380,13 @@ const companyLogoSrc = computed(() => {
 
 function onPrint() { window.print() }
 
-const pageShortcuts = computed(() => [
-  ...(receipt.value?.status === 'draft' ? [{ key: 'E', label: 'Edit' }] : []),
-  { key: 'Ctrl+P', label: 'Print' },
-  { key: 'Escape', label: 'Back to list' },
-  { key: 'Backspace', label: 'Back to list' },
-])
-
-function isTyping() {
-  const el = document.activeElement
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
-}
-
-function onKeydown(e) {
-  if (isTyping() || loading.value || !receipt.value) return
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
-    e.preventDefault(); onPrint()
-  } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'e') {
-    if (receipt.value.status === 'draft') router.push(`/erp/receipts/${receipt.value.id}/edit`)
-  } else if ((e.key === 'Escape' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey) {
-    router.push('/erp/receipts')
-  }
-}
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!receipt.value,
+  canEdit: () => receipt.value?.status === 'draft',
+  edit:  () => router.push(`/erp/receipts/${receipt.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/receipts'),
+})
 
 // ── Workflow ──────────────────────────────────────────────
 const FLOW_STEPS = computed(() => [
@@ -485,8 +471,7 @@ function methodLabel(m) {
   return labels[m] || m || '—'
 }
 
-onMounted(() => { fetchReceipt(); document.addEventListener('keydown', onKeydown) })
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+onMounted(fetchReceipt)
 
 async function fetchReceipt() {
   loading.value = true

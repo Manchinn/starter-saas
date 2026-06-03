@@ -32,7 +32,7 @@
         </div>
         <!-- Quick actions -->
         <div v-if="order && !loading" class="flex items-center gap-2 flex-shrink-0">
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             :title="`${t('erp.orders.printDocument')} (P)`"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -421,6 +421,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtMoney, fmtDate, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
@@ -438,13 +439,15 @@ const statusError    = ref('')
 const converting     = ref('')
 const convertError   = ref('')
 
-const pageShortcuts = computed(() => [
-  ...(order.value?.status === 'draft' ? [{ key: 'E', label: 'Edit' }] : []),
-  { key: 'P', label: 'Print' },
-  ...(order.value?.status === 'draft' ? [{ key: 'Del', label: 'Delete' }] : []),
-  { key: 'Escape', label: 'Back to list' },
-  { key: 'Backspace', label: 'Back to list' },
-])
+const { shortcuts } = useDetailShortcuts({
+  enabled:   () => !loading.value && !notFound.value && !confirmOpen.value,
+  canEdit:   () => order.value?.status === 'draft',
+  edit:      () => router.push(`/erp/orders/${order.value.id}/edit`),
+  print:     onPrint,
+  remove:    confirmDelete,
+  canRemove: () => order.value?.status === 'draft',
+  back:      () => router.push('/erp/orders'),
+})
 
 // ── Custom confirm modal ────────────────────────────────────────────────
 const confirmOpen    = ref(false)
@@ -674,43 +677,15 @@ async function confirmDelete() {
   }
 }
 
-// ── Keyboard shortcuts ──────────────────────────────────────────────────
-//   E        Edit order (draft only)
-//   P        Print
-//   Del      Delete order (draft only)
-//   Esc      Back to orders list
-//   ?        Toggle shortcuts panel
-function onPageKeydown(e) {
-  if (loading.value || notFound.value) return
-
-  if (confirmOpen.value) {
-    if (e.key === 'Enter')  { e.preventDefault(); confirmAnswer(true) }
-    if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
-    return
-  }
-  const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)
-  if (typing) return
-
-  if (e.key === 'Escape' || e.key === 'Backspace') {
-    e.preventDefault()
-    router.push('/erp/orders')
-  } else if (e.key === 'e' || e.key === 'E') {
-    if (order.value?.status === 'draft') {
-      e.preventDefault()
-      router.push(`/erp/orders/${order.value.id}/edit`)
-    }
-  } else if (e.key === 'p' || e.key === 'P') {
-    e.preventDefault()
-    onPrint()
-  } else if (e.key === 'Delete') {
-    if (order.value?.status === 'draft') {
-      e.preventDefault()
-      confirmDelete()
-    }
-  }
+// Confirm-modal keys are handled separately so they take over while the dialog is
+// open (page-level shortcuts are suppressed via the `enabled` guard above).
+function onConfirmKeydown(e) {
+  if (!confirmOpen.value) return
+  if (e.key === 'Enter')  { e.preventDefault(); confirmAnswer(true) }
+  if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
 }
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+onMounted(() => window.addEventListener('keydown', onConfirmKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onConfirmKeydown))
 
 // Payment-terms labels come from master-data so admins can rename them.
 // Fall back to the stored raw value if the lookup is empty or missing.

@@ -49,7 +49,7 @@
           </div>
         </div>
         <div v-if="invoice && !loading" class="flex items-center gap-2 flex-shrink-0">
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             :title="t('erp.invoices.printDocument')"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -382,7 +382,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -393,6 +393,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
@@ -414,28 +415,13 @@ const statusError    = ref('')
 const converting     = ref(false)
 const convertError   = ref('')
 
-const pageShortcuts = computed(() => [
-  ...(invoice.value?.status === 'draft' ? [{ key: 'E', label: 'Edit' }] : []),
-  { key: 'Ctrl+P', label: 'Print' },
-  { key: 'Escape', label: 'Back to list' },
-  { key: 'Backspace', label: 'Back to list' },
-])
-
-function isTyping() {
-  const el = document.activeElement
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
-}
-
-function onKeydown(e) {
-  if (isTyping() || loading.value || !invoice.value) return
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
-    e.preventDefault(); onPrint()
-  } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'e') {
-    if (invoice.value.status === 'draft') router.push(`/erp/invoices/${invoice.value.id}/edit`)
-  } else if ((e.key === 'Escape' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey) {
-    router.push('/erp/invoices')
-  }
-}
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!invoice.value,
+  canEdit: () => invoice.value?.status === 'draft',
+  edit:  () => router.push(`/erp/invoices/${invoice.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/invoices'),
+})
 
 // Company profile from auth.user.organization, mirrors SO/DO detail.
 const org = computed(() => auth.user?.organization || {})
@@ -577,8 +563,7 @@ const stampClass = computed(() => {
   return 'text-[#1C2434] border-[#1C2434]'
 })
 
-onMounted(() => { fetchInvoice(); document.addEventListener('keydown', onKeydown) })
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+onMounted(fetchInvoice)
 
 async function fetchInvoice() {
   loading.value = true

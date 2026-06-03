@@ -36,7 +36,7 @@
           </nav>
         </div>
         <div v-if="sc && !loading" class="flex items-center gap-2 flex-shrink-0">
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
@@ -321,7 +321,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -331,6 +331,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
@@ -346,11 +347,13 @@ const loading     = ref(true)
 const confirming  = ref(false)
 const error       = ref('')
 
-const pageShortcuts = computed(() => [
-  ...(sc.value?.status === 'draft' ? [{ key: 'E', label: 'Edit' }] : []),
-  { key: 'Ctrl+P', label: 'Print' },
-  { key: 'Backspace', label: 'Back to list' },
-])
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!sc.value,
+  canEdit: () => sc.value?.status === 'draft',
+  edit:  () => router.push(`/erp/stock-count/${sc.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/stock-count'),
+})
 
 const FLOW_STEPS = [
   { key: 'draft',     label: 'Draft' },
@@ -396,22 +399,6 @@ function variance(item) {
 const varianceCount = computed(() => (sc.value?.items || []).filter((i) => variance(i) !== 0).length)
 const netVariance   = computed(() => (sc.value?.items || []).reduce((sum, i) => sum + variance(i), 0))
 
-function isTyping() {
-  const el = document.activeElement
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
-}
-
-function onKeydown(e) {
-  if (isTyping() || loading.value || !sc.value) return
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
-    e.preventDefault(); onPrint()
-  } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'e') {
-    if (sc.value.status === 'draft') router.push(`/erp/stock-count/${sc.value.id}/edit`)
-  } else if (e.key === 'Backspace' && !e.ctrlKey && !e.metaKey) {
-    router.push('/erp/stock-count')
-  }
-}
-
 async function load() {
   loading.value = true
   try {
@@ -423,8 +410,7 @@ async function load() {
     loading.value = false
   }
 }
-onMounted(() => { load(); document.addEventListener('keydown', onKeydown) })
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+onMounted(load)
 
 function onPrint() {
   window.print()

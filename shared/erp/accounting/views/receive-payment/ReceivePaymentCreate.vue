@@ -11,7 +11,7 @@
           <StatusPill label="Draft" />
         </template>
         <template #actions>
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/billing/receive-payments"
             cancel-label="Cancel"
@@ -256,6 +256,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -390,18 +391,12 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-const pageShortcuts = [
-  { key: 'Ctrl+S', label: 'Create payment' },
-  { key: 'Escape', label: 'Back to list' },
-]
-
-function onPageKeydown(e) {
-  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { discard(); return }
-  const ctrl = e.ctrlKey || e.metaKey
-  if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => discard(),
+  saveLabel: 'Create payment',
+  cancelLabel: 'Back to list',
+})
 
 async function save() {
   globalError.value = ''

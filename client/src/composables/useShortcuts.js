@@ -1,4 +1,4 @@
-import { ref, unref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, unref, onMounted, onUnmounted } from 'vue'
 
 // Build the hint list shown in the list-page shortcuts popover. Kept here so the
 // displayed hints and the bound key handlers stay in sync (single source of truth).
@@ -15,12 +15,32 @@ function listHints(newLabel, openLabel) {
 
 export const FORM_SHORTCUTS = [
   { key: 'Ctrl+S', label: 'Save' },
-  { key: 'Escape', label: 'Cancel / back' },
+  { key: 'Esc',    label: 'Cancel / back' },
 ]
 
+// True while focus sits in a text-editing surface, so single-letter shortcuts
+// (e.g. `e` to edit) don't fire while the user is typing.
 function isTyping() {
-  const tag = document.activeElement?.tagName?.toLowerCase()
-  return tag === 'input' || tag === 'textarea' || tag === 'select'
+  const el = document.activeElement
+  if (!el) return false
+  const tag = el.tagName?.toLowerCase()
+  return tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable
+}
+
+// Match a keydown event against a combo string like 'ctrl+shift+a', 'alt+c', 'delete'.
+// 'ctrl'/'cmd'/'meta' all match ctrlKey OR metaKey (cross-platform). The final
+// token is the key itself, compared case-insensitively against e.key.
+function matchCombo(e, combo) {
+  const parts     = combo.toLowerCase().split('+')
+  const key       = parts[parts.length - 1]
+  const wantCtrl  = parts.includes('ctrl') || parts.includes('cmd') || parts.includes('meta')
+  const wantShift = parts.includes('shift')
+  const wantAlt   = parts.includes('alt')
+  const ctrl      = e.ctrlKey || e.metaKey
+  return ctrl === wantCtrl
+      && e.shiftKey === wantShift
+      && e.altKey === wantAlt
+      && e.key.toLowerCase() === key
 }
 
 /**
@@ -89,26 +109,121 @@ export function useListShortcuts({
 }
 
 /**
- * Keyboard shortcuts for create/edit form pages: Ctrl+S to save, Escape to cancel.
+ * Keyboard shortcuts for create/edit form pages.
+ *
+ * Default: Ctrl/Cmd+S saves, Escape cancels. Pass `saveDraft` to get the two-tier
+ * scheme used by document forms (Ctrl+S = save draft, Ctrl+Shift+S = save/post).
+ * Pass `extra` for page-specific combos (e.g. Ctrl+A add item, Alt+C new customer).
  * Registers/cleans up the global keydown listener itself.
  *
  * @param {object}   o
- * @param {()=>void} o.save    Ctrl+S handler.
- * @param {()=>void} o.cancel  Escape handler.
+ * @param {()=>void} o.save               Primary save (Ctrl+S, or Ctrl+Shift+S when saveDraft set).
+ * @param {()=>void} o.cancel             Escape handler.
+ * @param {()=>void} [o.saveDraft]        When set, Ctrl+S triggers this and Ctrl+Shift+S triggers save.
+ * @param {Array<{combo:string, handler:()=>void, hint?:{key:string,label:string}}>} [o.extra]
+ * @param {()=>boolean} [o.enabled]       Master guard; shortcuts are ignored while it returns false.
+ * @param {string}   [o.saveLabel]        Hint label for save.
+ * @param {string}   [o.draftLabel]       Hint label for save draft.
+ * @param {string}   [o.cancelLabel]      Hint label for cancel.
  * @returns {{ shortcuts: Array }}
  */
-export function useFormShortcuts({ save, cancel }) {
+export function useFormShortcuts({
+  save, cancel, saveDraft,
+  extra = [],
+  enabled = () => true,
+  saveLabel = 'Save', draftLabel = 'Save draft', cancelLabel = 'Cancel / back',
+}) {
   function onKeydown(e) {
-    if (e.key === 'Escape') {
-      cancel?.()
-    } else if (e.ctrlKey && e.key === 's') {
+    if (!enabled()) return
+
+    for (const x of extra) {
+      if (matchCombo(e, x.combo)) { e.preventDefault(); x.handler?.(); return }
+    }
+
+    const ctrl = e.ctrlKey || e.metaKey
+    const key  = e.key.toLowerCase()
+
+    if (ctrl && key === 's') {
       e.preventDefault()
-      save?.()
+      if (saveDraft) { e.shiftKey ? save?.() : saveDraft() }
+      else           { save?.() }
+    } else if (e.key === 'Escape' && !ctrl && !e.shiftKey) {
+      cancel?.()
     }
   }
 
   onMounted(() => window.addEventListener('keydown', onKeydown))
   onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
-  return { shortcuts: FORM_SHORTCUTS }
+  const shortcuts = []
+  if (saveDraft) {
+    shortcuts.push({ key: 'Ctrl+S',       label: draftLabel })
+    shortcuts.push({ key: 'Ctrl+Shift+S', label: saveLabel })
+  } else {
+    shortcuts.push({ key: 'Ctrl+S', label: saveLabel })
+  }
+  for (const x of extra) if (x.hint) shortcuts.push(x.hint)
+  shortcuts.push({ key: 'Esc', label: cancelLabel })
+
+  return { shortcuts }
+}
+
+/**
+ * Keyboard shortcuts for detail/view pages: Esc/Backspace back, `e` edit,
+ * Ctrl/Cmd+P print, Delete remove. All handlers are optional — only the ones you
+ * pass are bound and shown in the popover. Registers/cleans up the listener itself.
+ *
+ * @param {object}   o
+ * @param {()=>void} [o.back]             Escape / Backspace.
+ * @param {()=>void} [o.edit]             `e` (only when canEdit() is true).
+ * @param {()=>void} [o.print]            Ctrl/Cmd+P.
+ * @param {()=>void} [o.remove]           Delete.
+ * @param {()=>boolean} [o.canEdit]       Gates the edit binding + its hint.
+ * @param {()=>boolean} [o.canRemove]     Gates the delete binding + its hint.
+ * @param {()=>boolean} [o.enabled]       Master guard (e.g. !loading && record loaded).
+ * @param {Array<{combo:string, handler:()=>void, hint?:{key:string,label:string}}>} [o.extra]
+ * @param {string}   [o.editLabel]        Hint label for edit.
+ * @param {string}   [o.backLabel]        Hint label for back.
+ * @param {string}   [o.removeLabel]      Hint label for delete.
+ * @returns {{ shortcuts: import('vue').ComputedRef<Array> }}
+ */
+export function useDetailShortcuts({
+  back, edit, print, remove,
+  canEdit = () => true,
+  canRemove = () => true,
+  enabled = () => true,
+  extra = [],
+  editLabel = 'Edit', backLabel = 'Back to list', removeLabel = 'Delete',
+}) {
+  function onKeydown(e) {
+    if (isTyping() || !enabled()) return
+
+    for (const x of extra) {
+      if (matchCombo(e, x.combo)) { e.preventDefault(); x.handler?.(); return }
+    }
+
+    const ctrl = e.ctrlKey || e.metaKey
+
+    if (print && ctrl && e.key.toLowerCase() === 'p') { e.preventDefault(); print(); return }
+    if (ctrl || e.altKey) return  // leave other modified combos to the browser
+
+    if (edit && canEdit() && e.key.toLowerCase() === 'e') { e.preventDefault(); edit(); return }
+    if (back && (e.key === 'Escape' || e.key === 'Backspace')) { e.preventDefault(); back(); return }
+    if (remove && canRemove() && e.key === 'Delete') { e.preventDefault(); remove(); return }
+  }
+
+  onMounted(() => window.addEventListener('keydown', onKeydown))
+  onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
+  const shortcuts = computed(() => {
+    const list = []
+    if (edit && canEdit()) list.push({ key: 'E',      label: editLabel })
+    if (print)             list.push({ key: 'Ctrl+P', label: 'Print' })
+    for (const x of extra) if (x.hint) list.push(x.hint)
+    if (back)                  list.push({ key: 'Esc', label: backLabel })
+    if (remove && canRemove()) list.push({ key: 'Del', label: removeLabel })
+    return list
+  })
+
+  return { shortcuts }
 }

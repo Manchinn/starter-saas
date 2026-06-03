@@ -11,7 +11,7 @@
           <StatusPill :label="t('erp.orders.draft')" />
         </template>
         <template #actions>
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-64" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-64" />
           <HeaderSaveActions
             cancel-to="/erp/orders"
             :cancel-label="t('common.cancel')"
@@ -526,6 +526,7 @@ import CurrencySelector from '@/components/CurrencySelector.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -565,13 +566,19 @@ const newCustomerNameRef = ref(null)
 
 const referenceInputRef = ref(null)
 
-const pageShortcuts = [
-  { key: 'Ctrl+S',       label: 'Save draft' },
-  { key: 'Ctrl+Shift+S', label: 'Create order' },
-  { key: 'Ctrl+A',       label: 'Add item' },
-  { key: 'Alt+C',        label: 'New customer' },
-  { key: 'Escape',       label: 'Discard & back' },
-]
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  saveDraft: () => saveDraft(),
+  cancel: () => discard(),
+  enabled: () => !confirmOpen.value && !customerCreateOpen.value,
+  saveLabel: 'Create order',
+  cancelLabel: 'Discard & back',
+  extra: [
+    { combo: 'ctrl+a', handler: () => openBulkPicker(), hint: { key: 'Ctrl+A', label: 'Add item' } },
+    { combo: 'alt+i',  handler: () => openBulkPicker() },
+    { combo: 'alt+c',  handler: () => openCustomerCreate(), hint: { key: 'Alt+C', label: 'New customer' } },
+  ],
+})
 
 // Loaded on mount from /erp/master-data/payment-terms — admins can rename or
 // add terms in /erp/settings/master-data without touching this file.
@@ -740,35 +747,18 @@ async function saveCustomer() {
 //   Alt+C             New Customer slide-over
 //   Esc               Discard / close active modal
 //   Enter             Confirm (when confirm dialog is open)
-function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const shift = e.shiftKey
-  const alt   = e.altKey
-  const key   = e.key.toLowerCase()
-
-  // Confirm dialog: Enter = yes, Escape = no — intercept before everything else.
+// Confirm dialog (Enter/Escape) and the customer slide-over (Escape) are handled
+// separately so they take over while open (page shortcuts suppressed via `enabled`).
+function onModalKeydown(e) {
   if (confirmOpen.value) {
     if (e.key === 'Enter')  { e.preventDefault(); confirmAnswer(true) }
     if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
-    return
+  } else if (customerCreateOpen.value && e.key === 'Escape') {
+    e.preventDefault(); closeCustomerCreate()
   }
-
-  // Customer slide-over swallows all shortcuts except Esc so typing inside
-  // it can't accidentally trigger Save/Add-item from the underlying page.
-  if (customerCreateOpen.value) {
-    if (e.key === 'Escape') { e.preventDefault(); closeCustomerCreate() }
-    return
-  }
-
-  if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
-  else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
-  else if (alt  && key === 'i')          { e.preventDefault(); openBulkPicker() }
-  else if (alt  && key === 'c')          { e.preventDefault(); openCustomerCreate() }
-  else if (e.key === 'Escape')           { e.preventDefault(); discard() }
 }
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+onMounted(() => window.addEventListener('keydown', onModalKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onModalKeydown))
 
 function scrollFocused(e) {
   const el = e.target

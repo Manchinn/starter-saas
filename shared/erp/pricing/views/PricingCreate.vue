@@ -8,7 +8,7 @@
           { label: t('common.create') },
         ]">
         <template #actions>
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/pricing"
             :cancel-label="t('common.cancel')"
@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { TagIcon } from '@heroicons/vue/24/outline'
@@ -94,6 +94,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -108,10 +109,11 @@ import { parseApiError } from '@/utils/apiError'
 const { t } = useI18n()
 const router   = useRouter()
 
-const pageShortcuts = [
-  { key: 'Ctrl+S', label: 'Save' },
-  { key: 'Escape', label: 'Back to list' },
-]
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/pricing'),
+  cancelLabel: 'Back to list',
+})
 const form      = ref({ code: '', name: '', description: '', unitPrice: 0, status: 'active', activeFrom: '', activeTo: '', saleItemId: '', customerGroupId: '' })
 const autoCode  = useAutoCode('PRC')
 const groups    = ref([])
@@ -135,12 +137,6 @@ onMounted(async () => {
   if (saleItemsRes.status === 'fulfilled') saleItems.value = saleItemsRes.value.data.data.items
 })
 
-function onPageKeydown(e) {
-  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push('/erp/pricing'); return }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function save() {
   error.value = ''

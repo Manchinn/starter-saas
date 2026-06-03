@@ -418,6 +418,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { useI18n } from 'vue-i18n'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
@@ -612,20 +613,21 @@ function validate() {
 }
 
 // Keyboard shortcuts — Ctrl+S draft, Ctrl+Shift+S save+redirect, Ctrl+A add line.
-function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const shift = e.shiftKey
-  const key   = e.key.toLowerCase()
-  if (confirmOpen.value) {
-    if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
-    return
-  }
-  if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
-  else if (ctrl && key === 'a')          { e.preventDefault(); addRow() }
+useFormShortcuts({
+  save: () => save(),
+  saveDraft: () => saveDraft(),
+  enabled: () => !confirmOpen.value,
+  extra: [
+    { combo: 'ctrl+a', handler: () => addRow() },
+  ],
+})
+
+// Confirm Escape is handled separately so it takes over while the dialog is open.
+function onModalKeydown(e) {
+  if (confirmOpen.value && e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
 }
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+onMounted(() => window.addEventListener('keydown', onModalKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onModalKeydown))
 
 async function save({ redirect = true } = {}) {
   globalError.value = ''

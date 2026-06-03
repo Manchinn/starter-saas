@@ -180,7 +180,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -284,14 +285,12 @@ onMounted(async () => {
 })
 
 // Keyboard shortcuts (Ctrl+S save, Ctrl+L add line)
-function onPageKeydown(e) {
-  const ctrl = e.ctrlKey || e.metaKey
-  const key  = e.key.toLowerCase()
-  if (ctrl && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 'l') { e.preventDefault(); addLine() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+useFormShortcuts({
+  save: () => save(),
+  extra: [
+    { combo: 'ctrl+l', handler: () => addLine() },
+  ],
+})
 
 async function save() {
   globalError.value = ''

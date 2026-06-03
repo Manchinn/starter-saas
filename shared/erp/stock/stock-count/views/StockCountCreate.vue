@@ -11,7 +11,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-48" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/stock-count"
             :cancel-label="t('common.cancel')"
@@ -192,7 +192,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -203,6 +203,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -225,21 +226,15 @@ const loadingProducts = ref(false)
 const lockedStoreInfo = ref(null)
 const dateRef = ref(null)
 
-const pageShortcuts = [
-  { key: 'Ctrl+S', label: 'Save draft' },
-  { key: 'Escape', label: 'Back to list' },
-]
-
-function onPageKeydown(e) {
-  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push('/erp/stock-count'); return }
-  const ctrl = e.ctrlKey || e.metaKey
-  if (!ctrl) return
-  if (e.key.toLowerCase() === 's') { e.preventDefault(); save() }
-}
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/stock-count'),
+  saveLabel: 'Save draft',
+  cancelLabel: 'Back to list',
+})
 
 onMounted(async () => {
   dateRef.value?.$el?.focus()
-  document.addEventListener('keydown', onPageKeydown)
   try {
     const { data } = await api.get('/erp/stock-count/stores-lookup')
     stores.value = data.data.stores
@@ -247,7 +242,6 @@ onMounted(async () => {
     console.error('Failed to load stores:', err.message)
   }
 })
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 async function onStoreChange() {
   items.value = []

@@ -174,7 +174,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -286,15 +287,13 @@ onMounted(async () => {
   }
 })
 
-function onPageKeydown(e) {
-  if (pageLoading.value || loadError.value) return
-  const ctrl = e.ctrlKey || e.metaKey
-  const key  = e.key.toLowerCase()
-  if (ctrl && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 'l') { e.preventDefault(); addLine() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+useFormShortcuts({
+  save: () => save(),
+  enabled: () => !pageLoading.value && !loadError.value,
+  extra: [
+    { combo: 'ctrl+l', handler: () => addLine() },
+  ],
+})
 
 async function save() {
   globalError.value = ''

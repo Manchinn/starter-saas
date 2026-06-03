@@ -386,6 +386,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -695,26 +696,25 @@ function validate() {
 //   Ctrl/⌘+A          Open product picker (Add Item)
 //   Alt+V             New Vendor slide-over
 //   Esc               Close active modal
-function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const shift = e.shiftKey
-  const alt   = e.altKey
-  const key   = e.key.toLowerCase()
-  if (vendorCreateOpen.value) {
-    if (e.key === 'Escape') { e.preventDefault(); closeVendorCreate() }
-    return
-  }
-  if (confirmOpen.value) {
-    if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
-    return
-  }
-  if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
-  else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
-  else if (alt  && key === 'v')          { e.preventDefault(); openVendorCreate() }
+useFormShortcuts({
+  save: () => save(),
+  saveDraft: () => saveDraft(),
+  enabled: () => !vendorCreateOpen.value && !confirmOpen.value,
+  extra: [
+    { combo: 'ctrl+a', handler: () => openBulkPicker() },
+    { combo: 'alt+v',  handler: () => openVendorCreate() },
+  ],
+})
+
+// Overlay/confirm Escape is handled separately so it takes over while open
+// (page shortcuts are suppressed via the `enabled` guard above).
+function onModalKeydown(e) {
+  if (e.key !== 'Escape') return
+  if (vendorCreateOpen.value)  { e.preventDefault(); closeVendorCreate() }
+  else if (confirmOpen.value)  { e.preventDefault(); confirmAnswer(false) }
 }
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+onMounted(() => window.addEventListener('keydown', onModalKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onModalKeydown))
 
 async function save({ redirect = true } = {}) {
   globalError.value = ''

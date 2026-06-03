@@ -12,7 +12,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/stock-count/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -296,6 +296,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -321,11 +322,14 @@ const loadingProducts = ref(false)
 const lockedStoreInfo = ref(null)
 const dateRef         = ref(null)
 
-const pageShortcuts = [
-  { key: 'Ctrl+S', label: 'Save' },
-  { key: 'Ctrl+R', label: 'Reload products' },
-  { key: 'Escape', label: 'Back to detail' },
-]
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push(`/erp/stock-count/${route.params.id}`),
+  cancelLabel: 'Back to detail',
+  extra: [
+    { combo: 'ctrl+r', handler: () => { if (form.value.storeId) reloadStoreProducts() }, hint: { key: 'Ctrl+R', label: 'Reload products' } },
+  ],
+})
 
 let initialStoreId = ''
 let skipNextStoreWatch = false
@@ -466,18 +470,4 @@ async function save() {
   }
 }
 
-function onPageKeydown(e) {
-  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push(`/erp/stock-count/${route.params.id}`); return }
-  const ctrl = e.ctrlKey || e.metaKey
-  if (!ctrl) return
-  const key = e.key.toLowerCase()
-  if (key === 's') { e.preventDefault(); save() }
-  else if (key === 'r') {
-    if (!form.value.storeId) return
-    e.preventDefault()
-    reloadStoreProducts()
-  }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 </script>

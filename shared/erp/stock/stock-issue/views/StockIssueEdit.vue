@@ -12,7 +12,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
-          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/stock-issue/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -340,6 +340,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -369,12 +370,15 @@ const loading = ref(true)
 const loadError = ref('')
 const pickerRef = ref(null)
 
-const pageShortcuts = [
-  { key: 'Ctrl+S', label: 'Save' },
-  { key: 'Ctrl+L', label: 'Add items' },
-  { key: 'Ctrl+D', label: 'Duplicate last row' },
-  { key: 'Escape', label: 'Back to list' },
-]
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/stock-issue'),
+  cancelLabel: 'Back to list',
+  extra: [
+    { combo: 'ctrl+l', handler: () => openPicker(), hint: { key: 'Ctrl+L', label: 'Add items' } },
+    { combo: 'ctrl+d', handler: () => { if (items.value.length) duplicateRow(items.value.length - 1) }, hint: { key: 'Ctrl+D', label: 'Duplicate last row' } },
+  ],
+})
 
 let rowKeySeq = 0
 const newKey = () => `r${++rowKeySeq}`
@@ -550,25 +554,6 @@ async function save() {
   }
 }
 
-function onPageKeydown(e) {
-  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push('/erp/stock-issue'); return }
-  const ctrl = e.ctrlKey || e.metaKey
-  if (!ctrl) return
-  const key = e.key.toLowerCase()
-  if (key === 's') { e.preventDefault(); save() }
-  else if (key === 'l') { e.preventDefault(); openPicker() }
-  else if (key === 'd') {
-    if (!items.value.length) return
-    e.preventDefault()
-    duplicateRow(items.value.length - 1)
-  }
-}
-onMounted(() => {
-  document.addEventListener('keydown', onPageKeydown)
-  document.addEventListener('mousedown', onDocClickClosePopover)
-})
-onUnmounted(() => {
-  document.removeEventListener('keydown', onPageKeydown)
-  document.removeEventListener('mousedown', onDocClickClosePopover)
-})
+onMounted(() => document.addEventListener('mousedown', onDocClickClosePopover))
+onUnmounted(() => document.removeEventListener('mousedown', onDocClickClosePopover))
 </script>
