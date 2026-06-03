@@ -12,6 +12,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/stock-return/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -74,7 +75,7 @@
             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <FieldLabel :text="t('erp.common.date')" required />
-                <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+                <DateInput ref="dateRef" v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
                 <FieldError name="date" :errors="fieldErrors" />
               </div>
 
@@ -372,7 +373,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -385,6 +386,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -416,6 +418,14 @@ const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = use
 const loading = ref(true)
 const loadError = ref('')
 const pickerRef = ref(null)
+const dateRef   = ref(null)
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save' },
+  { key: 'Ctrl+L', label: 'Add items' },
+  { key: 'Ctrl+D', label: 'Duplicate last row' },
+  { key: 'Escape', label: 'Back to detail' },
+]
 
 let rowKeySeq = 0
 const newKey = () => `r${++rowKeySeq}`
@@ -478,6 +488,8 @@ onMounted(async () => {
     loadError.value = err.response?.data?.message || 'Failed to load return'
   } finally {
     loading.value = false
+    await nextTick()
+    dateRef.value?.$el?.focus()
   }
 })
 
@@ -609,6 +621,7 @@ async function save() {
 }
 
 function onPageKeydown(e) {
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push(`/erp/stock-return/${route.params.id}`); return }
   const ctrl = e.ctrlKey || e.metaKey
   if (!ctrl) return
   const key = e.key.toLowerCase()

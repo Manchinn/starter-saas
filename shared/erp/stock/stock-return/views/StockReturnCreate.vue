@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="pageShortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/stock-return"
             :cancel-label="t('common.cancel')"
@@ -62,7 +63,7 @@
             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <FieldLabel :text="t('erp.common.date')" required />
-                <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+                <DateInput ref="dateRef" v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
                 <FieldError name="date" :errors="fieldErrors" />
               </div>
 
@@ -387,6 +388,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -417,11 +419,20 @@ const error  = ref('')
 const saving = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 const pickerRef = ref(null)
+const dateRef   = ref(null)
+
+const pageShortcuts = [
+  { key: 'Ctrl+S', label: 'Save draft' },
+  { key: 'Ctrl+L', label: 'Add items' },
+  { key: 'Ctrl+D', label: 'Duplicate last row' },
+  { key: 'Escape', label: 'Back to list' },
+]
 
 let rowKeySeq = 0
 const newKey = () => `r${++rowKeySeq}`
 
 onMounted(async () => {
+  dateRef.value?.$el?.focus()
   try {
     const [storeRes, custRes, vendorRes] = await Promise.all([
       api.get('/erp/stock-return/stores-lookup'),
@@ -566,8 +577,8 @@ async function save() {
   }
 }
 
-// Keyboard shortcuts: Ctrl+S save, Ctrl+L add items, Ctrl+D duplicate last row.
 function onPageKeydown(e) {
+  if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) { router.push('/erp/stock-return'); return }
   const ctrl = e.ctrlKey || e.metaKey
   if (!ctrl) return
   const key = e.key.toLowerCase()
