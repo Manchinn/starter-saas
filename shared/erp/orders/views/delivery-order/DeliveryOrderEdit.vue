@@ -36,6 +36,11 @@
         <FormCard :title="t('erp.deliveryOrders.info')" :icon="TruckIcon" icon-color="primary" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
+            <div ref="refNoRef">
+              <FormField name="referenceNumber" :label="t('erp.deliveryOrders.referenceNumber')" :errors="mergedErrors"
+                v-model="form.referenceNumber" placeholder="e.g. PO-2025-001" />
+            </div>
+
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.deliveryOrders.customer')" required />
               <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —">
@@ -45,9 +50,6 @@
               <FieldError name="customerId" :errors="mergedErrors" />
               <CustomerChip :customer="selectedCustomer" />
             </div>
-
-            <FormField name="referenceNumber" :label="t('erp.deliveryOrders.referenceNumber')" :errors="mergedErrors"
-              v-model="form.referenceNumber" placeholder="e.g. PO-2025-001" />
 
             <FormField name="date" :label="t('erp.common.date')" :errors="mergedErrors" required>
               <template #default="{ hasError }">
@@ -357,6 +359,7 @@ const saving       = ref(false)
 const globalError  = ref('')
 const errors       = ref({})
 const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+const refNoRef     = ref(null)
 
 const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 const billingSameAsShipping = ref(false)
@@ -492,6 +495,7 @@ onMounted(async () => {
   loading.value = false
   await nextTick()
   dirtyArmed = true
+  refNoRef.value?.querySelector('input')?.focus()
 })
 
 watch(() => form.value.customerId, (id) => {
