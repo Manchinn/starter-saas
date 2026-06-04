@@ -32,7 +32,7 @@
             <!-- Customer -->
             <div class="col-span-2 lg:col-span-1">
               <FieldLabel :text="t('erp.common.customer')" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+              <SearchSelect ref="customerSelectRef" v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
@@ -191,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -226,6 +226,7 @@ const { shortcuts } = useFormShortcuts({
   cancelLabel: 'Back to list',
 })
 
+const customerSelectRef = ref(null)
 const customers        = ref([])
 const availableInvoices = ref([])
 const loadingInvoices  = ref(false)
@@ -248,6 +249,8 @@ const form  = ref({
 onMounted(async () => {
   const { data } = await api.get('/erp/customers', { params: { limit: 200 } })
   customers.value = data.data.customers
+  await nextTick()
+  customerSelectRef.value?.focus()
 })
 
 async function onCustomerChange() {
