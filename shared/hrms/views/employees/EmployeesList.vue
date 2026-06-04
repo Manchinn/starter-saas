@@ -7,16 +7,17 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.employees.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} employee{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink to="/hrms/employees/create"
-          class="btn-primary">
+        <KeyboardShortcuts :shortcuts="shortcuts" />
+        <AppButton to="/hrms/employees/create" variant="primary">
           <PlusIcon class="w-4 h-4" />
           {{ t('erp.employees.new') }}
-        </RouterLink>
+        </AppButton>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="employees" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="employees" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.employees.searchPh')">
 
           <template #toolbar>
@@ -150,7 +151,7 @@
 
 <script setup>
 import { h, ref, computed, reactive, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, PencilIcon, TrashIcon, IdentificationIcon,
@@ -159,11 +160,15 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const statusOptions = computed(() => [
   { id: 'active',     name: t('erp.employees.active')     },
@@ -183,8 +188,20 @@ const filterActiveFrom = ref('')
 const filterActiveTo   = ref('')
 const showFilters      = ref(false)
 const loading          = ref(false)
+const dataTableRef     = ref(null)
 
 const deleteModal = reactive({ open: false, emp: null, saving: false, error: '' })
+
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: employees, page, totalPages,
+  open:        e => router.push(`/hrms/employees/${e.id}/edit`),
+  create:      () => router.push('/hrms/employees/create'),
+  remove:      e => confirmDelete(e),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New employee',
+})
 
 const activeFilterCount = computed(() => [filterStatus.value, filterDeptId.value, filterActiveFrom.value, filterActiveTo.value].filter(Boolean).length)
 const deptLabel = computed(() => departments.value.find(d => d.id === filterDeptId.value)?.name || '')
@@ -210,6 +227,7 @@ async function load() {
     })
     employees.value = data.data.employees
     total.value     = data.data.total
+    selectedRowIndex.value = -1
   } finally { loading.value = false }
 }
 

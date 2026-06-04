@@ -8,6 +8,7 @@
           { label: t('erp.employees.edit') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/hrms/employees"
             :cancel-label="t('common.cancel')"
@@ -31,8 +32,12 @@
             <div class="grid grid-cols-2 gap-4">
 
               <FormField name="employeeCode" :label="t('erp.employees.employeeCode')" :errors="fieldErrors"
-                v-model="form.employeeCode" placeholder="e.g. EMP-001"
-                input-class="font-mono" wrapper-class="col-span-2" />
+                wrapper-class="col-span-2">
+                <template #default="{ id, errorClass }">
+                  <input :id="id" ref="codeInputRef" v-model="form.employeeCode" type="text"
+                    placeholder="e.g. EMP-001" :class="['input font-mono', errorClass]" />
+                </template>
+              </FormField>
 
               <FormField name="firstName" :label="t('erp.employees.firstName')" :errors="fieldErrors"
                 v-model="form.firstName" required />
@@ -159,13 +164,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { IdentificationIcon, UserCircleIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -177,9 +184,16 @@ import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
-const router  = useRouter()
-const route   = useRoute()
-const id      = route.params.id
+const router       = useRouter()
+const route        = useRoute()
+const id           = route.params.id
+const codeInputRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/hrms/employees'),
+  cancelLabel: 'Back to list',
+})
 const loading = ref(true)
 const saving  = ref(false)
 const users   = ref([])
@@ -245,6 +259,8 @@ onMounted(async () => {
     error.value = err.response?.data?.message || 'Failed to load employee'
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
 
