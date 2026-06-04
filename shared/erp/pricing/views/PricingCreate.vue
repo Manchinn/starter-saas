@@ -25,7 +25,7 @@
 
           <FormField name="code" :label="t('erp.pricing.code')" :errors="fieldErrors">
             <template #default="{ id }">
-              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+              <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text"
                 placeholder="e.g. PL-001" class="input font-mono" />
               <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
                 class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { TagIcon } from '@heroicons/vue/24/outline'
@@ -116,6 +116,7 @@ const { shortcuts } = useFormShortcuts({
 })
 const form      = ref({ code: '', name: '', description: '', unitPrice: 0, status: 'active', activeFrom: '', activeTo: '', saleItemId: '', customerGroupId: '' })
 const autoCode  = useAutoCode('PRC')
+const codeInputRef = ref(null)
 const groups    = ref([])
 const saleItems = ref([])
 const error     = ref('')
@@ -135,6 +136,8 @@ onMounted(async () => {
   ])
   if (groupsRes.status === 'fulfilled')    groups.value    = groupsRes.value.data.data.groups
   if (saleItemsRes.status === 'fulfilled') saleItems.value = saleItemsRes.value.data.data.items
+  await nextTick()
+  codeInputRef.value?.focus()
 })
 
 
