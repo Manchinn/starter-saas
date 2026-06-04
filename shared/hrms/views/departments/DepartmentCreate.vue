@@ -8,6 +8,7 @@
           { label: t('common.create') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/hrms/departments"
             :cancel-label="t('common.cancel')"
@@ -77,6 +78,8 @@ import { BuildingOfficeIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -92,6 +95,12 @@ const { t } = useI18n()
 const router       = useRouter()
 const codeInputRef = ref(null)
 const autoCode     = useAutoCode('DEP')
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/hrms/departments'),
+  cancelLabel: 'Back to list',
+})
 
 onMounted(async () => {
   await nextTick()
