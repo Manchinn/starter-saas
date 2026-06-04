@@ -36,7 +36,7 @@
               </span>
             </template>
             <template #default="{ id, hasError }">
-              <input :id="id" v-model="form.code" type="text" placeholder="e.g. ENG" maxlength="10"
+              <input :id="id" ref="codeInputRef" v-model="form.code" type="text" placeholder="e.g. ENG" maxlength="10"
                 @input="form.code = form.code.toUpperCase()"
                 :class="['input font-mono uppercase', hasError && 'input-error']" />
             </template>
@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { BuildingOfficeIcon } from '@heroicons/vue/24/outline'
@@ -95,10 +95,11 @@ import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
-const router  = useRouter()
-const route   = useRoute()
-const id      = route.params.id
-const loading = ref(true)
+const router       = useRouter()
+const route        = useRoute()
+const id           = route.params.id
+const codeInputRef = ref(null)
+const loading      = ref(true)
 const saving  = ref(false)
 const error   = ref('')
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
@@ -133,6 +134,8 @@ onMounted(async () => {
     error.value = 'Failed to load department'
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
 

@@ -24,7 +24,7 @@
 
           <FormField name="code" :label="t('erp.departments.code')" :errors="fieldErrors">
             <template #default="{ id }">
-              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+              <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text"
                 placeholder="e.g. DEP0001" class="input font-mono" />
               <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
                 class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
@@ -70,7 +70,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { BuildingOfficeIcon } from '@heroicons/vue/24/outline'
@@ -89,8 +89,14 @@ import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
-const router   = useRouter()
-const autoCode = useAutoCode('DEP')
+const router       = useRouter()
+const codeInputRef = ref(null)
+const autoCode     = useAutoCode('DEP')
+
+onMounted(async () => {
+  await nextTick()
+  codeInputRef.value?.focus()
+})
 const saving   = ref(false)
 const error    = ref('')
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
