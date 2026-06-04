@@ -83,7 +83,15 @@ async function chat({ settings, messages, tools }) {
         },
       }),
     })
-    return normalizeOllama(data?.message)
+    // Ollama reports token counts at the top level of the response.
+    return {
+      ...normalizeOllama(data?.message),
+      usage: {
+        promptTokens: num(data?.prompt_eval_count),
+        completionTokens: num(data?.eval_count),
+      },
+      model: data?.model || settings.model,
+    }
   }
 
   // LM Studio (OpenAI-compatible)
@@ -102,7 +110,21 @@ async function chat({ settings, messages, tools }) {
       ...(maxTokens ? { max_tokens: maxTokens } : {}),
     }),
   })
-  return normalizeOpenAI(data?.choices?.[0]?.message)
+  // OpenAI-compatible servers report token counts under `usage`.
+  return {
+    ...normalizeOpenAI(data?.choices?.[0]?.message),
+    usage: {
+      promptTokens: num(data?.usage?.prompt_tokens),
+      completionTokens: num(data?.usage?.completion_tokens),
+    },
+    model: data?.model || settings.model,
+  }
+}
+
+// Coerce a usage count to a non-negative integer, or null when absent.
+function num(v) {
+  const n = Number(v)
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null
 }
 
 // Reasoning models often inline their chain-of-thought in the reply as a
