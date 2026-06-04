@@ -19,7 +19,12 @@
 
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
-          <FormField v-model="form.code" name="code" :label="t('erp.vendors.code')" :errors="fieldErrors" />
+          <FormField name="code" :label="t('erp.vendors.code')" :errors="fieldErrors">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="codeInputRef" v-model="form.code" type="text"
+                :class="['input', errorClass]" />
+            </template>
+          </FormField>
           <FormField v-model="form.name" name="name" :label="t('erp.vendors.name')" required :errors="fieldErrors" wrapper-class="col-span-2" />
           <FormField v-model="form.contactPerson" name="contactPerson" :label="t('erp.vendors.contactPerson')" :errors="fieldErrors" />
           <FormField v-model="form.email" name="email" type="email" :label="t('erp.vendors.email')" :errors="fieldErrors" />
@@ -62,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
@@ -85,6 +90,7 @@ const statusOptions = computed(() => [
 ])
 const route             = useRoute()
 const router            = useRouter()
+const codeInputRef      = ref(null)
 const vendorTypeOptions = ref([])
 const form     = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active', activeFrom: '', activeTo: '' })
 const loading  = ref(true)
@@ -117,6 +123,8 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
 

@@ -17,7 +17,7 @@
           <div>
             <FormField name="code" :label="t('erp.vendors.code')" :errors="fieldErrors">
               <template #default="{ id }">
-                <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text" :placeholder="t('erp.vendors.code')" class="input" />
+                <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text" :placeholder="t('erp.vendors.code')" class="input" />
                 <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
               </template>
             </FormField>
@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
@@ -92,6 +92,7 @@ const vendorTypeOptions = ref([])
 const form    = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active', activeFrom: '', activeTo: '' })
 const error   = ref('')
 const saving  = ref(false)
+const codeInputRef = ref(null)
 const autoCode = useAutoCode('VND')
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 const { shortcuts } = useFormShortcuts({ save: () => save(), cancel: () => router.push('/erp/vendors') })
@@ -99,6 +100,8 @@ const { shortcuts } = useFormShortcuts({ save: () => save(), cancel: () => route
 onMounted(async () => {
   const { data } = await api.get('/erp/master-data/by-name/Vendor Types')
   vendorTypeOptions.value = data.data.values
+  await nextTick()
+  codeInputRef.value?.focus()
 })
 
 async function save() {
