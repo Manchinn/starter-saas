@@ -26,7 +26,7 @@
           <!-- Code -->
           <FormField name="code" :label="t('erp.saleItems.code')" :errors="fieldErrors">
             <template #default="{ id }">
-              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+              <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text"
                 placeholder="e.g. SI-001" class="input font-mono" />
               <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
                 class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
@@ -64,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { TagIcon } from '@heroicons/vue/24/outline'
@@ -94,6 +94,7 @@ const { shortcuts } = useFormShortcuts({
 })
 const form     = ref({ code: '', name: '', productId: '', status: 'active' })
 const autoCode = useAutoCode('SI')
+const codeInputRef = ref(null)
 const masterDataStore  = useMasterDataStore()
 const saleItemStatuses = ref([])
 const products = ref([])
@@ -116,6 +117,8 @@ onMounted(async () => {
     products.value = []
   }
   try { saleItemStatuses.value = await masterDataStore.getValues('sale-item-statuses') } catch {}
+  await nextTick()
+  codeInputRef.value?.focus()
 })
 
 
