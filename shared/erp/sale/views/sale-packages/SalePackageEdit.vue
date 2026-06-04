@@ -34,8 +34,12 @@
         <FormCard :title="t('erp.salePackages.edit')" :icon="CubeIcon" icon-color="primary">
           <div class="grid grid-cols-2 gap-4">
 
-            <FormField name="code" :label="t('erp.salePackages.code')" :errors="fieldErrors"
-              v-model="form.code" placeholder="e.g. PKG-001" input-class="font-mono" />
+            <FormField name="code" :label="t('erp.salePackages.code')" :errors="fieldErrors">
+              <template #default="{ id, errorClass }">
+                <input :id="id" ref="codeInputRef" v-model="form.code" type="text"
+                  placeholder="e.g. PKG-001" :class="['input font-mono', errorClass]" />
+              </template>
+            </FormField>
 
             <div>
               <FieldLabel :text="t('erp.salePackages.status')" />
@@ -149,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, XMarkIcon, CubeIcon, ShoppingBagIcon } from '@heroicons/vue/24/outline'
@@ -190,6 +194,7 @@ const statusOptions = computed(() => [
   { id: 'inactive', name: t('common.inactive') },
 ])
 
+const codeInputRef = ref(null)
 const deleteModal = reactive({ open: false, saving: false, error: '' })
 const saleItems   = ref([])
 
@@ -232,6 +237,8 @@ onMounted(async () => {
     }
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
 

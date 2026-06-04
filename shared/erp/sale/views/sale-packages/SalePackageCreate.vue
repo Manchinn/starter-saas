@@ -26,7 +26,7 @@
 
           <FormField name="code" :label="t('erp.salePackages.code')" :errors="fieldErrors">
             <template #default="{ id }">
-              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+              <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text"
                 placeholder="e.g. PKG-001" class="input font-mono" />
               <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
                 class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
@@ -131,7 +131,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, XMarkIcon, CubeIcon, ShoppingBagIcon } from '@heroicons/vue/24/outline'
@@ -153,6 +153,7 @@ import { parseApiError } from '@/utils/apiError'
 const { t } = useI18n()
 const router  = useRouter()
 const autoCode = useAutoCode('PKG')
+const codeInputRef = ref(null)
 
 const { shortcuts } = useFormShortcuts({
   save: () => save(),
@@ -188,6 +189,8 @@ onMounted(async () => {
     const { data } = await api.get('/erp/sale-items', { params: { limit: 500, status: 'active' } })
     saleItems.value = data.data.items
   } catch { /* picker stays empty */ }
+  await nextTick()
+  codeInputRef.value?.focus()
 })
 
 function addLine() {
