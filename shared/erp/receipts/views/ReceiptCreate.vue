@@ -33,7 +33,7 @@
             <!-- Customer -->
             <div class="col-span-2">
               <FieldLabel :text="t('erp.common.customer')" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —">
+              <SearchSelect ref="customerSelectRef" v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -169,6 +169,7 @@ const { shortcuts } = useFormShortcuts({
   cancel: () => router.push('/erp/receipts'),
   cancelLabel: 'Back to list',
 })
+const customerSelectRef = ref(null)
 const customers        = ref([])
 const invoices         = ref([])
 const paymentMethods   = ref([])
@@ -206,6 +207,8 @@ onMounted(async () => {
   if (paymentMethods.value.length && !form.value.paymentMethod) {
     form.value.paymentMethod = paymentMethods.value[0].code || paymentMethods.value[0].name
   }
+  await nextTick()
+  customerSelectRef.value?.focus()
 })
 
 function methodLabel(m) {
