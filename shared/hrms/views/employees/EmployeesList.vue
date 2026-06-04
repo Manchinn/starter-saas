@@ -7,11 +7,13 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.employees.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} employee{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <KeyboardShortcuts :shortcuts="shortcuts" />
-        <AppButton to="/hrms/employees/create" variant="primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.employees.new') }}
-        </AppButton>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <AppButton to="/hrms/employees/create" variant="primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.employees.new') }}
+          </AppButton>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
