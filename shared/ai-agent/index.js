@@ -30,8 +30,8 @@ export default {
     label: 'nav.aiAgent',
     icon: SparklesIcon,
     children: [
-      { label: 'nav.aiChat',      to: '/ai/chat',      icon: ChatBubbleLeftRightIcon, permission: 'ai-agent.use' },
       { label: 'nav.aiDashboard', to: '/ai/dashboard', icon: ChartBarIcon,            permission: 'ai-agent.use' },
+      { label: 'nav.aiChat',      to: '/ai/chat',      icon: ChatBubbleLeftRightIcon, permission: 'ai-agent.use' },
       { label: 'nav.aiSettings',  to: '/ai/settings',  icon: Cog6ToothIcon,           permission: 'ai-agent.settings' },
     ],
   },
