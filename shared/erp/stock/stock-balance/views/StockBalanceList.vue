@@ -39,7 +39,7 @@
         <div class="flex flex-wrap items-end gap-4">
           <div class="w-48">
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.stockBalance.colStore') }}</label>
-            <SearchSelect v-model="filters.storeId" :options="storeOptions" :placeholder="t('erp.stockMovement.allStores')" @change="load" />
+            <SearchSelect ref="storeSelectRef" v-model="filters.storeId" :options="storeOptions" :placeholder="t('erp.stockMovement.allStores')" @change="load" />
           </div>
           <div class="w-56">
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.stockBalance.colProduct') }}</label>
@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { h, ref, computed, onMounted, onUnmounted } from 'vue'
+import { h, ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
@@ -89,11 +89,12 @@ import api from '@/api'
 import { fmtMoney, fmtQty } from '@/utils/fmt'
 
 const { t } = useI18n()
-const router          = useRouter()
-const rows            = ref([])
-const stores          = ref([])
-const products        = ref([])
-const loading         = ref(false)
+const router           = useRouter()
+const storeSelectRef   = ref(null)
+const rows             = ref([])
+const stores           = ref([])
+const products         = ref([])
+const loading          = ref(false)
 const selectedRowIndex = ref(-1)
 
 const shortcuts = [
@@ -201,6 +202,8 @@ onMounted(async () => {
     stores.value   = data.data.stores
     products.value = data.data.products
   } catch (err) { console.error('Failed to load lookups:', err.message) }
+  await nextTick()
+  storeSelectRef.value?.focus()
   load()
 })
 </script>
