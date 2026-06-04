@@ -13,7 +13,7 @@
       </div>
 
       <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
-        <AlertForm v-model="form" :options="options" :errors="fieldErrors" />
+        <AlertForm ref="alertFormRef" v-model="form" :options="options" :errors="fieldErrors" />
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
@@ -45,6 +45,7 @@ import api from '@/api'
 const { t } = useI18n()
 const router = useRouter()
 
+const alertFormRef = ref(null)
 const form = ref({ title: '', body: '', severity: 'info', scope: 'global', moduleSlug: '', departmentId: '', link: '', expiresAt: '' })
 const options = ref({ modules: [], departments: [] })
 const error = ref('')
@@ -55,6 +56,8 @@ const { shortcuts } = useFormShortcuts({ save: () => save(), cancel: () => route
 onMounted(async () => {
   const { data } = await api.get('/erp/alerts/options')
   options.value = data.data
+  await nextTick()
+  alertFormRef.value?.focus()
 })
 
 function buildPayload() {

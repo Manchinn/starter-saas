@@ -15,7 +15,7 @@
       <div v-if="loadError" class="bg-red-50 text-red-700 text-sm px-4 py-3 max-w-2xl">{{ t('erp.alerts.notFound') }}</div>
 
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
-        <AlertForm v-model="form" :options="options" :errors="fieldErrors" />
+        <AlertForm ref="alertFormRef" v-model="form" :options="options" :errors="fieldErrors" />
 
         <div v-if="error" class="bg-red-50 text-red-700 text-sm px-4 py-2">{{ error }}</div>
 
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
@@ -49,6 +49,7 @@ const route = useRoute()
 const router = useRouter()
 const id = route.params.id
 
+const alertFormRef = ref(null)
 const form = ref({ title: '', body: '', severity: 'info', scope: 'global', moduleSlug: '', departmentId: '', link: '', expiresAt: '' })
 const options = ref({ modules: [], departments: [] })
 const error = ref('')
@@ -78,6 +79,8 @@ onMounted(async () => {
   } catch {
     loadError.value = true
   }
+  await nextTick()
+  alertFormRef.value?.focus()
 })
 
 function buildPayload() {
