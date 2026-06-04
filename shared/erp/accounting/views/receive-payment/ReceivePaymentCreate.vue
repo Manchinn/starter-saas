@@ -34,7 +34,7 @@
             <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel text="Customer" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+              <SearchSelect ref="customerSelectRef" v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
@@ -247,7 +247,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
   CheckIcon, BanknotesIcon, ArrowPathIcon, ClipboardDocumentListIcon, CalculatorIcon, UserIcon,
@@ -274,6 +274,7 @@ import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
 
 const router            = useRouter()
+const customerSelectRef = ref(null)
 const customers         = ref([])
 const paymentMethods    = ref([])
 const availableInvoices = ref([])
@@ -339,6 +340,8 @@ onMounted(async () => {
   customers.value      = custRes.data.data.customers
   paymentMethods.value = pmRes.data.data.values
   if (paymentMethods.value.length) form.value.paymentMethod = paymentMethods.value[0].name
+  await nextTick()
+  customerSelectRef.value?.focus()
 })
 
 async function onCustomerChange() {
