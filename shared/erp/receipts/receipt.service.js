@@ -25,11 +25,25 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', organizati
 }
 
 const getById = async (id, organizationId) => {
+  // Pull the linked invoice's line items + totals so the receipt can render the
+  // full tax-invoice / receipt (ใบกำกับภาษี / ใบเสร็จรับเงิน) document.
+  const { InvoiceItem, SaleItem, SalePackage, Product, Store } = require('../../../server/models')
+  const itemIncludes = [
+    { model: SaleItem,    as: 'saleItem',    attributes: ['id', 'name', 'code'] },
+    { model: SalePackage, as: 'salePackage', attributes: ['id', 'name', 'code'] },
+    { model: Product,     as: 'product',     attributes: ['id', 'name', 'sku'] },
+    { model: Store,       as: 'store',       attributes: ['id', 'name', 'code'] },
+  ]
   const receipt = await findByPkScoped(Receipt, id, organizationId, {
     include: [
       { model: Customer, as: 'customer' },
-      { model: Invoice,  as: 'invoice',  attributes: ['id', 'invoiceNumber', 'total'] },
+      {
+        model: Invoice, as: 'invoice',
+        attributes: ['id', 'invoiceNumber', 'invoiceDate', 'subtotal', 'tax', 'discountAmount', 'total'],
+        include: [{ model: InvoiceItem, as: 'items', include: itemIncludes }],
+      },
     ],
+    order: [[{ model: Invoice, as: 'invoice' }, { model: InvoiceItem, as: 'items' }, 'createdAt', 'ASC']],
   })
   if (!receipt) throw { status: 404, message: 'Receipt not found' }
   return receipt
