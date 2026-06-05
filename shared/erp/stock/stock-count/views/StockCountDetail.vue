@@ -112,183 +112,158 @@
           </label>
         </div>
 
-        <!-- ── Document ─────────────────────────────────────────── -->
-        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
+        <!-- ── Document (receipt tax-invoice layout) ─────────────── -->
+        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[186mm] w-full
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0
                         overflow-hidden">
 
-          <!-- DRAFT diagonal stamp -->
-          <div v-if="sc.status === 'draft'"
+          <!-- Diagonal status stamp -->
+          <div v-if="stampLabel"
             class="pointer-events-none absolute inset-0 flex items-center justify-center z-10"
             aria-hidden="true">
-            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] border-amber-400 text-amber-500
-                         px-6 py-2 text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]">
-              Draft
+            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] px-6 py-2
+                         text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]"
+              :class="stampClass">
+              {{ stampLabel }}
             </span>
           </div>
 
-          <!-- Document header -->
-          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0 flex items-start gap-4">
-              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
-                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
-              <div class="min-w-0">
-                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
-                  {{ companyAddress }}
-                </p>
-                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
-                  <p v-if="companyPhone">{{ t('erp.orders.docPhoneAbbr') }} {{ companyPhone }}</p>
-                  <p v-if="companyEmail">{{ companyEmail }}</p>
-                  <p v-if="companyTaxId" class="tabular-nums">
-                    <span class="text-[#9BA7B0]">{{ t('erp.orders.docTaxId') }}</span> {{ companyTaxId }}
+          <div class="p-6">
+            <!-- Header -->
+            <header class="flex items-start justify-between gap-6">
+              <div class="flex items-start gap-4 min-w-0">
+                <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
+                  class="max-h-16 max-w-[140px] object-contain flex-shrink-0" />
+                <div class="min-w-0">
+                  <p class="text-[18px] font-bold text-[#1C2434] leading-tight">{{ companyName }}</p>
+                  <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
+                    {{ companyAddress }}
                   </p>
+                  <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
+                    <p v-if="companyPhone">{{ t('erp.orders.docPhoneAbbr') }} {{ companyPhone }}</p>
+                    <p v-if="companyEmail">{{ companyEmail }}</p>
+                    <p v-if="companyTaxId" class="tabular-nums">
+                      {{ t('erp.orders.docTaxId') }} {{ companyTaxId }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <h2 class="text-[18px] font-bold text-[#1C2434] leading-tight">{{ t('erp.stockCount.documentTitle') }}</h2>
+              </div>
+            </header>
+
+            <!-- Store + meta boxes -->
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 border border-[#1C2434]">
+              <div class="p-3 border-b sm:border-b-0 sm:border-r border-[#1C2434] text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.common.store') }}</span>
+                  <span class="font-semibold text-[#1C2434]">{{ sc.store?.name || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.common.code') }}</span>
+                  <span class="font-medium text-[#1C2434] font-mono">{{ sc.store?.code || '—' }}</span>
+                </div>
+              </div>
+              <div class="p-3 text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.stockCount.colRefNo') }}</span>
+                  <span class="font-bold text-[#1C2434] tabular-nums">{{ sc.refNo }}</span>
+                </div>
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.common.date') }}</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ fmtDate(sc.date) || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.stockCount.movementLocked') }}</span>
+                  <span class="font-medium flex items-center gap-1.5"
+                    :class="sc.movementLocked ? 'text-red-600' : 'text-[#1C2434]'">
+                    <LockClosedIcon v-if="sc.movementLocked" class="w-3.5 h-3.5" />
+                    <LockOpenIcon   v-else                  class="w-3.5 h-3.5 text-[#9BA7B0]" />
+                    {{ sc.movementLocked ? 'Yes' : 'No' }}
+                  </span>
                 </div>
               </div>
             </div>
-            <div class="text-right flex-shrink-0">
-              <h2 class="text-[22px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
-                {{ t('erp.stockCount.documentTitle') }}
-              </h2>
-              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
-                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ sc.refNo }}</dd>
 
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                  {{ t('erp.common.date') }}
-                </dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(sc.date) || '—' }}</dd>
-              </dl>
-            </div>
-          </header>
-
-          <!-- Store / Movement-lock meta -->
-          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4 border-b border-dashed border-[#E2E8F0]">
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-                {{ t('erp.common.store') }}
-              </p>
-              <p class="text-[14px] font-bold text-[#1C2434]">{{ sc.store?.name || '—' }}</p>
-              <p v-if="sc.store?.code" class="text-[11px] text-[#637381] font-mono mt-0.5">{{ sc.store.code }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-                {{ t('erp.stockCount.movementLocked') }}
-              </p>
-              <p class="text-[14px] font-semibold flex items-center gap-1.5"
-                :class="sc.movementLocked ? 'text-red-600' : 'text-[#374151]'">
-                <LockClosedIcon v-if="sc.movementLocked" class="w-3.5 h-3.5" />
-                <LockOpenIcon   v-else                  class="w-3.5 h-3.5 text-[#9BA7B0]" />
-                {{ sc.movementLocked ? 'Yes' : 'No' }}
-              </p>
-            </div>
-          </section>
-
-          <!-- Summary tiles strip -->
-          <section class="px-10 py-5 grid grid-cols-3 gap-4 border-b border-dashed border-[#E2E8F0] bg-[#FAFBFD]">
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.stockCount.totalProducts') }}</p>
-              <p class="text-[20px] font-extrabold text-[#1C2434] tabular-nums mt-0.5">{{ sc.items.length }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.stockCount.variancesFound') }}</p>
-              <p class="text-[20px] font-extrabold tabular-nums mt-0.5"
-                :class="varianceCount > 0 ? 'text-amber-600' : 'text-green-600'">
-                {{ varianceCount }}
-              </p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.stockCount.netVariance') }}</p>
-              <p class="text-[20px] font-extrabold tabular-nums mt-0.5"
-                :class="netVariance > 0 ? 'text-green-700' : netVariance < 0 ? 'text-red-600' : 'text-[#1C2434]'">
-                {{ netVariance > 0 ? '+' : '' }}{{ netVariance }}
-              </p>
-            </div>
-          </section>
-
-          <!-- Line items table -->
-          <section class="px-10 pt-6 pb-2">
-            <table class="w-full text-[12px]">
+            <!-- Line items -->
+            <table class="w-full mt-4 border-collapse text-[12px] table-fixed">
               <thead>
-                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
-                  <th class="py-2.5 text-left w-8">#</th>
-                  <th class="py-2.5 text-left w-28">{{ t('erp.stockCount.colSku') }}</th>
-                  <th class="py-2.5 text-left">{{ t('erp.stockCount.colProduct') }}</th>
-                  <th class="py-2.5 text-right w-24">{{ t('erp.stockCount.colSystemQty') }}</th>
-                  <th class="py-2.5 text-right w-24">{{ t('erp.stockCount.colCountedQty') }}</th>
-                  <th class="py-2.5 text-right w-24">{{ t('erp.stockCount.colVariance') }}</th>
+                <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[36px]">#</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[120px]">{{ t('erp.stockCount.colSku') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[258px]">{{ t('erp.stockCount.colProduct') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[80px]">{{ t('erp.stockCount.colSystemQty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[80px]">{{ t('erp.stockCount.colCountedQty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[81px]">{{ t('erp.stockCount.colVariance') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(item, idx) in sc.items" :key="item.id" class="border-b border-[#F1F5F9]">
-                  <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
-                  <td class="py-2.5 align-top text-[#637381] font-mono text-[11px]">{{ item.product?.sku || '—' }}</td>
-                  <td class="py-2.5 align-top">
-                    <span class="font-semibold text-[#1C2434]">{{ item.product?.name || '—' }}</span>
+                <tr v-for="(item, idx) in sc.items" :key="item.id" class="align-top">
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#9BA7B0]">{{ idx + 1 }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 font-mono text-[11px] text-[#637381]">{{ item.product?.sku || '—' }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
+                    <span class="text-[#1C2434]">{{ item.product?.name || '—' }}</span>
                   </td>
-                  <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ item.systemQty }}</td>
-                  <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">{{ item.countedQty }}</td>
-                  <td class="py-2.5 align-top text-right font-bold tabular-nums"
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ item.systemQty }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums font-medium text-[#1C2434]">{{ item.countedQty }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums font-bold"
                     :class="variance(item) > 0 ? 'text-green-700' : variance(item) < 0 ? 'text-red-600' : 'text-[#9BA7B0]'">
                     {{ variance(item) > 0 ? '+' : '' }}{{ variance(item) }}
                   </td>
                 </tr>
-                <tr v-if="!sc.items.length">
-                  <td colspan="6" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
-                    {{ t('erp.common.noItems') }}
-                  </td>
+                <!-- filler rows keep the goods area tall like a printed form -->
+                <tr v-for="n in fillerRows" :key="'filler-' + n" class="h-[26px]">
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
                 </tr>
               </tbody>
             </table>
-          </section>
 
-          <!-- Totals block -->
-          <section class="px-10 pb-6 flex justify-end">
-            <dl class="w-full sm:w-72 text-[12px] space-y-1.5">
-              <div class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.stockCount.totalProducts') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ sc.items.length }}</dd>
+            <!-- Notes + variance totals -->
+            <div class="flex items-stretch border-x border-t border-b border-[#1C2434]">
+              <div class="flex-1 min-w-0 flex flex-col">
+                <div class="p-3 text-[11px] text-[#374151] space-y-1">
+                  <div v-if="sc.notes" class="grid grid-cols-[64px_1fr] gap-x-2">
+                    <span class="text-[#9BA7B0]">{{ t('erp.common.notes') }}</span>
+                    <span class="whitespace-pre-line leading-snug">{{ sc.notes }}</span>
+                  </div>
+                  <p v-else class="text-[#9BA7B0] italic">—</p>
+                </div>
               </div>
-              <div class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.stockCount.variancesFound') }}</dt>
-                <dd class="font-semibold tabular-nums"
-                  :class="varianceCount > 0 ? 'text-amber-700' : 'text-green-700'">{{ varianceCount }}</dd>
-              </div>
-              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
-                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">{{ t('erp.stockCount.netVariance') }}</dt>
-                <dd class="text-[16px] font-extrabold tabular-nums"
-                  :class="netVariance > 0 ? 'text-green-700' : netVariance < 0 ? 'text-red-600' : 'text-[#1C2434]'">
-                  {{ netVariance > 0 ? '+' : '' }}{{ netVariance }}
-                </dd>
-              </div>
-            </dl>
-          </section>
-
-          <!-- Notes -->
-          <section v-if="sc.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
-            <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-              {{ t('erp.common.notes') }}
-            </p>
-            <p class="text-[12px] text-[#374151] whitespace-pre-line leading-relaxed">{{ sc.notes }}</p>
-          </section>
-
-          <!-- Signatures -->
-          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
-            <div class="grid grid-cols-2 gap-10">
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  {{ t('erp.stockCount.docPreparedBy') }}
-                </p>
-              </div>
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  {{ t('erp.stockCount.docApprovedBy') }}
-                </p>
+              <div class="w-[241px] flex-shrink-0 border-l border-[#1C2434] text-[12px]">
+                <div class="flex items-center justify-between px-3 pt-[7px] pb-[9px] border-b border-[#1C2434]">
+                  <span class="text-[#637381]">{{ t('erp.stockCount.totalProducts') }}</span>
+                  <span class="tabular-nums text-[#1C2434]">{{ sc.items.length }}</span>
+                </div>
+                <div class="flex items-center justify-between px-3 py-1.5 border-b border-[#1C2434]">
+                  <span class="text-[#637381]">{{ t('erp.stockCount.variancesFound') }}</span>
+                  <span class="tabular-nums"
+                    :class="varianceCount > 0 ? 'text-amber-700' : 'text-green-700'">{{ varianceCount }}</span>
+                </div>
+                <div class="flex items-center justify-between px-3 py-2 bg-[#FAFBFD]">
+                  <span class="font-bold text-[#1C2434]">{{ t('erp.stockCount.netVariance') }}</span>
+                  <span class="font-extrabold tabular-nums"
+                    :class="netVariance > 0 ? 'text-green-700' : netVariance < 0 ? 'text-red-600' : 'text-[#1C2434]'">
+                    {{ netVariance > 0 ? '+' : '' }}{{ netVariance }}
+                  </span>
+                </div>
               </div>
             </div>
-          </footer>
+
+            <!-- Signatures -->
+            <div class="grid grid-cols-2 gap-8 mt-12 px-2">
+              <div v-for="(sig, i) in signatures" :key="'sig' + i" class="text-center">
+                <div class="border-b border-dotted border-[#1C2434] h-8"></div>
+                <p class="text-[11px] text-[#637381] mt-1.5">{{ sig }}</p>
+                <p class="text-[10px] text-[#9BA7B0] mt-2">{{ t('erp.common.date') }} ......./......./.......</p>
+              </div>
+            </div>
+          </div>
         </article>
 
         <!-- Status action (hidden on print) -->
@@ -399,6 +374,24 @@ function variance(item) {
 const varianceCount = computed(() => (sc.value?.items || []).filter((i) => variance(i) !== 0).length)
 const netVariance   = computed(() => (sc.value?.items || []).reduce((sum, i) => sum + variance(i), 0))
 
+// ── Document helpers (mirror Invoice/Receipt tax-invoice layout) ──
+const fillerRows = computed(() => Math.max(0, 8 - (sc.value?.items?.length || 0)))
+const signatures = computed(() => [
+  t('erp.stockCount.docPreparedBy'),
+  t('erp.stockCount.docApprovedBy'),
+])
+const stampLabel = computed(() => {
+  const s = sc.value?.status
+  if (s === 'draft')     return 'Draft'
+  if (s === 'confirmed') return 'Confirmed'
+  return ''
+})
+const stampClass = computed(() =>
+  sc.value?.status === 'confirmed'
+    ? 'text-green-600 border-green-600'
+    : 'text-amber-500 border-amber-400'
+)
+
 async function load() {
   loading.value = true
   try {
@@ -449,3 +442,24 @@ async function deleteSc() {
   }
 }
 </script>
+
+<style>
+@page {
+  size: A4;
+  margin: 12mm;
+}
+@media print {
+  aside, header, nav.print\:hidden { display: none !important; }
+  body { background: white !important; }
+  .shadow-card { box-shadow: none !important; }
+  /* Pin the document to the A4 printable width (210mm − 2×12mm margins)
+     so the table never overflows the page. */
+  article {
+    width: 186mm !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  article table { table-layout: fixed; width: 100% !important; }
+}
+</style>

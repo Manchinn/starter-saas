@@ -95,9 +95,9 @@
           </div>
         </div>
 
-        <!-- Document -->
-        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
+        <!-- Document (receipt tax-invoice layout) -->
+        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[186mm] w-full
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0
                         overflow-hidden">
 
           <div v-if="stampLabel"
@@ -110,152 +110,108 @@
             </span>
           </div>
 
-          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0 flex items-start gap-4">
-              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
-                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
-              <div class="min-w-0">
-                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
-                  {{ companyAddress }}
-                </p>
-                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
-                  <p v-if="companyPhone">Tel: {{ companyPhone }}</p>
-                  <p v-if="companyEmail">{{ companyEmail }}</p>
-                  <p v-if="companyWebsite">{{ companyWebsite }}</p>
-                  <p v-if="companyTaxId" class="tabular-nums">
-                    <span class="text-[#9BA7B0]">Tax ID:</span> {{ companyTaxId }}
+          <div class="p-6">
+            <!-- Header -->
+            <header class="flex items-start justify-between gap-6">
+              <div class="flex items-start gap-4 min-w-0">
+                <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
+                  class="max-h-16 max-w-[140px] object-contain flex-shrink-0" />
+                <div class="min-w-0">
+                  <p class="text-[18px] font-bold text-[#1C2434] leading-tight">{{ companyName }}</p>
+                  <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
+                    {{ companyAddress }}
                   </p>
+                  <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
+                    <p v-if="companyPhone">Tel: {{ companyPhone }}</p>
+                    <p v-if="companyEmail">{{ companyEmail }}</p>
+                    <p v-if="companyWebsite">{{ companyWebsite }}</p>
+                    <p v-if="companyTaxId" class="tabular-nums">
+                      <span class="text-[#9BA7B0]">Tax ID:</span> {{ companyTaxId }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <h2 class="text-[18px] font-bold text-[#1C2434] leading-tight uppercase">{{ t('erp.journals.title') }}</h2>
+              </div>
+            </header>
+
+            <!-- Description + meta boxes -->
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 border border-[#1C2434]">
+              <div class="p-3 border-b sm:border-b-0 sm:border-r border-[#1C2434] text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.journals.colDescription') }}</span>
+                  <span class="text-[#1C2434] whitespace-pre-line leading-snug">{{ journal.description || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.common.source') }}</span>
+                  <span class="font-medium text-[#1C2434]">{{ journal.sourceType || 'Manual' }}</span>
+                </div>
+              </div>
+              <div class="p-3 text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[110px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.journals.colRefNo') }}</span>
+                  <span class="font-bold text-[#1C2434] tabular-nums">{{ journal.refNo }}</span>
+                </div>
+                <div class="grid grid-cols-[110px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.common.date') }}</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ fmtDate(journal.date) || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[110px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.journals.lines') }}</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ journal.lines?.length || 0 }}</span>
                 </div>
               </div>
             </div>
-            <div class="text-right flex-shrink-0">
-              <h2 class="text-[26px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
-                {{ t('erp.journals.title') }}
-              </h2>
-              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
-                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ journal.refNo }}</dd>
 
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                  {{ t('erp.common.date') }}
-                </dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(journal.date) || '—' }}</dd>
-              </dl>
-            </div>
-          </header>
-
-          <!-- Description / Total -->
-          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 border-b border-dashed border-[#E2E8F0]">
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">
-                {{ t('erp.journals.colDescription') }}
-              </p>
-              <p v-if="journal.description" class="text-[13px] text-[#374151] whitespace-pre-line leading-snug">
-                {{ journal.description }}
-              </p>
-              <p v-else class="text-[12px] text-[#9BA7B0] italic">—</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">
-                {{ t('erp.journals.totalDebitCredit') }}
-              </p>
-              <p class="text-[24px] font-extrabold text-[#1C2434] tabular-nums leading-tight">
-                {{ fmtMoney(journal.totalDebit) }}
-              </p>
-              <p class="text-[11px] text-[#9BA7B0] mt-1">
-                {{ journal.lines?.length || 0 }} {{ t('erp.journals.lines') }}
-              </p>
-            </div>
-          </section>
-
-          <!-- Metadata strip -->
-          <section class="px-10 py-4 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 border-b border-dashed border-[#E2E8F0] bg-[#FAFBFD]">
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.common.date') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] tabular-nums mt-0.5">{{ fmtDate(journal.date) || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.common.status') }}</p>
-              <p class="mt-0.5">
-                <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold capitalize"
-                  :class="statusBadge(journal.status)">
-                  {{ journal.status }}
-                </span>
-              </p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.common.source') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] mt-0.5">{{ journal.sourceType || 'Manual' }}</p>
-            </div>
-          </section>
-
-          <!-- Lines -->
-          <section class="px-10 pt-6 pb-2">
-            <table class="w-full text-[12px]">
+            <!-- Lines -->
+            <table class="w-full mt-4 border-collapse text-[12px] table-fixed">
               <thead>
-                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
-                  <th class="py-2.5 text-left w-8">#</th>
-                  <th class="py-2.5 text-left">{{ t('erp.journals.colAccount') }}</th>
-                  <th class="py-2.5 text-left">{{ t('erp.journals.colDescription') }}</th>
-                  <th class="py-2.5 text-right w-28">{{ t('erp.journals.colDebit') }}</th>
-                  <th class="py-2.5 text-right w-28">{{ t('erp.journals.colCredit') }}</th>
+                <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[32px]">#</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[190px]">{{ t('erp.journals.colAccount') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.journals.colDescription') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[108px]">{{ t('erp.journals.colDebit') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[108px]">{{ t('erp.journals.colCredit') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(line, idx) in (journal.lines || [])" :key="line.id"
-                  class="border-b border-[#F1F5F9]">
-                  <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ line.lineNo || idx + 1 }}</td>
-                  <td class="py-2.5 align-top">
-                    <p class="font-semibold text-[#1C2434]">{{ line.account?.name || '—' }}</p>
-                    <p class="text-[10px] font-mono text-[#9BA7B0]">{{ line.account?.code }}</p>
+                <tr v-for="(line, idx) in (journal.lines || [])" :key="line.id" class="align-top">
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#9BA7B0]">{{ line.lineNo || idx + 1 }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
+                    <span class="text-[#1C2434]">{{ line.account?.name || '—' }}</span>
+                    <span class="block text-[10px] font-mono text-[#9BA7B0]">{{ line.account?.code }}</span>
                   </td>
-                  <td class="py-2.5 align-top text-[#637381] whitespace-pre-line leading-snug">{{ line.description || '—' }}</td>
-                  <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
-                    {{ Number(line.debit) > 0 ? fmtMoney(line.debit) : '' }}
-                  </td>
-                  <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
-                    {{ Number(line.credit) > 0 ? fmtMoney(line.credit) : '' }}
-                  </td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-[#637381] whitespace-pre-line leading-snug">{{ line.description || '—' }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums font-medium text-[#1C2434]">{{ Number(line.debit) > 0 ? fmtMoney(line.debit) : '' }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums font-medium text-[#1C2434]">{{ Number(line.credit) > 0 ? fmtMoney(line.credit) : '' }}</td>
                 </tr>
-                <tr v-if="!journal.lines?.length">
-                  <td colspan="5" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
-                    {{ t('erp.common.noItems') }}
-                  </td>
+                <!-- filler rows keep the goods area tall like a printed form -->
+                <tr v-for="n in fillerRows" :key="'filler-' + n" class="h-[26px]">
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                </tr>
+                <!-- Totals row (double-entry must balance) -->
+                <tr class="bg-[#FAFBFD] font-bold text-[#1C2434]">
+                  <td colspan="3" class="border border-[#1C2434] px-2 py-2 text-right text-[11px] uppercase tracking-wider">{{ t('erp.journals.totals') }}</td>
+                  <td class="border border-[#1C2434] px-2 py-2 text-right tabular-nums">{{ fmtMoney(journal.totalDebit) }}</td>
+                  <td class="border border-[#1C2434] px-2 py-2 text-right tabular-nums">{{ fmtMoney(journal.totalDebit) }}</td>
                 </tr>
               </tbody>
             </table>
-          </section>
 
-          <!-- Totals -->
-          <section class="px-10 pb-6 flex justify-end">
-            <dl class="w-full sm:w-80 text-[12px] space-y-1.5">
-              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
-                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">{{ t('erp.journals.totals') }}</dt>
-                <div class="flex gap-6">
-                  <dd class="text-[14px] font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(journal.totalDebit) }}</dd>
-                  <dd class="text-[14px] font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(journal.totalDebit) }}</dd>
-                </div>
-              </div>
-            </dl>
-          </section>
-
-          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
-            <div class="grid grid-cols-2 gap-10">
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  Prepared By
-                </p>
-              </div>
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  Approved By
-                </p>
+            <!-- Signatures -->
+            <div class="grid grid-cols-2 gap-8 mt-12 px-2">
+              <div v-for="(sig, i) in signatures" :key="'sig' + i" class="text-center">
+                <div class="border-b border-dotted border-[#1C2434] h-8"></div>
+                <p class="text-[11px] text-[#637381] mt-1.5">{{ sig }}</p>
+                <p class="text-[10px] text-[#9BA7B0] mt-2">{{ t('erp.common.date') }} ......./......./.......</p>
               </div>
             </div>
-          </footer>
+          </div>
         </article>
 
         <!-- Status transitions -->
@@ -332,6 +288,10 @@ const companyLogoSrc = computed(() => {
 })
 
 function onPrint() { window.print() }
+
+// ── Document helpers (mirror Invoice/Receipt tax-invoice layout) ──
+const fillerRows = computed(() => Math.max(0, 8 - (journal.value?.lines?.length || 0)))
+const signatures = ['Prepared By', 'Approved By']
 
 const { shortcuts } = useDetailShortcuts({
   enabled: () => !loading.value && !!journal.value,
@@ -448,10 +408,22 @@ async function confirmDelete() {
 </script>
 
 <style>
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
   aside, header, nav.print\:hidden { display: none !important; }
   body { background: white !important; }
   .shadow-card { box-shadow: none !important; }
-  article { max-width: none !important; margin: 0 !important; }
+  /* Pin the document to the A4 printable width (210mm − 2×12mm margins)
+     so the table never overflows the page. */
+  article {
+    width: 186mm !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  article table { table-layout: fixed; width: 100% !important; }
 }
 </style>

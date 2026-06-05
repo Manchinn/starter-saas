@@ -80,9 +80,9 @@
           </div>
         </div>
 
-        <!-- ── Document ─────────────────────────────────────────── -->
-        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
+        <!-- Document — payment receipt -->
+        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[186mm] w-full
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0
                         overflow-hidden">
 
           <!-- DRAFT / CANCELLED stamp -->
@@ -96,165 +96,151 @@
             </span>
           </div>
 
-          <!-- Document header -->
-          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0 flex items-start gap-4">
-              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
-                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
-              <div class="min-w-0">
-                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
-                  {{ companyAddress }}
-                </p>
-                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
-                  <p v-if="companyPhone">Tel: {{ companyPhone }}</p>
-                  <p v-if="companyEmail">{{ companyEmail }}</p>
-                  <p v-if="companyWebsite">{{ companyWebsite }}</p>
-                  <p v-if="companyTaxId" class="tabular-nums">
-                    <span class="text-[#9BA7B0]">Tax ID:</span> {{ companyTaxId }}
+          <div class="p-6">
+            <!-- Header -->
+            <header class="flex items-start justify-between gap-6">
+              <div class="flex items-start gap-4 min-w-0">
+                <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
+                  class="max-h-16 max-w-[140px] object-contain flex-shrink-0" />
+                <div class="min-w-0">
+                  <p class="text-[18px] font-bold text-[#1C2434] leading-tight">{{ companyName }}</p>
+                  <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
+                    {{ companyAddress }}
                   </p>
+                  <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
+                    <p v-if="companyPhone">Tel. {{ companyPhone }}</p>
+                    <p v-if="companyTaxId" class="tabular-nums">Tax ID {{ companyTaxId }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <h2 class="text-[18px] font-bold text-[#1C2434] leading-tight">Payment Receipt</h2>
+                <p class="text-[11px] text-[#9BA7B0] mt-1">(Original)</p>
+              </div>
+            </header>
+
+            <!-- Customer + meta boxes -->
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 border border-[#1C2434]">
+              <div class="p-3 border-b sm:border-b-0 sm:border-r border-[#1C2434] text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[88px_1fr] gap-x-2">
+                  <span class="text-[#637381]">Customer Code</span>
+                  <span class="font-medium text-[#1C2434]">{{ rp.customer?.code || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[88px_1fr] gap-x-2">
+                  <span class="text-[#637381]">Received From</span>
+                  <span class="font-semibold text-[#1C2434]">{{ rp.customer?.company || rp.customer?.name || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[88px_1fr] gap-x-2">
+                  <span class="text-[#637381]">Address</span>
+                  <span class="text-[#1C2434] whitespace-pre-line leading-snug">{{ rp.customer?.address || '—' }}</span>
+                </div>
+              </div>
+              <div class="p-3 text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[112px_1fr] gap-x-2">
+                  <span class="text-[#637381]">Tax ID</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ customerTaxId || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[112px_1fr] gap-x-2">
+                  <span class="text-[#637381]">Payment No.</span>
+                  <span class="font-bold text-[#1C2434] tabular-nums">{{ rp.refNo }}</span>
+                </div>
+                <div class="grid grid-cols-[112px_1fr] gap-x-2">
+                  <span class="text-[#637381]">Date</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ fmtDate(rp.date) || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[112px_1fr] gap-x-2">
+                  <span class="text-[#637381]">Method</span>
+                  <span class="font-medium text-[#1C2434] capitalize">{{ rp.paymentMethod || '—' }}</span>
+                </div>
+                <div v-if="rp.reference" class="grid grid-cols-[112px_1fr] gap-x-2">
+                  <span class="text-[#637381]">Reference</span>
+                  <span class="font-medium text-[#1C2434] font-mono">{{ rp.reference }}</span>
                 </div>
               </div>
             </div>
-            <div class="text-right flex-shrink-0">
-              <h2 class="text-[26px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
-                Payment Receipt
-              </h2>
-              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
-                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ rp.refNo }}</dd>
 
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">Date</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(rp.date) || '—' }}</dd>
-
-                <template v-if="rp.reference">
-                  <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">Ref</dt>
-                  <dd class="font-semibold text-[#1C2434] text-right font-mono">{{ rp.reference }}</dd>
-                </template>
-              </dl>
-            </div>
-          </header>
-
-          <!-- Received From -->
-          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 border-b border-dashed border-[#E2E8F0]">
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">Received From</p>
-              <p class="text-[14px] font-bold text-[#1C2434]">{{ rp.customer?.name || '—' }}</p>
-              <p v-if="rp.customer?.company" class="text-[12px] text-[#374151]">{{ rp.customer.company }}</p>
-              <p v-if="rp.customer?.email" class="text-[11px] text-[#637381] mt-1.5">{{ rp.customer.email }}</p>
-              <p v-if="rp.customer?.phone" class="text-[11px] text-[#637381]">{{ rp.customer.phone }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">Amount Received</p>
-              <p class="text-[24px] font-extrabold text-green-600 tabular-nums leading-tight">
-                {{ fmtMoney(rp.amount) }}
-              </p>
-            </div>
-          </section>
-
-          <!-- Metadata strip -->
-          <section class="px-10 py-4 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 border-b border-dashed border-[#E2E8F0] bg-[#FAFBFD]">
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">Payment Date</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] tabular-nums mt-0.5">{{ fmtDate(rp.date) || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">Payment Method</p>
-              <p class="mt-0.5">
-                <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold bg-blue-50 text-blue-700">
-                  {{ rp.paymentMethod || '—' }}
-                </span>
-              </p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">Reference</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] font-mono mt-0.5">{{ rp.reference || '—' }}</p>
-            </div>
-          </section>
-
-          <!-- Applied invoices table -->
-          <section class="px-10 pt-6 pb-2">
-            <table class="w-full text-[12px]">
+            <!-- Applied invoices -->
+            <table class="w-full mt-4 border-collapse text-[12px] table-fixed">
               <thead>
-                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
-                  <th class="py-2.5 text-left w-8">#</th>
-                  <th class="py-2.5 text-left w-32">Invoice #</th>
-                  <th class="py-2.5 text-left w-28">Invoice Date</th>
-                  <th class="py-2.5 text-left w-28">Due Date</th>
-                  <th class="py-2.5 text-left">Status</th>
-                  <th class="py-2.5 text-right w-32">Amount Applied</th>
+                <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[189px]">Invoice #</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[110px]">Invoice Date</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[110px]">Due Date</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[80px]">Status</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[160px]">Amount Applied</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(line, idx) in (rp.lines || [])" :key="line.id"
-                  class="border-b border-[#F1F5F9]">
-                  <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
-                  <td class="py-2.5 align-top">
+                <tr v-for="line in (rp.lines || [])" :key="line.id" class="align-top">
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
                     <RouterLink :to="`/erp/invoices/${line.invoiceId}`"
                       class="font-mono font-medium text-primary-600 hover:underline transition-colors">
                       {{ line.invoice?.invoiceNumber || '—' }}
                     </RouterLink>
                   </td>
-                  <td class="py-2.5 align-top text-[#637381] tabular-nums">{{ fmtDate(line.invoice?.invoiceDate) || '—' }}</td>
-                  <td class="py-2.5 align-top text-[#637381] tabular-nums">{{ fmtDate(line.invoice?.dueDate) || '—' }}</td>
-                  <td class="py-2.5 align-top">
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 tabular-nums text-[#637381]">{{ fmtDate(line.invoice?.invoiceDate) || '—' }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 tabular-nums text-[#637381]">{{ fmtDate(line.invoice?.dueDate) || '—' }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
                     <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold capitalize"
                       :class="invStatusClass(line.invoice?.status)">
                       {{ line.invoice?.status }}
                     </span>
                   </td>
-                  <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
-                    {{ fmtMoney(line.amount) }}
-                  </td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums font-medium text-[#1C2434]">{{ fmtMoney(line.amount) }}</td>
                 </tr>
                 <tr v-if="!rp.lines?.length">
-                  <td colspan="6" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
+                  <td colspan="5" class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-6 text-center text-[#9BA7B0] italic">
                     No invoices applied
                   </td>
                 </tr>
+                <!-- filler rows keep the goods area tall like a printed form -->
+                <tr v-for="n in fillerRows" :key="'filler-' + n" class="h-[26px]">
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                </tr>
               </tbody>
             </table>
-          </section>
 
-          <!-- Total -->
-          <section class="px-10 pb-6 flex items-start justify-between gap-6">
-            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
-              {{ totalInWords }}
-            </p>
-            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
-              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
-                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">Total Received</dt>
-                <dd class="text-[16px] font-extrabold text-green-600 tabular-nums">{{ fmtMoney(rp.amount) }}</dd>
+            <!-- Terms / amount-in-words + total -->
+            <div class="flex items-stretch border-x border-t border-b border-[#1C2434]">
+              <div class="flex-1 min-w-0 flex flex-col">
+                <div v-if="totalInWords"
+                  class="border-b border-[#1C2434] px-3 py-2 text-center">
+                  <p class="text-[12px] font-semibold text-[#1C2434] italic">({{ totalInWords }})</p>
+                </div>
+                <div class="p-3 text-[11px] text-[#374151] space-y-1">
+                  <div v-if="rp.paymentMethod" class="grid grid-cols-[96px_1fr] gap-x-2">
+                    <span class="text-[#9BA7B0]">Payment Method</span>
+                    <span class="capitalize">{{ rp.paymentMethod }}</span>
+                  </div>
+                  <div v-if="rp.reference" class="grid grid-cols-[96px_1fr] gap-x-2">
+                    <span class="text-[#9BA7B0]">Reference</span>
+                    <span class="font-mono">{{ rp.reference }}</span>
+                  </div>
+                  <p v-for="(term, i) in docTerms" :key="'t' + i" class="leading-snug">- {{ term }}</p>
+                  <p v-if="rp.notes" class="leading-snug whitespace-pre-line">- {{ rp.notes }}</p>
+                </div>
               </div>
-            </dl>
-          </section>
-
-          <!-- Notes -->
-          <section v-if="rp.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
-            <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">Notes</p>
-            <p class="text-[12px] text-[#374151] whitespace-pre-line leading-relaxed">{{ rp.notes }}</p>
-          </section>
-
-          <!-- Signatures footer -->
-          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
-            <div class="grid grid-cols-2 gap-10">
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  Received By
-                </p>
-              </div>
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  Customer Signature
-                </p>
+              <div class="w-[241px] flex-shrink-0 border-l border-[#1C2434] text-[12px]">
+                <div class="flex items-center justify-between px-3 py-2 bg-[#FAFBFD]">
+                  <span class="font-bold text-[#1C2434]">Total Received</span>
+                  <span class="font-extrabold text-green-600 tabular-nums">{{ fmtMoney(rp.amount) }}</span>
+                </div>
               </div>
             </div>
-            <p class="text-center text-[10px] text-[#9BA7B0] mt-6">
-              Thank you for your payment.
-            </p>
-          </footer>
+
+            <!-- Signatures -->
+            <div class="grid grid-cols-3 gap-8 mt-12 px-2">
+              <div v-for="(sig, i) in signatures" :key="'sig' + i" class="text-center">
+                <div class="border-b border-dotted border-[#1C2434] h-8"></div>
+                <p class="text-[11px] text-[#637381] mt-1.5">{{ sig }}</p>
+                <p class="text-[10px] text-[#9BA7B0] mt-2">Date ......./......./.......</p>
+              </div>
+            </div>
+          </div>
         </article>
 
         <!-- Status transitions (draft only) -->
@@ -350,6 +336,15 @@ const { shortcuts } = useDetailShortcuts({
 })
 
 function onPrint() { window.print() }
+
+// ── Document helpers (mirror Receipt tax-invoice layout) ──
+const fillerRows    = computed(() => Math.max(0, 8 - (rp.value?.lines?.length || 0)))
+const customerTaxId = computed(() => rp.value?.customer?.taxId || '')
+const docTerms = [
+  'This receipt confirms the payment applied to the invoices listed above.',
+  'Payment is acknowledged subject to the clearance of cheques or transfers.',
+]
+const signatures = ['Received By', 'Approved By', 'Customer Signature']
 
 // ── Workflow ──────────────────────────────────────────────
 const FLOW_STEPS = [
@@ -453,10 +448,22 @@ async function confirmDelete() {
 </script>
 
 <style>
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
   aside, header, nav.print\:hidden { display: none !important; }
   body { background: white !important; }
   .shadow-card { box-shadow: none !important; }
-  article { max-width: none !important; margin: 0 !important; }
+  /* Pin the document to the A4 printable width (210mm − 2×12mm margins)
+     so the table never overflows the page. */
+  article {
+    width: 186mm !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  article table { table-layout: fixed; width: 100% !important; }
 }
 </style>
