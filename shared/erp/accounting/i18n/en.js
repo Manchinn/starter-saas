@@ -394,6 +394,28 @@ export default {
       dateRequired:   'Date is required',
       amountRequired: 'Amount must be greater than 0',
       reasonRequired: 'Reason is required',
+
+      // ── Document view (receipt tax-invoice layout) ─────────
+      documentTitle:      'Credit Note',
+      docOriginal:        'Original',
+      docDate:            'Date',
+      docRefNo:           'Credit Note No.',
+      docLinkedInvoice:   'Ref. Invoice No.',
+      docPhoneAbbr:       'Tel.',
+      docTaxId:           'Tax ID',
+      docCustomerCode:    'Customer Code',
+      docCustomerName:    'Customer Name',
+      docAddress:         'Address',
+      docColReason:       'Description / Reason',
+      docNetTotal:        'Net Credit',
+      docTerm1:           'This credit note reduces the amount owed on the referenced invoice.',
+      docTerm2:           'Please reference the credit note number in any related correspondence.',
+      docPreparedBy:      'Prepared By',
+      docApprovedBy:      'Approved By',
+      docCustomerSignature:'Customer Signature',
+      printDocument:      'Print this document',
+      nextAction:         'Next Action',
+      nextActionHint:     'Issue this credit note to lock it in and post the adjustment.',
     },
 
     arAging: {

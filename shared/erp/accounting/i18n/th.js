@@ -394,6 +394,28 @@ export default {
       dateRequired:   'กรุณาระบุวันที่',
       amountRequired: 'จำนวนเงินต้องมากกว่า 0',
       reasonRequired: 'กรุณาระบุเหตุผล',
+
+      // ── Document view (receipt tax-invoice layout) ─────────
+      documentTitle:      'ใบลดหนี้',
+      docOriginal:        'ต้นฉบับ',
+      docDate:            'วันที่',
+      docRefNo:           'เลขที่ใบลดหนี้',
+      docLinkedInvoice:   'อ้างอิงเลขที่ใบแจ้งหนี้',
+      docPhoneAbbr:       'โทร.',
+      docTaxId:           'เลขประจำตัวผู้เสียภาษี',
+      docCustomerCode:    'รหัสลูกค้า',
+      docCustomerName:    'นามลูกค้า',
+      docAddress:         'ที่อยู่',
+      docColReason:       'รายละเอียด / เหตุผล',
+      docNetTotal:        'ยอดเงินลดหนี้สุทธิ',
+      docTerm1:           'ใบลดหนี้นี้ลดยอดหนี้ของใบแจ้งหนี้ที่อ้างอิง',
+      docTerm2:           'กรุณาอ้างอิงเลขที่ใบลดหนี้ในการติดต่อที่เกี่ยวข้อง',
+      docPreparedBy:      'ผู้จัดทำ',
+      docApprovedBy:      'ผู้อนุมัติ',
+      docCustomerSignature:'ลูกค้าลงนาม',
+      printDocument:      'พิมพ์เอกสารนี้',
+      nextAction:         'การดำเนินการถัดไป',
+      nextActionHint:     'ออกใบลดหนี้นี้เพื่อบันทึกและลงรายการปรับปรุง',
     },
 
     arAging: {
