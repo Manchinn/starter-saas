@@ -177,9 +177,9 @@
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[80px]">{{ t('erp.orders.colCode') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[260px]">{{ t('erp.orders.colItem') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.orders.colQty') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[100px]">{{ t('erp.orders.colUnitPrice') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[271px]">{{ t('erp.orders.colItem') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[59px]">{{ t('erp.orders.colQty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[89px]">{{ t('erp.orders.colUnitPrice') }}</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.orders.tax') }} %</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[88px]">{{ t('erp.orders.colTotal') }}</th>
                 </tr>

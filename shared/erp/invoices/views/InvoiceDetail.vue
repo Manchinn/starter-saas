@@ -104,9 +104,9 @@
           </div>
         </div>
 
-        <!-- Document -->
-        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
+        <!-- Document — invoice (ใบแจ้งหนี้) -->
+        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[186mm] w-full
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0
                         overflow-hidden">
 
           <div v-if="stampLabel"
@@ -119,206 +119,165 @@
             </span>
           </div>
 
-          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0 flex items-start gap-4">
-              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
-                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
-              <div class="min-w-0">
-                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
-                  {{ companyAddress }}
-                </p>
-                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
-                  <p v-if="companyPhone">{{ t('erp.invoices.docPhoneAbbr') }} {{ companyPhone }}</p>
-                  <p v-if="companyEmail">{{ companyEmail }}</p>
-                  <p v-if="companyWebsite">{{ companyWebsite }}</p>
-                  <p v-if="companyTaxId" class="tabular-nums">
-                    <span class="text-[#9BA7B0]">{{ t('erp.invoices.docTaxId') }}</span> {{ companyTaxId }}
+          <div class="p-6">
+            <!-- Header -->
+            <header class="flex items-start justify-between gap-6">
+              <div class="flex items-start gap-4 min-w-0">
+                <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
+                  class="max-h-16 max-w-[140px] object-contain flex-shrink-0" />
+                <div class="min-w-0">
+                  <p class="text-[18px] font-bold text-[#1C2434] leading-tight">{{ companyName }}</p>
+                  <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
+                    {{ companyAddress }}
                   </p>
+                  <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
+                    <p v-if="companyPhone">{{ t('erp.invoices.docPhoneAbbr') }} {{ companyPhone }}</p>
+                    <p v-if="companyTaxId" class="tabular-nums">
+                      {{ t('erp.invoices.docTaxId') }} {{ companyTaxId }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <h2 class="text-[18px] font-bold text-[#1C2434] leading-tight">{{ t('erp.invoices.documentTitle') }}</h2>
+                <p class="text-[11px] text-[#9BA7B0] mt-1">({{ t('erp.invoices.docOriginal') }})</p>
+              </div>
+            </header>
+
+            <!-- Customer + meta boxes -->
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 border border-[#1C2434]">
+              <div class="p-3 border-b sm:border-b-0 sm:border-r border-[#1C2434] text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docCustomerCode') }}</span>
+                  <span class="font-medium text-[#1C2434]">{{ invoice.customer?.code || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docCustomerName') }}</span>
+                  <span class="font-semibold text-[#1C2434]">{{ invoice.customer?.company || invoice.customer?.name || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docAddress') }}</span>
+                  <span class="text-[#1C2434] whitespace-pre-line leading-snug">{{ billingAddressDisplay || '—' }}</span>
+                </div>
+              </div>
+              <div class="p-3 text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docTaxId') }}</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ customerTaxId || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docInvoiceNo') }}</span>
+                  <span class="font-bold text-[#1C2434] tabular-nums">{{ invoice.invoiceNumber }}</span>
+                </div>
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docDate') }}</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ fmtDate(invoice.invoiceDate) || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docDueDate') }}</span>
+                  <span class="font-medium tabular-nums" :class="isOverdue ? 'text-red-600' : 'text-[#1C2434]'">{{ fmtDate(invoice.dueDate) || '—' }}</span>
+                </div>
+                <div v-if="invoice.referenceNumber" class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docPO') }}</span>
+                  <span class="font-medium text-[#1C2434]">{{ invoice.referenceNumber }}</span>
                 </div>
               </div>
             </div>
-            <div class="text-right flex-shrink-0">
-              <h2 class="text-[26px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
-                {{ t('erp.invoices.documentTitle') }}
-              </h2>
-              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
-                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ invoice.invoiceNumber }}</dd>
 
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                  {{ t('erp.invoices.docDate') }}
-                </dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(invoice.invoiceDate) || '—' }}</dd>
-
-                <template v-if="invoice.dueDate">
-                  <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                    {{ t('erp.invoices.docDueDate') }}
-                  </dt>
-                  <dd class="font-semibold text-right tabular-nums"
-                    :class="isOverdue ? 'text-red-600' : 'text-[#1C2434]'">
-                    {{ fmtDate(invoice.dueDate) }}
-                  </dd>
-                </template>
-
-                <template v-if="invoice.referenceNumber">
-                  <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                    {{ t('erp.invoices.docPO') }}
-                  </dt>
-                  <dd class="font-semibold text-[#1C2434] text-right">{{ invoice.referenceNumber }}</dd>
-                </template>
-              </dl>
-            </div>
-          </header>
-
-          <!-- Bill-to / Ship-to -->
-          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 border-b border-dashed border-[#E2E8F0]">
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">
-                {{ t('erp.invoices.docBillTo') }}
-              </p>
-              <p class="text-[14px] font-bold text-[#1C2434]">{{ invoice.customer?.name || '—' }}</p>
-              <p v-if="invoice.customer?.company" class="text-[12px] text-[#374151]">{{ invoice.customer.company }}</p>
-              <p v-if="billingAddressDisplay" class="text-[12px] text-[#374151] mt-1 whitespace-pre-line leading-snug">
-                {{ billingAddressDisplay }}
-              </p>
-              <p v-if="invoice.customer?.email" class="text-[11px] text-[#637381] mt-1.5">{{ invoice.customer.email }}</p>
-              <p v-if="invoice.customer?.phone" class="text-[11px] text-[#637381]">{{ invoice.customer.phone }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">
-                {{ t('erp.invoices.docShipTo') }}
-              </p>
-              <p v-if="invoice.shippingAddress" class="text-[12px] text-[#374151] whitespace-pre-line leading-snug">
-                {{ invoice.shippingAddress }}
-              </p>
-              <p v-else class="text-[12px] text-[#9BA7B0] italic">{{ t('erp.invoices.docSameAsBilling') }}</p>
-            </div>
-          </section>
-
-          <!-- Metadata strip -->
-          <section class="px-10 py-4 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-3 border-b border-dashed border-[#E2E8F0] bg-[#FAFBFD]">
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.invoices.dueDate') }}</p>
-              <p class="text-[12px] font-semibold tabular-nums mt-0.5" :class="isOverdue ? 'text-red-600' : 'text-[#1C2434]'">
-                {{ fmtDate(invoice.dueDate) || '—' }}
-              </p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.invoices.paymentTerms') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] mt-0.5">{{ paymentTermLabel(invoice.paymentTerms) }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.invoices.salesperson') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] mt-0.5">{{ invoice.salesperson?.name || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.common.currency') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] tabular-nums mt-0.5">{{ invoice.currency || '—' }}</p>
-            </div>
-          </section>
-
-          <!-- Line items -->
-          <section class="px-10 pt-6 pb-2">
-            <table class="w-full text-[12px]">
+            <!-- Line items -->
+            <table class="w-full mt-4 border-collapse text-[12px] table-fixed">
               <thead>
-                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
-                  <th class="py-2.5 text-left w-8">#</th>
-                  <th class="py-2.5 text-left w-28">{{ t('erp.invoices.colCode') }}</th>
-                  <th class="py-2.5 text-left">{{ t('erp.invoices.colItem') }}</th>
-                  <th class="py-2.5 text-right w-16">{{ t('erp.common.qty') }}</th>
-                  <th class="py-2.5 text-right w-24">{{ t('erp.invoices.colUnitPrice') }}</th>
-                  <th class="py-2.5 text-right w-14">{{ t('erp.invoices.tax') }} %</th>
-                  <th class="py-2.5 text-right w-28">{{ t('erp.invoices.total') }}</th>
+                <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[80px]">{{ t('erp.invoices.colCode') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[260px]">{{ t('erp.invoices.colItem') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.common.qty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[100px]">{{ t('erp.invoices.colUnitPrice') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.invoices.tax') }} %</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[88px]">{{ t('erp.invoices.total') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <template v-for="(item, idx) in topLevelItems" :key="item.id">
-                  <tr class="border-b border-[#F1F5F9]">
-                    <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
-                    <td class="py-2.5 align-top text-[#637381] font-mono text-[11px]">{{ itemCode(item) || '—' }}</td>
-                    <td class="py-2.5 align-top">
-                      <span class="font-semibold text-[#1C2434]">{{ itemName(item) }}</span>
-                      <p v-if="item.description" class="text-[11px] text-[#9BA7B0] mt-0.5">{{ item.description }}</p>
+                <template v-for="(item, idx) in topLevelItems" :key="item.id || idx">
+                  <tr class="align-top">
+                    <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 font-mono text-[11px] text-[#637381]">{{ itemCode(item) || '—' }}</td>
+                    <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
+                      <span class="text-[10px] text-[#1C2434]">{{ itemName(item) }}</span>
+                      <span v-if="item.description" class="block text-[11px] text-[#9BA7B0]">{{ item.description }}</span>
                     </td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ item.quantity }}</td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ Number(item.taxRate || 0) }}%</td>
-                    <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
-                      {{ fmtMoney((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)) }}
-                    </td>
+                    <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ fmtQty(item.quantity) }}</td>
+                    <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ fmtMoney(item.unitPrice) }}</td>
+                    <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ Number(item.taxRate || 0) }}%</td>
+                    <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums font-medium text-[#1C2434]">{{ fmtMoney(lineAmount(item)) }}</td>
                   </tr>
-                  <tr v-for="child in childrenOf(item.id)" :key="child.id"
-                    class="border-b border-[#F1F5F9] text-[11px]">
-                    <td></td>
-                    <td class="py-1.5 text-[#9BA7B0] font-mono text-[10px]">{{ itemCode(child) || '—' }}</td>
-                    <td colspan="5" class="py-1.5 pl-6 text-[#637381]">
-                      <span class="text-[#CBD5E1] mr-1.5">↳</span>
-                      {{ child.productName }}
+                  <tr v-for="child in childrenOf(item.id)" :key="child.id" class="align-top text-[11px]">
+                    <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1 font-mono text-[10px] text-[#9BA7B0]">{{ itemCode(child) || '—' }}</td>
+                    <td colspan="5" class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1 pl-6 text-[#637381]">
+                      <span class="text-[#CBD5E1] mr-1.5">↳</span>{{ child.productName }}
                       <span class="text-[10px] font-semibold text-[#9BA7B0] tabular-nums ml-2">× {{ child.quantity }}</span>
                     </td>
                   </tr>
                 </template>
-                <tr v-if="!topLevelItems.length">
-                  <td colspan="7" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
-                    {{ t('erp.common.noItems') }}
-                  </td>
+                <!-- filler rows keep the goods area tall like a printed form -->
+                <tr v-for="n in fillerRows" :key="'filler-' + n" class="h-[26px]">
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
                 </tr>
               </tbody>
             </table>
-          </section>
 
-          <!-- Totals -->
-          <section class="px-10 pb-6 flex items-start justify-between gap-6">
-            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
-              {{ totalInWords }}
-            </p>
-            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
-              <div class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.invoices.subtotal') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(invoice.subtotal) }}</dd>
+            <!-- Terms / amount-in-words + totals -->
+            <div class="flex items-stretch border-x border-t border-b border-[#1C2434]">
+              <div class="flex-1 min-w-0 flex flex-col">
+                <div v-if="totalInWords"
+                  class="border-b border-[#1C2434] px-3 py-2 text-center">
+                  <p class="text-[12px] font-semibold text-[#1C2434] italic">({{ totalInWords }})</p>
+                </div>
+                <div class="p-3 text-[11px] text-[#374151] space-y-1">
+                  <div v-if="paymentTermLabel(invoice.paymentTerms) !== '—'" class="grid grid-cols-[96px_1fr] gap-x-2">
+                    <span class="text-[#9BA7B0]">{{ t('erp.invoices.paymentTerms') }}</span>
+                    <span>{{ paymentTermLabel(invoice.paymentTerms) }}</span>
+                  </div>
+                  <div v-if="invoice.salesperson?.name" class="grid grid-cols-[96px_1fr] gap-x-2">
+                    <span class="text-[#9BA7B0]">{{ t('erp.invoices.salesperson') }}</span>
+                    <span>{{ invoice.salesperson.name }}</span>
+                  </div>
+                  <p v-for="(term, i) in docTerms" :key="'t' + i" class="leading-snug">- {{ term }}</p>
+                  <p v-if="invoice.notes" class="leading-snug whitespace-pre-line">- {{ invoice.notes }}</p>
+                </div>
               </div>
-              <div class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.invoices.tax') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(invoice.tax) }}</dd>
-              </div>
-              <div v-if="Number(invoice.discountAmount) > 0" class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.invoices.discount') }}</dt>
-                <dd class="font-semibold text-red-600 tabular-nums">−{{ fmtMoney(invoice.discountAmount) }}</dd>
-              </div>
-              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
-                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">{{ t('erp.invoices.total') }}</dt>
-                <dd class="text-[16px] font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(invoice.total) }}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section v-if="invoice.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
-            <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-              {{ t('erp.common.notes') }}
-            </p>
-            <p class="text-[12px] text-[#374151] whitespace-pre-line leading-relaxed">{{ invoice.notes }}</p>
-          </section>
-
-          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
-            <div class="grid grid-cols-2 gap-10">
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  {{ t('erp.invoices.docAuthorisedSignature') }}
-                </p>
-              </div>
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  {{ t('erp.invoices.docCustomerSignature') }}
-                </p>
+              <div class="w-[241px] flex-shrink-0 border-l border-[#1C2434] text-[12px]">
+                <div class="flex items-center justify-between px-3 pt-[7px] pb-[9px] border-b border-[#1C2434]">
+                  <span class="text-[#637381]">{{ t('erp.invoices.subtotal') }}</span>
+                  <span class="tabular-nums text-[#1C2434]">{{ fmtMoney(invoice.subtotal) }}</span>
+                </div>
+                <div v-if="Number(invoice.discountAmount) > 0" class="flex items-center justify-between px-3 py-1.5 border-b border-[#1C2434]">
+                  <span class="text-[#637381]">{{ t('erp.invoices.discount') }}</span>
+                  <span class="tabular-nums text-[#1C2434]">−{{ fmtMoney(invoice.discountAmount) }}</span>
+                </div>
+                <div class="flex items-center justify-between px-3 py-1.5 border-b border-[#1C2434]">
+                  <span class="text-[#637381]">{{ t('erp.invoices.docVat') }} {{ vatRate }}%</span>
+                  <span class="tabular-nums text-[#1C2434]">{{ fmtMoney(invoice.tax) }}</span>
+                </div>
+                <div class="flex items-center justify-between px-3 py-2 bg-[#FAFBFD]">
+                  <span class="font-bold text-[#1C2434]">{{ t('erp.invoices.docNetTotal') }}</span>
+                  <span class="font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(invoice.total) }}</span>
+                </div>
               </div>
             </div>
-            <p class="text-center text-[10px] text-[#9BA7B0] mt-6">
-              {{ t('erp.invoices.docFooterThanks') }}
-            </p>
-          </footer>
+
+            <!-- Signatures -->
+            <div class="grid grid-cols-3 gap-8 mt-12 px-2">
+              <div v-for="(sig, i) in signatures" :key="'sig' + i" class="text-center">
+                <div class="border-b border-dotted border-[#1C2434] h-8"></div>
+                <p class="text-[11px] text-[#637381] mt-1.5">{{ sig }}</p>
+                <p class="text-[10px] text-[#9BA7B0] mt-2">{{ t('erp.invoices.docDate') }} ......./......./.......</p>
+              </div>
+            </div>
+          </div>
         </article>
 
         <!-- Status transitions -->
@@ -445,6 +404,29 @@ const billingAddressDisplay = computed(() =>
 const topLevelItems = computed(() => (invoice.value?.items || []).filter(it => !it.parentItemId))
 function childrenOf(parentId) {
   return (invoice.value?.items || []).filter(it => it.parentItemId === parentId)
+}
+
+// ── Document helpers (mirror Receipt tax-invoice layout) ──
+const fillerRows    = computed(() => Math.max(0, 8 - (invoice.value?.items?.length || 0)))
+const customerTaxId = computed(() => invoice.value?.customer?.taxId || '')
+const vatRate       = computed(() => {
+  const base = (Number(invoice.value?.subtotal) || 0) - (Number(invoice.value?.discountAmount) || 0)
+  const tax  = Number(invoice.value?.tax) || 0
+  if (base > 0 && tax > 0) return Math.round((tax / base) * 100)
+  return 7
+})
+const docTerms   = computed(() => [t('erp.invoices.docTerm1'), t('erp.invoices.docTerm2')])
+const signatures = computed(() => [
+  t('erp.invoices.docPreparedBy'),
+  t('erp.invoices.docApprovedBy'),
+  t('erp.invoices.docCustomerSignature'),
+])
+
+function lineAmount(item) {
+  return (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)
+}
+function fmtQty(q) {
+  return (Number(q) || 0).toLocaleString(undefined, { maximumFractionDigits: 3 })
 }
 function itemCode(item) {
   // Prefer the snapshot stored on the row (set at create time), then fall back
@@ -615,10 +597,22 @@ function paymentTermLabel(v) {
 </script>
 
 <style>
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
   aside, header, nav.print\:hidden { display: none !important; }
   body { background: white !important; }
   .shadow-card { box-shadow: none !important; }
-  article { max-width: none !important; margin: 0 !important; }
+  /* Pin the document to the A4 printable width (210mm − 2×12mm margins)
+     so the table never overflows the page. */
+  article {
+    width: 186mm !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  article table { table-layout: fixed; width: 100% !important; }
 }
 </style>
