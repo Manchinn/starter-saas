@@ -33,7 +33,7 @@
         <div v-if="bn && !loading" class="flex items-center gap-2 flex-shrink-0">
           <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
-            title="Print this document"
+            :title="t('erp.billingNotes.printDocument')"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
             <PrinterIcon class="w-4 h-4" />
@@ -82,9 +82,9 @@
           </div>
         </div>
 
-        <!-- Document -->
-        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
+        <!-- Document — billing note (ใบแจ้งยอด) -->
+        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[186mm] w-full
+                        print:border-0 print:shadow-none print:max-w-none print:mx-0
                         overflow-hidden">
 
           <div v-if="stampLabel"
@@ -97,190 +97,139 @@
             </span>
           </div>
 
-          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0 flex items-start gap-4">
-              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
-                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
-              <div class="min-w-0">
-                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
-                  {{ companyAddress }}
-                </p>
-                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
-                  <p v-if="companyPhone">Tel: {{ companyPhone }}</p>
-                  <p v-if="companyEmail">{{ companyEmail }}</p>
-                  <p v-if="companyWebsite">{{ companyWebsite }}</p>
-                  <p v-if="companyTaxId" class="tabular-nums">
-                    <span class="text-[#9BA7B0]">Tax ID:</span> {{ companyTaxId }}
+          <div class="p-6">
+            <!-- Header -->
+            <header class="flex items-start justify-between gap-6">
+              <div class="flex items-start gap-4 min-w-0">
+                <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
+                  class="max-h-16 max-w-[140px] object-contain flex-shrink-0" />
+                <div class="min-w-0">
+                  <p class="text-[18px] font-bold text-[#1C2434] leading-tight">{{ companyName }}</p>
+                  <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
+                    {{ companyAddress }}
                   </p>
+                  <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
+                    <p v-if="companyPhone">{{ t('erp.billingNotes.docPhoneAbbr') }} {{ companyPhone }}</p>
+                    <p v-if="companyTaxId" class="tabular-nums">
+                      {{ t('erp.billingNotes.docTaxId') }} {{ companyTaxId }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <h2 class="text-[18px] font-bold text-[#1C2434] leading-tight">{{ t('erp.billingNotes.documentTitle') }}</h2>
+                <p class="text-[11px] text-[#9BA7B0] mt-1">({{ t('erp.billingNotes.docOriginal') }})</p>
+              </div>
+            </header>
+
+            <!-- Customer + meta boxes -->
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 border border-[#1C2434]">
+              <div class="p-3 border-b sm:border-b-0 sm:border-r border-[#1C2434] text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.billingNotes.docCustomerCode') }}</span>
+                  <span class="font-medium text-[#1C2434]">{{ bn.customer?.code || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.billingNotes.docCustomerName') }}</span>
+                  <span class="font-semibold text-[#1C2434]">{{ bn.customer?.company || bn.customer?.name || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[78px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.billingNotes.docAddress') }}</span>
+                  <span class="text-[#1C2434] whitespace-pre-line leading-snug">{{ bn.customer?.address || '—' }}</span>
+                </div>
+              </div>
+              <div class="p-3 text-[12px] space-y-1.5">
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.billingNotes.docTaxId') }}</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ customerTaxId || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.billingNotes.docRefNo') }}</span>
+                  <span class="font-bold text-[#1C2434] tabular-nums">{{ bn.refNo }}</span>
+                </div>
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.billingNotes.docDate') }}</span>
+                  <span class="font-medium text-[#1C2434] tabular-nums">{{ fmtDate(bn.date) || '—' }}</span>
+                </div>
+                <div class="grid grid-cols-[124px_1fr] gap-x-2">
+                  <span class="text-[#637381]">{{ t('erp.billingNotes.docDueDate') }}</span>
+                  <span class="font-medium tabular-nums" :class="isOverdue ? 'text-red-600' : 'text-[#1C2434]'">{{ fmtDate(bn.dueDate) || '—' }}</span>
                 </div>
               </div>
             </div>
-            <div class="text-right flex-shrink-0">
-              <h2 class="text-[26px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
-                {{ t('erp.billingNotes.title') }}
-              </h2>
-              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
-                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ bn.refNo }}</dd>
 
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                  {{ t('erp.common.date') }}
-                </dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(bn.date) || '—' }}</dd>
-
-                <template v-if="bn.dueDate">
-                  <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                    {{ t('erp.billingNotes.dueDate') }}
-                  </dt>
-                  <dd class="font-semibold text-right tabular-nums"
-                    :class="isOverdue ? 'text-red-600' : 'text-[#1C2434]'">
-                    {{ fmtDate(bn.dueDate) }}
-                  </dd>
-                </template>
-              </dl>
-            </div>
-          </header>
-
-          <!-- Bill To -->
-          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 border-b border-dashed border-[#E2E8F0]">
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">
-                Bill To
-              </p>
-              <p class="text-[14px] font-bold text-[#1C2434]">{{ bn.customer?.name || '—' }}</p>
-              <p v-if="bn.customer?.company" class="text-[12px] text-[#374151]">{{ bn.customer.company }}</p>
-              <p v-if="bn.customer?.address" class="text-[12px] text-[#374151] mt-1 whitespace-pre-line leading-snug">
-                {{ bn.customer.address }}
-              </p>
-              <p v-if="bn.customer?.email" class="text-[11px] text-[#637381] mt-1.5">{{ bn.customer.email }}</p>
-              <p v-if="bn.customer?.phone" class="text-[11px] text-[#637381]">{{ bn.customer.phone }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">
-                {{ t('erp.billingNotes.grandTotal') }}
-              </p>
-              <p class="text-[24px] font-extrabold text-[#1C2434] tabular-nums leading-tight">
-                {{ fmtMoney(bn.total) }}
-              </p>
-              <p class="text-[11px] text-[#9BA7B0] mt-1">
-                {{ bn.lines?.length || 0 }} {{ (bn.lines?.length || 0) === 1 ? 'invoice' : 'invoices' }}
-              </p>
-            </div>
-          </section>
-
-          <!-- Metadata strip -->
-          <section class="px-10 py-4 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-3 border-b border-dashed border-[#E2E8F0] bg-[#FAFBFD]">
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.common.date') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] tabular-nums mt-0.5">{{ fmtDate(bn.date) || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.billingNotes.dueDate') }}</p>
-              <p class="text-[12px] font-semibold tabular-nums mt-0.5"
-                :class="isOverdue ? 'text-red-600' : 'text-[#1C2434]'">
-                {{ fmtDate(bn.dueDate) || '—' }}
-              </p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.common.status') }}</p>
-              <p class="mt-0.5">
-                <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold capitalize"
-                  :class="statusBadge(bn.status)">
-                  {{ bn.status }}
-                </span>
-              </p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.common.currency') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] tabular-nums mt-0.5">{{ bn.currency || '—' }}</p>
-            </div>
-          </section>
-
-          <!-- Included invoices -->
-          <section class="px-10 pt-6 pb-2">
-            <table class="w-full text-[12px]">
+            <!-- Included invoices -->
+            <table class="w-full mt-4 border-collapse text-[12px] table-fixed">
               <thead>
-                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
-                  <th class="py-2.5 text-left w-8">#</th>
-                  <th class="py-2.5 text-left w-32">{{ t('erp.billingNotes.colInvoiceNo') }}</th>
-                  <th class="py-2.5 text-left w-28">{{ t('erp.billingNotes.colInvoiceDate') }}</th>
-                  <th class="py-2.5 text-left w-28">{{ t('erp.billingNotes.colDueDate') }}</th>
-                  <th class="py-2.5 text-left">{{ t('erp.common.status') }}</th>
-                  <th class="py-2.5 text-right w-32">{{ t('erp.billingNotes.colAmount') }}</th>
+                <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[44px]">#</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[150px]">{{ t('erp.billingNotes.docColInvoiceNo') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[100px]">{{ t('erp.billingNotes.docColInvoiceDate') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[100px]">{{ t('erp.billingNotes.docColDueDate') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.common.status') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[110px]">{{ t('erp.billingNotes.colAmount') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(line, idx) in (bn.lines || [])" :key="line.id"
-                  class="border-b border-[#F1F5F9]">
-                  <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
-                  <td class="py-2.5 align-top">
+                <tr v-for="(line, idx) in (bn.lines || [])" :key="line.id" class="align-top">
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#9BA7B0]">{{ idx + 1 }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
                     <RouterLink :to="`/erp/invoices/${line.invoiceId}`"
-                      class="font-mono font-medium text-primary-600 hover:underline transition-colors">
+                      class="font-mono text-[11px] font-medium text-primary-600 hover:underline transition-colors">
                       {{ line.invoice?.invoiceNumber || '—' }}
                     </RouterLink>
                   </td>
-                  <td class="py-2.5 align-top text-[#637381] tabular-nums">{{ fmtDate(line.invoice?.invoiceDate) || '—' }}</td>
-                  <td class="py-2.5 align-top text-[#637381] tabular-nums">{{ fmtDate(line.invoice?.dueDate) || '—' }}</td>
-                  <td class="py-2.5 align-top">
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ fmtDate(line.invoice?.invoiceDate) || '—' }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ fmtDate(line.invoice?.dueDate) || '—' }}</td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
                     <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold capitalize"
                       :class="invStatusClass(line.invoice?.status)">
                       {{ line.invoice?.status }}
                     </span>
                   </td>
-                  <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
-                    {{ fmtMoney(line.amount) }}
-                  </td>
+                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums font-medium text-[#1C2434]">{{ fmtMoney(line.amount) }}</td>
                 </tr>
-                <tr v-if="!bn.lines?.length">
-                  <td colspan="6" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
-                    {{ t('erp.common.noItems') }}
-                  </td>
+                <!-- filler rows keep the goods area tall like a printed form -->
+                <tr v-for="n in fillerRows" :key="'filler-' + n" class="h-[26px]">
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
+                  <td class="border-x border-[#1C2434]"></td>
                 </tr>
               </tbody>
             </table>
-          </section>
 
-          <!-- Total -->
-          <section class="px-10 pb-6 flex items-start justify-between gap-6">
-            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
-              {{ totalInWords }}
-            </p>
-            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
-              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
-                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">{{ t('erp.billingNotes.colTotal') }}</dt>
-                <dd class="text-[16px] font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(bn.total) }}</dd>
+            <!-- Terms / amount-in-words + totals -->
+            <div class="flex items-stretch border-x border-t border-b border-[#1C2434]">
+              <div class="flex-1 min-w-0 flex flex-col">
+                <div v-if="totalInWords"
+                  class="border-b border-[#1C2434] px-3 py-2 text-center">
+                  <p class="text-[12px] font-semibold text-[#1C2434] italic">({{ totalInWords }})</p>
+                </div>
+                <div class="p-3 text-[11px] text-[#374151] space-y-1">
+                  <p v-for="(term, i) in docTerms" :key="'t' + i" class="leading-snug">- {{ term }}</p>
+                  <p v-if="bn.notes" class="leading-snug whitespace-pre-line">- {{ bn.notes }}</p>
+                </div>
               </div>
-            </dl>
-          </section>
-
-          <!-- Notes -->
-          <section v-if="bn.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
-            <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-              {{ t('erp.common.notes') }}
-            </p>
-            <p class="text-[12px] text-[#374151] whitespace-pre-line leading-relaxed">{{ bn.notes }}</p>
-          </section>
-
-          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
-            <div class="grid grid-cols-2 gap-10">
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  Authorised Signature
-                </p>
-              </div>
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  Customer Signature
-                </p>
+              <div class="w-[241px] flex-shrink-0 border-l border-[#1C2434] text-[12px]">
+                <div class="flex items-center justify-between px-3 py-2 bg-[#FAFBFD]">
+                  <span class="font-bold text-[#1C2434]">{{ t('erp.billingNotes.docNetTotal') }}</span>
+                  <span class="font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(bn.total) }}</span>
+                </div>
               </div>
             </div>
-            <p class="text-center text-[10px] text-[#9BA7B0] mt-6">
-              Thank you for your business.
-            </p>
-          </footer>
+
+            <!-- Signatures -->
+            <div class="grid grid-cols-3 gap-8 mt-12 px-2">
+              <div v-for="(sig, i) in signatures" :key="'sig' + i" class="text-center">
+                <div class="border-b border-dotted border-[#1C2434] h-8"></div>
+                <p class="text-[11px] text-[#637381] mt-1.5">{{ sig }}</p>
+                <p class="text-[10px] text-[#9BA7B0] mt-2">{{ t('erp.billingNotes.docDate') }} ......./......./.......</p>
+              </div>
+            </div>
+          </div>
         </article>
 
         <!-- Status transitions -->
@@ -288,8 +237,8 @@
           class="bg-white border border-[#E2E8F0] shadow-card px-5 py-4 print:hidden
                  flex items-center justify-between flex-wrap gap-3">
           <div>
-            <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">Next Action</p>
-            <p class="text-[13px] text-[#637381] mt-0.5">Move this billing note forward through its workflow.</p>
+            <p class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.billingNotes.nextAction') }}</p>
+            <p class="text-[13px] text-[#637381] mt-0.5">{{ t('erp.billingNotes.nextActionHint') }}</p>
           </div>
           <div class="flex items-center gap-2.5">
             <button v-for="s in forwardTransitions" :key="s"
@@ -361,6 +310,16 @@ const companyLogoSrc = computed(() => {
 })
 
 function onPrint() { window.print() }
+
+// ── Document helpers (mirror Invoice / Receipt tax-invoice layout) ──
+const customerTaxId = computed(() => bn.value?.customer?.taxId || '')
+const fillerRows    = computed(() => Math.max(0, 8 - (bn.value?.lines?.length || 0)))
+const docTerms      = computed(() => [t('erp.billingNotes.docTerm1'), t('erp.billingNotes.docTerm2')])
+const signatures    = computed(() => [
+  t('erp.billingNotes.docPreparedBy'),
+  t('erp.billingNotes.docApprovedBy'),
+  t('erp.billingNotes.docCustomerSignature'),
+])
 
 const { shortcuts } = useDetailShortcuts({
   enabled: () => !loading.value && !!bn.value,
@@ -502,10 +461,22 @@ async function confirmDelete() {
 </script>
 
 <style>
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
   aside, header, nav.print\:hidden { display: none !important; }
   body { background: white !important; }
   .shadow-card { box-shadow: none !important; }
-  article { max-width: none !important; margin: 0 !important; }
+  /* Pin the document to the A4 printable width (210mm − 2×12mm margins)
+     so the table never overflows the page. */
+  article {
+    width: 186mm !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  article table { table-layout: fixed; width: 100% !important; }
 }
 </style>

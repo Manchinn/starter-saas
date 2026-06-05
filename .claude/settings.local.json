@@ -159,7 +159,8 @@
       "Bash(find . -type d -name components -not -path \"*/node_modules/*\")",
       "Bash(find . -type d -name composables -not -path \"*/node_modules/*\")",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(npx vue-tsc *)"
     ]
   }
 }
