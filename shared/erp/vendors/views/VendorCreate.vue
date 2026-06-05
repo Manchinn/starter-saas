@@ -2,11 +2,14 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/vendors" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.vendors.new') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/vendors" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.vendors.new') }}</h1>
+        </div>
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
@@ -14,7 +17,7 @@
           <div>
             <FormField name="code" :label="t('erp.vendors.code')" :errors="fieldErrors">
               <template #default="{ id }">
-                <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text" :placeholder="t('erp.vendors.code')" class="input" />
+                <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text" :placeholder="t('erp.vendors.code')" class="input" />
                 <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
               </template>
             </FormField>
@@ -62,16 +65,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import FormField from '@/components/form/FormField.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
@@ -87,12 +92,16 @@ const vendorTypeOptions = ref([])
 const form    = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active', activeFrom: '', activeTo: '' })
 const error   = ref('')
 const saving  = ref(false)
+const codeInputRef = ref(null)
 const autoCode = useAutoCode('VND')
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
+const { shortcuts } = useFormShortcuts({ save: () => save(), cancel: () => router.push('/erp/vendors') })
 
 onMounted(async () => {
   const { data } = await api.get('/erp/master-data/by-name/Vendor Types')
   vendorTypeOptions.value = data.data.values
+  await nextTick()
+  codeInputRef.value?.focus()
 })
 
 async function save() {

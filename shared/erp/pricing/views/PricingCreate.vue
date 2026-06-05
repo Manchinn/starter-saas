@@ -8,6 +8,7 @@
           { label: t('common.create') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/pricing"
             :cancel-label="t('common.cancel')"
@@ -24,7 +25,7 @@
 
           <FormField name="code" :label="t('erp.pricing.code')" :errors="fieldErrors">
             <template #default="{ id }">
-              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+              <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text"
                 placeholder="e.g. PL-001" class="input font-mono" />
               <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
                 class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
@@ -85,13 +86,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { TagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -105,8 +108,15 @@ import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router   = useRouter()
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/pricing'),
+  cancelLabel: 'Back to list',
+})
 const form      = ref({ code: '', name: '', description: '', unitPrice: 0, status: 'active', activeFrom: '', activeTo: '', saleItemId: '', customerGroupId: '' })
 const autoCode  = useAutoCode('PRC')
+const codeInputRef = ref(null)
 const groups    = ref([])
 const saleItems = ref([])
 const error     = ref('')
@@ -126,7 +136,10 @@ onMounted(async () => {
   ])
   if (groupsRes.status === 'fulfilled')    groups.value    = groupsRes.value.data.data.groups
   if (saleItemsRes.status === 'fulfilled') saleItems.value = saleItemsRes.value.data.data.items
+  await nextTick()
+  codeInputRef.value?.focus()
 })
+
 
 async function save() {
   error.value = ''

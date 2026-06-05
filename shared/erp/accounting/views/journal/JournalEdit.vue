@@ -13,6 +13,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/accounting/journals/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -174,7 +175,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -185,6 +187,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -286,15 +289,16 @@ onMounted(async () => {
   }
 })
 
-function onPageKeydown(e) {
-  if (pageLoading.value || loadError.value) return
-  const ctrl = e.ctrlKey || e.metaKey
-  const key  = e.key.toLowerCase()
-  if (ctrl && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 'l') { e.preventDefault(); addLine() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push(`/erp/accounting/journals/${route.params.id}`),
+  enabled: () => !pageLoading.value && !loadError.value,
+  saveLabel: 'Save changes',
+  cancelLabel: 'Back to detail',
+  extra: [
+    { combo: 'ctrl+l', handler: () => addLine(), hint: { key: 'Ctrl+L', label: 'Add line' } },
+  ],
+})
 
 async function save() {
   globalError.value = ''

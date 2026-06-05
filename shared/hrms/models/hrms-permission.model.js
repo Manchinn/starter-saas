@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../server/config/database')
+const { recordFields } = require('../../erp/model-fields')
 
 // HRMS permission catalog. A read-only, system-wide registry of the assignable
 // "functions" — seeded from the ERP, Reporting, AI Assistant and HRMS modules
@@ -11,6 +12,7 @@ const HrmsPermission = sequelize.define('HrmsPermission', {
   description: { type: DataTypes.TEXT, allowNull: true , comment: 'Description (คำอธิบาย)'},
   group:  { type: DataTypes.STRING, allowNull: false, defaultValue: 'general', comment: 'Group (กลุ่ม) — Buckets permissions in the UI' },
   module: { type: DataTypes.STRING, allowNull: false, defaultValue: 'general', comment: 'Module (โมดูล) — Source module slug (erp, reporting, ai-agent, hrms)' },
+  ...recordFields,
 })
 
 module.exports = HrmsPermission

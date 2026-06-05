@@ -2,14 +2,18 @@
   <AppLayout>
     <div class="space-y-5">
 
-      <div>
-        <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.stockMovement.title') }}</h1>
-        <p class="text-sm text-[#637381] mt-0.5">{{ total }} movement{{ total !== 1 ? 's' : '' }}</p>
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.stockMovement.title') }}</h1>
+          <p class="text-sm text-[#637381] mt-0.5">{{ total }} movement{{ total !== 1 ? 's' : '' }}</p>
+        </div>
+        <KeyboardShortcuts :shortcuts="shortcuts" />
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="rows" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="rows" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.stockMovement.searchPh', 'Search by ref no…')">
 
           <template #toolbar>
@@ -110,7 +114,7 @@
 </template>
 
 <script setup>
-import { h, ref, computed, watch, onMounted } from 'vue'
+import { h, ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
@@ -120,11 +124,37 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtDateTime } from '@/utils/fmt'
 
 const { t } = useI18n()
+
+const dataTableRef     = ref(null)
+const selectedRowIndex = ref(-1)
+
+const shortcuts = [
+  { key: '↑ / ↓', label: 'Move row selection' },
+  { key: 'Esc',    label: 'Deselect row' },
+]
+
+function onKeydown(e) {
+  const el = document.activeElement
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    selectedRowIndex.value = Math.min(selectedRowIndex.value + 1, rows.value.length - 1)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    selectedRowIndex.value = Math.max(selectedRowIndex.value - 1, 0)
+  } else if (e.key === 'Escape') {
+    selectedRowIndex.value = -1
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 const typeOptions = computed(() => [
   { id: 'receive',         name: t('erp.stockMovement.typeReceive')     },
@@ -229,6 +259,7 @@ async function load() {
     })
     rows.value  = data.data.movements
     total.value = data.data.total
+    selectedRowIndex.value = -1
   } finally { loading.value = false }
 }
 

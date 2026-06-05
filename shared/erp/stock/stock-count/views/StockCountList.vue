@@ -7,15 +7,19 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.stockCount.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} record{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink to="/erp/stock-count/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.stockCount.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink to="/erp/stock-count/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.stockCount.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="rows" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="rows" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.stockCount.searchPh')">
 
           <template #toolbar>
@@ -97,7 +101,7 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
 import {
@@ -106,11 +110,14 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const statusOptions = computed(() => [
   { id: 'draft',     name: t('erp.common.draft')     },
@@ -126,8 +133,19 @@ const filterStatus = ref('')
 const showFilters  = ref(false)
 const loading      = ref(false)
 const approvingId  = ref(null)
+const dataTableRef = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value].filter(Boolean).length)
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows, page, totalPages,
+  open:        r => router.push(`/erp/stock-count/${r.id}`),
+  create:      () => router.push('/erp/stock-count/create'),
+  remove:      r => deleteRow(r),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New stock count',
+})
 
 const ch = createColumnHelper()
 
@@ -205,6 +223,7 @@ async function load() {
     })
     rows.value = data.data.counts
     total.value = data.data.total
+    selectedRowIndex.value = -1
   } finally { loading.value = false }
 }
 

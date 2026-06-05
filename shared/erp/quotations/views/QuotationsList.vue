@@ -8,16 +8,20 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.quotations.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} {{ t('erp.quotations.title').toLowerCase() }}</p>
         </div>
-        <RouterLink to="/erp/quotations/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.quotations.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink to="/erp/quotations/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.quotations.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <!-- Table card -->
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="quotations" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="quotations" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.quotations.searchPh')">
 
           <template #toolbar>
@@ -120,7 +124,7 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, TrashIcon, DocumentTextIcon, EyeIcon,
@@ -129,11 +133,14 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const statusOptions = computed(() => [
   { id: 'draft',     name: t('erp.quotations.draft')     },
@@ -152,8 +159,19 @@ const filterDateFrom = ref('')
 const filterDateTo  = ref('')
 const showFilters   = ref(false)
 const loading       = ref(false)
+const dataTableRef  = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterDateFrom.value, filterDateTo.value].filter(Boolean).length)
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: quotations, page, totalPages,
+  open:        r => router.push(`/erp/quotations/${r.id}`),
+  create:      () => router.push('/erp/quotations/create'),
+  remove:      r => confirmDelete(r),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New quotation',
+})
 
 async function load() {
   loading.value = true
@@ -168,6 +186,7 @@ async function load() {
     })
     quotations.value = data.data.quotations
     total.value      = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

@@ -8,9 +8,15 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('aiAgent.chat.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ t('aiAgent.chat.subtitle') }}</p>
         </div>
-        <RouterLink to="/ai/settings" class="btn-secondary">
-          <Cog6ToothIcon class="w-4 h-4" />
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <RouterLink to="/ai/dashboard" class="btn-secondary">
+            <ChartBarIcon class="w-4 h-4" />
+            <span class="hidden sm:inline">{{ t('nav.aiDashboard') }}</span>
+          </RouterLink>
+          <RouterLink to="/ai/settings" class="btn-secondary">
+            <Cog6ToothIcon class="w-4 h-4" />
+          </RouterLink>
+        </div>
       </div>
 
       <div class="flex flex-1 min-h-0 border border-[#E2E8F0] bg-white" style="max-height: 650px">
@@ -156,7 +162,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   SparklesIcon, PlusIcon, TrashIcon, PaperAirplaneIcon, Cog6ToothIcon,
@@ -169,6 +175,7 @@ import RichText from '@/components/RichText.vue'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const store = useAiAgentStore()
 
 const draft = ref('')
@@ -193,9 +200,14 @@ const sampleGroups = computed(() => SAMPLE_GROUPS.map((g) => ({
 })))
 const allSamples = computed(() => sampleGroups.value.flatMap((g) => g.items))
 
-onMounted(() => {
+onMounted(async () => {
   store.newConversation()
-  store.loadConversations()
+  await store.loadConversations()
+  // Deep-link from the dashboard: ?c=<id> opens that conversation.
+  const id = route.query.c
+  if (id) {
+    try { await store.openConversation(id) } catch { /* gone — stay on new chat */ }
+  }
 })
 
 function scrollToBottom() {

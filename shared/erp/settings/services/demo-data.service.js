@@ -1,3 +1,4 @@
+const { getNext } = require('./sequence.service')
 const {
   UOM, ProductCategory, Product,
   CustomerGroup, Customer,
@@ -36,6 +37,13 @@ const { getContent } = require('./demo-data.content')
 
 async function seedDemo(userId, orgId, lang = 'en') {
   const C = getContent(lang)
+
+  // Generate sequence codes before opening the main transaction — getNext uses
+  // its own transaction, and SQLite only allows one writer at a time.
+  const cgpKeys = ['retail', 'wholesale', 'vip', 'government']
+  const cgpCodes = []
+  for (const key of cgpKeys) cgpCodes.push(await getNext('CGP', userId))
+
   const t = await sequelize.transaction()
   try {
 
@@ -79,18 +87,24 @@ async function seedDemo(userId, orgId, lang = 'en') {
     ])
 
     // ── Customer Groups ───────────────────────────────────────────────────────
-    const [retail, wholesale] = await Promise.all([
-      CustomerGroup.create({ name: C.customerGroups.retail.name,    description: C.customerGroups.retail.desc,    organizationId: orgId }, { transaction: t }),
-      CustomerGroup.create({ name: C.customerGroups.wholesale.name, description: C.customerGroups.wholesale.desc, organizationId: orgId }, { transaction: t }),
-    ])
+    const [retail, wholesale, vip, government] = await Promise.all(
+      cgpKeys.map((key, i) =>
+        CustomerGroup.create({
+          code: cgpCodes[i],
+          name: C.customerGroups[key].name,
+          description: C.customerGroups[key].desc,
+          status: 'active', organizationId: orgId, createdBy: userId,
+        }, { transaction: t })
+      )
+    )
 
     // ── Customers ─────────────────────────────────────────────────────────────
     const [cAlice, cBob, cCarol, cDavid, cEva] = await Promise.all([
-      Customer.create({ code: 'CUS-0001', name: C.customers.alice.name, email: 'alice@example.com', phone: '555-0101', company: C.customers.alice.company, customerGroupId: retail.id,    organizationId: orgId }, { transaction: t }),
-      Customer.create({ code: 'CUS-0002', name: C.customers.bob.name,   email: 'bob@example.com',   phone: '555-0102', company: C.customers.bob.company,   customerGroupId: retail.id,    organizationId: orgId }, { transaction: t }),
-      Customer.create({ code: 'CUS-0003', name: C.customers.carol.name, email: 'carol@example.com', phone: '555-0103', company: C.customers.carol.company, customerGroupId: wholesale.id, organizationId: orgId }, { transaction: t }),
-      Customer.create({ code: 'CUS-0004', name: C.customers.david.name, email: 'david@example.com', phone: '555-0104', company: C.customers.david.company, customerGroupId: wholesale.id, organizationId: orgId }, { transaction: t }),
-      Customer.create({ code: 'CUS-0005', name: C.customers.eva.name,   email: 'eva@example.com',   phone: '555-0105', company: C.customers.eva.company,   customerGroupId: retail.id,    organizationId: orgId }, { transaction: t }),
+      Customer.create({ code: 'CUS-0001', name: C.customers.alice.name, email: 'alice@example.com', phone: '555-0101', company: C.customers.alice.company, customerGroupId: retail.id,      organizationId: orgId }, { transaction: t }),
+      Customer.create({ code: 'CUS-0002', name: C.customers.bob.name,   email: 'bob@example.com',   phone: '555-0102', company: C.customers.bob.company,   customerGroupId: retail.id,      organizationId: orgId }, { transaction: t }),
+      Customer.create({ code: 'CUS-0003', name: C.customers.carol.name, email: 'carol@example.com', phone: '555-0103', company: C.customers.carol.company, customerGroupId: vip.id,         organizationId: orgId }, { transaction: t }),
+      Customer.create({ code: 'CUS-0004', name: C.customers.david.name, email: 'david@example.com', phone: '555-0104', company: C.customers.david.company, customerGroupId: government.id,  organizationId: orgId }, { transaction: t }),
+      Customer.create({ code: 'CUS-0005', name: C.customers.eva.name,   email: 'eva@example.com',   phone: '555-0105', company: C.customers.eva.company,   customerGroupId: wholesale.id,   organizationId: orgId }, { transaction: t }),
     ])
 
     // ── Vendors ───────────────────────────────────────────────────────────────

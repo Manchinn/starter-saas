@@ -1,11 +1,14 @@
 ﻿<template>
   <AppLayout>
     <div class="space-y-6">
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/stock-balance" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.stockBalance.stockOverview') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/stock-balance" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.stockBalance.stockOverview') }}</h1>
+        </div>
+        <KeyboardShortcuts :shortcuts="shortcuts" />
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
@@ -135,16 +138,24 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtMoney, fmtQty } from '@/utils/fmt'
 
 const { t } = useI18n()
 const route   = useRoute()
+const router  = useRouter()
 const summary = ref(null)
 const loading = ref(true)
+
+const { shortcuts } = useDetailShortcuts({
+  back: () => router.push('/erp/stock-balance'),
+  backLabel: 'Back to stock balance',
+})
 
 onMounted(async () => {
   try {

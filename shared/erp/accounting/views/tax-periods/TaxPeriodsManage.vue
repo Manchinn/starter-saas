@@ -6,9 +6,12 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.taxPeriods.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ t('erp.taxPeriods.subtitle') }}</p>
         </div>
-        <button @click="addDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white hover:bg-primary-700 transition">
-          <PlusIcon class="w-4 h-4" /> {{ t('erp.taxPeriods.addPeriod') }}
-        </button>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <button @click="addDraft" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary-500 text-white hover:bg-primary-700 transition">
+            <PlusIcon class="w-4 h-4" /> {{ t('erp.taxPeriods.addPeriod') }}
+          </button>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
@@ -61,12 +64,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, TrashIcon, DocumentChartBarIcon } from '@heroicons/vue/24/outline'
 import { RouterLink } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import api from '@/api'
 
 const { t } = useI18n()
@@ -77,6 +81,22 @@ const error   = ref('')
 
 const isDraft = (r) => !r.id
 
+// This page edits rows inline, so the only page-level shortcut is adding a new
+// period. Shift+C is suppressed while a text field has focus so it doesn't fire
+// mid-typing.
+const shortcuts = [{ key: 'Shift+C', label: t('erp.taxPeriods.addPeriod') }]
+function isTyping() {
+  const el = document.activeElement
+  const tag = el?.tagName?.toLowerCase()
+  return tag === 'input' || tag === 'textarea' || tag === 'select' || el?.isContentEditable
+}
+function onKeydown(e) {
+  if (isTyping()) return
+  if (e.shiftKey && e.key === 'C') { e.preventDefault(); addDraft() }
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
 async function load() {
   loading.value = true
   try {
@@ -86,7 +106,13 @@ async function load() {
 }
 onMounted(load)
 
-function addDraft() { drafts.value.push({ name: '', startDate: '', endDate: '', notes: '', status: 'open' }) }
+async function addDraft() {
+  drafts.value.push({ name: '', startDate: '', endDate: '', notes: '', status: 'open' })
+  // Land focus on the new row's name field so it's immediately editable.
+  await nextTick()
+  const rows = document.querySelectorAll('tbody tr')
+  rows[rows.length - 1]?.querySelector('input')?.focus()
+}
 
 async function save(p) {
   error.value = ''

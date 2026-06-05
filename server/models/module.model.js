@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 const Module = sequelize.define('Module', {
   id: {
@@ -54,6 +55,7 @@ const Module = sequelize.define('Module', {
     defaultValue: {},
     comment: 'Meta (ข้อมูลเพิ่มเติม) — Extra metadata (route, component path, etc.)',
   },
+  ...recordFields,
 })
 
 module.exports = Module

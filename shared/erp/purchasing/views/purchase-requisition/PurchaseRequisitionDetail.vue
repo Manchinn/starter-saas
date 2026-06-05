@@ -39,6 +39,7 @@
           </div>
         </div>
         <div v-if="req && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             title="Print this document"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -356,6 +357,8 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDate, fmtMoney } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
@@ -389,6 +392,14 @@ const companyLogoSrc = computed(() => {
 })
 
 function onPrint() { window.print() }
+
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!req.value,
+  canEdit: () => req.value?.status === 'draft' && auth.hasPermission('erp.purchasing.edit'),
+  edit:  () => router.push(`/erp/purchasing/requisitions/${req.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/purchasing/requisitions'),
+})
 
 // ── Workflow ──────────────────────────────────────────────
 const FLOW_STEPS = computed(() => [

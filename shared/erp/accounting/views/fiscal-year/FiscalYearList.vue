@@ -7,18 +7,22 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.fiscalYears.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} fiscal year{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink
-          v-can="'erp.accounting.edit'"
-          to="/erp/accounting/fiscal-years/create"
-          class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.fiscalYears.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink
+            v-can="'erp.accounting.edit'"
+            to="/erp/accounting/fiscal-years/create"
+            class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.fiscalYears.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="fiscalYears" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="fiscalYears" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.fiscalYears.searchPh')">
 
           <template #toolbar>
@@ -47,17 +51,20 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, EyeIcon, CalendarDaysIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const statusOptions = computed(() => [
   { id: 'open',   name: t('erp.fiscalYears.statusOpen')   },
@@ -71,6 +78,17 @@ const limit        = 20
 const search       = ref('')
 const filterStatus = ref('')
 const loading      = ref(false)
+const dataTableRef = ref(null)
+
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: fiscalYears, page, totalPages,
+  open:        r => router.push(`/erp/accounting/fiscal-years/${r.id}`),
+  create:      () => router.push('/erp/accounting/fiscal-years/create'),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New fiscal year',
+})
 
 async function fetchFiscalYears() {
   loading.value = true
@@ -80,6 +98,7 @@ async function fetchFiscalYears() {
     })
     fiscalYears.value = data.data.fiscalYears
     total.value       = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

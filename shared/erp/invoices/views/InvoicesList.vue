@@ -5,6 +5,7 @@
       <PageHeader :title="t('erp.invoices.title')"
         :breadcrumb="[{ label: `${total} invoice${total !== 1 ? 's' : ''}` }]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" />
           <RouterLink v-can="'erp.invoices.edit'" to="/erp/invoices/create" class="btn-primary">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.invoices.new') }}
@@ -13,8 +14,9 @@
       </PageHeader>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="invoices" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="invoices" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.invoices.searchPh')">
 
           <template #toolbar>
@@ -108,7 +110,7 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, EyeIcon, DocumentTextIcon,
@@ -117,14 +119,17 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtMoney, fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const statusOptions = computed(() => [
   { id: 'draft',     name: t('erp.common.draft')          },
@@ -143,8 +148,18 @@ const filterDateFrom = ref('')
 const filterDateTo   = ref('')
 const showFilters    = ref(false)
 const loading        = ref(false)
+const dataTableRef   = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterDateFrom.value, filterDateTo.value].filter(Boolean).length)
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: invoices, page, totalPages,
+  open:        r => router.push(`/erp/invoices/${r.id}`),
+  create:      () => router.push('/erp/invoices/create'),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New invoice',
+})
 
 async function fetchInvoices() {
   loading.value = true
@@ -159,6 +174,7 @@ async function fetchInvoices() {
     })
     invoices.value = data.data.invoices
     total.value    = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

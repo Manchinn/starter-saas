@@ -8,16 +8,21 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.products.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} product{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <AppButton to="/erp/item-master/create" variant="primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.products.new') }}
-        </AppButton>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+
+          <AppButton to="/erp/item-master/create" variant="primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.products.new') }}
+          </AppButton>
+        </div>
       </div>
 
       <!-- Table card -->
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="items" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="items" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.products.searchPh')">
 
           <template #toolbar>
@@ -111,7 +116,7 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, PencilIcon, TrashIcon, CubeIcon,
@@ -121,11 +126,14 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const FILTER_LABEL = 'block text-xs font-medium text-[#637381] mb-1.5'
 
@@ -134,18 +142,29 @@ const statusOptions = computed(() => [
   { id: 'inactive', name: t('common.inactive') },
 ])
 
-const items        = ref([])
-const total        = ref(0)
-const page         = ref(1)
-const limit        = 20
-const search       = ref('')
+const items            = ref([])
+const total            = ref(0)
+const page             = ref(1)
+const limit            = 20
+const search           = ref('')
 const filterStatus     = ref('')
 const filterActiveFrom = ref('')
 const filterActiveTo   = ref('')
 const showFilters      = ref(false)
 const loading          = ref(false)
+const dataTableRef     = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterActiveFrom.value, filterActiveTo.value].filter(Boolean).length)
+const totalPages        = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: items, page, totalPages,
+  open:        p => router.push(`/erp/item-master/${p.id}/edit`),
+  create:      () => router.push('/erp/item-master/create'),
+  remove:      p => confirmDelete(p),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New product', openLabel: 'Edit selected row',
+})
 
 async function fetchItems() {
   loading.value = true
@@ -155,6 +174,7 @@ async function fetchItems() {
     })
     items.value = data.data.products
     total.value = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

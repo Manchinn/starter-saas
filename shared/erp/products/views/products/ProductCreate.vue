@@ -3,14 +3,18 @@
     <div class="space-y-6">
 
       <!-- Header -->
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/item-master" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.products.new') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ t('erp.products.newDesc') }}</p>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/item-master" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <div>
+            <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.products.new') }}</h1>
+            <p class="text-sm text-[#637381] mt-0.5">{{ t('erp.products.newDesc') }}</p>
+          </div>
         </div>
+
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <!-- Basic Information -->
@@ -25,7 +29,7 @@
             <div>
               <FormField name="sku" :label="t('erp.products.codeSku')" :errors="fieldErrors">
                 <template #default="{ id }">
-                  <input v-if="!autoCode.enabled.value" :id="id" v-model="form.sku" type="text" placeholder="SKU-001" class="input" />
+                  <input v-if="!autoCode.enabled.value" :id="id" ref="skuInputRef" v-model="form.sku" type="text" placeholder="SKU-001" class="input" />
                   <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
                 </template>
               </FormField>
@@ -141,11 +145,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, XMarkIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import FormField from '@/components/form/FormField.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
@@ -153,6 +158,7 @@ import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
@@ -176,6 +182,13 @@ const error  = ref('')
 const saving = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
+const skuInputRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/item-master'),
+})
+
 const availableStores  = computed(() => stores.value.filter(s => !linkedStores.value.some(l => l.id === s.id)))
 const availableVendors = computed(() => vendors.value.filter(v => !linkedVendors.value.some(l => l.id === v.id)))
 const categoryOptions  = computed(() => categories.value.map(cat => ({
@@ -187,6 +200,7 @@ const availableStoreOptions  = computed(() => availableStores.value.map(s => ({ 
 const availableVendorOptions = computed(() => availableVendors.value.map(v => ({ id: v.id, name: `${v.name}${v.code ? ` (${v.code})` : ''}` })))
 
 onMounted(async () => {
+  if (!autoCode.enabled.value) skuInputRef.value?.focus()
   try {
     const [storesRes, uomRes, catRes, vendorRes] = await Promise.all([
       api.get('/erp/item-master/stores-lookup'),

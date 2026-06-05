@@ -49,6 +49,7 @@
           </div>
         </div>
         <div v-if="invoice && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             :title="t('erp.invoices.printDocument')"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -391,6 +392,8 @@ import {
   PrinterIcon, BanknotesIcon, ShoppingCartIcon, TruckIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
@@ -411,6 +414,14 @@ const updatingStatus = ref(false)
 const statusError    = ref('')
 const converting     = ref(false)
 const convertError   = ref('')
+
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!invoice.value,
+  canEdit: () => invoice.value?.status === 'draft',
+  edit:  () => router.push(`/erp/invoices/${invoice.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/invoices'),
+})
 
 // Company profile from auth.user.organization, mirrors SO/DO detail.
 const org = computed(() => auth.user?.organization || {})

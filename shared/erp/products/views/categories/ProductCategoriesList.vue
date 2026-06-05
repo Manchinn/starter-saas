@@ -7,15 +7,20 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.productCategories.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} categor{{ total !== 1 ? 'ies' : 'y' }}</p>
         </div>
-        <AppButton to="/erp/product-categories/create" variant="primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.productCategories.new') }}
-        </AppButton>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+
+          <AppButton to="/erp/product-categories/create" variant="primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.productCategories.new') }}
+          </AppButton>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="categories" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="categories" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.productCategories.searchPh')">
 
           <template #toolbar>
@@ -109,7 +114,7 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, PencilIcon, TrashIcon, FolderIcon,
@@ -119,11 +124,14 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const FILTER_LABEL = 'block text-xs font-medium text-[#637381] mb-1.5'
 
@@ -132,18 +140,29 @@ const statusOptions = computed(() => [
   { id: 'inactive', name: t('common.inactive') },
 ])
 
-const categories   = ref([])
-const total        = ref(0)
-const page         = ref(1)
-const limit        = 20
-const search       = ref('')
+const categories       = ref([])
+const total            = ref(0)
+const page             = ref(1)
+const limit            = 20
+const search           = ref('')
 const filterStatus     = ref('')
 const filterActiveFrom = ref('')
 const filterActiveTo   = ref('')
 const showFilters      = ref(false)
 const loading          = ref(false)
+const dataTableRef     = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterActiveFrom.value, filterActiveTo.value].filter(Boolean).length)
+const totalPages        = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: categories, page, totalPages,
+  open:        cat => router.push(`/erp/product-categories/${cat.id}/edit`),
+  create:      () => router.push('/erp/product-categories/create'),
+  remove:      cat => confirmDelete(cat),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New category', openLabel: 'Edit selected row',
+})
 
 async function load() {
   loading.value = true
@@ -153,6 +172,7 @@ async function load() {
     })
     categories.value = data.data.categories
     total.value = data.data.total
+    selectedRowIndex.value = -1
   } finally { loading.value = false }
 }
 

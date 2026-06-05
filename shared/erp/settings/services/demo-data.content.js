@@ -28,8 +28,10 @@ const en = {
   },
 
   customerGroups: {
-    retail:    { name: 'Retail',    desc: 'Walk-in & direct customers' },
-    wholesale: { name: 'Wholesale', desc: 'Bulk-buy distributors' },
+    retail:     { name: 'Retail',     desc: 'Walk-in and direct sales customers at standard pricing' },
+    wholesale:  { name: 'Wholesale',  desc: 'Bulk-buy distributors and resellers with volume discounts' },
+    vip:        { name: 'VIP',        desc: 'High-value accounts with premium pricing and dedicated support' },
+    government: { name: 'Government', desc: 'Government agencies and public-sector institutions' },
   },
 
   customers: {
@@ -230,8 +232,10 @@ const th = {
   },
 
   customerGroups: {
-    retail:    { name: 'ขายปลีก', desc: 'ลูกค้าหน้าร้านและลูกค้าตรง' },
-    wholesale: { name: 'ขายส่ง',  desc: 'ตัวแทนจำหน่ายแบบซื้อจำนวนมาก' },
+    retail:     { name: 'ขายปลีก',    desc: 'ลูกค้าหน้าร้านและลูกค้าตรงในราคามาตรฐาน' },
+    wholesale:  { name: 'ขายส่ง',     desc: 'ตัวแทนจำหน่ายและผู้ซื้อจำนวนมากที่มีส่วนลดพิเศษ' },
+    vip:        { name: 'VIP',        desc: 'ลูกค้ามูลค่าสูงที่มีราคาพิเศษและบริการดูแลเฉพาะ' },
+    government: { name: 'หน่วยงานรัฐ', desc: 'หน่วยงานราชการและองค์กรภาครัฐ' },
   },
 
   customers: {

@@ -1,5 +1,6 @@
 <template>
   <input
+    ref="inputEl"
     :type="isFocused ? 'date' : 'text'"
     :value="isFocused ? pickerValue : displayText"
     @focus="isFocused = true"
@@ -15,8 +16,11 @@ import { useSettingsStore } from '@/stores/settings'
 const props = defineProps({ modelValue: { type: String, default: '' } })
 const emit  = defineEmits(['update:modelValue', 'change'])
 
+const inputEl   = ref(null)
 const settings  = useSettingsStore()
 const isFocused = ref(false)
+
+defineExpose({ focus: () => inputEl.value?.focus() })
 
 const BE_OFFSET = 543
 
