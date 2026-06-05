@@ -177,6 +177,7 @@ export default {
 
       // ── Document view ──────────────────────────────────────
       documentTitle:           'Delivery Order',
+      docOriginal:             'Original',
       docDate:                 'Date',
       docPO:                   'PO #',
       docBillTo:               'Bill To',
@@ -184,6 +185,15 @@ export default {
       docSameAsBilling:        'Same as billing address',
       docPhoneAbbr:            'Tel:',
       docTaxId:                'Tax ID:',
+      docCustomerCode:         'Customer Code',
+      docCustomerName:         'Customer Name',
+      docAddress:              'Address',
+      docRefNo:                'Delivery No.',
+      docDeliveryDate:         'Delivery Date',
+      docTerm1:                'Goods received in good condition and correct quantity.',
+      docTerm2:                'Please check the goods before signing this delivery order.',
+      docPreparedBy:           'Prepared By',
+      docApprovedBy:           'Approved By',
       docAuthorisedSignature:  'Authorised Signature',
       docReceiverSignature:    'Receiver Signature',
       docFooterThanks:         'Thank you for your business.',

@@ -177,6 +177,7 @@ export default {
 
       // ── Document view ──────────────────────────────────────
       documentTitle:           'ใบส่งสินค้า',
+      docOriginal:             'ต้นฉบับ',
       docDate:                 'วันที่',
       docPO:                   'เลขที่ PO',
       docBillTo:               'ออกบิลให้',
@@ -184,6 +185,15 @@ export default {
       docSameAsBilling:        'ที่อยู่เดียวกับใบกำกับ',
       docPhoneAbbr:            'โทร.',
       docTaxId:                'เลขผู้เสียภาษี:',
+      docCustomerCode:         'รหัสลูกค้า',
+      docCustomerName:         'ชื่อลูกค้า',
+      docAddress:              'ที่อยู่',
+      docRefNo:                'เลขที่ใบส่งสินค้า',
+      docDeliveryDate:         'วันที่ส่ง',
+      docTerm1:                'ได้รับสินค้าในสภาพเรียบร้อยและจำนวนถูกต้อง',
+      docTerm2:                'กรุณาตรวจสอบสินค้าก่อนลงนามรับในใบส่งสินค้านี้',
+      docPreparedBy:           'ผู้จัดเตรียม',
+      docApprovedBy:           'ผู้อนุมัติ',
       docAuthorisedSignature:  'ผู้มีอำนาจลงนาม',
       docReceiverSignature:    'ผู้รับสินค้าลงนาม',
       docFooterThanks:         'ขอบคุณที่ใช้บริการ',
