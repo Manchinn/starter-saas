@@ -185,7 +185,7 @@ import AttachmentsPanel from '@/components/AttachmentsPanel.vue'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import api from '@/api'
-import InvoiceReport from '@shared/reporting/templates/invoice/InvoiceReport.vue'
+import InvoiceReport from '@shared/reporting/templates/erp/invoice/InvoiceReport.vue'
 
 const { t }          = useI18n()
 const route          = useRoute()

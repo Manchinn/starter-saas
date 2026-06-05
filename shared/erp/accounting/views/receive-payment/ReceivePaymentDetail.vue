@@ -139,7 +139,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
-import ReceivePaymentReport from '@shared/reporting/templates/receive-payment/ReceivePaymentReport.vue'
+import ReceivePaymentReport from '@shared/reporting/templates/erp/receive-payment/ReceivePaymentReport.vue'
 
 const route          = useRoute()
 const router         = useRouter()

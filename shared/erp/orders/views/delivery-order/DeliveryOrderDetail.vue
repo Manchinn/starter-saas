@@ -159,7 +159,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
-import DeliveryOrderReport from '@shared/reporting/templates/delivery-order/DeliveryOrderReport.vue'
+import DeliveryOrderReport from '@shared/reporting/templates/erp/delivery-order/DeliveryOrderReport.vue'
 
 const { t }          = useI18n()
 const route          = useRoute()

@@ -139,7 +139,7 @@ import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
-import CreditNoteReport from '@shared/reporting/templates/credit-note/CreditNoteReport.vue'
+import CreditNoteReport from '@shared/reporting/templates/erp/credit-note/CreditNoteReport.vue'
 
 const { t }          = useI18n()
 const route          = useRoute()

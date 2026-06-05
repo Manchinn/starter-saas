@@ -133,7 +133,7 @@ import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
-import BillingNoteReport from '@shared/reporting/templates/billing-note/BillingNoteReport.vue'
+import BillingNoteReport from '@shared/reporting/templates/erp/billing-note/BillingNoteReport.vue'
 
 const { t }          = useI18n()
 const route          = useRoute()

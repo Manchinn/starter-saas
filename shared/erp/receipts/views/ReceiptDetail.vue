@@ -159,7 +159,7 @@ import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
-import ReceiptReport from '@shared/reporting/templates/receipt/ReceiptReport.vue'
+import ReceiptReport from '@shared/reporting/templates/erp/receipt/ReceiptReport.vue'
 
 const { t }          = useI18n()
 const route          = useRoute()

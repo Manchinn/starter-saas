@@ -166,7 +166,7 @@ import {
   ArrowPathIcon, ExclamationCircleIcon, PrinterIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
-import QuotationReport from '@shared/reporting/templates/quotation/QuotationReport.vue'
+import QuotationReport from '@shared/reporting/templates/erp/quotation/QuotationReport.vue'
 import api from '@/api'
 
 const { t }    = useI18n()
