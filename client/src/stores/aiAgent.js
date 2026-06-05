@@ -29,6 +29,12 @@ export const useAiAgentStore = defineStore('aiAgent', () => {
     return data.data.models || []
   }
 
+  // ── Dashboard ─────────────────────────────────────────────────────────────────
+  async function loadTokenStats() {
+    const { data } = await api.get('/ai-agent/stats/tokens')
+    return data.data
+  }
+
   // ── Conversations ─────────────────────────────────────────────────────────────
   async function loadConversations() {
     const { data } = await api.get('/ai-agent/chat/conversations')
@@ -112,6 +118,7 @@ export const useAiAgentStore = defineStore('aiAgent', () => {
   return {
     settings, conversations, messages, conversationId, loading, loadingThread,
     loadSettings, saveSettings, testConnection,
+    loadTokenStats,
     loadConversations, openConversation, newConversation, removeConversation, clearAllConversations,
     send,
   }

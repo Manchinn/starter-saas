@@ -13,6 +13,12 @@ const AiMessage = sequelize.define('AiMessage', {
   content:        { type: DataTypes.TEXT, allowNull: true , comment: 'Content (เนื้อหา)'},
   // JSON string: array of { type, ... } client actions performed for this turn.
   actions:        { type: DataTypes.TEXT, allowNull: true , comment: 'Actions (การกระทำ)'},
+  // Token accounting for assistant turns (summed across the agent's tool loop).
+  // Null on user turns and on assistant turns from providers that report no usage.
+  model:            { type: DataTypes.STRING, allowNull: true , comment: 'Model (โมเดล)'},
+  promptTokens:     { type: DataTypes.INTEGER, allowNull: true , comment: 'Prompt tokens (โทเค็นพรอมต์)'},
+  completionTokens: { type: DataTypes.INTEGER, allowNull: true , comment: 'Completion tokens (โทเค็นคำตอบ)'},
+  totalTokens:      { type: DataTypes.INTEGER, allowNull: true , comment: 'Total tokens (โทเค็นรวม)'},
   ...auditFields,
 })
 
