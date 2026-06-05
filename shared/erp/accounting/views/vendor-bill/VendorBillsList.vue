@@ -130,10 +130,13 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => '',
-    cell: info => h(RouterLink, {
-      to: `/erp/purchasing/bills/${info.row.original.id}`,
-      class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
-    }, () => h(EyeIcon, { class: 'w-4 h-4' })),
+    cell: info => h('div', { class: 'flex items-center justify-end gap-1.5' }, [
+      h(RouterLink, {
+        to: `/erp/purchasing/bills/${info.row.original.id}`,
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
+        title: 'View',
+      }, () => h(EyeIcon, { class: 'w-4 h-4' })),
+    ]),
   }),
 ]
 </script>
