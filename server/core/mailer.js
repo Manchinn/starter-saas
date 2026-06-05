@@ -4,7 +4,17 @@ const logger = require('./logger')
 
 const log = logger.forLabel('mailer')
 
+// Cached transporter. Built lazily from the *current* config.smtp (a live
+// getter), so after the Settings → Email Setting tab rewrites the SMTP env we
+// call reset() to drop this and the next send rebuilds with the new values —
+// no restart needed.
 let transporter = null
+
+// True when no SMTP host is configured, so the active transporter is the
+// console stub rather than a real connection.
+function isStub() {
+  return !config.smtp.host
+}
 
 function getTransporter() {
   if (transporter) return transporter
@@ -27,6 +37,23 @@ function getTransporter() {
     auth: user ? { user, pass } : undefined,
   })
   return transporter
+}
+
+// Drop the cached transporter so the next send/verify rebuilds from the
+// current config.smtp. Called after the email settings are updated.
+function reset() {
+  transporter = null
+}
+
+// Probe the SMTP connection (used by the "Test connection" action). In stub
+// mode there's nothing to connect to, so report that rather than failing.
+async function verify() {
+  if (isStub()) {
+    return { configured: false, message: 'SMTP is not configured — emails are logged to the console (stub mode).' }
+  }
+  const t = getTransporter()
+  await t.verify()
+  return { configured: true, message: 'SMTP connection successful.' }
 }
 
 async function send({ to, subject, text, html }) {
@@ -107,4 +134,4 @@ ${verifyUrl}`
   return send({ to, subject, text, html })
 }
 
-module.exports = { send, sendPasswordReset, sendEmailVerification }
+module.exports = { send, sendPasswordReset, sendEmailVerification, reset, verify, isStub }

@@ -1,10 +1,10 @@
-import { BuildingOffice2Icon, PuzzlePieceIcon, ShieldCheckIcon, KeyIcon, Squares2X2Icon, SparklesIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+import { BuildingOffice2Icon, PuzzlePieceIcon, ShieldCheckIcon, KeyIcon, Squares2X2Icon, SparklesIcon, UserGroupIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline'
 
 export default {
   slug: 'admin',
   isCore: true,
   adminOnly: false,   // routes below use per-route meta instead
-  order: 90,
+  order: 999,
   routes: [
     {
       path: '/admin/organizations',
@@ -145,6 +145,7 @@ export default {
       { label: 'nav.permissions',   to: '/admin/permissions',   icon: KeyIcon,           permission: 'permissions.list' },
       { label: 'nav.coreModules',   to: '/admin/modules',       icon: PuzzlePieceIcon,   permission: 'modules.list' },
       { label: 'nav.templates',     to: '/admin/templates',     icon: SparklesIcon },
+      { label: 'nav.settings',      to: '/admin/settings',      icon: Cog6ToothIcon },
     ],
   },
 }
