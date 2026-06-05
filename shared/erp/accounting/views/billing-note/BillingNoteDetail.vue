@@ -163,11 +163,11 @@
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[44px]">#</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[150px]">{{ t('erp.billingNotes.docColInvoiceNo') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[120px]">{{ t('erp.billingNotes.docColInvoiceNo') }}</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[100px]">{{ t('erp.billingNotes.docColInvoiceDate') }}</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[100px]">{{ t('erp.billingNotes.docColDueDate') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.common.status') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[110px]">{{ t('erp.billingNotes.colAmount') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[80px]">{{ t('erp.common.status') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[134px]">{{ t('erp.billingNotes.colAmount') }}</th>
                 </tr>
               </thead>
               <tbody>

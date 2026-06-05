@@ -179,10 +179,10 @@
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[32px]">#</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.bills.colItem') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[314px]">{{ t('erp.bills.colItem') }}</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.bills.colQty') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[96px]">{{ t('erp.bills.colUnitPrice') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[104px]">{{ t('erp.bills.colSubtotal') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[120px]">{{ t('erp.bills.colUnitPrice') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[121px]">{{ t('erp.bills.colSubtotal') }}</th>
                 </tr>
               </thead>
               <tbody>

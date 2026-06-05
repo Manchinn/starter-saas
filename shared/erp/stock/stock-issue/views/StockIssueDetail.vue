@@ -155,11 +155,11 @@
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[32px]">#</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[92px]">{{ t('erp.stockIssue.colSku') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.common.product') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[68px]">{{ t('erp.stockIssue.colQtyIssued') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[84px]">{{ t('erp.common.batchId') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[84px]">{{ t('erp.common.expiryDate') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[110px]">{{ t('erp.common.notes') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[222px]">{{ t('erp.common.product') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.stockIssue.colQtyIssued') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[74px]">{{ t('erp.common.batchId') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[74px]">{{ t('erp.common.expiryDate') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[93px]">{{ t('erp.common.notes') }}</th>
                 </tr>
               </thead>
               <tbody>

@@ -156,11 +156,11 @@
             <table class="w-full mt-4 border-collapse text-[12px] table-fixed">
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[36px]">#</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[120px]">{{ t('erp.stockTransfer.colSku') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.common.product') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[45px]">#</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[80px]">{{ t('erp.stockTransfer.colSku') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[285px]">{{ t('erp.common.product') }}</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[72px]">{{ t('erp.stockTransfer.colQty') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[160px]">{{ t('erp.common.notes') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[169px]">{{ t('erp.common.notes') }}</th>
                 </tr>
               </thead>
               <tbody>

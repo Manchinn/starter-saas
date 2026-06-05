@@ -192,10 +192,10 @@
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[36px]">#</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[120px]">{{ t('erp.stockCount.colSku') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.stockCount.colProduct') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[92px]">{{ t('erp.stockCount.colSystemQty') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[92px]">{{ t('erp.stockCount.colCountedQty') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[84px]">{{ t('erp.stockCount.colVariance') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[258px]">{{ t('erp.stockCount.colProduct') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[80px]">{{ t('erp.stockCount.colSystemQty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[80px]">{{ t('erp.stockCount.colCountedQty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[81px]">{{ t('erp.stockCount.colVariance') }}</th>
                 </tr>
               </thead>
               <tbody>

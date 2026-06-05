@@ -155,10 +155,10 @@
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[36px]">#</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[108px]">{{ t('erp.stockAdjust.colSku') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.common.product') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[84px]">{{ t('erp.stockAdjust.storeBalance') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[80px]">{{ t('erp.stockAdjust.adjQty') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[140px]">{{ t('erp.common.notes') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[270px]">{{ t('erp.common.product') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[70px]">{{ t('erp.stockAdjust.storeBalance') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[70px]">{{ t('erp.stockAdjust.adjQty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[101px]">{{ t('erp.common.notes') }}</th>
                 </tr>
               </thead>
               <tbody>

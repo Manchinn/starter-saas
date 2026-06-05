@@ -171,8 +171,8 @@
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[44px]">#</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.creditNotes.docColReason') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[120px]">{{ t('erp.creditNotes.colAmount') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[365px]">{{ t('erp.creditNotes.docColReason') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[241px]">{{ t('erp.creditNotes.colAmount') }}</th>
                 </tr>
               </thead>
               <tbody>

@@ -163,11 +163,11 @@
             <table class="w-full mt-4 border-collapse text-[12px] table-fixed">
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[130px]">Invoice #</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[189px]">Invoice #</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[110px]">Invoice Date</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[110px]">Due Date</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[140px]">Status</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[166px]">Amount Applied</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[80px]">Status</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[160px]">Amount Applied</th>
                 </tr>
               </thead>
               <tbody>

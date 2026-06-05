@@ -178,10 +178,10 @@
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[32px]">#</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[88px]">{{ t('erp.common.sku') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.purchasing.colItem') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[290px]">{{ t('erp.purchasing.colItem') }}</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.purchasing.colQty') }}</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[84px]">{{ t('erp.purchasing.colUnitPrice') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[96px]">{{ t('erp.purchasing.colSubtotal') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[93px]">{{ t('erp.purchasing.colSubtotal') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -189,7 +189,7 @@
                   <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#9BA7B0]">{{ idx + 1 }}</td>
                   <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 font-mono text-[11px] text-[#637381]">{{ item.product?.sku || '—' }}</td>
                   <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
-                    <span class="text-[#1C2434]">{{ item.product?.name || item.description || '—' }}</span>
+                    <span class="text-[#1C2434] ">{{ item.product?.name || item.description || '—' }}</span>
                     <span v-if="item.product?.name && item.description" class="block text-[11px] text-[#9BA7B0]">{{ item.description }}</span>
                   </td>
                   <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ Number(item.qty) }}</td>

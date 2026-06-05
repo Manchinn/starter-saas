@@ -171,10 +171,10 @@
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[32px]">#</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[96px]">{{ t('erp.po.colCode') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.po.colItem') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.po.colQty') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[96px]">{{ t('erp.po.colUnitPrice') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[104px]">{{ t('erp.po.colSubtotal') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[282px]">{{ t('erp.po.colItem') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[60px]">{{ t('erp.po.colQty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[86px]">{{ t('erp.po.colUnitPrice') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[95px]">{{ t('erp.po.colSubtotal') }}</th>
                 </tr>
               </thead>
               <tbody>

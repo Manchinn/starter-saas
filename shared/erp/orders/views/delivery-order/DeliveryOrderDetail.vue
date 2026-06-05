@@ -180,8 +180,7 @@
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-2 py-2 text-left w-[90px]">{{ t('erp.deliveryOrders.colCode') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left">{{ t('erp.deliveryOrders.colProduct') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[140px]">{{ t('erp.deliveryOrders.store') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[320px]">{{ t('erp.deliveryOrders.colProduct') }}</th>
                   <th class="border border-[#1C2434] px-2 py-2 text-right w-[70px]">{{ t('erp.deliveryOrders.colQty') }}</th>
                 </tr>
               </thead>
@@ -192,12 +191,10 @@
                     <span class="text-[#1C2434]">{{ item.productName }}</span>
                     <span v-if="item.notes" class="block text-[11px] text-[#9BA7B0]">{{ item.notes }}</span>
                   </td>
-                  <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-[11px] text-[#637381]">{{ item.store?.name || '—' }}</td>
                   <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums font-medium text-[#1C2434]">{{ fmtQty(item.qty) }}</td>
                 </tr>
                 <!-- filler rows keep the goods area tall like a printed form -->
                 <tr v-for="n in fillerRows" :key="'filler-' + n" class="h-[26px]">
-                  <td class="border-x border-[#1C2434]"></td>
                   <td class="border-x border-[#1C2434]"></td>
                   <td class="border-x border-[#1C2434]"></td>
                   <td class="border-x border-[#1C2434]"></td>

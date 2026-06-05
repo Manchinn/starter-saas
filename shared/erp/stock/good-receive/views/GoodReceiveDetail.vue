@@ -186,13 +186,13 @@
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
                   <th class="border border-[#1C2434] px-1.5 py-2 text-right w-[28px]">#</th>
-                  <th class="border border-[#1C2434] px-1.5 py-2 text-left w-[80px]">{{ t('erp.common.sku') }}</th>
-                  <th class="border border-[#1C2434] px-1.5 py-2 text-left">{{ t('erp.common.product') }}</th>
+                  <th class="border border-[#1C2434] px-1.5 py-2 text-left w-[75px]">{{ t('erp.common.sku') }}</th>
+                  <th class="border border-[#1C2434] px-1.5 py-2 text-left w-[216px]">{{ t('erp.common.product') }}</th>
                   <th class="border border-[#1C2434] px-1.5 py-2 text-right w-[46px]">{{ t('erp.common.qty') }}</th>
                   <th class="border border-[#1C2434] px-1.5 py-2 text-left w-[44px]">UOM</th>
-                  <th class="border border-[#1C2434] px-1.5 py-2 text-right w-[48px]">{{ t('erp.goodReceive.freeQty') }}</th>
+                  <th class="border border-[#1C2434] px-1.5 py-2 text-right w-[44px]">{{ t('erp.goodReceive.freeQty') }}</th>
                   <th class="border border-[#1C2434] px-1.5 py-2 text-right w-[72px]">Cost/Unit</th>
-                  <th class="border border-[#1C2434] px-1.5 py-2 text-right w-[44px]">{{ t('erp.goodReceive.discPct') }}</th>
+                  <th class="border border-[#1C2434] px-1.5 py-2 text-right w-[41px]">{{ t('erp.goodReceive.discPct') }}</th>
                   <th class="border border-[#1C2434] px-1.5 py-2 text-right w-[84px]">{{ t('erp.goodReceive.netAmount') }}</th>
                 </tr>
               </thead>
