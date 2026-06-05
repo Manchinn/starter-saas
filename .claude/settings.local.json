@@ -161,7 +161,8 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(python *)",
       "Bash(npx vue-tsc *)",
-      "Bash(npx --workspace=client eslint shared/erp/stock/stock-count/views/StockCountDetail.vue)"
+      "Bash(npx --workspace=client eslint shared/erp/stock/stock-count/views/StockCountDetail.vue)",
+      "Bash(npm --workspace=client run build)"
     ]
   }
 }
