@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 const Permission = sequelize.define('Permission', {
   id: {
@@ -30,6 +31,7 @@ const Permission = sequelize.define('Permission', {
     defaultValue: 'general',
     comment: 'Group (กลุ่ม) — Groups permissions in the UI (users, modules, roles, …)',
   },
+  ...recordFields,
 })
 
 module.exports = Permission

@@ -12,6 +12,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/stock-count/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -58,7 +59,7 @@
 
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
-              <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+              <DateInput ref="dateRef" v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
               <FieldError name="date" :errors="fieldErrors" />
             </div>
 
@@ -282,7 +283,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -294,6 +295,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -317,6 +320,16 @@ const loading        = ref(true)
 const loadError      = ref('')
 const loadingProducts = ref(false)
 const lockedStoreInfo = ref(null)
+const dateRef         = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push(`/erp/stock-count/${route.params.id}`),
+  cancelLabel: 'Back to detail',
+  extra: [
+    { combo: 'ctrl+r', handler: () => { if (form.value.storeId) reloadStoreProducts() }, hint: { key: 'Ctrl+R', label: 'Reload products' } },
+  ],
+})
 
 let initialStoreId = ''
 let skipNextStoreWatch = false
@@ -364,6 +377,8 @@ onMounted(async () => {
     loadError.value = err.response?.data?.message || 'Failed to load stock count'
   } finally {
     loading.value = false
+    await nextTick()
+    dateRef.value?.$el?.focus()
   }
 })
 
@@ -455,19 +470,4 @@ async function save() {
   }
 }
 
-// Keyboard shortcuts: Ctrl+S save, Ctrl+R reload products.
-function onPageKeydown(e) {
-  const ctrl = e.ctrlKey || e.metaKey
-  if (!ctrl) return
-  const key = e.key.toLowerCase()
-  if (key === 's') { e.preventDefault(); save() }
-  else if (key === 'r') {
-    // Only intercept if a store is selected — otherwise let the browser refresh.
-    if (!form.value.storeId) return
-    e.preventDefault()
-    reloadStoreProducts()
-  }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 </script>

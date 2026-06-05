@@ -8,6 +8,7 @@
           { label: t('erp.pricing.edit') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/pricing"
             :cancel-label="t('common.cancel')"
@@ -24,8 +25,12 @@
       <FormCard v-else :title="t('erp.pricing.edit')" :icon="TagIcon" icon-color="primary">
         <div class="grid grid-cols-2 gap-4">
 
-          <FormField name="code" :label="t('erp.pricing.code')" :errors="fieldErrors"
-            v-model="form.code" placeholder="e.g. PL-001" input-class="font-mono" />
+          <FormField name="code" :label="t('erp.pricing.code')" :errors="fieldErrors">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="codeInputRef" v-model="form.code" type="text"
+                placeholder="e.g. PL-001" :class="['input font-mono', errorClass]" />
+            </template>
+          </FormField>
 
           <FormField name="name" :label="t('erp.pricing.name')" :errors="fieldErrors"
             v-model="form.name" placeholder="e.g. Standard Rate" required
@@ -77,13 +82,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { TagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -99,7 +106,14 @@ const router = useRouter()
 const route  = useRoute()
 const id     = route.params.id
 
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/pricing'),
+  cancelLabel: 'Back to list',
+})
+
 const form      = ref({ code: '', name: '', description: '', unitPrice: 0, status: 'active', activeFrom: '', activeTo: '', saleItemId: '', customerGroupId: '' })
+const codeInputRef = ref(null)
 const groups    = ref([])
 const saleItems = ref([])
 const loading   = ref(true)
@@ -138,8 +152,11 @@ onMounted(async () => {
     error.value = err.response?.data?.message || 'Failed to load price list'
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
+
 
 async function save() {
   error.value = ''

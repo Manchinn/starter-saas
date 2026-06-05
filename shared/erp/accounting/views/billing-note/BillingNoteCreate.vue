@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/billing/billing-notes"
             :cancel-label="t('common.cancel')"
@@ -31,7 +32,7 @@
             <!-- Customer -->
             <div class="col-span-2 lg:col-span-1">
               <FieldLabel :text="t('erp.common.customer')" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+              <SearchSelect ref="customerSelectRef" v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
@@ -190,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -198,6 +199,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -216,6 +219,14 @@ import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router           = useRouter()
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/billing/billing-notes'),
+  cancelLabel: 'Back to list',
+})
+
+const customerSelectRef = ref(null)
 const customers        = ref([])
 const availableInvoices = ref([])
 const loadingInvoices  = ref(false)
@@ -238,6 +249,8 @@ const form  = ref({
 onMounted(async () => {
   const { data } = await api.get('/erp/customers', { params: { limit: 200 } })
   customers.value = data.data.customers
+  await nextTick()
+  customerSelectRef.value?.focus()
 })
 
 async function onCustomerChange() {

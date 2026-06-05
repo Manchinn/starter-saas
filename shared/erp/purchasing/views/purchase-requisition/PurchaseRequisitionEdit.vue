@@ -13,6 +13,7 @@
           <StatusPill :label="t('erp.purchasing.statusDraft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/purchasing/requisitions/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -387,6 +388,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
@@ -400,6 +402,7 @@ import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -708,26 +711,27 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const shift = e.shiftKey
-  const alt   = e.altKey
-  const key   = e.key.toLowerCase()
-  if (vendorCreateOpen.value) {
-    if (e.key === 'Escape') { e.preventDefault(); closeVendorCreate() }
-    return
-  }
-  if (confirmOpen.value) {
-    if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
-    return
-  }
-  if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
-  else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
-  else if (alt  && key === 'v')          { e.preventDefault(); openVendorCreate() }
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  saveDraft: () => saveDraft(),
+  cancel: () => discard(),
+  enabled: () => !vendorCreateOpen.value && !confirmOpen.value,
+  cancelLabel: 'Back to detail',
+  extra: [
+    { combo: 'ctrl+a', handler: () => openBulkPicker(), hint: { key: 'Ctrl+A', label: 'Add item' } },
+    { combo: 'alt+v',  handler: () => openVendorCreate(), hint: { key: 'Alt+V', label: 'New vendor' } },
+  ],
+})
+
+// Overlay/confirm Escape is handled separately so it takes over while open
+// (page shortcuts are suppressed via the `enabled` guard above).
+function onModalKeydown(e) {
+  if (e.key !== 'Escape') return
+  if (vendorCreateOpen.value)  { e.preventDefault(); closeVendorCreate() }
+  else if (confirmOpen.value)  { e.preventDefault(); confirmAnswer(false) }
 }
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+onMounted(() => window.addEventListener('keydown', onModalKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onModalKeydown))
 
 // `redirect` controls whether we navigate back to the detail page after save.
 // Save Changes → redirect; Save Draft → stay on edit page with "saved" indicator.

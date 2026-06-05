@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
+const { recordFields } = require('../../model-fields')
 
 const ProductVendor = sequelize.define('ProductVendor', {
   id: {
@@ -18,6 +19,7 @@ const ProductVendor = sequelize.define('ProductVendor', {
     allowNull: false,
     comment: 'Vendor (ผู้ขาย)',
   },
-}, { timestamps: false })
+  ...recordFields,
+})
 
 module.exports = ProductVendor

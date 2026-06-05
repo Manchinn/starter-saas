@@ -100,6 +100,35 @@ describe('agent.chat — tool loop', () => {
     expect(sys.content).toMatch(/only the values it returns/i)
   })
 
+  test('sums provider token usage across the tool loop and persists it on the assistant turn', async () => {
+    productSvc.create.mockResolvedValue({ id: 'p1', name: 'Widget' })
+    provider.chat
+      .mockResolvedValueOnce({ role: 'assistant', content: '', model: 'llama3.1',
+        tool_calls: [{ id: 't1', name: 'create_product', arguments: { name: 'Widget' } }],
+        usage: { promptTokens: 100, completionTokens: 20 } })
+      .mockResolvedValueOnce({ role: 'assistant', content: 'Created Widget.', tool_calls: [],
+        model: 'llama3.1', usage: { promptTokens: 150, completionTokens: 30 } })
+
+    await agent.chat({ user: USER, content: 'add a product called Widget' })
+
+    const assistantRow = AiMessage.create.mock.calls.map((c) => c[0]).find((r) => r.role === 'assistant')
+    expect(assistantRow).toMatchObject({
+      model: 'llama3.1',
+      promptTokens: 250,
+      completionTokens: 50,
+      totalTokens: 300,
+    })
+  })
+
+  test('leaves token fields null when the provider reports no usage', async () => {
+    provider.chat.mockResolvedValueOnce({ role: 'assistant', content: 'hi', tool_calls: [] })
+
+    await agent.chat({ user: USER, content: 'hi' })
+
+    const assistantRow = AiMessage.create.mock.calls.map((c) => c[0]).find((r) => r.role === 'assistant')
+    expect(assistantRow).toMatchObject({ totalTokens: null, promptTokens: null, model: null })
+  })
+
   test('rejects when the assistant is disabled', async () => {
     settingsSvc.getRaw.mockResolvedValue({ enabled: false, systemPrompt: 'sys' })
     await expect(agent.chat({ user: USER, content: 'hi' })).rejects.toMatchObject({ status: 400 })

@@ -8,6 +8,7 @@
           { label: t('common.create') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/sale-packages"
             :cancel-label="t('common.cancel')"
@@ -25,7 +26,7 @@
 
           <FormField name="code" :label="t('erp.salePackages.code')" :errors="fieldErrors">
             <template #default="{ id }">
-              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+              <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text"
                 placeholder="e.g. PKG-001" class="input font-mono" />
               <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
                 class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
@@ -130,12 +131,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, XMarkIcon, CubeIcon, ShoppingBagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -150,6 +153,13 @@ import { parseApiError } from '@/utils/apiError'
 const { t } = useI18n()
 const router  = useRouter()
 const autoCode = useAutoCode('PKG')
+const codeInputRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/sale-packages'),
+  cancelLabel: 'Back to list',
+})
 
 const form  = ref({ code: '', name: '', description: '', status: 'active', items: [] })
 const error  = ref('')
@@ -179,6 +189,8 @@ onMounted(async () => {
     const { data } = await api.get('/erp/sale-items', { params: { limit: 500, status: 'active' } })
     saleItems.value = data.data.items
   } catch { /* picker stays empty */ }
+  await nextTick()
+  codeInputRef.value?.focus()
 })
 
 function addLine() {
@@ -199,6 +211,7 @@ function onSaleItemChange(item) {
 }
 
 function removeItem(idx) { form.value.items.splice(idx, 1) }
+
 
 async function save() {
   error.value = ''

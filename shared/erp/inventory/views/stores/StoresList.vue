@@ -5,6 +5,8 @@
       <PageHeader :title="t('erp.stores.title')"
         :breadcrumb="[{ label: `${total} store${total !== 1 ? 's' : ''}` }]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+
           <AppButton to="/erp/stores/create" variant="primary">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.stores.new') }}
@@ -13,8 +15,9 @@
       </PageHeader>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="stores" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="stores" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.stores.searchPh')">
 
           <template #toolbar>
@@ -107,7 +110,7 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, PencilIcon, TrashIcon, BuildingStorefrontIcon,
@@ -117,31 +120,45 @@ import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const statusOptions = computed(() => [
   { id: 'active',   name: t('common.active')   },
   { id: 'inactive', name: t('common.inactive') },
 ])
 
-const stores       = ref([])
-const total        = ref(0)
-const page         = ref(1)
-const limit        = 20
-const search       = ref('')
+const stores           = ref([])
+const total            = ref(0)
+const page             = ref(1)
+const limit            = 20
+const search           = ref('')
 const filterStatus     = ref('')
 const filterActiveFrom = ref('')
 const filterActiveTo   = ref('')
 const showFilters      = ref(false)
 const loading          = ref(false)
+const dataTableRef     = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterActiveFrom.value, filterActiveTo.value].filter(Boolean).length)
+const totalPages        = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: stores, page, totalPages,
+  open:        s => router.push(`/erp/stores/${s.id}/edit`),
+  create:      () => router.push('/erp/stores/create'),
+  remove:      s => confirmDelete(s),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New store', openLabel: 'Edit selected row',
+})
 
 async function load() {
   loading.value = true
@@ -151,6 +168,7 @@ async function load() {
     })
     stores.value = data.data.stores
     total.value  = data.data.total
+    selectedRowIndex.value = -1
   } finally { loading.value = false }
 }
 

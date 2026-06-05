@@ -2,11 +2,15 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/product-categories" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.productCategories.edit') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/product-categories" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.productCategories.edit') }}</h1>
+        </div>
+
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <div v-if="loading" class="text-center py-12 text-[#9BA7B0]">
@@ -21,7 +25,11 @@
           </div>
           <div class="px-6 py-5">
             <div class="grid grid-cols-2 gap-4">
-              <FormField v-model="form.code" name="code" :label="t('erp.productCategories.code')" placeholder="e.g. ELEC" input-class="font-mono" :errors="fieldErrors" />
+              <FormField name="code" :label="t('erp.productCategories.code')" :errors="fieldErrors">
+                <template #default="{ id, errorClass }">
+                  <input :id="id" ref="codeInputRef" v-model="form.code" type="text" placeholder="e.g. ELEC" :class="['input font-mono', errorClass]" />
+                </template>
+              </FormField>
               <FormField v-model="form.name" name="name" :label="t('erp.productCategories.name')" placeholder="e.g. Electronics" required :errors="fieldErrors" />
               <SearchSelectWithLabel v-model="form.parentId" :label="t('erp.productCategories.parentCategory')" :options="editableParents" placeholder="— None (top-level) —" wrapper-class="col-span-2" />
               <FormField v-model="form.description" name="description" textarea :rows="3" :label="t('erp.productCategories.description')" placeholder="Optional description…" :errors="fieldErrors" wrapper-class="col-span-2" />
@@ -53,17 +61,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, nextTick, onMounted } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import FormField from '@/components/form/FormField.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { parseApiError } from '@/utils/apiError'
 
 const { t }  = useI18n()
@@ -76,16 +86,23 @@ const route  = useRoute()
 const router = useRouter()
 
 const allCategories = ref([])
-const loading = ref(true)
-const saving  = ref(false)
-const error   = ref('')
+const loading       = ref(true)
+const saving        = ref(false)
+const error         = ref('')
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const form = ref({ code: '', name: '', description: '', parentId: '', status: 'active', activeFrom: '', activeTo: '' })
 
+const codeInputRef = ref(null)
+
 const editableParents = computed(() =>
   allCategories.value.filter(c => !c.parentId && String(c.id) !== route.params.id)
 )
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/product-categories'),
+})
 
 onMounted(async () => {
   try {
@@ -98,6 +115,8 @@ onMounted(async () => {
     router.push('/erp/product-categories')
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
 

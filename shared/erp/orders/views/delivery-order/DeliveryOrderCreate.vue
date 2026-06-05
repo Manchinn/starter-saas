@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/delivery-orders"
             :cancel-label="t('common.cancel')"
@@ -30,6 +31,12 @@
         <FormCard :title="t('erp.deliveryOrders.info')" :icon="TruckIcon" icon-color="primary" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
+            <!-- Reference / PO # -->
+            <div ref="refNoRef">
+              <FormField name="referenceNumber" :label="t('erp.deliveryOrders.referenceNumber')" :errors="mergedErrors"
+                v-model="form.referenceNumber" placeholder="e.g. PO-2025-001" />
+            </div>
+
             <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.deliveryOrders.customer')" required />
@@ -40,10 +47,6 @@
               <FieldError name="customerId" :errors="mergedErrors" />
               <CustomerChip :customer="selectedCustomer" />
             </div>
-
-            <!-- Reference / PO # -->
-            <FormField name="referenceNumber" :label="t('erp.deliveryOrders.referenceNumber')" :errors="mergedErrors"
-              v-model="form.referenceNumber" placeholder="e.g. PO-2025-001" />
 
             <!-- Date -->
             <FormField name="date" :label="t('erp.common.date')" :errors="mergedErrors" required>
@@ -295,16 +298,6 @@
         </span>
       </div>
       <div class="flex items-center gap-2.5">
-        <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1" :title="t('erp.deliveryOrders.create')">
-            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
-            <span>save</span>
-          </span>
-          <span class="flex items-center gap-1" :title="t('erp.deliveryOrders.addItem')">
-            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+A</kbd>
-            <span>item</span>
-          </span>
-        </div>
         <button @click="discard" type="button"
           class="px-4 py-2.5 text-sm font-medium text-[#637381] hover:text-[#1C2434] transition-colors">
           {{ t('erp.deliveryOrders.discard') }}
@@ -361,6 +354,8 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -379,6 +374,16 @@ import { fmtDate } from '@/utils/fmt'
 const { t }    = useI18n()
 const router   = useRouter()
 
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => discard(),
+  enabled: () => !confirmOpen.value,
+  cancelLabel: 'Back to list',
+  extra: [
+    { combo: 'ctrl+a', handler: () => openBulkPicker(), hint: { key: 'Ctrl+A', label: 'Add item' } },
+  ],
+})
+
 const customers    = ref([])
 const orders       = ref([])
 const saleItems    = ref([])
@@ -390,6 +395,7 @@ const saving       = ref(false)
 const globalError  = ref('')
 const errors       = ref({})
 const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+const refNoRef     = ref(null)
 
 const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 
@@ -406,6 +412,7 @@ const dirty = ref(false)
 let dirtyArmed = false
 watch(form, () => { if (dirtyArmed) dirty.value = true }, { deep: true })
 onMounted(() => { setTimeout(() => { dirtyArmed = true }, 0) })
+onMounted(() => { setTimeout(() => { refNoRef.value?.querySelector('input')?.focus() }, 50) })
 
 function onBeforeUnload(e) {
   if (!dirty.value) return
@@ -656,14 +663,6 @@ async function onBulkAdd(objects) {
   await nextTick()
 }
 
-function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const key   = e.key.toLowerCase()
-  if (ctrl && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 'a') { e.preventDefault(); openBulkPicker() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 const canSave = computed(() => {
   if (!form.value.customerId || !form.value.date) return false

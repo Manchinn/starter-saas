@@ -7,12 +7,15 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.stockBalance.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ rows.length }} line{{ rows.length !== 1 ? 's' : '' }}</p>
         </div>
-        <button @click="load" :disabled="loading"
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <button @click="load" :disabled="loading"
           class="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-[#E2E8F0]
                  hover:bg-[#F7F9FC] transition-colors disabled:opacity-40 text-[#637381]">
           <ArrowPathIcon class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           {{ t('erp.stockBalance.refresh') }}
         </button>
+        </div>
       </div>
 
       <!-- Summary cards -->
@@ -36,7 +39,7 @@
         <div class="flex flex-wrap items-end gap-4">
           <div class="w-48">
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.stockBalance.colStore') }}</label>
-            <SearchSelect v-model="filters.storeId" :options="storeOptions" :placeholder="t('erp.stockMovement.allStores')" @change="load" />
+            <SearchSelect ref="storeSelectRef" v-model="filters.storeId" :options="storeOptions" :placeholder="t('erp.stockMovement.allStores')" @change="load" />
           </div>
           <div class="w-56">
             <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">{{ t('erp.stockBalance.colProduct') }}</label>
@@ -55,7 +58,8 @@
 
       <!-- Table -->
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="rows" :loading="loading" :total="rows.length" :page-size="9999">
+        <DataTable :columns="columns" :data="rows" :loading="loading" :total="rows.length" :page-size="9999"
+          :selected-row-index="selectedRowIndex">
           <template #empty>
             <div class="flex flex-col items-center gap-2">
               <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
@@ -72,22 +76,53 @@
 </template>
 
 <script setup>
-import { h, ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { h, ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
 import { ArrowPathIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import api from '@/api'
 import { fmtMoney, fmtQty } from '@/utils/fmt'
 
 const { t } = useI18n()
-const rows     = ref([])
-const stores   = ref([])
-const products = ref([])
-const loading  = ref(false)
+const router           = useRouter()
+const storeSelectRef   = ref(null)
+const rows             = ref([])
+const stores           = ref([])
+const products         = ref([])
+const loading          = ref(false)
+const selectedRowIndex = ref(-1)
+
+const shortcuts = [
+  { key: '↑ / ↓', label: 'Move row selection' },
+  { key: 'Enter',  label: 'Open product detail' },
+  { key: 'Esc',    label: 'Deselect row' },
+]
+
+function onKeydown(e) {
+  const el = document.activeElement
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    selectedRowIndex.value = Math.min(selectedRowIndex.value + 1, rows.value.length - 1)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    selectedRowIndex.value = Math.max(selectedRowIndex.value - 1, 0)
+  } else if (e.key === 'Enter' && selectedRowIndex.value >= 0) {
+    const row = rows.value[selectedRowIndex.value]
+    if (row?.product?.id) router.push(`/erp/stock-balance/product/${row.product.id}`)
+  } else if (e.key === 'Escape') {
+    selectedRowIndex.value = -1
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 const filters = ref({ storeId: '', productId: '', includeZero: false })
 
@@ -155,6 +190,7 @@ async function load() {
       },
     })
     rows.value = data.data.balances
+    selectedRowIndex.value = -1
   } finally { loading.value = false }
 }
 
@@ -166,6 +202,8 @@ onMounted(async () => {
     stores.value   = data.data.stores
     products.value = data.data.products
   } catch (err) { console.error('Failed to load lookups:', err.message) }
+  await nextTick()
+  storeSelectRef.value?.focus()
   load()
 })
 </script>

@@ -1,12 +1,16 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/customer-groups" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.customerGroups.new') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/customer-groups" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.customerGroups.new') }}</h1>
+        </div>
+
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
@@ -15,7 +19,7 @@
           <div class="col-span-2">
             <FormField name="code" :label="t('erp.customerGroups.code')" :errors="fieldErrors">
               <template #default="{ id }">
-                <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text" placeholder="e.g. GRP-001" class="input font-mono" />
+                <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text" placeholder="e.g. GRP-001" class="input font-mono" />
                 <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
               </template>
             </FormField>
@@ -48,18 +52,20 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import FormField from '@/components/form/FormField.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
 import { useAutoCode } from '@/composables/useAutoCode'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
@@ -73,6 +79,17 @@ const form     = ref({ code: '', name: '', description: '', status: 'active', ac
 const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
+
+const codeInputRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/customer-groups'),
+})
+
+onMounted(() => {
+  if (!autoCode.enabled.value) codeInputRef.value?.focus()
+})
 
 async function save() {
   error.value = ''

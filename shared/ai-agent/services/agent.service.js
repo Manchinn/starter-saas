@@ -89,6 +89,10 @@ const chat = async ({ user, conversationId, content, lang }) => {
 
   const actions = []
   let reply = ''
+  // Token usage is summed across every provider round-trip of the tool loop so
+  // a single user turn accounts for all the work it triggered.
+  const usage = { promptTokens: 0, completionTokens: 0 }
+  let lastModel = settings.model
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const assistant = await provider.chat({
@@ -96,6 +100,12 @@ const chat = async ({ user, conversationId, content, lang }) => {
       messages,
       tools: toolsRegistry.schemas({ compact: compress }),
     })
+
+    if (assistant.usage) {
+      usage.promptTokens += assistant.usage.promptTokens || 0
+      usage.completionTokens += assistant.usage.completionTokens || 0
+    }
+    if (assistant.model) lastModel = assistant.model
 
     const toolCalls = assistant.tool_calls || []
 
@@ -132,11 +142,17 @@ const chat = async ({ user, conversationId, content, lang }) => {
   // Persist the user + assistant turns (transient tool turns are not stored).
   const msgMeta = { conversationId: conv.id, organizationId: user.organizationId, createdBy: user.id, modifiedBy: user.id }
   await AiMessage.create({ ...msgMeta, role: 'user', content })
+  const totalTokens = usage.promptTokens + usage.completionTokens
   const assistantRow = await AiMessage.create({
     ...msgMeta,
     role: 'assistant',
     content: reply,
     actions: actions.length ? JSON.stringify(actions) : null,
+    // Persist usage only when the provider actually reported it (totalTokens > 0).
+    model: totalTokens > 0 ? lastModel : null,
+    promptTokens: totalTokens > 0 ? usage.promptTokens : null,
+    completionTokens: totalTokens > 0 ? usage.completionTokens : null,
+    totalTokens: totalTokens > 0 ? totalTokens : null,
   })
 
   // First user message names the thread.

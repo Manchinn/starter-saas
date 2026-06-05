@@ -30,6 +30,7 @@
           </nav>
         </div>
         <div v-if="adj && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
@@ -271,6 +272,8 @@ import {
   TrashIcon, PencilSquareIcon, PrinterIcon, ExclamationCircleIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
@@ -286,6 +289,14 @@ const loading       = ref(true)
 const confirming    = ref(false)
 const error         = ref('')
 const storeProducts = ref([])
+
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!adj.value,
+  canEdit: () => adj.value?.status === 'draft',
+  edit:  () => router.push(`/erp/stock-adjust/${adj.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/stock-adjust'),
+})
 
 function storeBalance(productId) {
   if (!productId) return 0
@@ -379,4 +390,5 @@ async function deleteAdj() {
     error.value = err.response?.data?.message || 'Delete failed'
   }
 }
+
 </script>

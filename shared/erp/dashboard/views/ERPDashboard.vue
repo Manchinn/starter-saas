@@ -41,7 +41,7 @@
         </div>
         <div class="h-5 w-px bg-[#E2E8F0]" />
         <div class="flex items-center gap-2">
-          <input type="date" v-model="from" :max="to" @change="onDateChange"
+          <input ref="fromDateRef" type="date" v-model="from" :max="to" @change="onDateChange"
             class="px-2 py-1 text-xs text-[#374151] border border-[#E2E8F0] focus:border-primary-300 focus:outline-none" />
           <span class="text-xs text-[#9BA7B0]">–</span>
           <input type="date" v-model="to" :min="from" :max="todayInput" @change="onDateChange"
@@ -750,7 +750,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -794,6 +794,7 @@ const canAnyQuickAction = computed(() => can('erp.invoices.edit') || can('erp.qu
 const hasAnySection = computed(() => showFinanceRow.value || showSalesRow.value || showInventoryRow.value
   || showMiddleRow.value || canStock.value || canAnyQuickAction.value)
 
+const fromDateRef = ref(null)
 const stats   = ref({})
 const loading = ref(true)
 const lastUpdated = ref('')
@@ -882,7 +883,11 @@ async function loadStats() {
   }
 }
 
-onMounted(loadStats)
+onMounted(async () => {
+  await nextTick()
+  fromDateRef.value?.focus()
+  loadStats()
+})
 
 function fmtNumber(n) {
   if (n == null) return '—'

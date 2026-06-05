@@ -5,6 +5,8 @@
       <PageHeader :title="t('erp.uomConversion.title')"
         :breadcrumb="[{ label: `${total} record${total !== 1 ? 's' : ''}` }]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+
           <RouterLink to="/erp/uom-conversion/create" class="btn-primary">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.uomConversion.new') }}
@@ -17,13 +19,14 @@
         <div class="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3">
           <div class="relative flex-1 min-w-0">
             <MagnifyingGlassIcon class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9BA7B0] pointer-events-none" />
-            <input v-model="search" type="search" :placeholder="t('erp.uomConversion.searchPh')"
+            <input ref="searchInputRef" v-model="search" type="search" :placeholder="t('erp.uomConversion.searchPh')"
               class="input pl-9 w-full" />
           </div>
         </div>
 
-        <DataTable :columns="columns" :data="filtered" :loading="loading" :total="filtered.length"
-          v-model:page="page" :page-size="20">
+        <DataTable ref="dataTableRef" :columns="columns" :data="filtered" :loading="loading" :total="filtered.length"
+          v-model:page="page" :page-size="20"
+          :selected-row-index="selectedRowIndex">
           <template #empty>
             <EmptyState :icon="ArrowsRightLeftIcon" :title="t('erp.uomConversion.noFound')"
               :subtitle="search ? t('erp.uomConversion.tryDifferentSearch') : ''" padding="md" />
@@ -63,7 +66,7 @@
 
 <script setup>
 import { h, ref, computed, reactive, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
 import {
@@ -71,17 +74,22 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 
-const conversions = ref([])
-const loading     = ref(false)
-const page        = ref(1)
-const search      = ref('')
+const conversions    = ref([])
+const loading        = ref(false)
+const page           = ref(1)
+const search         = ref('')
+const dataTableRef   = ref(null)
+const searchInputRef = ref(null)
 
 const deleteModal = reactive({ open: false, item: null, saving: false, error: '' })
 
@@ -99,11 +107,23 @@ const filtered = computed(() => {
   )
 })
 
+const totalPages = computed(() => Math.ceil(filtered.value.length / 20))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: filtered, page, totalPages,
+  open:        c => router.push(`/erp/uom-conversion/${c.id}/edit`),
+  create:      () => router.push('/erp/uom-conversion/create'),
+  remove:      c => confirmDelete(c),
+  focusSearch: () => searchInputRef.value?.focus(),
+  newLabel: 'New conversion',
+})
+
 async function load() {
   loading.value = true
   try {
     const { data } = await api.get('/erp/uom-conversion')
     conversions.value = data.data.conversions
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

@@ -13,6 +13,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             :cancel-to="`/erp/delivery-orders/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -35,6 +36,11 @@
         <FormCard :title="t('erp.deliveryOrders.info')" :icon="TruckIcon" icon-color="primary" :padded="false">
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
 
+            <div ref="refNoRef">
+              <FormField name="referenceNumber" :label="t('erp.deliveryOrders.referenceNumber')" :errors="mergedErrors"
+                v-model="form.referenceNumber" placeholder="e.g. PO-2025-001" />
+            </div>
+
             <div class="lg:col-span-2">
               <FieldLabel :text="t('erp.deliveryOrders.customer')" required />
               <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —">
@@ -44,9 +50,6 @@
               <FieldError name="customerId" :errors="mergedErrors" />
               <CustomerChip :customer="selectedCustomer" />
             </div>
-
-            <FormField name="referenceNumber" :label="t('erp.deliveryOrders.referenceNumber')" :errors="mergedErrors"
-              v-model="form.referenceNumber" placeholder="e.g. PO-2025-001" />
 
             <FormField name="date" :label="t('erp.common.date')" :errors="mergedErrors" required>
               <template #default="{ hasError }">
@@ -316,6 +319,8 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -335,6 +340,16 @@ const { t }    = useI18n()
 const route    = useRoute()
 const router   = useRouter()
 
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => discard(),
+  enabled: () => !confirmOpen.value,
+  cancelLabel: 'Back to detail',
+  extra: [
+    { combo: 'ctrl+a', handler: () => openBulkPicker(), hint: { key: 'Ctrl+A', label: 'Add item' } },
+  ],
+})
+
 const doc          = ref(null)
 const customers    = ref([])
 const orders       = ref([])
@@ -349,6 +364,7 @@ const saving       = ref(false)
 const globalError  = ref('')
 const errors       = ref({})
 const { fieldErrors, setFromError, reset: resetErrors } = useFieldErrors()
+const refNoRef     = ref(null)
 
 const mergedErrors = computed(() => ({ ...errors.value, ...fieldErrors.value }))
 const billingSameAsShipping = ref(false)
@@ -484,6 +500,7 @@ onMounted(async () => {
   loading.value = false
   await nextTick()
   dirtyArmed = true
+  refNoRef.value?.querySelector('input')?.focus()
 })
 
 watch(() => form.value.customerId, (id) => {
@@ -612,14 +629,6 @@ async function onBulkAdd(objects) {
   await nextTick()
 }
 
-function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const key   = e.key.toLowerCase()
-  if (ctrl && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 'a') { e.preventDefault(); openBulkPicker() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
 
 const canSave = computed(() => {
   if (!form.value.customerId || !form.value.date) return false

@@ -7,18 +7,22 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.debitNotes.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} debit note{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink
-          v-can="'erp.accounting.edit'"
-          to="/erp/billing/debit-notes/create"
-          class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.debitNotes.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink
+            v-can="'erp.accounting.edit'"
+            to="/erp/billing/debit-notes/create"
+            class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.debitNotes.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="debitNotes" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="debitNotes" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.debitNotes.searchPh')">
 
           <template #toolbar>
@@ -47,17 +51,20 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, EyeIcon, ArrowTrendingUpIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtMoney, fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const STATUS_FILTER_OPTIONS = computed(() => [
   { id: 'draft',     name: t('erp.common.draft') },
@@ -72,6 +79,17 @@ const limit         = 20
 const search        = ref('')
 const filterStatus  = ref('')
 const loading       = ref(false)
+const dataTableRef  = ref(null)
+
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: debitNotes, page, totalPages,
+  open:        r => router.push(`/erp/billing/debit-notes/${r.id}`),
+  create:      () => router.push('/erp/billing/debit-notes/create'),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New debit note',
+})
 
 async function fetchDebitNotes() {
   loading.value = true
@@ -81,6 +99,7 @@ async function fetchDebitNotes() {
     })
     debitNotes.value = data.data.debitNotes
     total.value      = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

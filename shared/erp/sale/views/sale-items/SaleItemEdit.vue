@@ -8,6 +8,7 @@
           { label: t('erp.saleItems.edit') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/sale-items"
             :cancel-label="t('common.cancel')"
@@ -24,8 +25,12 @@
       <FormCard v-else :title="t('erp.saleItems.edit')" :icon="TagIcon" icon-color="primary">
         <div class="grid grid-cols-2 gap-4">
 
-          <FormField name="code" :label="t('erp.saleItems.code')" :errors="fieldErrors"
-            v-model="form.code" placeholder="e.g. SI-001" input-class="font-mono" />
+          <FormField name="code" :label="t('erp.saleItems.code')" :errors="fieldErrors">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="codeInputRef" v-model="form.code" type="text"
+                placeholder="e.g. SI-001" :class="['input font-mono', errorClass]" />
+            </template>
+          </FormField>
 
           <div>
             <FieldLabel :text="t('erp.saleItems.status')" />
@@ -50,12 +55,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { TagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -72,7 +79,14 @@ const router  = useRouter()
 const route   = useRoute()
 const id      = route.params.id
 
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/sale-items'),
+  cancelLabel: 'Back to list',
+})
+
 const form     = ref({ code: '', name: '', productId: '', status: 'active' })
+const codeInputRef = ref(null)
 const masterDataStore  = useMasterDataStore()
 const saleItemStatuses = ref([])
 const products = ref([])
@@ -106,9 +120,12 @@ onMounted(async () => {
     error.value = err.response?.data?.message || 'Failed to load sale item'
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
   try { saleItemStatuses.value = await masterDataStore.getValues('sale-item-statuses') } catch {}
 })
+
 
 async function save() {
   error.value = ''

@@ -3,7 +3,11 @@
     <div class="space-y-6">
 
       <PageHeader :title="t('erp.uomConversion.editTitle')" back-to="/erp/uom-conversion"
-        :breadcrumb="[{ label: t('erp.uomConversion.editDesc') }]" />
+        :breadcrumb="[{ label: t('erp.uomConversion.editDesc') }]">
+        <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
+        </template>
+      </PageHeader>
 
       <LoadingSpinner v-if="loading" />
 
@@ -15,7 +19,7 @@
             <div class="grid grid-cols-2 gap-5">
               <div>
                 <FieldLabel :text="t('erp.uomConversion.fromUom')" required />
-                <SearchSelect v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
+                <SearchSelect ref="fromUomRef" v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
                 <FieldError name="fromUomId" :errors="fieldErrors" />
               </div>
               <div>
@@ -61,11 +65,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -74,6 +79,7 @@ import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -88,6 +94,13 @@ const error   = ref('')
 const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = useFieldErrors()
 
 const form = ref({ fromUomId: '', toUomId: '', factor: '', notes: '' })
+
+const fromUomRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/uom-conversion'),
+})
 
 const uomOptions   = computed(() => uoms.value.map(u => ({ id: u.id, name: `${u.name} (${u.abbreviation})` })))
 const fromUomLabel = computed(() => uoms.value.find(u => u.id === form.value.fromUomId)?.abbreviation || '…')
@@ -107,6 +120,8 @@ onMounted(async () => {
     router.push('/erp/uom-conversion')
   } finally {
     loading.value = false
+    await nextTick()
+    fromUomRef.value?.focus()
   }
 })
 

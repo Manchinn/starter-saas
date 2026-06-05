@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
 const bcrypt = require('bcryptjs')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 const User = sequelize.define('User', {
   id: {
@@ -112,6 +113,7 @@ const User = sequelize.define('User', {
     allowNull: true,
     comment: 'Password Reset Expires At (โทเค็นรีเซ็ตหมดอายุ)',
   },
+  ...recordFields,
 }, {
   hooks: {
     beforeCreate: async (user) => {

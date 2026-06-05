@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../config/database')
+const { recordFields } = require('../../shared/erp/model-fields')
 
 // Junction table: which modules each role grants access to
 const RoleModule = sequelize.define('RoleModule', {
@@ -13,8 +14,7 @@ const RoleModule = sequelize.define('RoleModule', {
     allowNull: false,
     comment: 'Module (โมดูล)',
   },
-}, {
-  timestamps: false,
+  ...recordFields,
 })
 
 module.exports = RoleModule

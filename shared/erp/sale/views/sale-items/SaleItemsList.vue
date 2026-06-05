@@ -7,15 +7,19 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.saleItems.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} record{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink to="/erp/sale-items/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.saleItems.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink to="/erp/sale-items/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.saleItems.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="items" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="items" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.saleItems.searchPh')">
 
           <template #toolbar>
@@ -122,7 +126,7 @@
 
 <script setup>
 import { h, ref, computed, reactive, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, PencilIcon, TrashIcon, TagIcon,
@@ -131,10 +135,13 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const statusOptions = computed(() => [
   { id: 'active',   name: t('common.active')   },
@@ -149,10 +156,21 @@ const search       = ref('')
 const filterStatus = ref('')
 const showFilters  = ref(false)
 const loading      = ref(false)
+const dataTableRef = ref(null)
 
 const deleteModal = reactive({ open: false, item: null, saving: false, error: '' })
 
 const activeFilterCount = computed(() => [filterStatus.value].filter(Boolean).length)
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: items, page, totalPages,
+  open:        r => router.push(`/erp/sale-items/${r.id}/edit`),
+  create:      () => router.push('/erp/sale-items/create'),
+  remove:      r => confirmDelete(r),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New sale item',
+})
 
 async function loadItems() {
   loading.value = true
@@ -162,6 +180,7 @@ async function loadItems() {
     })
     items.value = data.data.items
     total.value = data.data.total
+    selectedRowIndex.value = -1
   } finally { loading.value = false }
 }
 

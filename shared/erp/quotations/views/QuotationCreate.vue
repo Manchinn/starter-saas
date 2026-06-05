@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.quotations.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/quotations"
             :cancel-label="t('common.cancel')"
@@ -524,6 +525,8 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import CurrencySelector from '@/components/CurrencySelector.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -542,6 +545,19 @@ import { useSettingsStore } from '@/stores/settings'
 const { t }       = useI18n()
 const router      = useRouter()
 const settings    = useSettingsStore()
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  saveDraft: () => saveDraft(),
+  cancel: () => discard(),
+  enabled: () => !customerCreateOpen.value,
+  cancelLabel: 'Back to list',
+  extra: [
+    { combo: 'ctrl+a', handler: () => openBulkPicker(), hint: { key: 'Ctrl+A', label: 'Add item' } },
+    { combo: 'alt+i',  handler: () => openBulkPicker() },
+    { combo: 'alt+c',  handler: () => openCustomerCreate(), hint: { key: 'Alt+C', label: 'New customer' } },
+  ],
+})
 
 const customers    = ref([])
 const saleItems    = ref([])
@@ -705,25 +721,13 @@ async function saveCustomer() {
   }
 }
 
-function onPageKeydown(e) {
-  const ctrl  = e.ctrlKey || e.metaKey
-  const shift = e.shiftKey
-  const alt   = e.altKey
-  const key   = e.key.toLowerCase()
-
-  if (customerCreateOpen.value) {
-    if (e.key === 'Escape') { e.preventDefault(); closeCustomerCreate() }
-    return
-  }
-
-  if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
-  else if (ctrl && key === 'a')          { e.preventDefault(); openBulkPicker() }
-  else if (alt  && key === 'i')          { e.preventDefault(); openBulkPicker() }
-  else if (alt  && key === 'c')          { e.preventDefault(); openCustomerCreate() }
+// The customer slide-over's Escape (close) is handled separately so it takes
+// over while open (page shortcuts are suppressed via the `enabled` guard above).
+function onModalKeydown(e) {
+  if (customerCreateOpen.value && e.key === 'Escape') { e.preventDefault(); closeCustomerCreate() }
 }
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+onMounted(() => window.addEventListener('keydown', onModalKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onModalKeydown))
 
 function defaultTaxRate() {
   for (let i = form.value.items.length - 1; i >= 0; i--) {

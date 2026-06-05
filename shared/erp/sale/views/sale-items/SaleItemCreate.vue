@@ -8,6 +8,7 @@
           { label: t('common.create') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/erp/sale-items"
             :cancel-label="t('common.cancel')"
@@ -25,7 +26,7 @@
           <!-- Code -->
           <FormField name="code" :label="t('erp.saleItems.code')" :errors="fieldErrors">
             <template #default="{ id }">
-              <input v-if="!autoCode.enabled.value" :id="id" v-model="form.code" type="text"
+              <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.code" type="text"
                 placeholder="e.g. SI-001" class="input font-mono" />
               <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
                 class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
@@ -63,12 +64,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { TagIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -83,8 +86,15 @@ import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router   = useRouter()
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/sale-items'),
+  cancelLabel: 'Back to list',
+})
 const form     = ref({ code: '', name: '', productId: '', status: 'active' })
 const autoCode = useAutoCode('SI')
+const codeInputRef = ref(null)
 const masterDataStore  = useMasterDataStore()
 const saleItemStatuses = ref([])
 const products = ref([])
@@ -107,7 +117,10 @@ onMounted(async () => {
     products.value = []
   }
   try { saleItemStatuses.value = await masterDataStore.getValues('sale-item-statuses') } catch {}
+  await nextTick()
+  codeInputRef.value?.focus()
 })
+
 
 async function save() {
   error.value = ''

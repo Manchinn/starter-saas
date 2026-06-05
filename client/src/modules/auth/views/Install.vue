@@ -38,6 +38,14 @@
 
           <form @submit.prevent="handleInstall" class="space-y-10">
 
+            <!-- ── Alert ────────────────────────────────────────────────────── -->
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="opacity-0 -translate-y-1"
+              enter-to-class="opacity-100 translate-y-0">
+              <ErrorBanner v-if="errors.length" :message="errors[0]" />
+            </transition>
+
             <!-- ── Language ─────────────────────────────────────────────────── -->
             <section>
               <h2 class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-widest mb-5">
@@ -60,36 +68,20 @@
               </h2>
               <div class="grid grid-cols-4 gap-x-5 gap-y-4">
 
-                <!-- Organization name -->
-                <div class="col-span-2">
-                  <label class="label">{{ t('auth.orgName') }}</label>
-                  <input
-                    v-model="form.name" type="text" required autocomplete="organization"
-                    :placeholder="t('auth.orgNamePh')"
-                    :class="['input', errorOf('name') && 'input-error']" />
-                  <FieldError name="name" :errors="fieldErrors" />
-                </div>
+                <FormField wrapperClass="col-span-2" name="name" v-model="form.name"
+                  :label="t('auth.orgName')" :placeholder="t('auth.orgNamePh')"
+                  autocomplete="organization" :errors="fieldErrors" />
 
-                <!-- Email -->
-                <div class="col-span-2">
-                  <label class="label">{{ t('auth.email') }}</label>
-                  <input
-                    v-model="form.email" type="email" required autocomplete="email"
-                    :placeholder="t('auth.adminEmailPh')"
-                    :class="['input', errorOf('email') && 'input-error']" />
-                  <FieldError name="email" :errors="fieldErrors" />
-                </div>
+                <FormField wrapperClass="col-span-2" name="email" v-model="form.email"
+                  :label="t('auth.email')" type="email" :placeholder="t('auth.adminEmailPh')"
+                  autocomplete="email" :errors="fieldErrors" />
 
-                <!-- Password -->
-                <div class="col-span-2">
-                  <label class="label">{{ t('auth.password') }}</label>
-                  <div class="relative">
-                    <input
-                      v-model="form.password" :type="showPassword ? 'text' : 'password'" required
-                      autocomplete="new-password" :placeholder="t('auth.passwordMinPh')"
-                      :class="['input pr-11', errorOf('password') && 'input-error']" />
+                <FormField wrapperClass="col-span-2" name="password" v-model="form.password"
+                  :label="t('auth.password')" :type="showPassword ? 'text' : 'password'"
+                  :placeholder="t('auth.passwordMinPh')" autocomplete="new-password" :errors="fieldErrors">
+                  <template #suffix>
                     <button type="button" @click="showPassword = !showPassword" tabindex="-1"
-                      class="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors">
+                      class="text-[#94A3B8] hover:text-[#64748B] transition-colors">
                       <svg v-if="showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
                               d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
@@ -100,19 +92,13 @@
                               d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     </button>
-                  </div>
-                  <FieldError name="password" :errors="fieldErrors" />
-                </div>
+                  </template>
+                </FormField>
 
-                <!-- Confirm password -->
-                <div class="col-span-2">
-                  <label class="label">{{ t('auth.confirmPassword') }}</label>
-                  <input
-                    v-model="form.confirmPassword" :type="showPassword ? 'text' : 'password'" required
-                    autocomplete="new-password" :placeholder="t('auth.repeatPh')"
-                    :class="['input', confirmMismatch && 'input-error']" />
-                  <FieldError :error="confirmMismatch ? t('auth.passwordsNoMatch') : ''" />
-                </div>
+                <FormField wrapperClass="col-span-2" name="confirmPassword" v-model="form.confirmPassword"
+                  :label="t('auth.confirmPassword')" :type="showPassword ? 'text' : 'password'"
+                  :placeholder="t('auth.repeatPh')" autocomplete="new-password"
+                  :errors="confirmMismatch ? { confirmPassword: t('auth.passwordsNoMatch') } : {}" />
 
               </div>
             </section>
@@ -132,45 +118,29 @@
                     </select>
                   </div>
 
-                  <!-- SQLite path inline -->
-                  <div v-if="db.dialect === 'sqlite'" class="col-span-2">
-                    <label class="label">{{ t('auth.dbSqlitePath') }}</label>
-                    <input v-model="db.storage" type="text" spellcheck="false" autocomplete="off"
-                      :placeholder="DEFAULT_SQLITE_PATH" class="input font-mono text-[13px]" />
-                    <p class="mt-1.5 text-[12px] text-[#94A3B8]">{{ t('auth.dbSqlitePathHint') }}</p>
-                  </div>
+                  <FormField v-if="db.dialect === 'sqlite'" wrapperClass="col-span-2"
+                    name="storage" v-model="db.storage"
+                    :label="t('auth.dbSqlitePath')" :placeholder="DEFAULT_SQLITE_PATH"
+                    :hint="t('auth.dbSqlitePathHint')" inputClass="font-mono text-[13px]"
+                    spellcheck="false" autocomplete="off" />
                 </div>
 
                 <!-- Relational details -->
                 <div v-if="db.dialect !== 'sqlite'" class="grid grid-cols-4 gap-x-5 gap-y-4">
-                  <div class="col-span-2">
-                    <label class="label">{{ t('auth.dbHost') }}</label>
-                    <input v-model="db.host" type="text" placeholder="localhost" class="input" />
-                  </div>
-                  <div class="col-span-1">
-                    <label class="label">{{ t('auth.dbPort') }}</label>
-                    <input v-model="db.port" type="number" :placeholder="String(defaultPort)" class="input" />
-                  </div>
-                  <div class="col-span-1">
-                    <label class="label">{{ t('auth.dbName') }}</label>
-                    <input v-model="db.database" type="text" placeholder="starter_saas" class="input" />
-                  </div>
-                  <div class="col-span-2">
-                    <label class="label">{{ t('auth.dbUsername') }}</label>
-                    <input v-model="db.username" type="text" autocomplete="off" class="input" />
-                  </div>
-                  <div class="col-span-2">
-                    <label class="label">{{ t('auth.password') }}</label>
-                    <input v-model="db.password" type="password" autocomplete="new-password" class="input" />
-                  </div>
+                  <FormField wrapperClass="col-span-2" name="dbHost" v-model="db.host"
+                    :label="t('auth.dbHost')" placeholder="localhost" />
+                  <FormField wrapperClass="col-span-1" name="dbPort" v-model="db.port"
+                    :label="t('auth.dbPort')" type="number" :placeholder="String(defaultPort)" />
+                  <FormField wrapperClass="col-span-1" name="dbName" v-model="db.database"
+                    :label="t('auth.dbName')" placeholder="starter_saas" />
+                  <FormField wrapperClass="col-span-2" name="dbUsername" v-model="db.username"
+                    :label="t('auth.dbUsername')" autocomplete="off" />
+                  <FormField wrapperClass="col-span-2" name="dbPassword" v-model="db.password"
+                    :label="t('auth.password')" type="password" autocomplete="new-password" />
                   <div class="col-span-4 flex items-center gap-3">
-                    <button type="button" @click="testDb" :disabled="dbTesting" class="btn-secondary">
-                      <svg v-if="dbTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
+                    <AppButton variant="secondary" @click="testDb" :loading="dbTesting">
                       {{ dbTesting ? t('auth.dbTesting') : t('auth.dbTest') }}
-                    </button>
+                    </AppButton>
                     <span v-if="dbTestResult === 'ok'" class="text-[13px] font-semibold text-emerald-600 flex items-center gap-1">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -206,30 +176,18 @@
                 </label>
 
                 <div v-if="redis.enabled" class="grid grid-cols-4 gap-x-5 gap-y-4">
-                  <div class="col-span-2">
-                    <label class="label">{{ t('auth.dbHost') }}</label>
-                    <input v-model="redis.host" type="text" placeholder="127.0.0.1" class="input" @input="redisTestResult = ''" />
-                  </div>
-                  <div class="col-span-1">
-                    <label class="label">{{ t('auth.dbPort') }}</label>
-                    <input v-model="redis.port" type="number" :placeholder="String(REDIS_DEFAULT_PORT)" class="input" @input="redisTestResult = ''" />
-                  </div>
-                  <div class="col-span-1">
-                    <label class="label">{{ t('auth.redisDbIndex') }}</label>
-                    <input v-model="redis.db" type="number" placeholder="0" class="input" @input="redisTestResult = ''" />
-                  </div>
-                  <div class="col-span-2">
-                    <label class="label">{{ t('auth.password') }}</label>
-                    <input v-model="redis.password" type="password" autocomplete="new-password" class="input" @input="redisTestResult = ''" />
-                  </div>
+                  <FormField wrapperClass="col-span-2" name="redisHost" v-model="redis.host"
+                    :label="t('auth.dbHost')" placeholder="127.0.0.1" />
+                  <FormField wrapperClass="col-span-1" name="redisPort" v-model="redis.port"
+                    :label="t('auth.dbPort')" type="number" :placeholder="String(REDIS_DEFAULT_PORT)" />
+                  <FormField wrapperClass="col-span-1" name="redisDb" v-model="redis.db"
+                    :label="t('auth.redisDbIndex')" type="number" placeholder="0" />
+                  <FormField wrapperClass="col-span-2" name="redisPassword" v-model="redis.password"
+                    :label="t('auth.password')" type="password" autocomplete="new-password" />
                   <div class="col-span-4 flex items-center gap-3">
-                    <button type="button" @click="testRedis" :disabled="redisTesting" class="btn-secondary">
-                      <svg v-if="redisTesting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
+                    <AppButton variant="secondary" @click="testRedis" :loading="redisTesting">
                       {{ redisTesting ? t('auth.dbTesting') : t('auth.dbTest') }}
-                    </button>
+                    </AppButton>
                     <span v-if="redisTestResult === 'ok'" class="text-[13px] font-semibold text-emerald-600 flex items-center gap-1">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -280,32 +238,10 @@
               </div>
             </section>
 
-            <!-- ── Error + Submit ───────────────────────────────────────────── -->
-            <div class="space-y-4 pt-2">
-              <transition
-                enter-active-class="transition duration-200 ease-out"
-                enter-from-class="opacity-0 -translate-y-1"
-                enter-to-class="opacity-100 translate-y-0">
-                <div v-if="errors.length"
-                  class="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px]">
-                  <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <div class="space-y-0.5">
-                    <p v-for="e in errors" :key="e">{{ e }}</p>
-                  </div>
-                </div>
-              </transition>
-
-              <button type="submit" :disabled="loading" class="btn-primary w-full py-3 text-[14px]">
-                <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span>{{ loading ? loadingPhase : t('auth.createAdmin') }}</span>
-              </button>
-            </div>
+            <!-- ── Submit ───────────────────────────────────────────────────── -->
+            <AppButton type="submit" :loading="loading" class="w-full py-3 text-[14px]">
+              {{ loading ? loadingPhase : t('auth.createAdmin') }}
+            </AppButton>
 
           </form>
         </div>
@@ -333,7 +269,9 @@ import { useAuthStore } from '@/stores/auth'
 import { resetInstallCache } from '@/router'
 import api from '@/api'
 import { useFieldErrors } from '@/composables/useFieldErrors'
-import FieldError from '@/components/form/FieldError.vue'
+import ErrorBanner from '@/components/form/ErrorBanner.vue'
+import AppButton  from '@/components/AppButton.vue'
+import FormField  from '@/components/form/FormField.vue'
 
 const auth   = useAuthStore()
 const router = useRouter()
