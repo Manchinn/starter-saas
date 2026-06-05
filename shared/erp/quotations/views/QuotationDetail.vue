@@ -174,12 +174,12 @@
             <table class="w-full mt-4 border-collapse text-[12px] table-fixed">
               <thead>
                 <tr class="bg-[#FAFBFD] text-[10px] font-bold text-[#1C2434] uppercase tracking-wide">
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[13%]">{{ t('erp.quotations.colCode') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[39%]">{{ t('erp.quotations.colItem') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[10%]">{{ t('erp.quotations.colQty') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[15%]">{{ t('erp.quotations.colUnitPrice') }}</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[10%]">{{ t('erp.quotations.tax') }} %</th>
-                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[13%]">{{ t('erp.quotations.colTotal') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[80px]">{{ t('erp.quotations.colCode') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-left w-[265px]">{{ t('erp.quotations.colItem') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[59px]">{{ t('erp.quotations.colQty') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[85px]">{{ t('erp.quotations.colUnitPrice') }}</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[64px]">{{ t('erp.quotations.tax') }} %</th>
+                  <th class="border border-[#1C2434] px-2 py-2 text-right w-[88px]">{{ t('erp.quotations.colTotal') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -187,7 +187,7 @@
                   <tr class="align-top">
                     <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 font-mono text-[11px] text-[#637381]">{{ itemCode(item) || '—' }}</td>
                     <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5">
-                      <span class="text-[#1C2434]">{{ itemName(item) }}</span>
+                      <span class="text-[10px] text-[#1C2434]">{{ itemName(item) }}</span>
                     </td>
                     <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ fmtQty(item.quantity) }}</td>
                     <td class="border-x border-b border-x-[#1C2434] border-b-[#E2E8F0] px-2 py-1.5 text-right tabular-nums text-[#374151]">{{ fmtMoney(item.unitPrice) }}</td>
