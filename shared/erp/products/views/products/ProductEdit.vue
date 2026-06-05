@@ -2,11 +2,15 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/item-master" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.products.edit') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/item-master" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.products.edit') }}</h1>
+        </div>
+
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">{{ t('common.loading') }}</div>
@@ -20,7 +24,11 @@
         <!-- Left: product fields -->
         <div class="flex-1 bg-white border border-[#E2E8F0] p-6 space-y-5">
           <div class="grid grid-cols-2 gap-4">
-            <FormField v-model="form.sku" name="sku" :label="t('erp.products.codeSku')" :errors="fieldErrors" />
+            <FormField name="sku" :label="t('erp.products.codeSku')" :errors="fieldErrors">
+              <template #default="{ id, errorClass }">
+                <input :id="id" ref="skuInputRef" v-model="form.sku" type="text" :class="['input', errorClass]" />
+              </template>
+            </FormField>
             <FormField v-model="form.name" name="name" :label="t('erp.products.name')" required :errors="fieldErrors" />
             <SearchSelectWithLabel v-model="form.category" :label="t('erp.products.category')" :options="categoryOptions" track-by="name" label-key="name" placeholder="— None —" />
             <FormField v-model="form.cost" name="cost" type="number" :label="t('erp.products.costPrice')" :errors="fieldErrors" min="0" step="0.01" />
@@ -130,18 +138,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import FormField from '@/components/form/FormField.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
@@ -168,6 +178,13 @@ const notFound = ref(false)
 const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
+
+const skuInputRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/item-master'),
+})
 
 const availableStores   = computed(() => stores.value.filter(s => !linkedStores.value.some(l => l.id === s.id)))
 const availableVendors  = computed(() => vendors.value.filter(v => !linkedVendors.value.some(l => l.id === v.id)))
@@ -213,6 +230,8 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    skuInputRef.value?.focus()
   }
 })
 

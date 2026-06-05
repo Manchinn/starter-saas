@@ -11,16 +11,20 @@
             <template v-else>{{ t('common.loading') }}</template>
           </p>
         </div>
-        <RouterLink v-can="'erp.purchasing.edit'" to="/erp/purchasing/orders/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.po.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink v-can="'erp.purchasing.edit'" to="/erp/purchasing/orders/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.po.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <!-- Table card -->
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="orders" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="orders" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.po.searchPh')">
 
           <template #toolbar>
@@ -76,7 +80,7 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, AdjustmentsHorizontalIcon,
@@ -85,13 +89,16 @@ import {
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import { fmtDate } from '@/utils/fmt'
 
 const { t }  = useI18n()
 const auth   = useAuthStore()
+const router = useRouter()
 
 const STATUS_FILTER_OPTIONS = computed(() => [
   { id: 'draft',     name: t('erp.po.statusDraft') },
@@ -108,6 +115,18 @@ const search       = ref('')
 const filterStatus = ref('')
 const showFilters  = ref(false)
 const loading      = ref(false)
+const dataTableRef = ref(null)
+
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: orders, page, totalPages,
+  open:        r => router.push(`/erp/purchasing/orders/${r.id}`),
+  create:      () => router.push('/erp/purchasing/orders/create'),
+  remove:      r => confirmDelete(r),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New purchase order',
+})
 
 const statusClass = {
   draft:     'bg-slate-100 text-slate-600',
@@ -124,6 +143,7 @@ async function fetch() {
     })
     orders.value = data.data.orders
     total.value  = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

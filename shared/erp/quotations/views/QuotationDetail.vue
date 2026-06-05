@@ -32,6 +32,7 @@
         </div>
         <!-- Quick actions -->
         <div v-if="quotation && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             :title="t('erp.quotations.printDocument')"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -368,6 +369,8 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import DocCurrencyBadge from '@/components/DocCurrencyBadge.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import {
   ArrowLeftIcon, ChevronRightIcon, ArrowRightIcon,
   CheckIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
@@ -390,6 +393,14 @@ const updatingStatus = ref(false)
 const statusError    = ref('')
 const converting     = ref(false)
 const convertError   = ref('')
+
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!quotation.value,
+  canEdit: () => quotation.value?.status === 'draft',
+  edit:  () => router.push(`/erp/quotations/${quotation.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/quotations'),
+})
 
 // Company profile from auth.user.organization, mirrors Order detail.
 const org = computed(() => auth.user?.organization || {})

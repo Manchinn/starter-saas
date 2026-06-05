@@ -2,11 +2,14 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/vendors" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.vendors.edit') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/vendors" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.vendors.edit') }}</h1>
+        </div>
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
@@ -16,7 +19,12 @@
 
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
-          <FormField v-model="form.code" name="code" :label="t('erp.vendors.code')" :errors="fieldErrors" />
+          <FormField name="code" :label="t('erp.vendors.code')" :errors="fieldErrors">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="codeInputRef" v-model="form.code" type="text"
+                :class="['input', errorClass]" />
+            </template>
+          </FormField>
           <FormField v-model="form.name" name="name" :label="t('erp.vendors.name')" required :errors="fieldErrors" wrapper-class="col-span-2" />
           <FormField v-model="form.contactPerson" name="contactPerson" :label="t('erp.vendors.contactPerson')" :errors="fieldErrors" />
           <FormField v-model="form.email" name="email" type="email" :label="t('erp.vendors.email')" :errors="fieldErrors" />
@@ -59,16 +67,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import FormField from '@/components/form/FormField.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -80,6 +90,7 @@ const statusOptions = computed(() => [
 ])
 const route             = useRoute()
 const router            = useRouter()
+const codeInputRef      = ref(null)
 const vendorTypeOptions = ref([])
 const form     = ref({ name: '', code: '', contactPerson: '', email: '', phone: '', address: '', notes: '', vendorTypes: [], status: 'active', activeFrom: '', activeTo: '' })
 const loading  = ref(true)
@@ -87,6 +98,7 @@ const notFound = ref(false)
 const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
+const { shortcuts } = useFormShortcuts({ save: () => save(), cancel: () => router.push('/erp/vendors') })
 
 onMounted(async () => {
   const { data: mdData } = await api.get('/erp/master-data/by-name/Vendor Types')
@@ -111,6 +123,8 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
 

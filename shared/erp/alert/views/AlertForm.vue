@@ -1,6 +1,11 @@
 <template>
   <div class="grid grid-cols-2 gap-4">
-    <FormField v-model="form.title" name="title" :label="t('erp.alerts.titleField')" :placeholder="t('erp.alerts.titleField')" required :errors="errors" wrapper-class="col-span-2" />
+    <FormField name="title" :label="t('erp.alerts.titleField')" required :errors="errors" wrapper-class="col-span-2">
+      <template #default="{ id, errorClass }">
+        <input :id="id" ref="titleInputRef" v-model="form.title" type="text"
+          :placeholder="t('erp.alerts.titleField')" :class="['input', errorClass]" />
+      </template>
+    </FormField>
     <FormField v-model="form.body" name="body" textarea :rows="3" :label="t('erp.alerts.body')" :placeholder="t('erp.alerts.body')" :errors="errors" wrapper-class="col-span-2" />
 
     <SearchSelectWithLabel v-model="form.severity" :label="t('erp.alerts.severity')" :options="severityOptions" :allow-empty="false" />
@@ -23,11 +28,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FormField from '@/components/form/FormField.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
+
+const titleInputRef = ref(null)
+defineExpose({ focus: () => titleInputRef.value?.focus() })
 
 const props = defineProps({
   modelValue: { type: Object, required: true },

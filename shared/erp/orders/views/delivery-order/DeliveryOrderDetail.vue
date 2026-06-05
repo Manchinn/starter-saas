@@ -28,6 +28,7 @@
           </nav>
         </div>
         <div v-if="doc && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             :title="t('erp.deliveryOrders.printDocument')"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -338,6 +339,8 @@ import {
   ArrowPathIcon, ExclamationCircleIcon, PrinterIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
@@ -353,6 +356,14 @@ const updatingStatus = ref(false)
 const statusError    = ref('')
 const converting     = ref(false)
 const convertError   = ref('')
+
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!doc.value,
+  canEdit: () => doc.value?.status === 'draft',
+  edit:  () => router.push(`/erp/delivery-orders/${doc.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/delivery-orders'),
+})
 
 const org = computed(() => auth.user?.organization || {})
 const companyName    = computed(() => org.value.companyName || org.value.name || 'Your Company')

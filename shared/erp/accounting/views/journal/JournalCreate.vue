@@ -11,6 +11,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/accounting/journals"
             :cancel-label="t('common.cancel')"
@@ -180,7 +181,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -191,6 +193,7 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -283,15 +286,16 @@ onMounted(async () => {
   } catch { /* form still usable — account picker just shows nothing */ }
 })
 
-// Keyboard shortcuts (Ctrl+S save, Ctrl+L add line)
-function onPageKeydown(e) {
-  const ctrl = e.ctrlKey || e.metaKey
-  const key  = e.key.toLowerCase()
-  if (ctrl && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 'l') { e.preventDefault(); addLine() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+// Keyboard shortcuts (Ctrl+S save, Ctrl+L add line, Esc back to list)
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/accounting/journals'),
+  saveLabel: 'Save entry',
+  cancelLabel: 'Back to list',
+  extra: [
+    { combo: 'ctrl+l', handler: () => addLine(), hint: { key: 'Ctrl+L', label: 'Add line' } },
+  ],
+})
 
 async function save() {
   globalError.value = ''

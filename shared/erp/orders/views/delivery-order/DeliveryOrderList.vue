@@ -7,15 +7,19 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.deliveryOrders.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} delivery order{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink v-can="'erp.orders.edit'" to="/erp/delivery-orders/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.deliveryOrders.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <RouterLink v-can="'erp.orders.edit'" to="/erp/delivery-orders/create" class="btn-primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.deliveryOrders.new') }}
+          </RouterLink>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="deliveryOrders" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="deliveryOrders" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.deliveryOrders.searchPh')">
 
           <template #toolbar>
@@ -41,17 +45,20 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, EyeIcon, TruckIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const STATUS_FILTER_OPTIONS = computed(() => [
   { id: 'draft',     name: t('erp.common.draft') },
@@ -67,7 +74,18 @@ const page           = ref(1)
 const limit          = 20
 const search         = ref('')
 const filterStatus   = ref('')
-const loading        = ref(false)
+const loading      = ref(false)
+const dataTableRef = ref(null)
+
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: deliveryOrders, page, totalPages,
+  open:        r => router.push(`/erp/delivery-orders/${r.id}`),
+  create:      () => router.push('/erp/delivery-orders/create'),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New delivery order',
+})
 
 async function fetchList() {
   loading.value = true
@@ -77,6 +95,7 @@ async function fetchList() {
     })
     deliveryOrders.value = data.data.deliveryOrders
     total.value          = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

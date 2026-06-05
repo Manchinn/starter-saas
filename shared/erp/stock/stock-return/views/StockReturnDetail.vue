@@ -36,6 +36,7 @@
           </nav>
         </div>
         <div v-if="sr && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
@@ -294,6 +295,8 @@ import {
   ArrowDownTrayIcon, ArrowUpTrayIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
 import api from '@/api'
 import { fmtDate, fmtMoney } from '@/utils/fmt'
@@ -308,6 +311,14 @@ const sr           = ref(null)
 const loading      = ref(true)
 const confirming   = ref(false)
 const error        = ref('')
+
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!sr.value,
+  canEdit: () => sr.value?.status === 'draft',
+  edit:  () => router.push(`/erp/stock-return/${sr.value.id}/edit`),
+  print: onPrint,
+  back:  () => router.push('/erp/stock-return'),
+})
 
 const FLOW_STEPS = [
   { key: 'draft',     label: 'Draft' },

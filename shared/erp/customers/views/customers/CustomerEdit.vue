@@ -1,12 +1,16 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-6">
 
-      <div class="flex items-center gap-3">
-        <RouterLink to="/erp/customers" class="text-[#9BA7B0] hover:text-[#637381] transition">
-          <ArrowLeftIcon class="w-5 h-5" />
-        </RouterLink>
-        <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.customers.edit') }}</h1>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <RouterLink to="/erp/customers" class="text-[#9BA7B0] hover:text-[#637381] transition">
+            <ArrowLeftIcon class="w-5 h-5" />
+          </RouterLink>
+          <h1 class="text-2xl font-bold text-[#1C2434]">{{ t('erp.customers.edit') }}</h1>
+        </div>
+
+        <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
       </div>
 
       <div v-if="loading" class="text-[#9BA7B0] py-12 text-center">Loading…</div>
@@ -17,7 +21,11 @@
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
 
         <div class="grid grid-cols-2 gap-4">
-          <FormField v-model="form.name" name="name" :label="t('erp.customers.name')" required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField name="name" :label="t('erp.customers.name')" required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="nameInputRef" v-model="form.name" type="text" :class="['input', errorClass]" />
+            </template>
+          </FormField>
           <FormField v-model="form.company" name="company" :label="t('erp.customers.company')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.email" name="email" type="email" :label="t('erp.customers.email')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.phone" name="phone" :label="t('erp.customers.phone')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
@@ -49,17 +57,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, nextTick, onMounted } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import DateInputWithLabel from '@/components/DateInputWithLabel.vue'
 import SearchSelectWithLabel from '@/components/SearchSelectWithLabel.vue'
 import FormField from '@/components/form/FormField.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
@@ -76,6 +86,13 @@ const notFound = ref(false)
 const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
+
+const nameInputRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/customers'),
+})
 
 onMounted(async () => {
   const [groupsRes] = await Promise.allSettled([
@@ -95,6 +112,8 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    nameInputRef.value?.focus()
   }
 })
 

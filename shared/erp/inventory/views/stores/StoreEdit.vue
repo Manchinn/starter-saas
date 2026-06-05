@@ -2,7 +2,11 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.stores.edit')" back-to="/erp/stores" />
+      <PageHeader :title="t('erp.stores.edit')" back-to="/erp/stores">
+        <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
+        </template>
+      </PageHeader>
 
       <LoadingSpinner v-if="loading" />
       <div v-else-if="notFound" class="bg-red-50 text-red-700 text-sm px-4 py-3">
@@ -11,7 +15,11 @@
 
       <div v-else class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
-          <FormField v-model="form.code" name="code" :label="t('erp.stores.code')" input-class="font-mono" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField name="code" :label="t('erp.stores.code')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="codeInputRef" v-model="form.code" type="text" :class="['input font-mono', errorClass]" />
+            </template>
+          </FormField>
           <FormField v-model="form.name" name="name" :label="t('erp.stores.name')" required :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.phone" name="phone" :label="t('erp.stores.phone')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
           <FormField v-model="form.email" name="email" type="email" :label="t('erp.stores.email')" :errors="fieldErrors" wrapper-class="col-span-2 sm:col-span-1" />
@@ -50,11 +58,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -63,6 +72,7 @@ import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import LoadingSpinner from '@/components/form/LoadingSpinner.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import api from '@/api'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
@@ -80,6 +90,13 @@ const error    = ref('')
 const saving   = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
+const codeInputRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/stores'),
+})
+
 onMounted(async () => {
   try {
     const { data } = await api.get(`/erp/stores/${route.params.id}`)
@@ -89,6 +106,8 @@ onMounted(async () => {
     notFound.value = true
   } finally {
     loading.value = false
+    await nextTick()
+    codeInputRef.value?.focus()
   }
 })
 

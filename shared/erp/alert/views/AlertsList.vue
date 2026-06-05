@@ -11,10 +11,13 @@
             <template v-else>{{ t('common.loading') }}</template>
           </p>
         </div>
-        <AppButton v-can="'erp.alerts.manage'" to="/erp/alerts/create" variant="primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.alerts.new') }}
-        </AppButton>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <AppButton v-can="'erp.alerts.manage'" to="/erp/alerts/create" variant="primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.alerts.new') }}
+          </AppButton>
+        </div>
       </div>
 
       <!-- Table card -->
@@ -25,6 +28,7 @@
           <div class="relative flex-1 min-w-[180px]">
             <MagnifyingGlassIcon class="w-4 h-4 text-[#9BA7B0] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
+              ref="searchRef"
               v-model="search" @input="onSearch"
               :placeholder="t('erp.alerts.searchPh')"
               class="w-full pl-9 pr-3 py-2 text-sm border border-[#E2E8F0] focus:border-primary-400 focus:outline-none"
@@ -62,7 +66,8 @@
             <tr v-else-if="!alerts.length">
               <td colspan="6" class="px-4 py-10 text-center text-[#637381]">{{ t('erp.alerts.noFound') }}</td>
             </tr>
-            <tr v-for="a in alerts" :key="a.id" class="hover:bg-[#F7F9FC] transition-colors">
+            <tr v-for="(a, i) in alerts" :key="a.id"
+              :class="['transition-colors', i === selectedRowIndex ? 'bg-primary-50 ring-1 ring-inset ring-primary-200' : 'hover:bg-[#F7F9FC]']">
               <td class="px-4 py-3">
                 <p class="font-medium text-[#1C2434]">{{ a.title }}</p>
                 <p v-if="a.body" class="text-xs text-[#9BA7B0] mt-0.5 line-clamp-1">{{ a.body }}</p>
@@ -123,23 +128,27 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDateTime } from '@/utils/fmt'
 
 const { t } = useI18n()
+const router = useRouter()
 
-const alerts  = ref([])
-const total   = ref(0)
-const page    = ref(1)
-const limit   = 20
-const search  = ref('')
-const scope   = ref('')
-const loading = ref(false)
+const alerts    = ref([])
+const total     = ref(0)
+const page      = ref(1)
+const limit     = 20
+const search    = ref('')
+const scope     = ref('')
+const loading   = ref(false)
+const searchRef = ref(null)
 
 const scopeFilters = [
   { key: '',           label: 'common.all' },
@@ -157,6 +166,15 @@ const SEVERITY = {
 
 const totalPages = computed(() => Math.ceil(total.value / limit))
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '')
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: alerts, page, totalPages,
+  open:        a => router.push(`/erp/alerts/${a.id}/edit`),
+  create:      () => router.push('/erp/alerts/create'),
+  remove:      a => confirmDelete(a),
+  focusSearch: () => searchRef.value?.focus(),
+  newLabel: 'New alert',
+})
 
 function scopeLabel(a) {
   if (a.scope === 'module') return a.moduleSlug || t('erp.alerts.scopeModule')
@@ -179,6 +197,7 @@ async function fetch() {
     })
     alerts.value = data.data.alerts
     total.value  = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

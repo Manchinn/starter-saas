@@ -12,6 +12,7 @@
           <StatusPill label="Draft" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/stock-adjust/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -45,7 +46,7 @@
 
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
-              <DateInput v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
+              <DateInput ref="dateRef" v-model="form.date" :class="['w-full px-3.5 py-2.5 border border-[#E2E8F0] text-sm text-[#1C2434] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors', errorOf('date') && 'input-error']" />
               <FieldError name="date" :errors="fieldErrors" />
             </div>
 
@@ -312,7 +313,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -323,6 +324,8 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import SearchSelectPopup from '@/components/SearchSelectPopup.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -351,6 +354,17 @@ const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = use
 const loading = ref(true)
 const loadError = ref('')
 const pickerRef = ref(null)
+const dateRef   = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/stock-adjust'),
+  cancelLabel: 'Back to list',
+  extra: [
+    { combo: 'ctrl+l', handler: () => openPicker(), hint: { key: 'Ctrl+L', label: 'Add items' } },
+    { combo: 'ctrl+d', handler: () => { if (items.value.length) duplicateRow(items.value.length - 1) }, hint: { key: 'Ctrl+D', label: 'Duplicate last row' } },
+  ],
+})
 
 let rowKeySeq = 0
 const newKey = () => `r${++rowKeySeq}`
@@ -404,6 +418,8 @@ onMounted(async () => {
     loadError.value = err.response?.data?.message || 'Failed to load adjustment'
   } finally {
     loading.value = false
+    await nextTick()
+    dateRef.value?.$el?.focus()
   }
 })
 
@@ -511,25 +527,6 @@ async function save() {
   }
 }
 
-// Keyboard shortcuts: Ctrl+S save, Ctrl+L add items, Ctrl+D duplicate last row.
-function onPageKeydown(e) {
-  const ctrl = e.ctrlKey || e.metaKey
-  if (!ctrl) return
-  const key = e.key.toLowerCase()
-  if (key === 's') { e.preventDefault(); save() }
-  else if (key === 'l') { e.preventDefault(); openPicker() }
-  else if (key === 'd') {
-    if (!items.value.length) return
-    e.preventDefault()
-    duplicateRow(items.value.length - 1)
-  }
-}
-onMounted(() => {
-  document.addEventListener('keydown', onPageKeydown)
-  document.addEventListener('mousedown', onDocClickClosePopover)
-})
-onUnmounted(() => {
-  document.removeEventListener('keydown', onPageKeydown)
-  document.removeEventListener('mousedown', onDocClickClosePopover)
-})
+onMounted(() => document.addEventListener('mousedown', onDocClickClosePopover))
+onUnmounted(() => document.removeEventListener('mousedown', onDocClickClosePopover))
 </script>

@@ -32,16 +32,7 @@
         </div>
         <!-- Quick actions -->
         <div v-if="order && !loading" class="flex items-center gap-2 flex-shrink-0">
-          <!-- Shortcuts toggle -->
-          <button @click="shortcutsOpen = !shortcutsOpen" type="button"
-            title="Keyboard shortcuts (?)"
-            :class="['hidden sm:inline-flex items-center gap-1.5 px-2.5 py-2 text-[11px] font-medium border transition-colors',
-                     shortcutsOpen
-                       ? 'border-primary-300 bg-primary-50 text-primary-600'
-                       : 'border-[#E2E8F0] text-[#9BA7B0] hover:bg-[#F7F9FC] hover:text-[#637381]']">
-            <kbd class="font-mono text-[13px] leading-none">?</kbd>
-            <span class="hidden lg:inline">Shortcuts</span>
-          </button>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
             :title="`${t('erp.orders.printDocument')} (P)`"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
@@ -414,83 +405,6 @@
       </div>
     </Teleport>
 
-    <!-- Keyboard shortcuts panel -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition duration-150 ease-out"
-        enter-from-class="opacity-0 translate-y-2"
-        enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition duration-100 ease-in"
-        leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 translate-y-2"
-      >
-        <div v-if="shortcutsOpen"
-          class="fixed bottom-6 right-6 z-30 w-64 bg-white border border-[#E2E8F0] shadow-xl overflow-hidden print:hidden">
-
-          <div class="px-4 py-2.5 bg-[#F7F9FC] border-b border-[#E2E8F0] flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-[12px] font-semibold text-[#1C2434]">Keyboard Shortcuts</span>
-              <kbd class="px-1 py-0.5 border border-[#E2E8F0] bg-white font-mono text-[10px] text-[#9BA7B0]">?</kbd>
-            </div>
-            <button @click="shortcutsOpen = false" type="button"
-              class="w-5 h-5 flex items-center justify-center text-[#9BA7B0] hover:text-[#374151]">
-              <XMarkIcon class="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div class="px-4 py-3 space-y-3.5 text-[12px]">
-
-            <div>
-              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">Actions</p>
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="text-[#374151]">Edit order</span>
-                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">E</kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-[#374151]">Print</span>
-                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">P</kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-[#374151]">Delete order</span>
-                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Del</kbd>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">Navigation</p>
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="text-[#374151]">Back to orders list</span>
-                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Esc</kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-[#374151]">Show / hide shortcuts</span>
-                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">?</kbd>
-                </div>
-              </div>
-            </div>
-
-            <div class="pt-2 border-t border-[#E2E8F0]">
-              <p class="text-[10px] font-semibold text-[#9BA7B0] uppercase tracking-wider mb-2">In dialogs</p>
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="text-[#374151]">Confirm action</span>
-                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Enter</kbd>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-[#374151]">Cancel</span>
-                  <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px] text-[#637381]">Esc</kbd>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
   </AppLayout>
 </template>
 
@@ -506,6 +420,8 @@ import {
   ArrowPathIcon, ExclamationCircleIcon, TruckIcon, PrinterIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtMoney, fmtDate, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
@@ -522,7 +438,16 @@ const updatingStatus = ref(false)
 const statusError    = ref('')
 const converting     = ref('')
 const convertError   = ref('')
-const shortcutsOpen  = ref(false)
+
+const { shortcuts } = useDetailShortcuts({
+  enabled:   () => !loading.value && !notFound.value && !confirmOpen.value,
+  canEdit:   () => order.value?.status === 'draft',
+  edit:      () => router.push(`/erp/orders/${order.value.id}/edit`),
+  print:     onPrint,
+  remove:    confirmDelete,
+  canRemove: () => order.value?.status === 'draft',
+  back:      () => router.push('/erp/orders'),
+})
 
 // ── Custom confirm modal ────────────────────────────────────────────────
 const confirmOpen    = ref(false)
@@ -752,51 +677,15 @@ async function confirmDelete() {
   }
 }
 
-// ── Keyboard shortcuts ──────────────────────────────────────────────────
-//   E        Edit order (draft only)
-//   P        Print
-//   Del      Delete order (draft only)
-//   Esc      Back to orders list
-//   ?        Toggle shortcuts panel
-function onPageKeydown(e) {
-  if (loading.value || notFound.value) return
-
-  if (confirmOpen.value) {
-    if (e.key === 'Enter')  { e.preventDefault(); confirmAnswer(true) }
-    if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
-    return
-  }
-  if (shortcutsOpen.value) {
-    if (e.key === 'Escape' || e.key === '?') { e.preventDefault(); shortcutsOpen.value = false }
-    return
-  }
-
-  const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)
-  if (typing) return
-
-  if (e.key === 'Escape') {
-    e.preventDefault()
-    router.push('/erp/orders')
-  } else if (e.key === 'e' || e.key === 'E') {
-    if (order.value?.status === 'draft') {
-      e.preventDefault()
-      router.push(`/erp/orders/${order.value.id}/edit`)
-    }
-  } else if (e.key === 'p' || e.key === 'P') {
-    e.preventDefault()
-    onPrint()
-  } else if (e.key === 'Delete') {
-    if (order.value?.status === 'draft') {
-      e.preventDefault()
-      confirmDelete()
-    }
-  } else if (e.key === '?') {
-    e.preventDefault()
-    shortcutsOpen.value = !shortcutsOpen.value
-  }
+// Confirm-modal keys are handled separately so they take over while the dialog is
+// open (page-level shortcuts are suppressed via the `enabled` guard above).
+function onConfirmKeydown(e) {
+  if (!confirmOpen.value) return
+  if (e.key === 'Enter')  { e.preventDefault(); confirmAnswer(true) }
+  if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
 }
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+onMounted(() => window.addEventListener('keydown', onConfirmKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onConfirmKeydown))
 
 // Payment-terms labels come from master-data so admins can rename them.
 // Fall back to the stored raw value if the lookup is empty or missing.

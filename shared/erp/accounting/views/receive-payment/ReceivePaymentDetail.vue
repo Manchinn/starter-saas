@@ -29,8 +29,9 @@
         </div>
         <!-- Quick actions -->
         <div v-if="rp && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <button @click="onPrint" type="button"
-            title="Print this document"
+            title="Print this document (Ctrl+P)"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold
                    text-[#637381] bg-white border border-[#E2E8F0] hover:bg-[#F7F9FC] hover:text-[#1C2434] transition-colors">
             <PrinterIcon class="w-4 h-4" />
@@ -310,6 +311,8 @@ import {
   ArrowPathIcon, ExclamationCircleIcon, PrinterIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { fmtDate, fmtMoney, numToWords } from '@/utils/fmt'
 import { useAuthStore } from '@/stores/auth'
@@ -338,6 +341,12 @@ const companyLogoSrc = computed(() => {
   if (!p) return ''
   if (/^https?:\/\//i.test(p)) return p
   return p
+})
+
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!rp.value,
+  print: onPrint,
+  back:  () => router.push('/erp/billing/receive-payments'),
 })
 
 function onPrint() { window.print() }

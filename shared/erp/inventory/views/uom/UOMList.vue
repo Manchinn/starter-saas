@@ -5,6 +5,8 @@
       <PageHeader :title="t('erp.uom.title')"
         :breadcrumb="[{ label: `${total} UOM${total !== 1 ? 's' : ''}` }]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+
           <RouterLink to="/erp/uom/create" class="btn-primary">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.uom.new') }}
@@ -13,8 +15,9 @@
       </PageHeader>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="uoms" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="uoms" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.uom.searchPh')">
 
           <template #toolbar>
@@ -104,19 +107,22 @@
 
 <script setup>
 import { h, ref, computed, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PlusIcon, PencilIcon, TrashIcon, ScaleIcon, AdjustmentsHorizontalIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import EmptyState from '@/components/form/EmptyState.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const statusOptions = computed(() => [
   { id: 'active',   name: t('common.active')   },
@@ -133,8 +139,19 @@ const filterActiveFrom = ref('')
 const filterActiveTo   = ref('')
 const showFilters      = ref(false)
 const loading          = ref(false)
+const dataTableRef     = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterActiveFrom.value, filterActiveTo.value].filter(Boolean).length)
+const totalPages        = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: uoms, page, totalPages,
+  open:        u => router.push(`/erp/uom/${u.id}/edit`),
+  create:      () => router.push('/erp/uom/create'),
+  remove:      u => confirmDelete(u),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New UOM',
+})
 
 async function load() {
   loading.value = true
@@ -142,6 +159,7 @@ async function load() {
     const { data } = await api.get('/erp/uom', { params: { page: page.value, limit, search: search.value, status: filterStatus.value || undefined, activeFrom: filterActiveFrom.value || undefined, activeTo: filterActiveTo.value || undefined } })
     uoms.value  = data.data.uoms
     total.value = data.data.total
+    selectedRowIndex.value = -1
   } finally { loading.value = false }
 }
 

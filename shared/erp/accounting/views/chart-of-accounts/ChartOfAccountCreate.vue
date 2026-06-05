@@ -8,6 +8,7 @@
           { label: t('common.create') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/accounting/chart-of-accounts"
             :cancel-label="t('common.cancel')"
@@ -86,6 +87,7 @@ import { useI18n } from 'vue-i18n'
 import { BuildingLibraryIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -94,10 +96,18 @@ import FieldError from '@/components/form/FieldError.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 const { t } = useI18n()
 const router  = useRouter()
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/accounting/chart-of-accounts'),
+  saveLabel: 'Create',
+  cancelLabel: 'Back to list',
+})
 
 const NORMAL_BALANCE_OPTIONS = computed(() => [
   { id: 'debit',  name: t('erp.accounting.debit') },

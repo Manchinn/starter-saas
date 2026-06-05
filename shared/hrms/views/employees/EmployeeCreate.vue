@@ -8,6 +8,7 @@
           { label: t('common.create') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
             cancel-to="/hrms/employees"
             :cancel-label="t('common.cancel')"
@@ -29,7 +30,7 @@
             <FormField name="employeeCode" :label="t('erp.employees.employeeCode')" :errors="fieldErrors"
               wrapper-class="col-span-2">
               <template #default="{ id }">
-                <input v-if="!autoCode.enabled.value" :id="id" v-model="form.employeeCode" type="text"
+                <input v-if="!autoCode.enabled.value" :id="id" ref="codeInputRef" v-model="form.employeeCode" type="text"
                   placeholder="e.g. EMP-001" class="input font-mono" />
                 <input v-else :id="id" :value="autoCode.preview.value" type="text" readonly
                   class="input bg-[#F7F9FC] text-[#637381] font-mono cursor-not-allowed" />
@@ -162,13 +163,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { IdentificationIcon, KeyIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -189,7 +192,14 @@ const EMP_STATUS_OPTIONS = computed(() => [
 ])
 
 const router        = useRouter()
+const codeInputRef  = ref(null)
 const autoCode      = useAutoCode('EMP')
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/hrms/employees'),
+  cancelLabel: 'Back to list',
+})
 const users         = ref([])
 const departments   = ref([])
 const roles         = ref([])
@@ -229,6 +239,8 @@ onMounted(async () => {
   } catch (err) {
     console.error('Failed to load initial data:', err)
   }
+  await nextTick()
+  codeInputRef.value?.focus()
 })
 
 async function save() {

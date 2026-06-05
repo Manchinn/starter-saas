@@ -8,6 +8,7 @@
           { label: t('common.create') },
         ]">
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/accounting/fiscal-years"
             :cancel-label="t('common.cancel')"
@@ -60,17 +61,26 @@ import { useI18n } from 'vue-i18n'
 import { CalendarDaysIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
 const router      = useRouter()
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/accounting/fiscal-years'),
+  saveLabel: 'Create',
+  cancelLabel: 'Back to list',
+})
 const saving      = ref(false)
 const globalError = ref('')
 const errors      = ref({})

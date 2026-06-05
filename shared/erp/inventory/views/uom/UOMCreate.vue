@@ -2,13 +2,21 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.uom.new')" back-to="/erp/uom" />
+      <PageHeader :title="t('erp.uom.new')" back-to="/erp/uom">
+        <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
+        </template>
+      </PageHeader>
 
       <div class="bg-white border border-[#E2E8F0] p-6 space-y-5">
         <div class="grid grid-cols-2 gap-4">
-          <FormField v-model="form.abbreviation" name="abbreviation" :label="t('erp.uom.code')"
-            placeholder="e.g. kg" required :errors="fieldErrors" input-class="font-mono"
-            wrapper-class="col-span-2 sm:col-span-1" />
+          <FormField name="abbreviation" :label="t('erp.uom.code')" required :errors="fieldErrors"
+            wrapper-class="col-span-2 sm:col-span-1">
+            <template #default="{ id, errorClass }">
+              <input :id="id" ref="codeInputRef" v-model="form.abbreviation" type="text"
+                placeholder="e.g. kg" :class="['input font-mono', errorClass]" />
+            </template>
+          </FormField>
           <FormField v-model="form.name" name="name" :label="t('erp.uom.name')"
             placeholder="e.g. Kilogram" required :errors="fieldErrors"
             wrapper-class="col-span-2 sm:col-span-1" />
@@ -45,17 +53,19 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
 import FormField from '@/components/form/FormField.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -70,6 +80,17 @@ const form   = ref({ name: '', abbreviation: '', description: '', status: 'activ
 const error  = ref('')
 const saving = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
+
+const codeInputRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/uom'),
+})
+
+onMounted(() => {
+  codeInputRef.value?.focus()
+})
 
 async function save() {
   error.value = ''

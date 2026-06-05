@@ -28,6 +28,9 @@
             <span class="text-[12px] text-[#637381]">{{ fy?.name || '…' }}</span>
           </nav>
         </div>
+        <div v-if="fy && !loading" class="flex items-center gap-2 flex-shrink-0">
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
+        </div>
       </div>
 
       <!-- Loading -->
@@ -229,11 +232,15 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useDetailShortcuts } from '@/composables/useShortcuts'
+import { useAuthStore } from '@/stores/auth'
 import api from '@/api'
 
 const { t } = useI18n()
 const route          = useRoute()
 const router         = useRouter()
+const auth           = useAuthStore()
 const fy             = ref(null)
 const loading        = ref(true)
 const notFound       = ref(false)
@@ -243,6 +250,14 @@ const saving         = ref(false)
 const editError      = ref('')
 
 const editForm = ref({ name: '', startDate: '', endDate: '', notes: '' })
+
+const { shortcuts } = useDetailShortcuts({
+  enabled: () => !loading.value && !!fy.value,
+  back:   () => router.push('/erp/accounting/fiscal-years'),
+  remove: () => confirmDelete(),
+  canRemove: () => fy.value?.status === 'open' && auth.hasPermission('erp.accounting.delete'),
+  removeLabel: t('erp.fiscalYears.deleteFiscalYear'),
+})
 
 // ── Workflow ──────────────────────────────────────────────
 const FLOW_STEPS = computed(() => [

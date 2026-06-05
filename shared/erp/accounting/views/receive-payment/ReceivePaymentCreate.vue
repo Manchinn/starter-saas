@@ -11,6 +11,7 @@
           <StatusPill label="Draft" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             cancel-to="/erp/billing/receive-payments"
             cancel-label="Cancel"
@@ -33,7 +34,7 @@
             <!-- Customer -->
             <div class="lg:col-span-2">
               <FieldLabel text="Customer" required />
-              <SearchSelect v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
+              <SearchSelect ref="customerSelectRef" v-model="form.customerId" :options="customers" :invalid="!!mergedErrors.customerId" placeholder="— Select customer —" @change="onCustomerChange">
                 <template #option="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
                 <template #singleLabel="{ option }">{{ option.name }}<span v-if="option.company" class="text-[#9BA7B0]"> · {{ option.company }}</span></template>
               </SearchSelect>
@@ -193,9 +194,13 @@
       </div>
       <div class="flex items-center gap-2.5">
         <div class="hidden lg:flex items-center gap-3 text-[11px] text-[#9BA7B0] mr-1">
-          <span class="flex items-center gap-1" title="Create Payment">
+          <span class="flex items-center gap-1">
             <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Ctrl+S</kbd>
             <span>save</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <kbd class="px-1.5 py-0.5 border border-[#E2E8F0] bg-[#F7F9FC] font-mono text-[10px]">Esc</kbd>
+            <span>back</span>
           </span>
         </div>
         <button @click="discard" type="button"
@@ -242,7 +247,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
   CheckIcon, BanknotesIcon, ArrowPathIcon, ClipboardDocumentListIcon, CalculatorIcon, UserIcon,
@@ -250,6 +255,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FormField from '@/components/form/FormField.vue'
@@ -267,6 +274,7 @@ import { fmtMoney } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
 
 const router            = useRouter()
+const customerSelectRef = ref(null)
 const customers         = ref([])
 const paymentMethods    = ref([])
 const availableInvoices = ref([])
@@ -332,6 +340,8 @@ onMounted(async () => {
   customers.value      = custRes.data.data.customers
   paymentMethods.value = pmRes.data.data.values
   if (paymentMethods.value.length) form.value.paymentMethod = paymentMethods.value[0].name
+  await nextTick()
+  customerSelectRef.value?.focus()
 })
 
 async function onCustomerChange() {
@@ -384,13 +394,12 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-// Ctrl/⌘+S → save (no Save-Draft here; receive-payments has no draft PUT yet)
-function onPageKeydown(e) {
-  const ctrl = e.ctrlKey || e.metaKey
-  if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); save() }
-}
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => discard(),
+  saveLabel: 'Create payment',
+  cancelLabel: 'Back to list',
+})
 
 async function save() {
   globalError.value = ''

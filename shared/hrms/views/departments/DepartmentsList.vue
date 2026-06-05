@@ -7,15 +7,19 @@
           <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.departments.title') }}</h1>
           <p class="text-sm text-[#637381] mt-0.5">{{ total }} department{{ total !== 1 ? 's' : '' }}</p>
         </div>
-        <RouterLink v-can="'hrms.departments.edit'" to="/hrms/departments/create" class="btn-primary">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('erp.departments.new') }}
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <KeyboardShortcuts :shortcuts="shortcuts" />
+          <AppButton v-can="'hrms.departments.edit'" to="/hrms/departments/create" variant="primary">
+            <PlusIcon class="w-4 h-4" />
+            {{ t('erp.departments.new') }}
+          </AppButton>
+        </div>
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="departments" :loading="loading" :total="total"
+        <DataTable ref="dataTableRef" :columns="columns" :data="departments" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          :selected-row-index="selectedRowIndex"
           searchable :search-placeholder="t('erp.departments.searchPh')">
 
           <template #toolbar>
@@ -117,7 +121,7 @@
 
 <script setup>
 import { h, ref, computed, onMounted, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
 import {
@@ -126,10 +130,14 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DataTable from '@/components/DataTable.vue'
+import AppButton from '@/components/AppButton.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import { useListShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const STATUS_FILTER_OPTIONS = computed(() => [
   { id: 'active',   name: t('common.active') },
@@ -146,8 +154,19 @@ const filterActiveFrom = ref('')
 const filterActiveTo   = ref('')
 const showFilters      = ref(false)
 const loading          = ref(false)
+const dataTableRef     = ref(null)
 
 const activeFilterCount = computed(() => [filterStatus.value, filterActiveFrom.value, filterActiveTo.value].filter(Boolean).length)
+const totalPages = computed(() => Math.ceil(total.value / limit))
+
+const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+  rows: departments, page, totalPages,
+  open:        d => router.push(`/hrms/departments/${d.id}/edit`),
+  create:      () => router.push('/hrms/departments/create'),
+  remove:      d => confirmDelete(d),
+  focusSearch: () => dataTableRef.value?.focusSearch(),
+  newLabel: 'New department',
+})
 
 const ch = createColumnHelper()
 
@@ -199,6 +218,7 @@ async function fetchDepartments() {
     })
     departments.value = data.data.departments
     total.value = data.data.total
+    selectedRowIndex.value = -1
   } finally {
     loading.value = false
   }

@@ -13,6 +13,7 @@
           <StatusPill :label="t('erp.common.draft')" />
         </template>
         <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
           <HeaderSaveActions
             :cancel-to="`/erp/good-receive/${route.params.id}`"
             :cancel-label="t('common.cancel')"
@@ -41,7 +42,7 @@
           <div class="px-6 py-5 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
             <div>
               <FieldLabel :text="t('erp.common.date')" required />
-              <DateInput v-model="form.date"
+              <DateInput ref="dateInputRef" v-model="form.date"
                 :class="['w-full px-3.5 py-2.5 border text-[13px] transition-all',
                          'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
                          errors.date ? 'border-red-300 bg-red-50/50' : 'border-[#E2E8F0] text-[#1C2434]']" />
@@ -427,7 +428,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import {
@@ -450,8 +453,9 @@ import { fmtMoney, fmtRate, toFixed } from '@/utils/fmt'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
-const route  = useRoute()
-const router = useRouter()
+const route        = useRoute()
+const router       = useRouter()
+const dateInputRef = ref(null)
 const products = ref([])
 const stores   = ref([])
 const uoms     = ref([])
@@ -577,6 +581,8 @@ onMounted(async () => {
     pageLoading.value = false
     // Arm dirty tracking AFTER hydration so the initial load doesn't flag dirty
     setTimeout(() => { dirtyArmed = true }, 0)
+    await nextTick()
+    dateInputRef.value?.focus()
   }
 })
 
@@ -660,21 +666,23 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-function onPageKeydown(e) {
-  if (pageLoading.value || loadError.value) return
-  const ctrl  = e.ctrlKey || e.metaKey
-  const shift = e.shiftKey
-  const key   = e.key.toLowerCase()
-  if (confirmOpen.value) {
-    if (e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
-    return
-  }
-  if      (ctrl && shift && key === 's') { e.preventDefault(); save() }
-  else if (ctrl && key === 's')          { e.preventDefault(); saveDraft() }
-  else if (ctrl && key === 'a')          { e.preventDefault(); addRow() }
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  saveDraft: () => saveDraft(),
+  cancel: () => router.push('/erp/good-receive'),
+  cancelLabel: 'Back to list',
+  enabled: () => !pageLoading.value && !loadError.value && !confirmOpen.value,
+  extra: [
+    { combo: 'ctrl+a', handler: () => addRow(), hint: { key: 'Ctrl+A', label: 'Add item' } },
+  ],
+})
+
+// Confirm Escape is handled separately so it takes over while the dialog is open.
+function onModalKeydown(e) {
+  if (confirmOpen.value && e.key === 'Escape') { e.preventDefault(); confirmAnswer(false) }
 }
-onMounted(() => document.addEventListener('keydown', onPageKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onPageKeydown))
+onMounted(() => window.addEventListener('keydown', onModalKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onModalKeydown))
 
 async function save({ redirect = true } = {}) {
   globalError.value = ''

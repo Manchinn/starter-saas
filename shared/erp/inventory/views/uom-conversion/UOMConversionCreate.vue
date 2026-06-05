@@ -3,7 +3,11 @@
     <div class="space-y-6">
 
       <PageHeader :title="t('erp.uomConversion.newTitle')" back-to="/erp/uom-conversion"
-        :breadcrumb="[{ label: t('erp.uomConversion.newDesc') }]" />
+        :breadcrumb="[{ label: t('erp.uomConversion.newDesc') }]">
+        <template #actions>
+          <KeyboardShortcuts :shortcuts="shortcuts" width="w-56" />
+        </template>
+      </PageHeader>
 
       <FormCard :title="t('erp.uomConversion.conversionDetails')">
         <div class="space-y-5">
@@ -11,7 +15,7 @@
           <div class="grid grid-cols-2 gap-5">
             <div>
               <FieldLabel :text="t('erp.uomConversion.fromUom')" required />
-              <SearchSelect v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
+              <SearchSelect ref="fromUomRef" v-model="form.fromUomId" :options="uomOptions" :invalid="!!errorOf('fromUomId')" :placeholder="`— ${t('erp.uomConversion.selectUom')} —`" />
               <FieldError name="fromUomId" :errors="fieldErrors" />
             </div>
             <div>
@@ -62,6 +66,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
 import FormCard from '@/components/form/FormCard.vue'
 import FieldLabel from '@/components/form/FieldLabel.vue'
@@ -69,6 +74,7 @@ import FieldError from '@/components/form/FieldError.vue'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import HeaderSaveActions from '@/components/form/HeaderSaveActions.vue'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useFormShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
 import { parseApiError } from '@/utils/apiError'
 
@@ -82,6 +88,13 @@ const { fieldErrors, setFromError, setField, reset: resetErrors, errorOf } = use
 
 const form = reactive({ fromUomId: '', toUomId: '', factor: '', notes: '' })
 
+const fromUomRef = ref(null)
+
+const { shortcuts } = useFormShortcuts({
+  save: () => save(),
+  cancel: () => router.push('/erp/uom-conversion'),
+})
+
 const uomOptions   = computed(() => uoms.value.map(u => ({ id: u.id, name: `${u.name} (${u.abbreviation})` })))
 const fromUomLabel = computed(() => uoms.value.find(u => u.id === form.fromUomId)?.abbreviation || '…')
 const toUomLabel   = computed(() => uoms.value.find(u => u.id === form.toUomId)?.abbreviation   || '…')
@@ -89,6 +102,7 @@ const toUomLabel   = computed(() => uoms.value.find(u => u.id === form.toUomId)?
 onMounted(async () => {
   const { data } = await api.get('/erp/uom', { params: { limit: 200 } })
   uoms.value = data.data.uoms.filter(u => u.status === 'active')
+  fromUomRef.value?.focus()
 })
 
 async function save() {
