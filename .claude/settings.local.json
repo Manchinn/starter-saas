@@ -160,7 +160,8 @@
       "Bash(find . -type d -name composables -not -path \"*/node_modules/*\")",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(python *)",
-      "Bash(npx vue-tsc *)"
+      "Bash(npx vue-tsc *)",
+      "Bash(npx --workspace=client eslint shared/erp/stock/stock-count/views/StockCountDetail.vue)"
     ]
   }
 }
