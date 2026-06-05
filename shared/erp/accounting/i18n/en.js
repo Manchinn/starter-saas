@@ -343,6 +343,28 @@ export default {
       dateRequired:   'Date is required',
       amountRequired: 'Amount must be greater than 0',
       reasonRequired: 'Reason is required',
+
+      // ── Document view (receipt tax-invoice layout) ─────────
+      documentTitle:      'Debit Note',
+      docOriginal:        'Original',
+      docDate:            'Date',
+      docRefNo:           'Debit Note No.',
+      docLinkedInvoice:   'Ref. Invoice No.',
+      docPhoneAbbr:       'Tel.',
+      docTaxId:           'Tax ID',
+      docCustomerCode:    'Customer Code',
+      docCustomerName:    'Customer Name',
+      docAddress:         'Address',
+      docColReason:       'Description / Reason',
+      docNetTotal:        'Net Total',
+      docTerm1:           'This debit note increases the amount owed on the referenced invoice.',
+      docTerm2:           'Please reference the debit note number with your payment.',
+      docPreparedBy:      'Prepared By',
+      docApprovedBy:      'Approved By',
+      docCustomerSignature:'Customer Signature',
+      printDocument:      'Print this document',
+      nextAction:         'Next Action',
+      nextActionHint:     'Issue this debit note to lock it in and post the adjustment.',
     },
 
     creditNotes: {

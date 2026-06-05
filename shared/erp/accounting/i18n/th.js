@@ -343,6 +343,28 @@ export default {
       dateRequired:   'กรุณาระบุวันที่',
       amountRequired: 'จำนวนเงินต้องมากกว่า 0',
       reasonRequired: 'กรุณาระบุเหตุผล',
+
+      // ── Document view (receipt tax-invoice layout) ─────────
+      documentTitle:      'ใบเพิ่มหนี้',
+      docOriginal:        'ต้นฉบับ',
+      docDate:            'วันที่',
+      docRefNo:           'เลขที่ใบเพิ่มหนี้',
+      docLinkedInvoice:   'อ้างอิงเลขที่ใบแจ้งหนี้',
+      docPhoneAbbr:       'โทร.',
+      docTaxId:           'เลขประจำตัวผู้เสียภาษี',
+      docCustomerCode:    'รหัสลูกค้า',
+      docCustomerName:    'นามลูกค้า',
+      docAddress:         'ที่อยู่',
+      docColReason:       'รายละเอียด / เหตุผล',
+      docNetTotal:        'ยอดเงินสุทธิ',
+      docTerm1:           'ใบเพิ่มหนี้นี้เพิ่มยอดหนี้ของใบแจ้งหนี้ที่อ้างอิง',
+      docTerm2:           'กรุณาอ้างอิงเลขที่ใบเพิ่มหนี้ในการชำระเงินทุกครั้ง',
+      docPreparedBy:      'ผู้จัดทำ',
+      docApprovedBy:      'ผู้อนุมัติ',
+      docCustomerSignature:'ลูกค้าลงนาม',
+      printDocument:      'พิมพ์เอกสารนี้',
+      nextAction:         'การดำเนินการถัดไป',
+      nextActionHint:     'ออกใบเพิ่มหนี้นี้เพื่อบันทึกและลงรายการปรับปรุง',
     },
 
     creditNotes: {
