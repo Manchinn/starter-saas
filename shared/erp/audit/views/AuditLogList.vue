@@ -57,16 +57,13 @@
               </td>
               <td class="px-4 py-2 text-xs text-[#637381] align-top">
                 <div v-if="l.summary" class="flex items-start gap-1.5">
-                  <div class="min-w-0 flex-1">
-                    <pre v-if="expanded.has(l.id)"
-                      class="text-[11px] font-mono text-[#374151] bg-[#F7F9FC] border border-[#E2E8F0] p-2 whitespace-pre-wrap break-all">{{ pretty(l.summary) }}</pre>
-                    <code v-else class="block text-[11px] truncate">{{ summarize(l.summary) }}</code>
-                  </div>
                   <button type="button" @click="toggle(l.id)"
                     :title="t(expanded.has(l.id) ? 'erp.audit.hideSummary' : 'erp.audit.viewSummary')"
                     class="shrink-0 mt-0.5 text-[#9BA7B0] hover:text-[#374151]">
                     <component :is="expanded.has(l.id) ? EyeSlashIcon : EyeIcon" class="w-3.5 h-3.5" />
                   </button>
+                  <pre v-if="expanded.has(l.id)"
+                    class="min-w-0 flex-1 text-[11px] font-mono text-[#374151] bg-[#F7F9FC] border border-[#E2E8F0] p-2 whitespace-pre-wrap break-all">{{ pretty(l.summary) }}</pre>
                 </div>
                 <span v-else class="text-[#CBD5E1]">—</span>
               </td>
@@ -133,18 +130,6 @@ const filterAction     = ref('')
 const filterDateFrom   = ref('')
 const filterDateTo     = ref('')
 let searchTimer = null
-
-// Render a summary as `key=value · key=value`, JSON-stringifying any nested
-// object/array value so the raw JSON shows instead of "[object Object]".
-const summarize = (s) => {
-  try {
-    return Object.entries(s)
-      .map(([k, v]) => `${k}=${v !== null && typeof v === 'object' ? JSON.stringify(v) : v}`)
-      .join(' · ')
-  } catch {
-    return JSON.stringify(s)
-  }
-}
 
 // Full, pretty-printed JSON shown when a summary row is expanded.
 const pretty = (s) => {
