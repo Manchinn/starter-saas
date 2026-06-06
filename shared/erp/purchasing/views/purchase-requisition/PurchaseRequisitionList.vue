@@ -24,7 +24,7 @@
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable ref="dataTableRef" :columns="columns" :data="requisitions" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
-          :selected-row-index="selectedRowIndex"
+          :selected-row-index="selectedRowIndex" row-clickable @row-click="openRow"
           searchable :search-placeholder="t('erp.purchasing.searchPh')">
 
           <template #toolbar>
@@ -115,7 +115,7 @@ const dataTableRef = ref(null)
 
 const totalPages = computed(() => Math.ceil(total.value / limit))
 
-const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+const { selectedIndex: selectedRowIndex, shortcuts, open: openRow } = useListShortcuts({
   rows: requisitions, page, totalPages,
   open:        r => router.push(`/erp/purchasing/requisitions/${r.id}`),
   create:      () => router.push('/erp/purchasing/requisitions/create'),

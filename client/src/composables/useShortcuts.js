@@ -59,7 +59,9 @@ function matchCombo(e, combo) {
  * @param {()=>void}        [o.focusSearch]       Shift+S.
  * @param {string}          [o.newLabel]          Label for the Shift+C hint.
  * @param {string}          [o.openLabel]         Label for the Enter hint.
- * @returns {{ selectedIndex: Ref<number>, shortcuts: Array }}
+ * @returns {{ selectedIndex: Ref<number>, shortcuts: Array, open: ((row:any)=>void)|undefined }}
+ *          `open` is the same handler passed in, re-exposed so a list can also
+ *          bind it to DataTable's `@row-click` (clicking a row === Enter).
  */
 export function useListShortcuts({
   rows, page, totalPages,
@@ -105,7 +107,7 @@ export function useListShortcuts({
   onMounted(() => window.addEventListener('keydown', onKeydown))
   onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
-  return { selectedIndex, shortcuts: listHints(newLabel, openLabel) }
+  return { selectedIndex, shortcuts: listHints(newLabel, openLabel), open }
 }
 
 /**

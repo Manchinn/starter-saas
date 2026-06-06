@@ -30,7 +30,8 @@
       </div>
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-        <DataTable :columns="columns" :data="rows" :loading="loading" :total="rows.length" :page-size="9999">
+        <DataTable :columns="columns" :data="rows" :loading="loading" :total="rows.length" :page-size="9999"
+          row-clickable @row-click="openRow">
           <template #empty>
             <p class="text-center text-sm text-[#9BA7B0] font-medium">{{ t('erp.settings.noSeqs') }}</p>
           </template>
@@ -43,7 +44,7 @@
 
 <script setup>
 import { h, ref, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createColumnHelper } from '@tanstack/vue-table'
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline'
@@ -52,6 +53,9 @@ import DataTable from '@/components/DataTable.vue'
 import api from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
+
+function openRow(r) { router.push(`/erp/settings/sequence/${r.id}/edit`) }
 
 const rows    = ref([])
 const loading = ref(false)

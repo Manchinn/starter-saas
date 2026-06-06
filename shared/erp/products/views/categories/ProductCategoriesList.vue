@@ -20,7 +20,7 @@
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable ref="dataTableRef" :columns="columns" :data="categories" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
-          :selected-row-index="selectedRowIndex"
+          :selected-row-index="selectedRowIndex" row-clickable @row-click="openRow"
           searchable :search-placeholder="t('erp.productCategories.searchPh')">
 
           <template #toolbar>
@@ -155,7 +155,7 @@ const dataTableRef     = ref(null)
 const activeFilterCount = computed(() => [filterStatus.value, filterActiveFrom.value, filterActiveTo.value].filter(Boolean).length)
 const totalPages        = computed(() => Math.ceil(total.value / limit))
 
-const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+const { selectedIndex: selectedRowIndex, shortcuts, open: openRow } = useListShortcuts({
   rows: categories, page, totalPages,
   open:        cat => router.push(`/erp/product-categories/${cat.id}/edit`),
   create:      () => router.push('/erp/product-categories/create'),

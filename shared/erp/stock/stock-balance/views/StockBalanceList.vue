@@ -59,7 +59,7 @@
       <!-- Table -->
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="rows" :loading="loading" :total="rows.length" :page-size="9999"
-          :selected-row-index="selectedRowIndex">
+          :selected-row-index="selectedRowIndex" row-clickable @row-click="openRow">
           <template #empty>
             <div class="flex flex-col items-center gap-2">
               <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
@@ -114,11 +114,14 @@ function onKeydown(e) {
     e.preventDefault()
     selectedRowIndex.value = Math.max(selectedRowIndex.value - 1, 0)
   } else if (e.key === 'Enter' && selectedRowIndex.value >= 0) {
-    const row = rows.value[selectedRowIndex.value]
-    if (row?.product?.id) router.push(`/erp/stock-balance/product/${row.product.id}`)
+    openRow(rows.value[selectedRowIndex.value])
   } else if (e.key === 'Escape') {
     selectedRowIndex.value = -1
   }
+}
+
+function openRow(row) {
+  if (row?.product?.id) router.push(`/erp/stock-balance/product/${row.product.id}`)
 }
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
