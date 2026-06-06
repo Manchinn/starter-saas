@@ -169,10 +169,7 @@ const columnHelper = createColumnHelper()
 const columns = [
   columnHelper.accessor('refNo', {
     header: () => t('erp.po.colRefNo'),
-    cell: info => h(RouterLink, {
-      to: `/erp/purchasing/orders/${info.row.original.id}`,
-      class: 'font-mono text-sm text-primary-600 hover:underline font-medium',
-    }, () => info.getValue()),
+    cell: info => h('span', { class: 'font-mono text-sm font-medium text-[#1C2434]' }, info.getValue()),
   }),
   columnHelper.accessor('date', {
     header: () => t('erp.po.colDate'),
