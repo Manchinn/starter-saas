@@ -162,7 +162,12 @@
       "Bash(python *)",
       "Bash(npx vue-tsc *)",
       "Bash(npx --workspace=client eslint shared/erp/stock/stock-count/views/StockCountDetail.vue)",
-      "Bash(npm --workspace=client run build)"
+      "Bash(npm --workspace=client run build)",
+      "Bash(mv shared/reporting/views/StockAdjustReport.vue shared/erp/stock/stock-adjust/views/StockAdjustReport.vue)",
+      "Read(//d/d/Projects/starter-saas/shared/erp/stock/stock-adjust/**)",
+      "Bash(mkdir -p shared/reporting/templates/stock-adjust)",
+      "Bash(mv shared/reporting/stock-adjust/views/StockAdjustReport.vue shared/reporting/templates/stock-adjust/StockAdjustReport.vue)",
+      "Bash(rmdir shared/reporting/stock-adjust/views shared/reporting/stock-adjust)"
     ]
   }
 }
