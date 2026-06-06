@@ -17,6 +17,11 @@ export default {
       saveSettings:   'Save Settings',
 
       tabDate:            'Date & Calendar',
+      tabAuditLog:        'Audit Log',
+      auditLog:           'Audit Log',
+      auditLogDesc:       'Control how ERP activity is recorded in the audit log',
+      auditDebug:         'Debug mode — store request payload',
+      auditDebugDesc:     'When enabled, each audit log entry also stores the request payload (with passwords/tokens redacted). Useful for troubleshooting; increases stored data.',
       calendarSystem:     'Calendar System',
       calendarSystemDesc: 'Choose how years are entered and displayed in all date fields across the ERP',
       calendarCE:         'Christian Era (CE / Gregorian)',

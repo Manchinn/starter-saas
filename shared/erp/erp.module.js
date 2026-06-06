@@ -49,6 +49,13 @@ module.exports = defineModule({
   ],
   meta: { mountPath: API_PREFIX },
   register(app) {
+    // Hybrid audit capture: record one coarse audit row per successful ERP
+    // mutation. Mounted before the route files; it only attaches a `finish`
+    // listener, so req.user (set by each sub-router's authenticate) is present
+    // by the time it reads it.
+    const { auditCapture } = require('./audit/audit.middleware')
+    app.use(API_PREFIX, auditCapture)
+
     const seen = new Map()
     for (const file of findRouteFiles(__dirname)) {
       const mod = require(file)

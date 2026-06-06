@@ -15,6 +15,15 @@ const VendorBill = sequelize.define('VendorBill', {
   subtotal:         { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 , comment: 'Subtotal (ยอดก่อนภาษี)'},
   tax:              { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 , comment: 'Tax (ภาษี)'},
   total:            { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 , comment: 'Total (ยอดรวม)'},
+  // Sum of confirmed vendor-payment allocations against this bill.
+  amountPaid:       { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 , comment: 'Amount Paid (จำนวนที่จ่ายแล้ว)'},
+  balanceDue: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return Math.max(0, Number(this.getDataValue('total') || 0) - Number(this.getDataValue('amountPaid') || 0))
+    },
+    comment: 'Balance Due (ยอดคงค้าง)',
+  },
   notes:            { type: DataTypes.TEXT, allowNull: true , comment: 'Notes (หมายเหตุ)'},
   currency:         { type: DataTypes.STRING(3), allowNull: true , comment: 'Currency (สกุลเงิน)'},
   exchangeRate:     { type: DataTypes.DECIMAL(20, 8), allowNull: false, defaultValue: 1 , comment: 'Exchange Rate (อัตราแลกเปลี่ยน)'},

@@ -20,10 +20,15 @@ const CALENDAR_DEFAULTS = {
   dateFormat: 'dd/mm/yyyy',
 }
 
+const AUDIT_DEFAULTS = {
+  debug: false,
+}
+
 export const useSettingsStore = defineStore('settings', () => {
   const currency = ref({ ...CURRENCY_DEFAULTS })
   const tax      = ref({ ...TAX_DEFAULTS })
   const calendar = ref({ ...CALENDAR_DEFAULTS })
+  const audit    = ref({ ...AUDIT_DEFAULTS })
 
   async function load() {
     try {
@@ -36,6 +41,9 @@ export const useSettingsStore = defineStore('settings', () => {
       }
       if (data?.data?.calendar) {
         calendar.value = { ...CALENDAR_DEFAULTS, ...data.data.calendar }
+      }
+      if (data?.data?.audit) {
+        audit.value = { ...AUDIT_DEFAULTS, ...data.data.audit }
       }
     } catch {
       // fall back to defaults
@@ -57,11 +65,16 @@ export const useSettingsStore = defineStore('settings', () => {
     calendar.value = { ...CALENDAR_DEFAULTS, ...data.data.calendar }
   }
 
+  async function saveAudit(config) {
+    const { data } = await api.put('/erp/settings/general', { audit: config })
+    audit.value = { ...AUDIT_DEFAULTS, ...data.data.audit }
+  }
+
   async function saveAll({ currency: currencyData, tax: taxData }) {
     const { data } = await api.put('/erp/settings/general', { currency: currencyData, tax: taxData })
     if (data?.data?.currency) currency.value = { ...CURRENCY_DEFAULTS, ...data.data.currency }
     if (data?.data?.tax)      tax.value      = { ...TAX_DEFAULTS,      ...data.data.tax }
   }
 
-  return { currency, tax, calendar, load, saveCurrency, saveTax, saveCalendar, saveAll }
+  return { currency, tax, calendar, audit, load, saveCurrency, saveTax, saveCalendar, saveAudit, saveAll }
 })
