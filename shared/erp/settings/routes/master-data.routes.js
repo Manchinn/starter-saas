@@ -96,7 +96,7 @@ router.post('/categories/:id/values', requirePermission('erp.stock.edit'), async
   try {
     const category = await MasterDataCategory.findByPk(req.params.id)
     if (!category) return res.status(404).json({ message: 'Category not found' })
-    const { code, name, description, sortOrder, isActive } = req.body
+    const { code, name, description, dataValue, sortOrder, isActive } = req.body
     if (!name?.trim()) return res.status(400).json({ message: 'Name is required' })
     const orgId = req.user?.organizationId || req.user?.id
     const value = await MasterDataValue.create({
@@ -104,6 +104,7 @@ router.post('/categories/:id/values', requirePermission('erp.stock.edit'), async
       code:           code?.trim() || null,
       name:           name.trim(),
       description:    description?.trim() || null,
+      dataValue:      dataValue?.toString().trim() || null,
       sortOrder:      sortOrder ?? 0,
       isActive:       isActive !== false,
       organizationId: orgId || null,
@@ -119,12 +120,13 @@ router.put('/values/:id', requirePermission('erp.stock.edit'), async (req, res, 
   try {
     const value = await MasterDataValue.findByPk(req.params.id)
     if (!value) return res.status(404).json({ message: 'Value not found' })
-    const { code, name, description, sortOrder, isActive } = req.body
+    const { code, name, description, dataValue, sortOrder, isActive } = req.body
     if (!name?.trim()) return res.status(400).json({ message: 'Name is required' })
     await value.update({
       code:        code?.trim() || null,
       name:        name.trim(),
       description: description?.trim() || null,
+      dataValue:   dataValue?.toString().trim() || null,
       sortOrder:   sortOrder ?? 0,
       isActive:    isActive !== false,
       modifiedBy:  req.user?.id || null,

@@ -71,6 +71,9 @@
                   <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">
                     {{ t('common.description') }}
                   </th>
+                  <th class="px-4 py-3 text-left text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider w-28">
+                    {{ t('erp.masterData.colDataValue') }}
+                  </th>
                   <th class="px-4 py-3 text-center text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider w-24">
                     {{ t('erp.masterData.colSort') }}
                   </th>
@@ -84,7 +87,7 @@
 
                 <!-- Empty state -->
                 <tr v-if="!values.length && !editRow">
-                  <td colspan="6" class="px-4 py-10 text-center text-sm text-[#9BA7B0]">
+                  <td colspan="7" class="px-4 py-10 text-center text-sm text-[#9BA7B0]">
                     {{ t('erp.masterData.noValues') }}
                   </td>
                 </tr>
@@ -106,6 +109,11 @@
                     <td class="px-3 py-2">
                       <input v-model="editRow.description" type="text" :placeholder="t('common.description')"
                         class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#637381]
+                               focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
+                    </td>
+                    <td class="px-3 py-2">
+                      <input v-model="editRow.dataValue" type="text" :placeholder="t('erp.masterData.colDataValue')"
+                        class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#1C2434]
                                focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                     </td>
                     <td class="px-3 py-2">
@@ -137,6 +145,7 @@
                     <td class="px-4 py-3 font-mono text-xs text-[#637381]">{{ v.code || '—' }}</td>
                     <td class="px-4 py-3 font-medium text-[#1C2434]">{{ v.name }}</td>
                     <td class="px-4 py-3 text-sm text-[#9BA7B0] max-w-xs truncate">{{ v.description || '—' }}</td>
+                    <td class="px-4 py-3 text-sm text-[#1C2434] tabular-nums">{{ v.dataValue || '—' }}</td>
                     <td class="px-4 py-3 text-center text-sm text-[#637381] tabular-nums">{{ v.sortOrder ?? 0 }}</td>
                     <td class="px-4 py-3 text-center">
                       <span :class="v.isActive !== false ? 'bg-green-50 text-green-700' : 'bg-[#F1F5F9] text-[#9BA7B0]'"
@@ -177,6 +186,11 @@
                   <td class="px-3 py-2">
                     <input v-model="editRow.description" type="text" :placeholder="t('common.description')"
                       class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#637381]
+                             focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
+                  </td>
+                  <td class="px-3 py-2">
+                    <input v-model="editRow.dataValue" type="text" :placeholder="t('erp.masterData.colDataValue')"
+                      class="w-full px-2.5 py-2 border border-primary-300 text-sm text-[#1C2434]
                              focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors" />
                   </td>
                   <td class="px-3 py-2">
@@ -293,13 +307,13 @@ async function saveCategory() {
 
 function startEdit(v) {
   rowError.value = ''
-  editRow.value = { id: v.id, code: v.code || '', name: v.name, description: v.description || '', sortOrder: v.sortOrder ?? 0, isActive: v.isActive !== false }
+  editRow.value = { id: v.id, code: v.code || '', name: v.name, description: v.description || '', dataValue: v.dataValue || '', sortOrder: v.sortOrder ?? 0, isActive: v.isActive !== false }
 }
 
 function startAdd() {
   rowError.value = ''
   const nextSort = values.value.length ? Math.max(...values.value.map(v => v.sortOrder ?? 0)) + 10 : 10
-  editRow.value = { id: 'new', code: '', name: '', description: '', sortOrder: nextSort, isActive: true }
+  editRow.value = { id: 'new', code: '', name: '', description: '', dataValue: '', sortOrder: nextSort, isActive: true }
   nextTick(() => newNameInput.value?.focus())
 }
 
@@ -325,6 +339,7 @@ async function saveRow() {
         code:        editRow.value.code     || null,
         name:        editRow.value.name,
         description: editRow.value.description || null,
+        dataValue:   editRow.value.dataValue || null,
         sortOrder:   editRow.value.sortOrder ?? 0,
         isActive:    editRow.value.isActive,
       })
@@ -334,6 +349,7 @@ async function saveRow() {
         code:        editRow.value.code     || null,
         name:        editRow.value.name,
         description: editRow.value.description || null,
+        dataValue:   editRow.value.dataValue || null,
         sortOrder:   editRow.value.sortOrder ?? 0,
         isActive:    editRow.value.isActive,
       })

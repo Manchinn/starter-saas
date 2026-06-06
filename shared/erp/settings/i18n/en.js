@@ -166,6 +166,7 @@ export default {
       addValue:           'Add Value',
       colCode:            'Code',
       colName:            'Name',
+      colDataValue:       'Data Value',
       colSort:            'Sort',
       colActive:          'Active',
       noValues:           'No values yet. Click "Add Value" to get started.',

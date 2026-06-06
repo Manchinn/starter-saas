@@ -166,6 +166,7 @@ export default {
       addValue:           'เพิ่มค่า',
       colCode:            'รหัส',
       colName:            'ชื่อ',
+      colDataValue:       'ค่าข้อมูล',
       colSort:            'ลำดับ',
       colActive:          'ใช้งาน',
       noValues:           'ยังไม่มีค่า คลิก "เพิ่มค่า" เพื่อเริ่มต้น',
