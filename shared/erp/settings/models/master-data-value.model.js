@@ -8,6 +8,7 @@ const MasterDataValue = sequelize.define('MasterDataValue', {
   code:        { type: DataTypes.STRING,  allowNull: true , comment: 'Code (รหัส)'},
   name:        { type: DataTypes.STRING,  allowNull: false , comment: 'Name (ชื่อ)'},
   description: { type: DataTypes.TEXT,   allowNull: true , comment: 'Description (คำอธิบาย)'},
+  dataValue:   { type: DataTypes.STRING,  allowNull: true , comment: 'Data Value (ค่าข้อมูล) — extra value, e.g. WHT rate %'},
   sortOrder:   { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   isActive:    { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true , comment: 'Active (ใช้งาน)'},
   ...auditFields,

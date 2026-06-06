@@ -105,6 +105,16 @@ const MASTER_DATA_SEED = [
       { code: 'inactive', name: 'Inactive', sortOrder: 20 },
     ],
   },
+  {
+    slug: 'wht-type', name: 'WHT Type',
+    description: 'Withholding tax types; dataValue holds the rate (%).', isSystem: true,
+    values: [
+      { code: 'pnd3-service',  name: 'ค่าบริการบุคคลธรรมดา (ภงด.3)', dataValue: '3', sortOrder: 10 },
+      { code: 'pnd53-service', name: 'ค่าบริการนิติบุคคล (ภงด.53)',  dataValue: '3', sortOrder: 20 },
+      { code: 'pnd53-rental',  name: 'ค่าเช่า (ภงด.53)',             dataValue: '5', sortOrder: 30 },
+      { code: 'pnd53-advert',  name: 'ค่าโฆษณา (ภงด.53)',            dataValue: '2', sortOrder: 40 },
+    ],
+  },
 ]
 
 module.exports = {
