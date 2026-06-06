@@ -32,7 +32,7 @@
               <th class="px-4 py-2.5 font-medium text-[#637381] w-44">{{ t('erp.audit.colWhen') }}</th>
               <th class="px-4 py-2.5 font-medium text-[#637381] w-52">{{ t('erp.audit.colUser') }}</th>
               <th class="px-4 py-2.5 font-medium text-[#637381] w-40">{{ t('erp.audit.colAction') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-48">{{ t('erp.audit.colDataId') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-80">{{ t('erp.audit.colDataId') }}</th>
               <th class="px-4 py-2.5 font-medium text-[#637381]">{{ t('erp.audit.colSummary') }}</th>
             </tr>
           </thead>
@@ -53,7 +53,7 @@
               </td>
               <td class="px-4 py-2 text-xs align-top">
                 <p class="font-medium text-[#1C2434]">{{ l.entityType }}</p>
-                <p v-if="l.entityId" class="font-mono text-[10px] text-[#9BA7B0] break-all">{{ l.entityId }}</p>
+                <p v-if="l.entityId" class="font-mono text-[10px] text-[#9BA7B0] whitespace-nowrap">{{ l.entityId }}</p>
               </td>
               <td class="px-4 py-2 text-xs text-[#637381]">
                 <code v-if="l.summary" class="text-[11px]">{{ summarize(l.summary) }}</code>
