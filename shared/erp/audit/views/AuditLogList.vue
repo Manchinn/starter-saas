@@ -29,11 +29,11 @@
         <table class="w-full text-sm">
           <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
             <tr>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-44">{{ t('erp.audit.colWhen') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-52">{{ t('erp.audit.colUser') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-40">{{ t('erp.audit.colAction') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-80">{{ t('erp.audit.colDataId') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381]">{{ t('erp.audit.colSummary') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-40">{{ t('erp.audit.colWhen') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-56">{{ t('erp.audit.colUser') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-56">{{ t('erp.audit.colAction') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-72">{{ t('erp.audit.colDataId') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-16">{{ t('erp.audit.colSummary') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#E2E8F0]">
