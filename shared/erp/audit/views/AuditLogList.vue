@@ -29,11 +29,11 @@
         <table class="w-full text-sm">
           <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0] text-left">
             <tr>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-40">{{ t('erp.audit.colWhen') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-56">{{ t('erp.audit.colUser') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-56">{{ t('erp.audit.colAction') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-72">{{ t('erp.audit.colDataId') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-16">{{ t('erp.audit.colSummary') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-44">{{ t('erp.audit.colWhen') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-18">{{ t('erp.audit.colUser') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-18">{{ t('erp.audit.colAction') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-18">{{ t('erp.audit.colDataId') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-200">{{ t('erp.audit.colSummary') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#E2E8F0]">
@@ -56,7 +56,7 @@
                 <p v-if="l.entityId" class="font-mono text-[10px] text-[#9BA7B0] whitespace-nowrap">{{ l.entityId }}</p>
               </td>
               <td class="px-4 py-2 text-xs text-[#637381] align-top">
-                <div v-if="l.summary" class="flex items-start gap-1.5">
+                <div v-if="l.summary" class="flex items-start gap-1.5 ">
                   <button type="button" @click="toggle(l.id)"
                     :title="t(expanded.has(l.id) ? 'erp.audit.hideSummary' : 'erp.audit.viewSummary')"
                     class="shrink-0 mt-0.5 text-[#9BA7B0] hover:text-[#374151]">
