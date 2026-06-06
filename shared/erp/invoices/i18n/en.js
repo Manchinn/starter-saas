@@ -91,6 +91,7 @@ export default {
       docInvoiceNo:            'Invoice No.',
       docVat:                  'VAT',
       docNetTotal:             'Net Total',
+      docAmountDue:            'Amount Due',
       docTerm1:                'Payment is due by the date specified above.',
       docTerm2:                'Please reference the invoice number with your payment.',
       docPreparedBy:           'Prepared By',
