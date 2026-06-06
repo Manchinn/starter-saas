@@ -49,14 +49,25 @@
               <td class="px-4 py-2 text-xs text-[#637381] tabular-nums">{{ fmtDateTime(l.createdAt) }}</td>
               <td class="px-4 py-2 text-xs">{{ l.userEmail || '—' }}</td>
               <td class="px-4 py-2">
-                <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-mono bg-[#F1F5F9] text-[#374151]">{{ l.action }}</span>
+                <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-mono bg-[#F1F5F9] text-[#374151] whitespace-nowrap">{{ l.action }}</span>
               </td>
               <td class="px-4 py-2 text-xs align-top">
                 <p class="font-medium text-[#1C2434]">{{ l.entityType }}</p>
                 <p v-if="l.entityId" class="font-mono text-[10px] text-[#9BA7B0] whitespace-nowrap">{{ l.entityId }}</p>
               </td>
-              <td class="px-4 py-2 text-xs text-[#637381]">
-                <code v-if="l.summary" class="text-[11px]">{{ summarize(l.summary) }}</code>
+              <td class="px-4 py-2 text-xs text-[#637381] align-top">
+                <div v-if="l.summary" class="flex items-start gap-1.5">
+                  <div class="min-w-0 flex-1">
+                    <pre v-if="expanded.has(l.id)"
+                      class="text-[11px] font-mono text-[#374151] bg-[#F7F9FC] border border-[#E2E8F0] p-2 whitespace-pre-wrap break-all">{{ pretty(l.summary) }}</pre>
+                    <code v-else class="block text-[11px] truncate">{{ summarize(l.summary) }}</code>
+                  </div>
+                  <button type="button" @click="toggle(l.id)"
+                    :title="t(expanded.has(l.id) ? 'erp.audit.hideSummary' : 'erp.audit.viewSummary')"
+                    class="shrink-0 mt-0.5 text-[#9BA7B0] hover:text-[#374151]">
+                    <component :is="expanded.has(l.id) ? EyeSlashIcon : EyeIcon" class="w-3.5 h-3.5" />
+                  </button>
+                </div>
                 <span v-else class="text-[#CBD5E1]">—</span>
               </td>
             </tr>
@@ -77,7 +88,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ClipboardDocumentListIcon } from '@heroicons/vue/24/outline'
+import { ClipboardDocumentListIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
@@ -135,6 +146,19 @@ const summarize = (s) => {
   }
 }
 
+// Full, pretty-printed JSON shown when a summary row is expanded.
+const pretty = (s) => {
+  try { return JSON.stringify(s, null, 2) } catch { return String(s) }
+}
+
+// Rows whose full summary JSON is expanded (eye icon toggled).
+const expanded = ref(new Set())
+function toggle(id) {
+  const next = new Set(expanded.value)
+  next.has(id) ? next.delete(id) : next.add(id)
+  expanded.value = next
+}
+
 // Keyset pagination: load() appends the next page; reset() starts a fresh
 // query (called when filters change) by clearing the cursor and rows first.
 async function load() {
@@ -158,6 +182,7 @@ function reset() {
   logs.value = []
   nextCursor.value = null
   hasMore.value = false
+  expanded.value = new Set()
   load()
 }
 onMounted(reset)

@@ -14,6 +14,8 @@ export default {
       colSummary:  'Summary',
       loaded:      'loaded',
       loadMore:    'Load more',
+      viewSummary: 'View full summary',
+      hideSummary: 'Hide summary',
     },
   },
 }

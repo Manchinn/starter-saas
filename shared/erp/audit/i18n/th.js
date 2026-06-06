@@ -14,6 +14,8 @@ export default {
       colSummary:  'รายละเอียด',
       loaded:      'รายการ',
       loadMore:    'โหลดเพิ่มเติม',
+      viewSummary: 'ดูรายละเอียดทั้งหมด',
+      hideSummary: 'ซ่อนรายละเอียด',
     },
   },
 }
