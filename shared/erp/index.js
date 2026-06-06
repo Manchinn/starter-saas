@@ -73,7 +73,6 @@ export default {
           ...(m('purchasing').navChildren || []),
           m('accounting').vendorBillsNavItem,
           m('accounting').makePaymentsNavItem,
-          m('accounting').apAgingNavItem,
         ].filter(Boolean),
       },
       {
