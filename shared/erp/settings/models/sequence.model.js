@@ -20,6 +20,11 @@ const Sequence = sequelize.define('Sequence', {
   format:        { type: DataTypes.STRING,   allowNull: false, defaultValue: '{####}',
     comment: 'Template: {####}=padded number, {YYYY}=year, {YY}=short year, {MM}=month, {DD}=day' },
   ...recordFields,
+}, {
+  indexes: [
+    // Sequences are scoped per user: uniqueness on (code, userId), not code alone.
+    { unique: true, name: 'idx_sequences_code_user', fields: ['code', 'userId'] },
+  ],
 })
 
 module.exports = Sequence

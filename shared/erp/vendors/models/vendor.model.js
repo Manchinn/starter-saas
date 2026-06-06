@@ -64,6 +64,11 @@ const Vendor = sequelize.define('Vendor', {
   activeFrom: { type: DataTypes.DATEONLY, allowNull: true , comment: 'Active From (วันที่เริ่มใช้งาน)'},
   activeTo:   { type: DataTypes.DATEONLY, allowNull: true , comment: 'Active To (วันที่สิ้นสุด)'},
   ...auditFields,
+}, {
+  indexes: [
+    // Per-organization uniqueness on code (NULL organizationId rows are distinct).
+    { unique: true, name: 'idx_vendors_code_org', fields: ['code', 'organizationId'] },
+  ],
 })
 
 module.exports = Vendor

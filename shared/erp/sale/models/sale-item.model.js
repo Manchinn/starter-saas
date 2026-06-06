@@ -32,6 +32,10 @@ const SaleItem = sequelize.define('SaleItem', {
   ...auditFields,
 }, {
   tableName: 'sale_items',
+  indexes: [
+    // Per-organization uniqueness on code (NULL organizationId rows are distinct).
+    { unique: true, name: 'idx_sale_items_code_org', fields: ['code', 'organizationId'] },
+  ],
 })
 
 module.exports = SaleItem
