@@ -418,6 +418,16 @@ export default {
       nextActionHint:     'Issue this credit note to lock it in and post the adjustment.',
     },
 
+    makePayments: {
+      title:     'Make Payments',
+      new:       'New Payment',
+      searchPh:  'Search by ref or reference…',
+      noFound:   'No payments found',
+      colRefNo:  'Ref No.',
+      colVendor: 'Vendor',
+      colMethod: 'Method',
+      colAmount: 'Amount',
+    },
     cashFlow: {
       title:      'Cash Flow Statement',
       subtitle:   'Cash movements by activity (direct method)',

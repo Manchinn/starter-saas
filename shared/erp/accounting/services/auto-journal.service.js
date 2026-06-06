@@ -279,6 +279,37 @@ const postBillPayment = async (bill, userId) => {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Purchase: VendorPayment confirmed → Dr AP / Cr Cash/Bank (multi-bill allocator)
+// The payables mirror of postReceivePayment.
+// ──────────────────────────────────────────────────────────────────────────────
+const postVendorPayment = async (vp, userId) => {
+  const orgId = vp.organizationId || null
+  const existing = await findExisting('VendorPayment', vp.id)
+  if (existing) return existing
+
+  const ap       = await accounts.getByRole('AP', orgId)
+  const cashBank = await accounts.accountForPaymentMethod(vp.paymentMethod, orgId)
+  const rate      = Number(vp.exchangeRate) || 1
+  const amountDoc = Number(vp.amount || 0)
+  if (!amountDoc) throw { status: 400, message: 'Vendor Payment amount is zero — cannot post journal' }
+  const amount = toBase(amountDoc, rate)
+  const fx     = fxContext(amountDoc, vp.currency, rate)
+
+  return postJournal({
+    sourceType:    'VendorPayment',
+    sourceId:      vp.id,
+    date:          vp.date,
+    description:   `Auto-posted from Vendor Payment ${vp.refNo}${fx}`,
+    lines: [
+      { accountId: ap.id,       debit: amount, credit: 0, description: `Vendor Payment ${vp.refNo}` },
+      { accountId: cashBank.id, debit: 0, credit: amount, description: `Vendor Payment ${vp.refNo}${fx}` },
+    ],
+    userId,
+    organizationId: orgId,
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Sales: ReceivePayment confirmed → Dr Cash/Bank / Cr AR (multi-invoice allocator)
 // Mirrors postReceipt but the source doc carries its own ref number + payment
 // method, and the total is the sum of per-invoice allocation lines.
@@ -498,6 +529,7 @@ const reverseCreditNote     = (cn,      userId, reason = 'credit note cancelled'
 const reverseDebitNote      = (dn,      userId, reason = 'debit note cancelled')      => reverseFor('DebitNote',         dn.id,      userId, reason)
 const reverseVendorBill     = (bill,    userId, reason = 'vendor bill cancelled')     => reverseFor('VendorBill',        bill.id,    userId, reason)
 const reverseBillPayment    = (bill,    userId, reason = 'bill payment cancelled')    => reverseFor('VendorBillPayment', bill.id,    userId, reason)
+const reverseVendorPayment  = (vp,      userId, reason = 'vendor payment cancelled')  => reverseFor('VendorPayment',     vp.id,      userId, reason)
 const reverseInvoiceCOGS    = (invoice, userId, reason = 'invoice cancelled')         => reverseFor('Invoice.cogs',      invoice.id, userId, reason)
 const reverseStockAdjustment= (id,      userId, reason = 'adjustment voided')         => reverseFor('StockAdjust',       id,         userId, reason)
 const reverseStockIssue     = (id,      userId, reason = 'issue voided')              => reverseFor('StockIssue',        id,         userId, reason)
@@ -523,6 +555,7 @@ module.exports = {
   postDebitNote:         (dn,  uid)      => safeRun(() => postDebitNote(dn, uid),                 `DebitNote ${dn.refNo}`),
   postVendorBill:        (bill, uid)     => safeRun(() => postVendorBill(bill, uid),              `VendorBill ${bill.billNumber}`),
   postBillPayment:       (bill, uid)     => safeRun(() => postBillPayment(bill, uid),             `BillPayment ${bill.billNumber}`),
+  postVendorPayment:     (vp,  uid)      => safeRun(() => postVendorPayment(vp, uid),             `VendorPayment ${vp.refNo}`),
   reverseInvoice:        (inv, uid, r)   => safeRun(() => reverseInvoice(inv, uid, r),            `Reverse Invoice ${inv.invoiceNumber}`),
   reverseReceipt:        (rec, uid, r)   => safeRun(() => reverseReceipt(rec, uid, r),            `Reverse Receipt ${rec.receiptNumber}`),
   reverseReceivePayment: (rp,  uid, r)   => safeRun(() => reverseReceivePayment(rp, uid, r),      `Reverse ReceivePayment ${rp.refNo}`),
@@ -530,6 +563,7 @@ module.exports = {
   reverseDebitNote:      (dn,  uid, r)   => safeRun(() => reverseDebitNote(dn, uid, r),           `Reverse DebitNote ${dn.refNo}`),
   reverseVendorBill:     (bill, uid, r)  => safeRun(() => reverseVendorBill(bill, uid, r),        `Reverse VendorBill ${bill.billNumber}`),
   reverseBillPayment:    (bill, uid, r)  => safeRun(() => reverseBillPayment(bill, uid, r),       `Reverse BillPayment ${bill.billNumber}`),
+  reverseVendorPayment:  (vp,  uid, r)   => safeRun(() => reverseVendorPayment(vp, uid, r),       `Reverse VendorPayment ${vp.refNo}`),
   reverseInvoiceCOGS:    (inv, uid, r)   => safeRun(() => reverseInvoiceCOGS(inv, uid, r),        `Reverse Invoice COGS ${inv.invoiceNumber}`),
   reverseStockAdjustment:(id, uid, r)    => safeRun(() => reverseStockAdjustment(id, uid, r),     `Reverse StockAdjust ${id}`),
   reverseStockIssue:     (id, uid, r)    => safeRun(() => reverseStockIssue(id, uid, r),          `Reverse StockIssue ${id}`),

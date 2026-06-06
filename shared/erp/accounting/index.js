@@ -144,6 +144,25 @@ export const routes = [
     component: () => import('./views/vat-report/VatReport.vue'),
     meta: { requiresAuth: true, title: 'VAT Report' },
   },
+  // Make Payments (AP disbursement)
+  {
+    path: '/erp/billing/make-payments',
+    name: 'erp-billing-make-payments',
+    component: () => import('./views/vendor-payment/VendorPaymentList.vue'),
+    meta: { requiresAuth: true, title: 'Make Payments' },
+  },
+  {
+    path: '/erp/billing/make-payments/create',
+    name: 'erp-billing-make-payments-create',
+    component: () => import('./views/vendor-payment/VendorPaymentCreate.vue'),
+    meta: { requiresAuth: true, title: 'New Vendor Payment' },
+  },
+  {
+    path: '/erp/billing/make-payments/:id',
+    name: 'erp-billing-make-payments-detail',
+    component: () => import('./views/vendor-payment/VendorPaymentDetail.vue'),
+    meta: { requiresAuth: true, title: 'Vendor Payment Detail' },
+  },
   // Receive Payments
   {
     path: '/erp/billing/receive-payments',
@@ -284,5 +303,13 @@ export const apAgingNavItem = {
   label: 'nav.apAging',
   to: '/erp/accounting/ap-aging',
   icon: ChartBarIcon,
+  permission: 'erp.accounting.list',
+}
+
+// Make Payments (AP disbursement) — Purchasing nav group
+export const makePaymentsNavItem = {
+  label: 'nav.makePayments',
+  to: '/erp/billing/make-payments',
+  icon: BanknotesIcon,
   permission: 'erp.accounting.list',
 }
