@@ -64,6 +64,8 @@ export default {
       sameAsShipping:    'Same as shipping',
       useCustomerAddress:'Use customer address',
       discount:          'Discount',
+      wht:               'WHT',
+      netTotal:          'Net Total',
       newCustomer:       'New Customer',
       discard:           'Discard',
       saveDraft:         'Save Draft',
