@@ -16,6 +16,7 @@ export default {
     close: 'ปิด',
     delete: 'ลบ',
     edit: 'แก้ไข',
+    view: 'ดู',
     print: 'พิมพ์',
     remove: 'ลบออก',
     duplicate: 'ทำสำเนา',

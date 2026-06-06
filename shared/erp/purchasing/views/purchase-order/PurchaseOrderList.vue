@@ -84,7 +84,7 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, AdjustmentsHorizontalIcon,
-  TrashIcon, DocumentTextIcon,
+  EyeIcon, TrashIcon, DocumentTextIcon,
 } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -205,12 +205,18 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => '',
-    meta: { thClass: 'w-16', tdClass: '' },
+    meta: { thClass: 'w-24', tdClass: '' },
     cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
+      h(RouterLink, {
+        to: `/erp/purchasing/orders/${info.row.original.id}`,
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
+        title: t('common.view'),
+      }, () => h(EyeIcon, { class: 'w-4 h-4' })),
       auth.hasPermission('erp.purchasing.delete') && info.row.original.status === 'draft'
         ? h('button', {
             onClick: () => confirmDelete(info.row.original),
             class: 'p-1.5 text-[#9BA7B0] hover:text-red-600 hover:bg-red-50 transition-colors',
+            title: t('common.delete'),
           }, h(TrashIcon, { class: 'w-4 h-4' }))
         : null,
     ]),
