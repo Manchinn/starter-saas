@@ -418,6 +418,20 @@ export default {
       nextActionHint:     'Issue this credit note to lock it in and post the adjustment.',
     },
 
+    cashFlow: {
+      title:      'Cash Flow Statement',
+      subtitle:   'Cash movements by activity (direct method)',
+      fromDate:   'From',
+      toDate:     'To',
+      print:      'Print',
+      operating:  'Operating Activities',
+      investing:  'Investing Activities',
+      financing:  'Financing Activities',
+      noActivity: 'No activity',
+      netChange:  'Net Change in Cash',
+      beginning:  'Beginning Cash',
+      ending:     'Ending Cash',
+    },
     apAging: {
       title:        'AP Aging Report',
       subtitle:     'Outstanding payables by aging bucket',

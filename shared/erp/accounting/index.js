@@ -120,6 +120,12 @@ export const routes = [
     meta: { requiresAuth: true, title: 'Statement of Changes in Equity' },
   },
   {
+    path: '/erp/accounting/financial-statements/cash-flow',
+    name: 'erp-accounting-cash-flow',
+    component: () => import('./views/cash-flow/CashFlowReport.vue'),
+    meta: { requiresAuth: true, title: 'Cash Flow Statement' },
+  },
+  {
     path: '/erp/accounting/financial-statements/notes',
     name: 'erp-accounting-notes',
     component: () => import('./views/financial-statements/NotesReport.vue'),
@@ -261,6 +267,7 @@ export const navChildren = [
   { label: 'nav.fiscalYears',     to: '/erp/accounting/fiscal-years',      icon: CalendarDaysIcon, permission: 'erp.accounting.list' },
   { label: 'nav.chartOfAccounts', to: '/erp/accounting/chart-of-accounts', icon: ListBulletIcon,   permission: 'erp.accounting.list' },
   { label: 'nav.journals',        to: '/erp/accounting/journals',          icon: PencilSquareIcon, permission: 'erp.accounting.list' },
+  { label: 'nav.cashFlow',        to: '/erp/accounting/financial-statements/cash-flow', icon: ChartBarIcon, permission: 'erp.accounting.list' },
   { label: 'nav.taxPeriods',      to: '/erp/accounting/tax-periods',       icon: LockClosedIcon,   permission: 'erp.tax-periods.list' },
 ]
 
