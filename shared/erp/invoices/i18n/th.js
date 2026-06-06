@@ -64,6 +64,8 @@ export default {
       sameAsShipping:    'ใช้ที่อยู่จัดส่ง',
       useCustomerAddress:'ใช้ที่อยู่ของลูกค้า',
       discount:          'ส่วนลด',
+      wht:               'หัก ณ ที่จ่าย',
+      netTotal:          'ยอดสุทธิ',
       newCustomer:       'เพิ่มลูกค้าใหม่',
       discard:           'ยกเลิก',
       saveDraft:         'บันทึกร่าง',

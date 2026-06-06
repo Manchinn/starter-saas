@@ -305,9 +305,25 @@
                   <span class="text-[13px] font-semibold text-red-600 tabular-nums w-20 text-right">−{{ fmtMoney(discountAmount) }}</span>
                 </div>
               </div>
+              <div class="flex items-center justify-between text-[13px] gap-3">
+                <dt class="text-[#637381] flex-shrink-0">{{ t('erp.invoices.wht') }}</dt>
+                <div class="flex items-center gap-1.5">
+                  <select v-model="form.whtCode" @change="onWhtChange"
+                    class="max-w-[12rem] px-2 py-1.5 border border-[#E2E8F0] text-[12px] bg-white
+                           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400">
+                    <option value="">—</option>
+                    <option v-for="o in whtOptions" :key="o.id" :value="o.code">{{ o.name }} ({{ o.dataValue }}%)</option>
+                  </select>
+                  <span class="text-[13px] font-semibold text-red-600 tabular-nums w-20 text-right">−{{ fmtMoney(whtAmount) }}</span>
+                </div>
+              </div>
               <div class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
                 <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.invoices.total') }}</dt>
                 <dd class="text-base font-bold text-[#1C2434] tabular-nums">{{ fmtMoney(grandTotal) }}</dd>
+              </div>
+              <div v-if="Number(whtAmount) > 0" class="flex items-center justify-between pt-2.5 border-t border-[#E2E8F0]">
+                <dt class="text-[11px] font-semibold text-[#9BA7B0] uppercase tracking-wider">{{ t('erp.invoices.netTotal') }}</dt>
+                <dd class="text-base font-bold text-primary-600 tabular-nums">{{ fmtMoney(netTotal) }}</dd>
               </div>
             </dl>
           </div>
@@ -440,6 +456,7 @@ const salePackages = ref([])
 const stores       = ref([])
 const staff        = ref([])
 const paymentTerms = ref([])
+const whtOptions   = ref([])
 const loading      = ref(true)
 const loadError    = ref('')
 const saving       = ref(false)
@@ -456,6 +473,7 @@ const form = ref({
   referenceNumber: '', paymentTerms: '', salespersonId: '',
   shippingAddress: '', billingAddress: '',
   discountType: '', discountValue: 0,
+  whtCode: '', whtRate: 0,
 })
 
 const dirty = ref(false)
@@ -520,7 +538,7 @@ function newKey() {
 
 onMounted(async () => {
   const id = route.params.id
-  const [invRes, cRes, oRes, siRes, spRes, stRes, staffRes, ptRes] = await Promise.allSettled([
+  const [invRes, cRes, oRes, siRes, spRes, stRes, staffRes, ptRes, whtRes] = await Promise.allSettled([
     api.get(`/erp/invoices/${id}`),
     api.get('/erp/customers',     { params: { limit: 200 } }),
     api.get('/erp/orders',        { params: { limit: 500, status: 'confirmed' } }),
@@ -529,6 +547,7 @@ onMounted(async () => {
     api.get('/erp/stores',        { params: { limit: 200 } }),
     api.get('/organizations/staff'),
     api.get('/erp/master-data/payment-terms'),
+    api.get('/erp/master-data/by-name/WHT Type'),
   ])
   if (cRes.status     === 'fulfilled') customers.value    = cRes.value.data.data.customers || []
   if (oRes.status     === 'fulfilled') orders.value       = oRes.value.data.data.orders    || []
@@ -537,6 +556,7 @@ onMounted(async () => {
   if (stRes.status    === 'fulfilled') stores.value       = stRes.value.data.data.stores   || []
   if (staffRes.status === 'fulfilled') staff.value        = staffRes.value.data.data.staff || []
   if (ptRes.status    === 'fulfilled') paymentTerms.value = ptRes.value.data.data.values   || []
+  if (whtRes.status   === 'fulfilled') whtOptions.value   = whtRes.value.data.data.values  || []
 
   if (invRes.status !== 'fulfilled') {
     loadError.value = parseApiError(invRes.reason, 'Failed to load invoice')
@@ -571,6 +591,8 @@ onMounted(async () => {
     billingAddress:  inv.billingAddress  || '',
     discountType:    inv.discountType    || '',
     discountValue:   Number(inv.discountValue) || 0,
+    whtCode:         inv.whtCode         || '',
+    whtRate:         Number(inv.whtRate) || 0,
     items: (inv.items || []).map(it => {
       const si = saleItems.value.find(s => s.id === it.saleItemId)
       const hasProduct = !!(it.productId || si?.productId)
@@ -790,6 +812,13 @@ const discountAmount = computed(() => {
   return 0
 })
 const grandTotal = computed(() => subtotal.value + Number(taxAmount.value) - Number(discountAmount.value))
+// WHT is computed on the invoice amount (subtotal + tax); net = total - WHT.
+const whtAmount  = computed(() => toFixed((subtotal.value + Number(taxAmount.value)) * (Number(form.value.whtRate) || 0) / 100, 2))
+const netTotal   = computed(() => toFixed(Number(grandTotal.value) - Number(whtAmount.value), 2))
+function onWhtChange() {
+  const o = whtOptions.value.find(x => x.code === form.value.whtCode)
+  form.value.whtRate = o ? Number(o.dataValue) || 0 : 0
+}
 
 const canSave = computed(() => {
   if (!form.value.customerId || !form.value.invoiceDate) return false
