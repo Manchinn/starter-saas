@@ -245,6 +245,11 @@ async function seedDemo(userId, orgId, lang = 'en') {
       { code: '1150', name: 'Prepaid Expenses',         accountType: 'asset',     normalBalance: 'debit',  parentCode: '1100', cat: 'other_current_assets' },
       { code: '1160', name: 'Input Tax (VAT)',          accountType: 'asset',     normalBalance: 'debit',  parentCode: '1100', cat: 'other_current_assets' },
       { code: '1170', name: 'Withholding Tax (WHT)',    accountType: 'asset',     normalBalance: 'debit',  parentCode: '1100', cat: 'other_current_assets' },
+      // WHT receivable broken down by WHT Type (mirrors the "WHT Type" master data).
+      { code: '1171', name: 'WHT – Personal Service (PND.3)',  accountType: 'asset', normalBalance: 'debit', parentCode: '1170', cat: 'other_current_assets' },
+      { code: '1172', name: 'WHT – Juristic Service (PND.53)', accountType: 'asset', normalBalance: 'debit', parentCode: '1170', cat: 'other_current_assets' },
+      { code: '1173', name: 'WHT – Rental (PND.53)',           accountType: 'asset', normalBalance: 'debit', parentCode: '1170', cat: 'other_current_assets' },
+      { code: '1174', name: 'WHT – Advertising (PND.53)',      accountType: 'asset', normalBalance: 'debit', parentCode: '1170', cat: 'other_current_assets' },
       { code: '1200', name: 'Fixed Assets',             accountType: 'asset',     normalBalance: 'debit',  parentCode: '1000', cat: 'property_plant_equipment' },
       { code: '1210', name: 'Property & Equipment',     accountType: 'asset',     normalBalance: 'debit',  parentCode: '1200', cat: 'property_plant_equipment' },
       { code: '1220', name: 'Accumulated Depreciation', accountType: 'asset',     normalBalance: 'credit', parentCode: '1200', cat: 'property_plant_equipment' },
