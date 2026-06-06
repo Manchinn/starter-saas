@@ -32,8 +32,8 @@
               <th class="px-4 py-2.5 font-medium text-[#637381] w-44">{{ t('erp.audit.colWhen') }}</th>
               <th class="px-4 py-2.5 font-medium text-[#637381] w-52">{{ t('erp.audit.colUser') }}</th>
               <th class="px-4 py-2.5 font-medium text-[#637381] w-40">{{ t('erp.audit.colAction') }}</th>
+              <th class="px-4 py-2.5 font-medium text-[#637381] w-48">{{ t('erp.audit.colDataId') }}</th>
               <th class="px-4 py-2.5 font-medium text-[#637381]">{{ t('erp.audit.colSummary') }}</th>
-              <th class="px-4 py-2.5 font-medium text-[#637381] w-48">{{ t('erp.audit.colEntity') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#E2E8F0]">
@@ -51,10 +51,6 @@
               <td class="px-4 py-2">
                 <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-mono bg-[#F1F5F9] text-[#374151]">{{ l.action }}</span>
               </td>
-              <td class="px-4 py-2 text-xs text-[#637381]">
-                <code v-if="l.summary" class="text-[11px]">{{ summarize(l.summary) }}</code>
-                <span v-else class="text-[#CBD5E1]">—</span>
-              </td>
               <td class="px-4 py-2 text-xs align-top">
                 <div class="flex items-start gap-1.5">
                   <div class="min-w-0">
@@ -70,6 +66,10 @@
                     <component :is="expanded.has(l.id) ? EyeSlashIcon : EyeIcon" class="w-3.5 h-3.5" />
                   </button>
                 </div>
+              </td>
+              <td class="px-4 py-2 text-xs text-[#637381]">
+                <code v-if="l.summary" class="text-[11px]">{{ summarize(l.summary) }}</code>
+                <span v-else class="text-[#CBD5E1]">—</span>
               </td>
             </tr>
           </tbody>

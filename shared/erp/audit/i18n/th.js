@@ -10,6 +10,7 @@ export default {
       colUser:     'ผู้ใช้',
       colAction:   'การกระทำ',
       colEntity:   'ข้อมูล',
+      colDataId:   'รหัสข้อมูล',
       colSummary:  'รายละเอียด',
       loaded:      'รายการ',
       loadMore:    'โหลดเพิ่มเติม',

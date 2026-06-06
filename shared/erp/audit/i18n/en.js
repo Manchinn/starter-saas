@@ -10,6 +10,7 @@ export default {
       colUser:     'User',
       colAction:   'Action',
       colEntity:   'Entity',
+      colDataId:   'Data ID',
       colSummary:  'Summary',
       loaded:      'loaded',
       loadMore:    'Load more',
