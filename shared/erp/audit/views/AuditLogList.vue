@@ -123,9 +123,16 @@ const filterDateFrom   = ref('')
 const filterDateTo     = ref('')
 let searchTimer = null
 
+// Render a summary as `key=value · key=value`, JSON-stringifying any nested
+// object/array value so the raw JSON shows instead of "[object Object]".
 const summarize = (s) => {
-  try { return Object.entries(s).map(([k, v]) => `${k}=${v}`).join(' · ') }
-  catch { return JSON.stringify(s) }
+  try {
+    return Object.entries(s)
+      .map(([k, v]) => `${k}=${v !== null && typeof v === 'object' ? JSON.stringify(v) : v}`)
+      .join(' · ')
+  } catch {
+    return JSON.stringify(s)
+  }
 }
 
 // Keyset pagination: load() appends the next page; reset() starts a fresh
