@@ -28,7 +28,7 @@
 
         <DataTable :columns="columns" :data="filtered" :loading="store.loading"
           :total="filtered.length" :page="1" :page-size="filtered.length || 1"
-          :initial-sorting="[{ id: 'name', desc: true }]">
+          :initial-sorting="[{ id: 'name', desc: true }]" row-clickable @row-click="openRow">
           <template #empty>
             <div class="flex flex-col items-center gap-2">
               <div class="w-10 h-10 bg-[#F1F5F9] flex items-center justify-center">
@@ -47,7 +47,7 @@
 
 <script setup>
 import { h, ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, MagnifyingGlassIcon, CircleStackIcon, PencilIcon, TrashIcon,
@@ -59,7 +59,10 @@ import { useMasterDataStore } from '@/stores/masterData'
 
 const { t }  = useI18n()
 const store  = useMasterDataStore()
+const router = useRouter()
 const search = ref('')
+
+function openRow(cat) { router.push(`/erp/settings/master-data/${cat.id}`) }
 
 onMounted(() => store.fetchAll())
 

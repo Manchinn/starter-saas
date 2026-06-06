@@ -20,7 +20,7 @@
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable ref="dataTableRef" :columns="columns" :data="groups" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
-          :selected-row-index="selectedRowIndex"
+          :selected-row-index="selectedRowIndex" row-clickable @row-click="openRow"
           searchable :search-placeholder="t('erp.customerGroups.searchPh')">
 
           <template #toolbar>
@@ -155,7 +155,7 @@ const statusOptions = computed(() => [
   { id: 'inactive', name: t('common.inactive') },
 ])
 
-const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+const { selectedIndex: selectedRowIndex, shortcuts, open: openRow } = useListShortcuts({
   rows: groups, page, totalPages,
   open:        g => router.push(`/erp/customer-groups/${g.id}/edit`),
   create:      () => router.push('/erp/customer-groups/create'),

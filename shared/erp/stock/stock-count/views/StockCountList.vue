@@ -19,7 +19,7 @@
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable ref="dataTableRef" :columns="columns" :data="rows" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
-          :selected-row-index="selectedRowIndex"
+          :selected-row-index="selectedRowIndex" row-clickable @row-click="openRow"
           searchable :search-placeholder="t('erp.stockCount.searchPh')">
 
           <template #toolbar>
@@ -138,7 +138,7 @@ const dataTableRef = ref(null)
 const activeFilterCount = computed(() => [filterStatus.value].filter(Boolean).length)
 const totalPages = computed(() => Math.ceil(total.value / limit))
 
-const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+const { selectedIndex: selectedRowIndex, shortcuts, open: openRow } = useListShortcuts({
   rows, page, totalPages,
   open:        r => router.push(`/erp/stock-count/${r.id}`),
   create:      () => router.push('/erp/stock-count/create'),
