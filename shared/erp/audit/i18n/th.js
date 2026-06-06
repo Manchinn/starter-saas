@@ -13,6 +13,8 @@ export default {
       colSummary:  'รายละเอียด',
       loaded:      'รายการ',
       loadMore:    'โหลดเพิ่มเติม',
+      showEntity:  'แสดงรหัสเอนทิตีทั้งหมด',
+      hideEntity:  'ซ่อนรหัสเอนทิตี',
     },
   },
 }
