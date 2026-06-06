@@ -21,7 +21,7 @@
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable ref="dataTableRef" :columns="columns" :data="quotations" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
-          :selected-row-index="selectedRowIndex"
+          :selected-row-index="selectedRowIndex" row-clickable @row-click="openQuotation"
           searchable :search-placeholder="t('erp.quotations.searchPh')">
 
           <template #toolbar>
@@ -164,9 +164,11 @@ const dataTableRef  = ref(null)
 const activeFilterCount = computed(() => [filterStatus.value, filterDateFrom.value, filterDateTo.value].filter(Boolean).length)
 const totalPages = computed(() => Math.ceil(total.value / limit))
 
+function openQuotation(q) { router.push(`/erp/quotations/${q.id}`) }
+
 const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
   rows: quotations, page, totalPages,
-  open:        r => router.push(`/erp/quotations/${r.id}`),
+  open:        openQuotation,
   create:      () => router.push('/erp/quotations/create'),
   remove:      r => confirmDelete(r),
   focusSearch: () => dataTableRef.value?.focusSearch(),
