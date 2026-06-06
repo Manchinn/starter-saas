@@ -27,6 +27,7 @@ starter-saas/
 │   ├── erp/       products, pricing, customers, vendors, quotations, orders, invoices,
 │   │              receipts, purchasing, inventory/stock, accounting, alerts, settings, …
 │   ├── hrms/      departments, employees
+│   ├── reporting/ cross-module ERP summary dashboard + printable document templates
 │   └── ai-agent/  local-LLM chat, tool registry, provider adapters (Ollama / LM Studio)
 ├── scripts/       schema + diagram generators (introspect models/routes → docs/*.html)
 ├── docs/          generated reference: schema.html, ER-schema.html, swimlane-process.html, data-flow.html
@@ -83,6 +84,38 @@ How the pieces get wired up automatically:
 
 To add a new ERP module, create a folder under `shared/erp/<feature>/` following the same
 layout — no central registry edits are needed; the route/nav auto-discovery picks it up.
+
+## Reporting & printable documents
+
+The `shared/reporting/` module hosts cross-module output that doesn't belong to any single
+ERP feature:
+
+```
+shared/reporting/
+├── summary/             ERP analytics dashboard (controller/service/routes + ERPSummary.vue)
+├── templates/
+│   ├── erp/<doc>/        Printable A4 document per record type — e.g. InvoiceReport.vue,
+│   │                     PurchaseOrderReport.vue, StockReturnReport.vue (18 in total)
+│   └── components/       Shared building blocks the documents compose
+└── i18n/                Per-module locale messages
+```
+
+Each `<doc>Report.vue` is the print/PDF layout a detail page renders (an ERP view imports it
+via the `@shared/reporting/templates/erp/...` alias and passes the loaded record). Every
+document shares the same A4 paper shell, company header, totals band, and signature block, so
+that chrome lives once in `templates/components/`:
+
+| Building block | Responsibility |
+|---|---|
+| `useCompanyProfile.js` | Pulls the org's name/address/contact/logo from the auth store |
+| `DocFrame.vue` | White A4 card + the diagonal status stamp (Draft / Paid / Cancelled …) |
+| `DocHeader.vue` | Logo + company identity + document title (label/contact variants via props) |
+| `DocSummary.vue` | Amount-in-words + the notes / totals band (`#notes`, `#totals` slots) |
+| `DocSignatures.vue` | The signature grid (column count follows the captions) |
+| `DocFillerRows.vue` | Empty table rows that pad the goods area like a pre-printed form |
+
+A new printable document is a single `templates/erp/<doc>/<Doc>Report.vue` that composes those
+components and supplies only its own meta boxes and line-item table.
 
 ## Realtime alerts
 
