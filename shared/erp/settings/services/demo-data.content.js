@@ -112,6 +112,15 @@ const en = {
       name: 'Vendor Types', desc: 'Vendor classification types',
       values: { 'VT-001': 'Supplier', 'VT-002': 'Service Provider' },
     },
+    whtType: {
+      name: 'WHT Type', desc: 'Withholding tax types; dataValue holds the rate (%)',
+      values: {
+        'WHT-001': 'ค่าบริการบุคคลธรรมดา (ภงด.3)',
+        'WHT-002': 'ค่าบริการนิติบุคคล (ภงด.53)',
+        'WHT-003': 'ค่าเช่า (ภงด.53)',
+        'WHT-004': 'ค่าโฆษณา (ภงด.53)',
+      },
+    },
   },
 
   departments: {
@@ -314,6 +323,15 @@ const th = {
     vendorTypes: {
       name: 'ประเภทผู้ขาย', desc: 'การจัดประเภทผู้ขาย',
       values: { 'VT-001': 'ผู้จัดจำหน่าย', 'VT-002': 'ผู้ให้บริการ' },
+    },
+    whtType: {
+      name: 'ประเภทภาษีหัก ณ ที่จ่าย', desc: 'ประเภทภาษีหัก ณ ที่จ่าย โดย dataValue คืออัตรา (%)',
+      values: {
+        'WHT-001': 'ค่าบริการบุคคลธรรมดา (ภงด.3)',
+        'WHT-002': 'ค่าบริการนิติบุคคล (ภงด.53)',
+        'WHT-003': 'ค่าเช่า (ภงด.53)',
+        'WHT-004': 'ค่าโฆษณา (ภงด.53)',
+      },
     },
   },
 

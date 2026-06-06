@@ -185,12 +185,14 @@ async function seedDemo(userId, orgId, lang = 'en') {
       { key: 'leaveTypes',      slug: `leave-types-${orgId}`,      codes: ['LV-001', 'LV-002', 'LV-003', 'LV-004', 'LV-005'] },
       { key: 'accountTypes',    slug: `account-types-${orgId}`,    codes: ['asset', 'liability', 'equity', 'revenue', 'expense'] },
       { key: 'vendorTypes',     slug: `vendor-types-${orgId}`,     codes: ['VT-001', 'VT-002'] },
+      { key: 'whtType',         slug: `wht-type-${orgId}`,         codes: ['WHT-001', 'WHT-002', 'WHT-003', 'WHT-004'],
+        data: { 'WHT-001': '3', 'WHT-002': '3', 'WHT-003': '5', 'WHT-004': '2' } },
     ]
-    const mdDefs = mdSpec.map(({ key, slug, codes }) => {
+    const mdDefs = mdSpec.map(({ key, slug, codes, data }) => {
       const md = C.masterData[key]
       return {
         slug, name: md.name, description: md.desc,
-        values: codes.map((code, i) => ({ code, name: md.values[code], sortOrder: i + 1 })),
+        values: codes.map((code, i) => ({ code, name: md.values[code], dataValue: data?.[code] ?? null, sortOrder: i + 1 })),
       }
     })
     for (const def of mdDefs) {
