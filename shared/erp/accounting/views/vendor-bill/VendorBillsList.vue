@@ -111,7 +111,7 @@ const columnHelper = createColumnHelper()
 const columns = [
   columnHelper.accessor('billNumber', {
     header: () => t('erp.bills.colBillNumber'),
-    cell: info => h(RouterLink, { to: `/erp/purchasing/bills/${info.row.original.id}`, class: 'font-mono text-xs text-primary-600 hover:underline' }, () => info.getValue()),
+    cell: info => h('span', { class: 'font-mono text-xs font-medium text-[#1C2434]' }, info.getValue()),
   }),
   columnHelper.accessor('billDate', { header: () => t('erp.bills.colDate'), cell: info => fmtDate(info.getValue()) || '—' }),
   columnHelper.accessor('vendor.name', { header: () => t('erp.bills.colVendor'), cell: info => info.getValue() || '—' }),
