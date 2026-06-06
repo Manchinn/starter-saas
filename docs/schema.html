@@ -79,11 +79,11 @@
 <a id="top"></a>
 <header>
   <h1>Database Schema — starter-saas</h1>
-  <p>Sequelize model registry · grouped by module · generated 2026-06-02 13:57:57 UTC</p>
+  <p>Sequelize model registry · grouped by module · generated 2026-06-05 15:55:48 UTC</p>
   <div class="stats">
     <div class="stat"><b>89</b><span>Tables</span></div>
     <div class="stat"><b>20</b><span>Modules</span></div>
-    <div class="stat"><b>1260</b><span>Columns</span></div>
+    <div class="stat"><b>1264</b><span>Columns</span></div>
     <div class="stat"><b>191</b><span>Relations</span></div>
   </div>
 </header>
@@ -388,7 +388,7 @@
 
       <section class="model" id="AiMessage" data-name="aimessage" data-mod="AI Agent">
         <h3 class="model-head">AiMessage <span class="tablename">AiMessages</span> <span class="modtag">AI Agent</span></h3>
-        <h5>Columns <span class="count">11</span></h5>
+        <h5>Columns <span class="count">15</span></h5>
         <table class="cols">
           <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th><th>Default</th><th>Comment</th></tr></thead>
           <tbody>
@@ -431,6 +431,38 @@
             <td class="col-ref"></td>
             <td class="col-default"></td>
             <td class="col-comment">Actions (การกระทำ)</td>
+          </tr>
+          <tr>
+            <td class="col-name">model</td>
+            <td class="col-type">VARCHAR(255)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Model (โมเดล)</td>
+          </tr>
+          <tr>
+            <td class="col-name">promptTokens</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Prompt tokens (โทเค็นพรอมต์)</td>
+          </tr>
+          <tr>
+            <td class="col-name">completionTokens</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Completion tokens (โทเค็นคำตอบ)</td>
+          </tr>
+          <tr>
+            <td class="col-name">totalTokens</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Total tokens (โทเค็นรวม)</td>
           </tr>
           <tr>
             <td class="col-name">organizationId</td>
