@@ -45,6 +45,7 @@ module.exports = {
 
   async updateStatus(req, res) {
     try {
+      res.locals.skipAudit = true // service emits a rich receipt.<status> event
       const orgId = req.user?.organizationId || req.user?.id
       const receipt = await service.updateStatus(req.params.id, req.body.status, req.user?.id, orgId)
       return ok(res, { receipt }, 'Receipt status updated')

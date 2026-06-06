@@ -11,6 +11,8 @@ export default {
       colAction:   'การกระทำ',
       colEntity:   'ข้อมูล',
       colSummary:  'รายละเอียด',
+      loaded:      'รายการ',
+      loadMore:    'โหลดเพิ่มเติม',
     },
   },
 }

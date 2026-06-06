@@ -83,6 +83,7 @@ const createOrder = async (req, res, next) => {
 
 const generateReorder = async (req, res, next) => {
   try {
+    res.locals.skipAudit = true // service emits a rich pr.reorder.generate event
     const orgId = req.user?.organizationId || req.user?.id
     res.status(201).json({ data: await svc.generateReorder({ userId: req.user?.id, organizationId: orgId }) })
   } catch (err) {

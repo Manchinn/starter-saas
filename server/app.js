@@ -16,6 +16,7 @@ const cache = require('./config/redis')
 const realtime = require('./core/realtime')
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
+const audit = require('../shared/erp/audit/audit.service')
 
 const app = express() // nosemgrep: javascript.express.security.audit.express-check-csurf-middleware-usage.express-check-csurf-middleware-usage -- stateless Bearer-token API; the only cookie (refresh) is httpOnly + SameSite=Strict, so CSRF is already mitigated without a token middleware
 
@@ -146,6 +147,17 @@ async function bootstrap() {
 
   // Prune expired refresh tokens every hour
   setInterval(pruneExpiredTokens, 60 * 60 * 1000)
+
+  // Audit trail: flush the write buffer on a timer, and prune rows past the
+  // retention horizon once at boot then daily. Flush any buffered rows on a
+  // graceful exit so they aren't lost.
+  audit.startFlushTimer()
+  audit.pruneExpiredLogs()
+  setInterval(() => audit.pruneExpiredLogs(), 24 * 60 * 60 * 1000)
+  const flushOnExit = () => { audit.stopFlushTimer(); audit.flushNow() }
+  process.once('beforeExit', flushOnExit)
+  process.once('SIGTERM', flushOnExit)
+  process.once('SIGINT', flushOnExit)
 }
 
 bootstrap().catch((err) => {

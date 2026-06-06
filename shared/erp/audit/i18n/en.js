@@ -11,6 +11,8 @@ export default {
       colAction:   'Action',
       colEntity:   'Entity',
       colSummary:  'Summary',
+      loaded:      'loaded',
+      loadMore:    'Load more',
     },
   },
 }

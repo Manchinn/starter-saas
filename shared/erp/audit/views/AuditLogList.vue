@@ -2,7 +2,7 @@
   <AppLayout>
     <div class="space-y-5">
       <PageHeader :title="t('erp.audit.title')"
-        :breadcrumb="[{ label: `${total} record${total !== 1 ? 's' : ''}` }]" />
+        :breadcrumb="[{ label: `${logs.length}${hasMore ? '+' : ''} ${t('erp.audit.loaded')}` }]" />
 
       <!-- Filters -->
       <div class="bg-white border border-[#E2E8F0] p-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -37,7 +37,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-[#E2E8F0]">
-            <tr v-if="loading">
+            <tr v-if="loading && !logs.length">
               <td colspan="5"><LoadingSpinner size="sm" padding="sm" /></td>
             </tr>
             <tr v-else-if="!logs.length">
@@ -63,15 +63,11 @@
           </tbody>
         </table>
 
-        <div v-if="total > limit" class="px-4 py-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#637381]">
-          <span>{{ t('common.showing') }} {{ (page - 1) * limit + 1 }}–{{ Math.min(page * limit, total) }} {{ t('common.of') }} {{ total }}</span>
-          <div class="flex items-center gap-2">
-            <button @click="page = Math.max(1, page - 1); load()" :disabled="page === 1"
-              class="px-3 py-1 border hover:bg-slate-50 disabled:opacity-40">&larr;</button>
-            <span class="px-2">{{ page }} / {{ Math.ceil(total / limit) }}</span>
-            <button @click="page = Math.min(Math.ceil(total / limit), page + 1); load()" :disabled="page * limit >= total"
-              class="px-3 py-1 border hover:bg-slate-50 disabled:opacity-40">&rarr;</button>
-          </div>
+        <div v-if="hasMore" class="px-4 py-3 border-t border-[#E2E8F0] flex items-center justify-center">
+          <button @click="load()" :disabled="loading"
+            class="px-4 py-1.5 text-xs border hover:bg-slate-50 disabled:opacity-40">
+            {{ t('erp.audit.loadMore') }}
+          </button>
         </div>
       </div>
     </div>
@@ -95,18 +91,31 @@ import { fmtDateTime } from '@/utils/fmt'
 const { t } = useI18n()
 
 const entityTypeOptions = [
+  { id: 'Customer',            name: 'Customer'             },
+  { id: 'CustomerGroup',       name: 'Customer Group'       },
+  { id: 'Vendor',              name: 'Vendor'               },
+  { id: 'Product',             name: 'Product'              },
+  { id: 'ProductCategory',     name: 'Product Category'     },
+  { id: 'Order',               name: 'Sales Order'          },
+  { id: 'DeliveryOrder',       name: 'Delivery Order'       },
+  { id: 'Quotation',           name: 'Quotation'            },
   { id: 'Invoice',             name: 'Invoice'              },
   { id: 'Receipt',             name: 'Receipt'              },
   { id: 'PurchaseOrder',       name: 'Purchase Order'       },
   { id: 'PurchaseRequisition', name: 'Purchase Requisition' },
   { id: 'VendorBill',          name: 'Vendor Bill'          },
   { id: 'GoodReceive',         name: 'Good Receive'         },
+  { id: 'StockAdjust',         name: 'Stock Adjustment'     },
+  { id: 'StockIssue',          name: 'Stock Issue'          },
+  { id: 'StockReturn',         name: 'Stock Return'         },
+  { id: 'Store',               name: 'Store'                },
+  { id: 'Uom',                 name: 'Unit of Measure'      },
 ]
-const logs    = ref([])
-const total   = ref(0)
-const page    = ref(1)
-const limit   = 50
-const loading = ref(false)
+const logs       = ref([])
+const nextCursor = ref(null)
+const hasMore    = ref(false)
+const limit      = 50
+const loading    = ref(false)
 
 const filterEntityType = ref('')
 const filterAction     = ref('')
@@ -119,23 +128,32 @@ const summarize = (s) => {
   catch { return JSON.stringify(s) }
 }
 
+// Keyset pagination: load() appends the next page; reset() starts a fresh
+// query (called when filters change) by clearing the cursor and rows first.
 async function load() {
   loading.value = true
   try {
     const { data } = await api.get('/erp/audit-log', {
       params: {
-        page: page.value, limit,
+        limit, cursor: nextCursor.value || undefined,
         entityType: filterEntityType.value || undefined,
         action:     filterAction.value     || undefined,
         dateFrom:   filterDateFrom.value   || undefined,
         dateTo:     filterDateTo.value     || undefined,
       },
     })
-    logs.value  = data.data.logs
-    total.value = data.data.total
+    logs.value.push(...data.data.logs)
+    nextCursor.value = data.data.nextCursor
+    hasMore.value    = data.data.hasMore
   } finally { loading.value = false }
 }
-onMounted(load)
-function onFilter() { page.value = 1; load() }
-function onSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(onFilter, 300) }
+function reset() {
+  logs.value = []
+  nextCursor.value = null
+  hasMore.value = false
+  load()
+}
+onMounted(reset)
+function onFilter() { reset() }
+function onSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(reset, 300) }
 </script>
