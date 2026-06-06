@@ -14,8 +14,6 @@ export default {
       colSummary:  'Summary',
       loaded:      'loaded',
       loadMore:    'Load more',
-      showEntity:  'Show full entity id',
-      hideEntity:  'Hide entity id',
     },
   },
 }

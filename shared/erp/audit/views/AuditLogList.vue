@@ -52,20 +52,8 @@
                 <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-mono bg-[#F1F5F9] text-[#374151]">{{ l.action }}</span>
               </td>
               <td class="px-4 py-2 text-xs align-top">
-                <div class="flex items-start gap-1.5">
-                  <div class="min-w-0">
-                    <p class="font-medium text-[#1C2434]">{{ l.entityType }}</p>
-                    <p v-if="l.entityId" class="font-mono text-[10px] text-[#9BA7B0]"
-                      :class="expanded.has(l.id) ? 'break-all' : 'truncate'">
-                      {{ expanded.has(l.id) ? l.entityId : `${l.entityId.slice(0, 8)}…` }}
-                    </p>
-                  </div>
-                  <button v-if="l.entityId" type="button" @click="toggle(l.id)"
-                    :title="t(expanded.has(l.id) ? 'erp.audit.hideEntity' : 'erp.audit.showEntity')"
-                    class="shrink-0 mt-0.5 text-[#9BA7B0] hover:text-[#374151]">
-                    <component :is="expanded.has(l.id) ? EyeSlashIcon : EyeIcon" class="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                <p class="font-medium text-[#1C2434]">{{ l.entityType }}</p>
+                <p v-if="l.entityId" class="font-mono text-[10px] text-[#9BA7B0] break-all">{{ l.entityId }}</p>
               </td>
               <td class="px-4 py-2 text-xs text-[#637381]">
                 <code v-if="l.summary" class="text-[11px]">{{ summarize(l.summary) }}</code>
@@ -89,7 +77,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ClipboardDocumentListIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
+import { ClipboardDocumentListIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
@@ -135,14 +123,6 @@ const filterDateFrom   = ref('')
 const filterDateTo     = ref('')
 let searchTimer = null
 
-// Rows whose full entity id is revealed (eye icon toggled).
-const expanded = ref(new Set())
-function toggle(id) {
-  const next = new Set(expanded.value)
-  next.has(id) ? next.delete(id) : next.add(id)
-  expanded.value = next
-}
-
 const summarize = (s) => {
   try { return Object.entries(s).map(([k, v]) => `${k}=${v}`).join(' · ') }
   catch { return JSON.stringify(s) }
@@ -171,7 +151,6 @@ function reset() {
   logs.value = []
   nextCursor.value = null
   hasMore.value = false
-  expanded.value = new Set()
   load()
 }
 onMounted(reset)
