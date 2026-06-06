@@ -7,6 +7,7 @@ import {
   DocumentTextIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
+  ChartBarIcon,
 } from '@heroicons/vue/24/outline'
 
 export const routes = [
@@ -79,6 +80,12 @@ export const routes = [
     name: 'erp-accounting-ar-aging',
     component: () => import('./views/ar-aging/ARAgingReport.vue'),
     meta: { requiresAuth: true, title: 'AR Aging Report' },
+  },
+  {
+    path: '/erp/accounting/ap-aging',
+    name: 'erp-accounting-ap-aging',
+    component: () => import('./views/ap-aging/APAgingReport.vue'),
+    meta: { requiresAuth: true, title: 'AP Aging Report' },
   },
   // Financial Reports — Trial Balance & General Ledger
   {
@@ -263,4 +270,12 @@ export const vendorBillsNavItem = {
   to: '/erp/purchasing/bills',
   icon: BanknotesIcon,
   permission: 'erp.bills.list',
+}
+
+// AP Aging report — Purchasing nav group
+export const apAgingNavItem = {
+  label: 'nav.apAging',
+  to: '/erp/accounting/ap-aging',
+  icon: ChartBarIcon,
+  permission: 'erp.accounting.list',
 }

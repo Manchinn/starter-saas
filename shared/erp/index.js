@@ -72,6 +72,7 @@ export default {
           m('stock').goodReceiveNavItem,
           ...(m('purchasing').navChildren || []),
           m('accounting').vendorBillsNavItem,
+          m('accounting').apAgingNavItem,
         ].filter(Boolean),
       },
       {

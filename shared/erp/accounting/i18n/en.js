@@ -418,6 +418,24 @@ export default {
       nextActionHint:     'Issue this credit note to lock it in and post the adjustment.',
     },
 
+    apAging: {
+      title:        'AP Aging Report',
+      subtitle:     'Outstanding payables by aging bucket',
+      asOfDate:     'As of Date',
+      vendor:       'Vendor',
+      allVendors:   'All Vendors',
+      vendorsLabel: 'vendors',
+      noData:       'No outstanding bills',
+      noDataHint:   'All bills are paid or there are no approved bills.',
+      print:        'Print',
+      bucketCurrent:  'Current',
+      bucket1_30:     '1–30 Days',
+      bucket31_60:    '31–60 Days',
+      bucket61_90:    '61–90 Days',
+      bucket91plus:   '91+ Days',
+      grandTotal:     'Total Outstanding',
+    },
+
     arAging: {
       title:        'AR Aging Report',
       subtitle:     'Outstanding receivables by aging bucket',
