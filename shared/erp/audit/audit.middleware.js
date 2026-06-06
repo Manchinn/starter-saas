@@ -61,6 +61,19 @@ const ENTITY_MAP = {
   'settings/demo-data':              'DemoData',
 }
 
+const SENSITIVE_KEY_RE = /pass|token|secret|otp|pin/i
+
+// Shallow-redact obviously-sensitive fields before a payload is stored. Debug
+// capture is opt-in, but we still don't want credentials landing in the table.
+const redactPayload = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return body
+  const out = {}
+  for (const [k, v] of Object.entries(body)) {
+    out[k] = SENSITIVE_KEY_RE.test(k) ? '[redacted]' : v
+  }
+  return out
+}
+
 const isId = (s) => UUID_RE.test(s) || /^\d+$/.test(s)
 
 // 'customer-groups' → 'CustomerGroup' (naive singularize + PascalCase).
@@ -124,13 +137,23 @@ const auditCapture = (req, res, next) => {
   let captured
   res.json = (body) => { captured = body; return originalJson(body) }
 
-  res.on('finish', () => {
+  res.on('finish', async () => {
     if (res.statusCode < 200 || res.statusCode >= 300) return
     if (!req.user) return
     if (res.locals && res.locals.skipAudit) return
 
     const info = describe(req.method, req.originalUrl || req.url, captured)
     if (!info) return
+
+    const summary = { method: req.method }
+    // Debug mode (ERP → Settings → General → Audit Log) additionally stores the
+    // request payload. Best-effort: a failure here must not drop the audit row.
+    try {
+      const general = require('../settings/services/general.service')
+      if (await general.isAuditDebug(req.user.organizationId || req.user.id)) {
+        summary.payload = redactPayload(req.body)
+      }
+    } catch { /* debug enrichment is optional */ }
 
     audit.log({
       user:       req.user,
@@ -139,7 +162,7 @@ const auditCapture = (req, res, next) => {
       entityId:   info.entityId,
       method:     req.method,
       ip:         req.ip,
-      summary:    { method: req.method },
+      summary,
     })
   })
 
