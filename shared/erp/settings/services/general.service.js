@@ -11,8 +11,9 @@ const DEFAULTS = {
     precision:   2,
   },
   tax: {
-    rate:      0,
-    inclusive: false,  // false = tax before total (exclusive), true = tax after total (inclusive)
+    rate:        0,
+    inclusive:   false,  // false = tax before total (exclusive), true = tax after total (inclusive)
+    withholding: true,   // when true, invoices expose the WHT (หัก ณ ที่จ่าย) field
   },
   calendar: {
     system:     'CE',           // 'CE' = Christian/Gregorian | 'BE' = Buddhist Era (CE + 543)

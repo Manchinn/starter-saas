@@ -31,8 +31,8 @@ describe('general.get', () => {
       decimalSep:  '.',
       precision:   2,
     })
-    // tax.rate overridden, tax.inclusive preserved from DEFAULTS
-    expect(out.tax).toEqual({ rate: 7, inclusive: false })
+    // tax.rate overridden, tax.inclusive/withholding preserved from DEFAULTS
+    expect(out.tax).toEqual({ rate: 7, inclusive: false, withholding: true })
     // calendar untouched
     expect(out.calendar).toEqual(service.DEFAULTS.calendar)
   })

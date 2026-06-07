@@ -40,6 +40,8 @@ export default {
       taxInclusive:    'Tax after total',
       taxExclusiveDesc: 'Tax is added on top of the subtotal (exclusive)',
       taxInclusiveDesc: 'Prices already include tax (inclusive)',
+      wht:             'Withholding Tax (WHT)',
+      whtDesc:         'When enabled, invoices show a withholding-tax field so the amount withheld at source (หัก ณ ที่จ่าย) is deducted from the amount due.',
 
       seqTitle:       'Sequence Numbers',
       seqDesc:        'Configure reference number formats for ERP transactions',
@@ -166,6 +168,7 @@ export default {
       addValue:           'Add Value',
       colCode:            'Code',
       colName:            'Name',
+      colDataValue:       'Data Value',
       colSort:            'Sort',
       colActive:          'Active',
       noValues:           'No values yet. Click "Add Value" to get started.',

@@ -111,10 +111,21 @@
           <span class="text-[#637381]">{{ t('erp.invoices.docVat') }} {{ vatRate }}%</span>
           <span class="tabular-nums text-[#1C2434]">{{ fmtMoney(invoice.tax) }}</span>
         </div>
-        <div class="flex items-center justify-between px-3 py-2 bg-[#FAFBFD]">
+        <div class="flex items-center justify-between px-3 py-2 bg-[#FAFBFD]"
+          :class="{ 'border-b border-[#1C2434]': Number(invoice.whtAmount) > 0 }">
           <span class="font-bold text-[#1C2434]">{{ t('erp.invoices.docNetTotal') }}</span>
           <span class="font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(invoice.total) }}</span>
         </div>
+        <template v-if="Number(invoice.whtAmount) > 0">
+          <div class="flex items-center justify-between px-3 py-1.5 border-b border-[#1C2434]">
+            <span class="text-[#637381]">{{ t('erp.invoices.wht') }} {{ Number(invoice.whtRate) }}%</span>
+            <span class="tabular-nums text-[#1C2434]">−{{ fmtMoney(invoice.whtAmount) }}</span>
+          </div>
+          <div class="flex items-center justify-between px-3 py-2 bg-[#FAFBFD]">
+            <span class="font-bold text-[#1C2434]">{{ t('erp.invoices.docAmountDue') }}</span>
+            <span class="font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(netAmountDue) }}</span>
+          </div>
+        </template>
       </template>
     </DocSummary>
 
@@ -156,6 +167,13 @@ const topLevelItems = computed(() => (props.invoice?.items || []).filter(it => !
 function childrenOf(parentId) {
   return (props.invoice?.items || []).filter(it => it.parentItemId === parentId)
 }
+
+// Net payable after withholding tax. Prefer the model's virtual; fall back to
+// total - whtAmount for payloads that don't carry it.
+const netAmountDue = computed(() => {
+  const inv = props.invoice || {}
+  return inv.netTotal != null ? inv.netTotal : (Number(inv.total) || 0) - (Number(inv.whtAmount) || 0)
+})
 
 const fillerRows    = computed(() => Math.max(0, 8 - (props.invoice?.items?.length || 0)))
 const customerTaxId = computed(() => props.invoice?.customer?.taxId || '')

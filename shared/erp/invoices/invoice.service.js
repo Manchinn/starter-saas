@@ -67,7 +67,7 @@ const getById = async (id, organizationId) => {
 }
 
 // Per-line tax + order-level discount, mirrors order.service.computeTotals.
-const computeTotals = (items, { discountType, discountValue } = {}) => {
+const computeTotals = (items, { discountType, discountValue, whtRate } = {}) => {
   const lines = items.map((i) => {
     const qty   = Number(i.quantity)  || 0
     const price = Number(i.unitPrice) || 0
@@ -90,12 +90,21 @@ const computeTotals = (items, { discountType, discountValue } = {}) => {
   if (discountType === 'percent')   discountAmount = grossTotal * (Number(discountValue) || 0) / 100
   else if (discountType === 'fixed') discountAmount = Math.min(Number(discountValue) || 0, grossTotal)
   discountAmount = toFixed(discountAmount, 2)
+  const total = toFixed(grossTotal - Number(discountAmount), 2)
+
+  // Withholding tax is computed on the invoice amount (subtotal + tax) and
+  // withheld from the total, so net payable = total - whtAmount.
+  const rate = Number(whtRate) || 0
+  const whtAmount = toFixed(grossTotal * rate / 100, 2)
 
   return {
     subtotal: toFixed(subtotal, 2),
     tax:      toFixed(tax, 2),
     discountAmount,
-    total:    toFixed(grossTotal - Number(discountAmount), 2),
+    total,
+    whtRate: rate,
+    whtAmount,
+    netTotal: toFixed(total - Number(whtAmount), 2),
     lines,
   }
 }
@@ -154,6 +163,7 @@ const create = async ({
   currency, exchangeRate,
   referenceNumber, paymentTerms, salespersonId, shippingAddress, billingAddress,
   discountType, discountValue,
+  whtCode, whtRate,
   // Legacy: invoices used to take a single taxRate; if present and items lack
   // per-line tax, apply it uniformly so old callers keep working.
   taxRate,
@@ -169,7 +179,7 @@ const create = async ({
     ...i,
     taxRate: i.taxRate != null ? Number(i.taxRate) : Number(taxRate || 0),
   }))
-  const { subtotal, tax, total, discountAmount, lines } = computeTotals(itemsWithTax, { discountType, discountValue })
+  const { subtotal, tax, total, discountAmount, whtAmount, lines } = computeTotals(itemsWithTax, { discountType, discountValue, whtRate })
   const fx = await require('../settings/services/currency.service').getRateOn(currency, invoiceDate, organizationId)
   const resolvedRate = exchangeRate != null && Number(exchangeRate) > 0 ? Number(exchangeRate) : fx
 
@@ -195,6 +205,9 @@ const create = async ({
         discountType:    discountType    || null,
         discountValue:   Number(discountValue) || 0,
         discountAmount,
+        whtCode:         whtCode || null,
+        whtRate:         Number(whtRate) || 0,
+        whtAmount,
         organizationId: organizationId || null,
         createdBy: userId || null, modifiedBy: userId || null,
       },
@@ -214,6 +227,7 @@ const update = async (id, payload, userId, organizationId) => {
     currency, exchangeRate,
     referenceNumber, paymentTerms, salespersonId, shippingAddress, billingAddress,
     discountType, discountValue,
+    whtCode, whtRate,
   } = payload || {}
 
   const invoice = await findByPkScoped(Invoice, id, organizationId)
@@ -232,6 +246,7 @@ const update = async (id, payload, userId, organizationId) => {
   if (salespersonId   !== undefined) headerExtras.salespersonId   = salespersonId   || null
   if (shippingAddress !== undefined) headerExtras.shippingAddress = shippingAddress || null
   if (billingAddress  !== undefined) headerExtras.billingAddress  = billingAddress  || null
+  if (whtCode         !== undefined) headerExtras.whtCode         = whtCode         || null
 
   await sequelize.transaction(async (t) => {
     if (items) {
@@ -243,7 +258,8 @@ const update = async (id, payload, userId, organizationId) => {
       }))
       const dType  = discountType  !== undefined ? (discountType  || null) : invoice.discountType
       const dValue = discountValue !== undefined ? (Number(discountValue) || 0) : Number(invoice.discountValue) || 0
-      const { subtotal, tax, total, discountAmount, lines } = computeTotals(itemsWithTax, { discountType: dType, discountValue: dValue })
+      const wRate  = whtRate       !== undefined ? (Number(whtRate) || 0)     : Number(invoice.whtRate) || 0
+      const { subtotal, tax, total, discountAmount, whtAmount, lines } = computeTotals(itemsWithTax, { discountType: dType, discountValue: dValue, whtRate: wRate })
 
       await invoice.update({
         customerId: customerId || null,
@@ -251,23 +267,28 @@ const update = async (id, payload, userId, organizationId) => {
         invoiceDate, dueDate, notes,
         subtotal, tax, total,
         discountType: dType, discountValue: dValue, discountAmount,
+        whtRate: wRate, whtAmount,
         ...headerExtras, modifiedBy: userId || null,
       }, { transaction: t })
 
       await persistInvoiceItems({ invoiceId: id, lines, organizationId: invoice.organizationId, t })
     } else {
-      if (discountType !== undefined || discountValue !== undefined) {
+      if (discountType !== undefined || discountValue !== undefined || whtRate !== undefined) {
         const dType  = discountType  !== undefined ? (discountType  || null) : invoice.discountType
         const dValue = discountValue !== undefined ? (Number(discountValue) || 0) : Number(invoice.discountValue) || 0
+        const wRate  = whtRate       !== undefined ? (Number(whtRate) || 0)     : Number(invoice.whtRate) || 0
         const sub = Number(invoice.subtotal) || 0
         const tx  = Number(invoice.tax) || 0
         let amt = 0
         if (dType === 'percent')      amt = (sub + tx) * dValue / 100
         else if (dType === 'fixed')   amt = Math.min(dValue, sub + tx)
+        amt = toFixed(amt, 2)
         headerExtras.discountType   = dType
         headerExtras.discountValue  = dValue
-        headerExtras.discountAmount = toFixed(amt, 2)
+        headerExtras.discountAmount = amt
         headerExtras.total          = toFixed(sub + tx - amt, 2)
+        headerExtras.whtRate        = wRate
+        headerExtras.whtAmount      = toFixed((sub + tx) * wRate / 100, 2)
       }
       await invoice.update({
         customerId: customerId || null, orderId: orderId || null,
