@@ -17,6 +17,11 @@ export default {
       saveSettings:   'Save Settings',
 
       tabDate:            'Date & Calendar',
+      tabAuditLog:        'Audit Log',
+      auditLog:           'Audit Log',
+      auditLogDesc:       'Control how ERP activity is recorded in the audit log',
+      auditDebug:         'Debug mode — store request payload',
+      auditDebugDesc:     'When enabled, each audit log entry also stores the request payload (with passwords/tokens redacted). Useful for troubleshooting; increases stored data.',
       calendarSystem:     'Calendar System',
       calendarSystemDesc: 'Choose how years are entered and displayed in all date fields across the ERP',
       calendarCE:         'Christian Era (CE / Gregorian)',
@@ -35,6 +40,8 @@ export default {
       taxInclusive:    'Tax after total',
       taxExclusiveDesc: 'Tax is added on top of the subtotal (exclusive)',
       taxInclusiveDesc: 'Prices already include tax (inclusive)',
+      wht:             'Withholding Tax (WHT)',
+      whtDesc:         'When enabled, invoices show a withholding-tax field so the amount withheld at source (หัก ณ ที่จ่าย) is deducted from the amount due.',
 
       seqTitle:       'Sequence Numbers',
       seqDesc:        'Configure reference number formats for ERP transactions',
@@ -161,6 +168,7 @@ export default {
       addValue:           'Add Value',
       colCode:            'Code',
       colName:            'Name',
+      colDataValue:       'Data Value',
       colSort:            'Sort',
       colActive:          'Active',
       noValues:           'No values yet. Click "Add Value" to get started.',

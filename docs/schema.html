@@ -79,12 +79,12 @@
 <a id="top"></a>
 <header>
   <h1>Database Schema — starter-saas</h1>
-  <p>Sequelize model registry · grouped by module · generated 2026-06-02 13:57:57 UTC</p>
+  <p>Sequelize model registry · grouped by module · generated 2026-06-06 15:37:41 UTC</p>
   <div class="stats">
-    <div class="stat"><b>89</b><span>Tables</span></div>
+    <div class="stat"><b>91</b><span>Tables</span></div>
     <div class="stat"><b>20</b><span>Modules</span></div>
-    <div class="stat"><b>1260</b><span>Columns</span></div>
-    <div class="stat"><b>191</b><span>Relations</span></div>
+    <div class="stat"><b>1295</b><span>Columns</span></div>
+    <div class="stat"><b>195</b><span>Relations</span></div>
   </div>
 </header>
 <div class="controls">
@@ -95,7 +95,7 @@
   </div>
   <div class="chips"><button class="chip active" data-mod="AI Agent">AI Agent<i>3</i></button>
 <button class="chip active" data-mod="Core / Auth">Core / Auth<i>13</i></button>
-<button class="chip active" data-mod="ERP / Accounting">ERP / Accounting<i>13</i></button>
+<button class="chip active" data-mod="ERP / Accounting">ERP / Accounting<i>15</i></button>
 <button class="chip active" data-mod="ERP / Alert">ERP / Alert<i>2</i></button>
 <button class="chip active" data-mod="ERP / Attachments">ERP / Attachments<i>1</i></button>
 <button class="chip active" data-mod="ERP / Audit">ERP / Audit<i>1</i></button>
@@ -141,7 +141,7 @@
     </div>
 
     <div class="toc-group" data-mod-group="ERP / Accounting">
-      <h4>ERP / Accounting <span>13</span></h4>
+      <h4>ERP / Accounting <span>15</span></h4>
       <a href="#BillingNote" data-name="billingnote">BillingNote<small>BillingNotes</small></a>
       <a href="#BillingNoteInvoice" data-name="billingnoteinvoice">BillingNoteInvoice<small>BillingNoteInvoices</small></a>
       <a href="#ChartOfAccount" data-name="chartofaccount">ChartOfAccount<small>ChartOfAccounts</small></a>
@@ -155,6 +155,8 @@
       <a href="#TaxPeriod" data-name="taxperiod">TaxPeriod<small>tax_periods</small></a>
       <a href="#VendorBill" data-name="vendorbill">VendorBill<small>vendor_bills</small></a>
       <a href="#VendorBillItem" data-name="vendorbillitem">VendorBillItem<small>vendor_bill_items</small></a>
+      <a href="#VendorPayment" data-name="vendorpayment">VendorPayment<small>VendorPayments</small></a>
+      <a href="#VendorPaymentBill" data-name="vendorpaymentbill">VendorPaymentBill<small>VendorPaymentBills</small></a>
     </div>
 
     <div class="toc-group" data-mod-group="ERP / Alert">
@@ -388,7 +390,7 @@
 
       <section class="model" id="AiMessage" data-name="aimessage" data-mod="AI Agent">
         <h3 class="model-head">AiMessage <span class="tablename">AiMessages</span> <span class="modtag">AI Agent</span></h3>
-        <h5>Columns <span class="count">11</span></h5>
+        <h5>Columns <span class="count">15</span></h5>
         <table class="cols">
           <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th><th>Default</th><th>Comment</th></tr></thead>
           <tbody>
@@ -431,6 +433,38 @@
             <td class="col-ref"></td>
             <td class="col-default"></td>
             <td class="col-comment">Actions (การกระทำ)</td>
+          </tr>
+          <tr>
+            <td class="col-name">model</td>
+            <td class="col-type">VARCHAR(255)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Model (โมเดล)</td>
+          </tr>
+          <tr>
+            <td class="col-name">promptTokens</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Prompt tokens (โทเค็นพรอมต์)</td>
+          </tr>
+          <tr>
+            <td class="col-name">completionTokens</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Completion tokens (โทเค็นคำตอบ)</td>
+          </tr>
+          <tr>
+            <td class="col-name">totalTokens</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Total tokens (โทเค็นรวม)</td>
           </tr>
           <tr>
             <td class="col-name">organizationId</td>
@@ -2411,7 +2445,7 @@
     </div>
 
     <div class="module-block" data-mod-block="ERP / Accounting">
-      <h2 class="module-head" id="mod-ERP-Accounting">ERP / Accounting <span>13 tables</span></h2>
+      <h2 class="module-head" id="mod-ERP-Accounting">ERP / Accounting <span>15 tables</span></h2>
 
       <section class="model" id="BillingNote" data-name="billingnote" data-mod="ERP / Accounting">
         <h3 class="model-head">BillingNote <span class="tablename">BillingNotes</span> <span class="modtag">ERP / Accounting</span></h3>
@@ -3937,7 +3971,7 @@
 
       <section class="model" id="VendorBill" data-name="vendorbill" data-mod="ERP / Accounting">
         <h3 class="model-head">VendorBill <span class="tablename">vendor_bills</span> <span class="modtag">ERP / Accounting</span></h3>
-        <h5>Columns <span class="count">21</span></h5>
+        <h5>Columns <span class="count">23</span></h5>
         <table class="cols">
           <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th><th>Default</th><th>Comment</th></tr></thead>
           <tbody>
@@ -4036,6 +4070,22 @@
             <td class="col-ref"></td>
             <td class="col-default">0</td>
             <td class="col-comment">Total (ยอดรวม)</td>
+          </tr>
+          <tr>
+            <td class="col-name">amountPaid</td>
+            <td class="col-type">DECIMAL(15,2)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default">0</td>
+            <td class="col-comment">Amount Paid (จำนวนที่จ่ายแล้ว)</td>
+          </tr>
+          <tr>
+            <td class="col-name">balanceDue</td>
+            <td class="col-type">VIRTUAL</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Balance Due (ยอดคงค้าง)</td>
           </tr>
           <tr>
             <td class="col-name">notes</td>
@@ -4269,6 +4319,284 @@
             <td><a href="#VendorBill">VendorBill</a></td>
             <td class="rel-as">bill</td>
             <td class="rel-fk">billId</td>
+            <td class="rel-through"></td>
+          </tr>
+          </tbody>
+        </table>
+        <a class="totop" href="#top">↑ top</a>
+      </section>
+
+      <section class="model" id="VendorPayment" data-name="vendorpayment" data-mod="ERP / Accounting">
+        <h3 class="model-head">VendorPayment <span class="tablename">VendorPayments</span> <span class="modtag">ERP / Accounting</span></h3>
+        <h5>Columns <span class="count">17</span></h5>
+        <table class="cols">
+          <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th><th>Default</th><th>Comment</th></tr></thead>
+          <tbody>
+          <tr>
+            <td class="col-name">id</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"><span class="flag flag-pk">PK</span></td>
+            <td class="col-ref"></td>
+            <td class="col-default">UUIDV4</td>
+            <td class="col-comment">ID (รหัส)</td>
+          </tr>
+          <tr>
+            <td class="col-name">refNo</td>
+            <td class="col-type">VARCHAR(255)</td>
+            <td class="col-flags"><span class="flag flag-not-null">NOT NULL</span></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Reference No. (เลขอ้างอิง)</td>
+          </tr>
+          <tr>
+            <td class="col-name">date</td>
+            <td class="col-type">DATE</td>
+            <td class="col-flags"><span class="flag flag-not-null">NOT NULL</span></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Date (วันที่)</td>
+          </tr>
+          <tr>
+            <td class="col-name">vendorId</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"><span class="flag flag-fk">FK</span> <span class="flag flag-not-null">NOT NULL</span></td>
+            <td class="col-ref"><a href="#Vendors">Vendors.id</a></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Vendor (ผู้ขาย)</td>
+          </tr>
+          <tr>
+            <td class="col-name">paymentMethod</td>
+            <td class="col-type">VARCHAR(100)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Payment Method (วิธีการชำระ)</td>
+          </tr>
+          <tr>
+            <td class="col-name">reference</td>
+            <td class="col-type">VARCHAR(200)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment"></td>
+          </tr>
+          <tr>
+            <td class="col-name">amount</td>
+            <td class="col-type">DECIMAL(15,2)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default">0</td>
+            <td class="col-comment">Amount (จำนวนเงิน)</td>
+          </tr>
+          <tr>
+            <td class="col-name">currency</td>
+            <td class="col-type">VARCHAR(3)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Currency (สกุลเงิน)</td>
+          </tr>
+          <tr>
+            <td class="col-name">exchangeRate</td>
+            <td class="col-type">DECIMAL(20,8)</td>
+            <td class="col-flags"><span class="flag flag-not-null">NOT NULL</span></td>
+            <td class="col-ref"></td>
+            <td class="col-default">1</td>
+            <td class="col-comment">Exchange Rate (อัตราแลกเปลี่ยน)</td>
+          </tr>
+          <tr>
+            <td class="col-name">notes</td>
+            <td class="col-type">TEXT</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Notes (หมายเหตุ)</td>
+          </tr>
+          <tr>
+            <td class="col-name">status</td>
+            <td class="col-type">TEXT</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default">draft</td>
+            <td class="col-comment">Status (สถานะ)</td>
+          </tr>
+          <tr>
+            <td class="col-name">organizationId</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"><span class="flag flag-fk">FK</span></td>
+            <td class="col-ref"><a href="#Users">Users.id</a></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Organization (องค์กร) — owning tenant (User ID)</td>
+          </tr>
+          <tr>
+            <td class="col-name">dataFlag</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default">1</td>
+            <td class="col-comment">Data Flag (สถานะข้อมูล) — 1 = active, 0 = soft-deleted</td>
+          </tr>
+          <tr>
+            <td class="col-name">createdBy</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Created By (ผู้สร้าง) — User ID</td>
+          </tr>
+          <tr>
+            <td class="col-name">modifiedBy</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Modified By (ผู้แก้ไขล่าสุด) — User ID</td>
+          </tr>
+          <tr>
+            <td class="col-name">createdAt</td>
+            <td class="col-type">DATETIME</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Created At (วันที่สร้าง)</td>
+          </tr>
+          <tr>
+            <td class="col-name">updatedAt</td>
+            <td class="col-type">DATETIME</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Updated At (วันที่แก้ไขล่าสุด)</td>
+          </tr>
+          </tbody>
+        </table>
+        <h5>Relations <span class="count">2</span></h5>
+        <table class="rels">
+          <thead><tr><th>Kind</th><th>Target</th><th>As</th><th>Foreign Key</th><th>Through</th></tr></thead>
+          <tbody>
+          <tr>
+            <td class="rel-type">hasMany (1:N)</td>
+            <td><a href="#VendorPaymentBill">VendorPaymentBill</a></td>
+            <td class="rel-as">lines</td>
+            <td class="rel-fk">vendorPaymentId</td>
+            <td class="rel-through"></td>
+          </tr>
+          <tr>
+            <td class="rel-type">belongsTo (N:1)</td>
+            <td><a href="#Vendor">Vendor</a></td>
+            <td class="rel-as">vendor</td>
+            <td class="rel-fk">vendorId</td>
+            <td class="rel-through"></td>
+          </tr>
+          </tbody>
+        </table>
+        <a class="totop" href="#top">↑ top</a>
+      </section>
+
+      <section class="model" id="VendorPaymentBill" data-name="vendorpaymentbill" data-mod="ERP / Accounting">
+        <h3 class="model-head">VendorPaymentBill <span class="tablename">VendorPaymentBills</span> <span class="modtag">ERP / Accounting</span></h3>
+        <h5>Columns <span class="count">10</span></h5>
+        <table class="cols">
+          <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th><th>Default</th><th>Comment</th></tr></thead>
+          <tbody>
+          <tr>
+            <td class="col-name">id</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"><span class="flag flag-pk">PK</span></td>
+            <td class="col-ref"></td>
+            <td class="col-default">UUIDV4</td>
+            <td class="col-comment">ID (รหัส)</td>
+          </tr>
+          <tr>
+            <td class="col-name">vendorPaymentId</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"><span class="flag flag-fk">FK</span> <span class="flag flag-not-null">NOT NULL</span></td>
+            <td class="col-ref"><a href="#VendorPayments">VendorPayments.id</a></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Vendor Payment (รายการจ่ายชำระ)</td>
+          </tr>
+          <tr>
+            <td class="col-name">vendorBillId</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"><span class="flag flag-fk">FK</span> <span class="flag flag-not-null">NOT NULL</span></td>
+            <td class="col-ref"><a href="#vendor_bills">vendor_bills.id</a></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Vendor Bill (ใบวางบิล)</td>
+          </tr>
+          <tr>
+            <td class="col-name">amount</td>
+            <td class="col-type">DECIMAL(15,2)</td>
+            <td class="col-flags"><span class="flag flag-not-null">NOT NULL</span></td>
+            <td class="col-ref"></td>
+            <td class="col-default">0</td>
+            <td class="col-comment">Amount (จำนวนเงิน)</td>
+          </tr>
+          <tr>
+            <td class="col-name">organizationId</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"><span class="flag flag-fk">FK</span></td>
+            <td class="col-ref"><a href="#Users">Users.id</a></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Organization (องค์กร) — owning tenant (User ID)</td>
+          </tr>
+          <tr>
+            <td class="col-name">dataFlag</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default">1</td>
+            <td class="col-comment">Data Flag (สถานะข้อมูล) — 1 = active, 0 = soft-deleted</td>
+          </tr>
+          <tr>
+            <td class="col-name">createdBy</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Created By (ผู้สร้าง) — User ID</td>
+          </tr>
+          <tr>
+            <td class="col-name">modifiedBy</td>
+            <td class="col-type">UUID</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Modified By (ผู้แก้ไขล่าสุด) — User ID</td>
+          </tr>
+          <tr>
+            <td class="col-name">createdAt</td>
+            <td class="col-type">DATETIME</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Created At (วันที่สร้าง)</td>
+          </tr>
+          <tr>
+            <td class="col-name">updatedAt</td>
+            <td class="col-type">DATETIME</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Updated At (วันที่แก้ไขล่าสุด)</td>
+          </tr>
+          </tbody>
+        </table>
+        <h5>Relations <span class="count">2</span></h5>
+        <table class="rels">
+          <thead><tr><th>Kind</th><th>Target</th><th>As</th><th>Foreign Key</th><th>Through</th></tr></thead>
+          <tbody>
+          <tr>
+            <td class="rel-type">belongsTo (N:1)</td>
+            <td><a href="#VendorPayment">VendorPayment</a></td>
+            <td class="rel-as">vendorPayment</td>
+            <td class="rel-fk">vendorPaymentId</td>
+            <td class="rel-through"></td>
+          </tr>
+          <tr>
+            <td class="rel-type">belongsTo (N:1)</td>
+            <td><a href="#VendorBill">VendorBill</a></td>
+            <td class="rel-as">bill</td>
+            <td class="rel-fk">vendorBillId</td>
             <td class="rel-through"></td>
           </tr>
           </tbody>
@@ -4667,7 +4995,7 @@
 
       <section class="model" id="AuditLog" data-name="auditlog" data-mod="ERP / Audit">
         <h3 class="model-head">AuditLog <span class="tablename">audit_logs</span> <span class="modtag">ERP / Audit</span></h3>
-        <h5>Columns <span class="count">13</span></h5>
+        <h5>Columns <span class="count">15</span></h5>
         <table class="cols">
           <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th><th>Default</th><th>Comment</th></tr></thead>
           <tbody>
@@ -4718,6 +5046,22 @@
             <td class="col-ref"></td>
             <td class="col-default"></td>
             <td class="col-comment">Entity ID (รหัสเอนทิตี)</td>
+          </tr>
+          <tr>
+            <td class="col-name">method</td>
+            <td class="col-type">VARCHAR(255)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">HTTP Method (เมธอด)</td>
+          </tr>
+          <tr>
+            <td class="col-name">ip</td>
+            <td class="col-type">VARCHAR(255)</td>
+            <td class="col-flags"></td>
+            <td class="col-ref"></td>
+            <td class="col-default"></td>
+            <td class="col-comment">Client IP (ไอพี)</td>
           </tr>
           <tr>
             <td class="col-name">summary</td>

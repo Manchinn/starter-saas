@@ -31,8 +31,8 @@ describe('general.get', () => {
       decimalSep:  '.',
       precision:   2,
     })
-    // tax.rate overridden, tax.inclusive preserved from DEFAULTS
-    expect(out.tax).toEqual({ rate: 7, inclusive: false })
+    // tax.rate overridden, tax.inclusive/withholding preserved from DEFAULTS
+    expect(out.tax).toEqual({ rate: 7, inclusive: false, withholding: true })
     // calendar untouched
     expect(out.calendar).toEqual(service.DEFAULTS.calendar)
   })
@@ -77,5 +77,41 @@ describe('general.save', () => {
     const out = await service.save('u', {}) // empty save
     expect(out.currency.symbol).toBe('€')
     expect(out.tax.rate).toBe(19)
+  })
+
+  test('persists the audit.debug toggle', async () => {
+    Setting.findOne.mockResolvedValue(null)
+    const out = await service.save('u', { audit: { debug: true } })
+    expect(out.audit.debug).toBe(true)
+    expect(JSON.parse(Setting.upsert.mock.calls[0][0].value).audit.debug).toBe(true)
+  })
+})
+
+describe('general.isAuditDebug', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  test('true only when audit.debug is set in the stored row', async () => {
+    Setting.findOne.mockResolvedValue({ value: JSON.stringify({ audit: { debug: true } }) })
+    expect(await service.isAuditDebug('org-debug-on')).toBe(true)
+  })
+
+  test('false when no row / no flag', async () => {
+    Setting.findOne.mockResolvedValue(null)
+    expect(await service.isAuditDebug('org-debug-off')).toBe(false)
+  })
+
+  test('caches the result (no second query within the TTL)', async () => {
+    Setting.findOne.mockResolvedValue({ value: JSON.stringify({ audit: { debug: true } }) })
+    await service.isAuditDebug('org-cache')
+    await service.isAuditDebug('org-cache')
+    expect(Setting.findOne).toHaveBeenCalledTimes(1)
+  })
+
+  test('save() invalidates the cache so a toggle takes effect at once', async () => {
+    Setting.findOne.mockResolvedValue({ value: JSON.stringify({ audit: { debug: true } }) })
+    expect(await service.isAuditDebug('org-inv')).toBe(true)
+    Setting.findOne.mockResolvedValue({ value: JSON.stringify({ audit: { debug: false } }) })
+    await service.save('org-inv', { audit: { debug: false } })
+    expect(await service.isAuditDebug('org-inv')).toBe(false)
   })
 })

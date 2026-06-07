@@ -267,6 +267,21 @@
               </p>
             </div>
 
+            <!-- Withholding tax (WHT) -->
+            <div class="pt-5 border-t border-[#E2E8F0]">
+              <label class="flex items-start gap-4 p-4 border-2 cursor-pointer transition-colors"
+                :class="taxForm.withholding
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
+                <input type="checkbox" v-model="taxForm.withholding"
+                  class="mt-0.5 accent-primary-500 flex-shrink-0 w-4 h-4" />
+                <div>
+                  <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.wht') }}</p>
+                  <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.whtDesc') }}</p>
+                </div>
+              </label>
+            </div>
+
           </div>
         </div>
 
@@ -288,6 +303,54 @@
                    disabled:opacity-50 transition-colors shadow-sm">
             <CheckIcon v-if="!taxSaving" class="w-4 h-4" />
             {{ taxSaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
+          </button>
+        </div>
+
+      </template>
+
+      <!-- ── Audit Log tab ────────────────────────────────────────────── -->
+      <template v-if="activeTab === 'auditlog'">
+
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.auditLog') }}</h2>
+            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.auditLogDesc') }}</p>
+          </div>
+
+          <div class="px-6 py-5">
+            <!-- Debug toggle -->
+            <label class="flex items-start gap-4 p-4 border-2 cursor-pointer transition-colors"
+              :class="auditForm.debug
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
+              <input type="checkbox" v-model="auditForm.debug"
+                class="mt-0.5 accent-primary-500 flex-shrink-0 w-4 h-4" />
+              <div>
+                <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.auditDebug') }}</p>
+                <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.auditDebugDesc') }}</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Feedback + save -->
+        <div v-if="auditError"
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
+          <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ auditError }}
+        </div>
+        <div v-if="auditSaved"
+          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
+          <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ t('erp.settings.savedOk') }}
+        </div>
+        <div class="flex justify-end">
+          <button @click="saveAudit" :disabled="auditSaving"
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
+                   bg-primary-500 text-white hover:bg-primary-700
+                   disabled:opacity-50 transition-colors shadow-sm">
+            <CheckIcon v-if="!auditSaving" class="w-4 h-4" />
+            {{ auditSaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
           </button>
         </div>
 
@@ -315,6 +378,7 @@ const TABS = computed(() => [
   { key: 'currency', label: t('erp.settings.currency') },
   { key: 'tax',      label: t('erp.settings.tax') },
   { key: 'date',     label: t('erp.settings.tabDate') },
+  { key: 'auditlog', label: t('erp.settings.tabAuditLog') },
 ])
 
 // ── Options ───────────────────────────────────────────────
@@ -377,8 +441,9 @@ async function saveCurrency() {
 
 // ── Tax form ──────────────────────────────────────────────
 const taxForm = reactive({
-  rate:      store.tax.rate,
-  inclusive: store.tax.inclusive,
+  rate:        store.tax.rate,
+  inclusive:   store.tax.inclusive,
+  withholding: store.tax.withholding,
 })
 const taxSaving = ref(false)
 const taxSaved  = ref(false)
@@ -441,6 +506,29 @@ async function saveCalendar() {
   }
 }
 
+// ── Audit Log form ────────────────────────────────────────
+const auditForm = reactive({
+  debug: store.audit.debug,
+})
+const auditSaving = ref(false)
+const auditSaved  = ref(false)
+const auditError  = ref('')
+
+async function saveAudit() {
+  auditError.value = ''
+  auditSaved.value = false
+  auditSaving.value = true
+  try {
+    await store.saveAudit({ ...auditForm })
+    auditSaved.value = true
+    setTimeout(() => { auditSaved.value = false }, 3000)
+  } catch (err) {
+    auditError.value = err.response?.data?.message || 'Failed to save audit log settings'
+  } finally {
+    auditSaving.value = false
+  }
+}
+
 // ── Load ──────────────────────────────────────────────────
 onMounted(async () => {
   await store.load()
@@ -450,5 +538,6 @@ onMounted(async () => {
     system:     store.calendar.system,
     dateFormat: store.calendar.dateFormat || 'dd/mm/yyyy',
   })
+  Object.assign(auditForm, store.audit)
 })
 </script>

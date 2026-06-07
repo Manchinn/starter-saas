@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -91,217 +91,8 @@
           </div>
         </div>
 
-        <!-- ── Document ─────────────────────────────────────────── -->
-        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
-                        overflow-hidden">
-
-          <!-- DRAFT / CANCELLED diagonal stamp -->
-          <div v-if="stampLabel"
-            class="pointer-events-none absolute inset-0 flex items-center justify-center z-10"
-            aria-hidden="true">
-            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] px-6 py-2
-                         text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]"
-              :class="stampClass">
-              {{ stampLabel }}
-            </span>
-          </div>
-
-          <!-- Document header: company + title block -->
-          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0 flex items-start gap-4">
-              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
-                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
-              <div class="min-w-0">
-                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
-                  {{ companyAddress }}
-                </p>
-                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
-                  <p v-if="companyPhone">{{ t('erp.orders.docPhoneAbbr') }} {{ companyPhone }}</p>
-                  <p v-if="companyEmail">{{ companyEmail }}</p>
-                  <p v-if="companyWebsite">{{ companyWebsite }}</p>
-                  <p v-if="companyTaxId" class="tabular-nums">
-                    <span class="text-[#9BA7B0]">{{ t('erp.orders.docTaxId') }}</span> {{ companyTaxId }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="text-right flex-shrink-0">
-              <h2 class="text-[26px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
-                {{ t('erp.orders.documentTitle') }}
-              </h2>
-              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
-                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ order.orderNumber }}</dd>
-
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                  {{ t('erp.orders.docDate') }}
-                </dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(order.orderDate) || '—' }}</dd>
-
-                <template v-if="order.referenceNumber">
-                  <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                    {{ t('erp.orders.docPO') }}
-                  </dt>
-                  <dd class="font-semibold text-[#1C2434] text-right">{{ order.referenceNumber }}</dd>
-                </template>
-              </dl>
-            </div>
-          </header>
-
-          <!-- Bill-to / Ship-to / Meta -->
-          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 border-b border-dashed border-[#E2E8F0]">
-            <!-- Bill To -->
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">
-                {{ t('erp.orders.docBillTo') }}
-              </p>
-              <p class="text-[14px] font-bold text-[#1C2434]">{{ order.customer?.name || '—' }}</p>
-              <p v-if="order.customer?.company" class="text-[12px] text-[#374151]">{{ order.customer.company }}</p>
-              <p v-if="billingAddressDisplay" class="text-[12px] text-[#374151] mt-1 whitespace-pre-line leading-snug">
-                {{ billingAddressDisplay }}
-              </p>
-              <p v-if="order.customer?.email" class="text-[11px] text-[#637381] mt-1.5">{{ order.customer.email }}</p>
-              <p v-if="order.customer?.phone" class="text-[11px] text-[#637381]">{{ order.customer.phone }}</p>
-            </div>
-            <!-- Ship To -->
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">
-                {{ t('erp.orders.docShipTo') }}
-              </p>
-              <p v-if="order.shippingAddress" class="text-[12px] text-[#374151] whitespace-pre-line leading-snug">
-                {{ order.shippingAddress }}
-              </p>
-              <p v-else class="text-[12px] text-[#9BA7B0] italic">{{ t('erp.orders.docSameAsBilling') }}</p>
-            </div>
-          </section>
-
-          <!-- Metadata strip -->
-          <section class="px-10 py-4 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-3 border-b border-dashed border-[#E2E8F0] bg-[#FAFBFD]">
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.orders.expectedDelivery') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] tabular-nums mt-0.5">{{ fmtDate(order.expectedDeliveryDate) || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.orders.paymentTerms') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] mt-0.5">{{ paymentTermLabel(order.paymentTerms) }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.orders.salesperson') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] mt-0.5">{{ order.salesperson?.name || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">{{ t('erp.common.currency') }}</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] tabular-nums mt-0.5">{{ order.currency || '—' }}</p>
-            </div>
-          </section>
-
-          <!-- Line items table -->
-          <section class="px-10 pt-6 pb-2">
-            <table class="w-full text-[12px]">
-              <thead>
-                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
-                  <th class="py-2.5 text-left w-8">#</th>
-                  <th class="py-2.5 text-left w-28">{{ t('erp.orders.colCode') }}</th>
-                  <th class="py-2.5 text-left">{{ t('erp.orders.colItem') }}</th>
-                  <th class="py-2.5 text-right w-16">{{ t('erp.orders.colQty') }}</th>
-                  <th class="py-2.5 text-right w-24">{{ t('erp.orders.colUnitPrice') }}</th>
-                  <th class="py-2.5 text-right w-14">{{ t('erp.orders.tax') }} %</th>
-                  <th class="py-2.5 text-right w-28">{{ t('erp.orders.colTotal') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <template v-for="(item, idx) in topLevelItems" :key="item.id">
-                  <tr class="border-b border-[#F1F5F9]">
-                    <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
-                    <td class="py-2.5 align-top text-[#637381] font-mono text-[11px]">{{ itemCode(item) || '—' }}</td>
-                    <td class="py-2.5 align-top">
-                      <span class="font-semibold text-[#1C2434]">{{ itemName(item) }}</span>
-                    </td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ item.quantity }}</td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ fmtMoney(item.unitPrice) }}</td>
-                    <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ Number(item.taxRate || 0) }}%</td>
-                    <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
-                      {{ fmtMoney((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)) }}
-                    </td>
-                  </tr>
-                  <!-- Package children: indented sub-items -->
-                  <tr v-for="child in childrenOf(item.id)" :key="child.id"
-                    class="border-b border-[#F1F5F9] text-[11px]">
-                    <td></td>
-                    <td class="py-1.5 text-[#9BA7B0] font-mono text-[10px]">{{ itemCode(child) || '—' }}</td>
-                    <td colspan="5" class="py-1.5 pl-6 text-[#637381]">
-                      <span class="text-[#CBD5E1] mr-1.5">↳</span>
-                      {{ child.productName }}
-                      <span class="text-[10px] font-semibold text-[#9BA7B0] tabular-nums ml-2">× {{ child.quantity }}</span>
-                    </td>
-                  </tr>
-                </template>
-                <!-- Empty state -->
-                <tr v-if="!topLevelItems.length">
-                  <td colspan="7" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
-                    {{ t('erp.common.noItems') }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-
-          <!-- Totals block — right-aligned, like a real invoice -->
-          <section class="px-10 pb-6 flex items-start justify-between gap-6">
-            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
-              {{ totalInWords }}
-            </p>
-            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
-              <div class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.orders.subtotal') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(order.subtotal) }}</dd>
-              </div>
-              <div class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.orders.tax') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ fmtMoney(order.tax) }}</dd>
-              </div>
-              <div v-if="Number(order.discountAmount) > 0" class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.orders.discount') }}</dt>
-                <dd class="font-semibold text-red-600 tabular-nums">−{{ fmtMoney(order.discountAmount) }}</dd>
-              </div>
-              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
-                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">{{ t('erp.orders.total') }}</dt>
-                <dd class="text-[16px] font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(order.total) }}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <!-- Notes -->
-          <section v-if="order.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
-            <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-              {{ t('erp.orders.notes') }}
-            </p>
-            <p class="text-[12px] text-[#374151] whitespace-pre-line leading-relaxed">{{ order.notes }}</p>
-          </section>
-
-          <!-- Footer with signatures + meta -->
-          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
-            <div class="grid grid-cols-2 gap-10">
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  {{ t('erp.orders.docAuthorisedSignature') }}
-                </p>
-              </div>
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  {{ t('erp.orders.docCustomerSignature') }}
-                </p>
-              </div>
-            </div>
-            <p class="text-center text-[10px] text-[#9BA7B0] mt-6">
-              {{ t('erp.orders.docFooterThanks') }}
-            </p>
-          </footer>
-        </article>
+        <!-- Printable document (extracted report view) -->
+        <OrderReport :order="order" />
 
         <!-- ── Action panels (outside the document) ─────────────── -->
 
@@ -423,13 +214,11 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
-import { fmtMoney, fmtDate, numToWords } from '@/utils/fmt'
-import { useAuthStore } from '@/stores/auth'
+import OrderReport from '@shared/reporting/templates/erp/order/OrderReport.vue'
 
-const { t, locale } = useI18n()
-const route    = useRoute()
-const router   = useRouter()
-const auth     = useAuthStore()
+const { t }  = useI18n()
+const route  = useRoute()
+const router = useRouter()
 
 const order          = ref(null)
 const loading        = ref(true)
@@ -465,62 +254,6 @@ function confirmAsync({ title, message, okLabel } = {}) {
 function confirmAnswer(ok) {
   confirmOpen.value = false
   if (confirmResolver) { confirmResolver(ok); confirmResolver = null }
-}
-
-// Company profile comes from /auth/me's `user.organization` — the top-level
-// org account that owns the current session. Admins keep these fields up to
-// date on /admin/organizations/:id/edit.
-const org = computed(() => auth.user?.organization || {})
-const companyName    = computed(() => org.value.companyName || org.value.name || 'Your Company')
-const companyAddress = computed(() => org.value.address  || '')
-const companyPhone   = computed(() => org.value.phone    || '')
-const companyEmail   = computed(() => org.value.email    || '')
-const companyTaxId   = computed(() => org.value.taxId    || '')
-const companyWebsite = computed(() => org.value.website  || '')
-
-// Logo paths are relative (e.g. /uploads/logos/abc.png). Vite proxies /uploads
-// to the API server in dev; same-origin in prod. External URLs pass through.
-const companyLogoSrc = computed(() => {
-  const p = org.value.logoPath
-  if (!p) return ''
-  if (/^https?:\/\//i.test(p)) return p
-  return p
-})
-
-// Bill-to address: prefer the order's billingAddress; fall back to customer's address.
-const billingAddressDisplay = computed(() => order.value?.billingAddress || order.value?.customer?.address || '')
-
-const totalInWords = computed(() => {
-  if (!order.value) return ''
-  return numToWords(order.value.total, locale.value, order.value.currency)
-})
-
-// Top-level items only (parent rows + standalone); package children are
-// rendered indented under their parent via childrenOf().
-const topLevelItems = computed(() => (order.value?.items || []).filter(it => !it.parentItemId))
-function childrenOf(parentId) {
-  return (order.value?.items || []).filter(it => it.parentItemId === parentId)
-}
-// Code for the dedicated CODE column. Order lines reference a SaleItem
-// (which carries the customer-facing code) or a SalePackage; the linked
-// Product is only populated for ad-hoc product lines, so its SKU is the
-// last-resort fallback.
-function itemCode(item) {
-  if (item.salePackageId) return item.salePackage?.code || ''
-  return item.saleItem?.code || item.product?.sku || ''
-}
-
-// Older package rows persisted productName as "Name (CODE)" — strip the
-// trailing "(code)" so the ITEM column shows the bare name now that the
-// code lives in its own column.
-function itemName(item) {
-  if (item.salePackageId) {
-    const code = item.salePackage?.code
-    const name = item.productName || ''
-    if (code && name.endsWith(` (${code})`)) return name.slice(0, -(` (${code})`).length)
-    return name
-  }
-  return item.productName || ''
 }
 
 function onPrint() { window.print() }
@@ -602,7 +335,7 @@ const TRANSITION_LABELS = {
 }
 function transitionLabel(s) { return TRANSITION_LABELS[s] || s }
 
-// ── Status badge / stamp ──────────────────────────────────
+// ── Status badge ──────────────────────────────────────────
 const STATUS_BADGE = {
   draft:     'bg-[#F1F5F9] text-[#637381]',
   confirmed: 'bg-blue-50 text-blue-700',
@@ -619,20 +352,6 @@ const STATUS_DOT = {
 }
 function statusBadge(s) { return STATUS_BADGE[s] || STATUS_BADGE.draft }
 function statusDot(s)   { return STATUS_DOT[s]   || STATUS_DOT.draft }
-
-// Diagonal stamp shown on draft / cancelled documents. Other statuses are
-// "live" and don't need a watermark — the small status pill in the top bar
-// already communicates state.
-const stampLabel = computed(() => {
-  const s = order.value?.status
-  if (s === 'draft')     return 'Draft'
-  if (s === 'cancelled') return 'Cancelled'
-  return ''
-})
-const stampClass = computed(() => {
-  if (order.value?.status === 'cancelled') return 'text-red-600 border-red-600'
-  return 'text-[#1C2434] border-[#1C2434]'
-})
 
 // ── Data ──────────────────────────────────────────────────
 onMounted(fetchOrder)
@@ -677,8 +396,7 @@ async function confirmDelete() {
   }
 }
 
-// Confirm-modal keys are handled separately so they take over while the dialog is
-// open (page-level shortcuts are suppressed via the `enabled` guard above).
+// Confirm-modal keys are handled separately so they take over while the dialog is open.
 function onConfirmKeydown(e) {
   if (!confirmOpen.value) return
   if (e.key === 'Enter')  { e.preventDefault(); confirmAnswer(true) }
@@ -686,35 +404,23 @@ function onConfirmKeydown(e) {
 }
 onMounted(() => window.addEventListener('keydown', onConfirmKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onConfirmKeydown))
-
-// Payment-terms labels come from master-data so admins can rename them.
-// Fall back to the stored raw value if the lookup is empty or missing.
-const paymentTerms = ref([])
-onMounted(async () => {
-  try {
-    const { data } = await api.get('/erp/master-data/payment-terms')
-    paymentTerms.value = data.data.values || []
-  } catch { /* lookup failed — labels fall back to raw stored value */ }
-})
-function paymentTermLabel(v) {
-  if (!v) return '—'
-  const hit = paymentTerms.value.find(opt => opt.code === v || opt.name === v)
-  return hit?.name || v
-}
 </script>
 
 <style>
-/* Print-only adjustments. Selectors are global (no `scoped`) so they catch
-   elements wrapped by AppLayout — we hide the app chrome and let the
-   <article> document fill the page. */
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
-  /* Hide app chrome (sidebar / topbar) — they're usually inside an aside or
-     header that the AppLayout sets up. Tailwind's `print:hidden` handles the
-     in-component bits; this catches anything we don't own. */
   aside, header, nav.print\:hidden { display: none !important; }
   body { background: white !important; }
   .shadow-card { box-shadow: none !important; }
-  /* Make sure the article isn't constrained inside any flex/grid wrapper. */
-  article { max-width: none !important; margin: 0 !important; }
+  article {
+    width: 186mm !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  article table { table-layout: fixed; width: 100% !important; }
 }
 </style>

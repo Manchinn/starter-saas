@@ -56,6 +56,11 @@ const Customer = sequelize.define('Customer', {
     comment: 'Customer Group (กลุ่มลูกค้า)',
   },
   ...auditFields,
+}, {
+  indexes: [
+    // Per-organization uniqueness on code (NULL organizationId rows are distinct).
+    { unique: true, name: 'idx_customers_code_org', fields: ['code', 'organizationId'] },
+  ],
 })
 
 module.exports = Customer

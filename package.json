@@ -14,7 +14,8 @@
     "build": "npm --workspace=client run build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "tar": "^7.5.16"
   },
   "dependencies": {
     "@tanstack/vue-table": "^8.21.3"

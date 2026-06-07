@@ -88,8 +88,10 @@
             :key="row.id"
             :class="[
               'hover:bg-[#F7F9FC] transition-colors group',
+              rowClickable && 'cursor-pointer',
               i === selectedRowIndex && 'bg-primary-50 ring-1 ring-inset ring-primary-200',
             ]"
+            @click="onRowClick(row.original, $event)"
           >
             <td
               v-for="cell in row.getVisibleCells()"
@@ -159,9 +161,19 @@ const props = defineProps({
   searchPlaceholder: { type: String,  default: 'Search…' },
   searchDebounce:    { type: Number,  default: 350 },
   selectedRowIndex:  { type: Number,  default: -1 },
+  // When true, clicking anywhere on a row (outside inner links/buttons) emits `row-click`.
+  rowClickable:      { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['update:page', 'update:globalFilter'])
+const emit = defineEmits(['update:page', 'update:globalFilter', 'row-click'])
+
+// Emit a row click, but let inner interactive elements (links, buttons, inputs)
+// handle their own clicks so a per-row link/action isn't hijacked by the row.
+function onRowClick(row, event) {
+  if (!props.rowClickable) return
+  if (event.target.closest('a, button, input, select, label')) return
+  emit('row-click', row)
+}
 
 const searchInputEl = ref(null)
 defineExpose({ focusSearch: () => searchInputEl.value?.focus() })

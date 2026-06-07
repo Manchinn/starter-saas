@@ -115,6 +115,11 @@ const User = sequelize.define('User', {
   },
   ...recordFields,
 }, {
+  indexes: [
+    // Token-lookup indexes for password reset / email verification flows.
+    { name: 'idx_users_password_reset_token', fields: ['passwordResetToken'] },
+    { name: 'idx_users_email_verification_token', fields: ['emailVerificationToken'] },
+  ],
   hooks: {
     beforeCreate: async (user) => {
       user.password = await bcrypt.hash(user.password, 12)

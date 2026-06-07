@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AppLayout>
     <div class="space-y-5">
 
@@ -80,182 +80,8 @@
           </div>
         </div>
 
-        <!-- ── Document ─────────────────────────────────────────── -->
-        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
-                        overflow-hidden">
-
-          <!-- DRAFT / CANCELLED stamp -->
-          <div v-if="stampLabel"
-            class="pointer-events-none absolute inset-0 flex items-center justify-center z-10"
-            aria-hidden="true">
-            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] px-6 py-2
-                         text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]"
-              :class="stampClass">
-              {{ stampLabel }}
-            </span>
-          </div>
-
-          <!-- Document header -->
-          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0 flex items-start gap-4">
-              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
-                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
-              <div class="min-w-0">
-                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
-                  {{ companyAddress }}
-                </p>
-                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
-                  <p v-if="companyPhone">Tel: {{ companyPhone }}</p>
-                  <p v-if="companyEmail">{{ companyEmail }}</p>
-                  <p v-if="companyWebsite">{{ companyWebsite }}</p>
-                  <p v-if="companyTaxId" class="tabular-nums">
-                    <span class="text-[#9BA7B0]">Tax ID:</span> {{ companyTaxId }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="text-right flex-shrink-0">
-              <h2 class="text-[26px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
-                Payment Receipt
-              </h2>
-              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
-                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ rp.refNo }}</dd>
-
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">Date</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(rp.date) || '—' }}</dd>
-
-                <template v-if="rp.reference">
-                  <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">Ref</dt>
-                  <dd class="font-semibold text-[#1C2434] text-right font-mono">{{ rp.reference }}</dd>
-                </template>
-              </dl>
-            </div>
-          </header>
-
-          <!-- Received From -->
-          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 border-b border-dashed border-[#E2E8F0]">
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">Received From</p>
-              <p class="text-[14px] font-bold text-[#1C2434]">{{ rp.customer?.name || '—' }}</p>
-              <p v-if="rp.customer?.company" class="text-[12px] text-[#374151]">{{ rp.customer.company }}</p>
-              <p v-if="rp.customer?.email" class="text-[11px] text-[#637381] mt-1.5">{{ rp.customer.email }}</p>
-              <p v-if="rp.customer?.phone" class="text-[11px] text-[#637381]">{{ rp.customer.phone }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-2">Amount Received</p>
-              <p class="text-[24px] font-extrabold text-green-600 tabular-nums leading-tight">
-                {{ fmtMoney(rp.amount) }}
-              </p>
-            </div>
-          </section>
-
-          <!-- Metadata strip -->
-          <section class="px-10 py-4 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 border-b border-dashed border-[#E2E8F0] bg-[#FAFBFD]">
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">Payment Date</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] tabular-nums mt-0.5">{{ fmtDate(rp.date) || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">Payment Method</p>
-              <p class="mt-0.5">
-                <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold bg-blue-50 text-blue-700">
-                  {{ rp.paymentMethod || '—' }}
-                </span>
-              </p>
-            </div>
-            <div>
-              <p class="text-[9px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em]">Reference</p>
-              <p class="text-[12px] font-semibold text-[#1C2434] font-mono mt-0.5">{{ rp.reference || '—' }}</p>
-            </div>
-          </section>
-
-          <!-- Applied invoices table -->
-          <section class="px-10 pt-6 pb-2">
-            <table class="w-full text-[12px]">
-              <thead>
-                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
-                  <th class="py-2.5 text-left w-8">#</th>
-                  <th class="py-2.5 text-left w-32">Invoice #</th>
-                  <th class="py-2.5 text-left w-28">Invoice Date</th>
-                  <th class="py-2.5 text-left w-28">Due Date</th>
-                  <th class="py-2.5 text-left">Status</th>
-                  <th class="py-2.5 text-right w-32">Amount Applied</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(line, idx) in (rp.lines || [])" :key="line.id"
-                  class="border-b border-[#F1F5F9]">
-                  <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
-                  <td class="py-2.5 align-top">
-                    <RouterLink :to="`/erp/invoices/${line.invoiceId}`"
-                      class="font-mono font-medium text-primary-600 hover:underline transition-colors">
-                      {{ line.invoice?.invoiceNumber || '—' }}
-                    </RouterLink>
-                  </td>
-                  <td class="py-2.5 align-top text-[#637381] tabular-nums">{{ fmtDate(line.invoice?.invoiceDate) || '—' }}</td>
-                  <td class="py-2.5 align-top text-[#637381] tabular-nums">{{ fmtDate(line.invoice?.dueDate) || '—' }}</td>
-                  <td class="py-2.5 align-top">
-                    <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold capitalize"
-                      :class="invStatusClass(line.invoice?.status)">
-                      {{ line.invoice?.status }}
-                    </span>
-                  </td>
-                  <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
-                    {{ fmtMoney(line.amount) }}
-                  </td>
-                </tr>
-                <tr v-if="!rp.lines?.length">
-                  <td colspan="6" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
-                    No invoices applied
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-
-          <!-- Total -->
-          <section class="px-10 pb-6 flex items-start justify-between gap-6">
-            <p v-if="totalInWords" class="text-[13px] font-semibold text-[#1C2434] italic flex-1 min-w-0 text-center">
-              {{ totalInWords }}
-            </p>
-            <dl class="w-full sm:w-72 flex-shrink-0 text-[12px] space-y-1.5">
-              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
-                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">Total Received</dt>
-                <dd class="text-[16px] font-extrabold text-green-600 tabular-nums">{{ fmtMoney(rp.amount) }}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <!-- Notes -->
-          <section v-if="rp.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
-            <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">Notes</p>
-            <p class="text-[12px] text-[#374151] whitespace-pre-line leading-relaxed">{{ rp.notes }}</p>
-          </section>
-
-          <!-- Signatures footer -->
-          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
-            <div class="grid grid-cols-2 gap-10">
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  Received By
-                </p>
-              </div>
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  Customer Signature
-                </p>
-              </div>
-            </div>
-            <p class="text-center text-[10px] text-[#9BA7B0] mt-6">
-              Thank you for your payment.
-            </p>
-          </footer>
-        </article>
+        <!-- Printable document (extracted report view) -->
+        <ReceivePaymentReport :rp="rp" />
 
         <!-- Status transitions (draft only) -->
         <div v-can="'erp.accounting.edit'" v-if="rp.status === 'draft'"
@@ -303,7 +129,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeftIcon, ChevronRightIcon, BanknotesIcon,
@@ -314,34 +139,15 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useDetailShortcuts } from '@/composables/useShortcuts'
 import api from '@/api'
-import { fmtDate, fmtMoney, numToWords } from '@/utils/fmt'
-import { useAuthStore } from '@/stores/auth'
+import ReceivePaymentReport from '@shared/reporting/templates/erp/receive-payment/ReceivePaymentReport.vue'
 
-const { locale }     = useI18n()
 const route          = useRoute()
 const router         = useRouter()
-const auth           = useAuthStore()
 const rp             = ref(null)
-const totalInWords   = computed(() => rp.value ? numToWords(rp.value.amount, locale.value, rp.value.currency) : '')
 const loading        = ref(true)
 const notFound       = ref(false)
 const updatingStatus = ref(false)
 const statusError    = ref('')
-
-// Company profile pulled from auth.user.organization — mirrors SO/Invoice detail.
-const org = computed(() => auth.user?.organization || {})
-const companyName    = computed(() => org.value.companyName || org.value.name || 'Your Company')
-const companyAddress = computed(() => org.value.address  || '')
-const companyPhone   = computed(() => org.value.phone    || '')
-const companyEmail   = computed(() => org.value.email    || '')
-const companyTaxId   = computed(() => org.value.taxId    || '')
-const companyWebsite = computed(() => org.value.website  || '')
-const companyLogoSrc = computed(() => {
-  const p = org.value.logoPath
-  if (!p) return ''
-  if (/^https?:\/\//i.test(p)) return p
-  return p
-})
 
 const { shortcuts } = useDetailShortcuts({
   enabled: () => !loading.value && !!rp.value,
@@ -375,7 +181,7 @@ function stepChipClass(key) {
   return 'bg-[#F7F9FC] text-[#9BA7B0]'
 }
 
-// ── Status badge / stamp ──────────────────────────────────
+// ── Status badge ──────────────────────────────────────────
 const STATUS_BADGE = {
   draft:     'bg-[#F1F5F9] text-[#637381]',
   confirmed: 'bg-green-50 text-green-700',
@@ -388,28 +194,6 @@ const STATUS_DOT = {
 }
 function statusBadge(s) { return STATUS_BADGE[s] || STATUS_BADGE.draft }
 function statusDot(s)   { return STATUS_DOT[s]   || STATUS_DOT.draft }
-
-const INV_STATUS_CLASS = {
-  draft:     'bg-[#F1F5F9] text-[#637381]',
-  sent:      'bg-blue-50 text-blue-700',
-  paid:      'bg-green-50 text-green-700',
-  cancelled: 'bg-red-50 text-red-600',
-}
-function invStatusClass(s) { return INV_STATUS_CLASS[s] || INV_STATUS_CLASS.draft }
-
-const stampLabel = computed(() => {
-  const s = rp.value?.status
-  if (s === 'draft')     return 'Draft'
-  if (s === 'cancelled') return 'Cancelled'
-  if (s === 'confirmed') return 'Paid'
-  return ''
-})
-const stampClass = computed(() => {
-  const s = rp.value?.status
-  if (s === 'cancelled') return 'text-red-600 border-red-600'
-  if (s === 'confirmed') return 'text-green-600 border-green-600'
-  return 'text-[#1C2434] border-[#1C2434]'
-})
 
 // ── Data ──────────────────────────────────────────────────
 onMounted(fetchPayment)
@@ -453,10 +237,20 @@ async function confirmDelete() {
 </script>
 
 <style>
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
   aside, header, nav.print\:hidden { display: none !important; }
   body { background: white !important; }
   .shadow-card { box-shadow: none !important; }
-  article { max-width: none !important; margin: 0 !important; }
+  article {
+    width: 186mm !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  article table { table-layout: fixed; width: 100% !important; }
 }
 </style>

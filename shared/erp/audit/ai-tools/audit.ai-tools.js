@@ -53,6 +53,7 @@ const tools = [
         dateTo:     (args.dateTo || '').trim(),
         limit:      Math.min(Math.max(Number(args.limit) || 10, 1), 50),
         organizationId: orgOf(user),
+        withCount:  true,
       })
       return {
         result: { total, logs: logs.map(slim) },
@@ -86,6 +87,7 @@ const tools = [
         entityId,
         limit: Math.min(Math.max(Number(args.limit) || 20, 1), 100),
         organizationId: orgOf(user),
+        withCount: true,
       })
       if (!total) return { result: `No audit history found for ${entityType} ${entityId}.` }
       return {

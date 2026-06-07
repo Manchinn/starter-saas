@@ -17,6 +17,7 @@ const DEFAULTS = {
   PO:  { name: 'Purchase Order',        format: 'PO{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   JE:  { name: 'Journal Entry',         format: 'JE{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   RCP: { name: 'Receive Payment',       format: 'RCP{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
+  PMT: { name: 'Vendor Payment',        format: 'PMT{YY}{MM}{####}', initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   BN:  { name: 'Billing Note',          format: 'BN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   DN:  { name: 'Debit Note',            format: 'DN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },
   CN:  { name: 'Credit Note',           format: 'CN{YY}{MM}{####}',  initialValue: 1, maxValue: 9999,  reseedPeriod: 'M' },

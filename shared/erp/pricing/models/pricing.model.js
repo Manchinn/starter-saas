@@ -53,6 +53,11 @@ const Pricing = sequelize.define('Pricing', {
     comment: 'Customer Group (กลุ่มลูกค้า)',
   },
   ...auditFields,
+}, {
+  indexes: [
+    // Per-organization uniqueness on code (NULL organizationId rows are distinct).
+    { unique: true, name: 'idx_pricings_code_org', fields: ['code', 'organizationId'] },
+  ],
 })
 
 module.exports = Pricing

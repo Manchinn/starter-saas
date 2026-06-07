@@ -26,7 +26,7 @@
 
         <DataTable ref="dataTableRef" :columns="columns" :data="filtered" :loading="loading" :total="filtered.length"
           v-model:page="page" :page-size="20"
-          :selected-row-index="selectedRowIndex">
+          :selected-row-index="selectedRowIndex" row-clickable @row-click="openRow">
           <template #empty>
             <EmptyState :icon="ArrowsRightLeftIcon" :title="t('erp.uomConversion.noFound')"
               :subtitle="search ? t('erp.uomConversion.tryDifferentSearch') : ''" padding="md" />
@@ -109,7 +109,7 @@ const filtered = computed(() => {
 
 const totalPages = computed(() => Math.ceil(filtered.value.length / 20))
 
-const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+const { selectedIndex: selectedRowIndex, shortcuts, open: openRow } = useListShortcuts({
   rows: filtered, page, totalPages,
   open:        c => router.push(`/erp/uom-conversion/${c.id}/edit`),
   create:      () => router.push('/erp/uom-conversion/create'),

@@ -3,9 +3,9 @@ const svc = require('./audit.service')
 const list = async (req, res, next) => {
   try {
     const orgId = req.user?.organizationId || req.user?.id
-    const { page, limit, entityType, entityId, userId, action, dateFrom, dateTo } = req.query
+    const { cursor, limit, entityType, entityId, userId, action, dateFrom, dateTo } = req.query
     const result = await svc.list({
-      page: +page || 1, limit: +limit || 50,
+      limit: Math.min(+limit || 50, 200), cursor: cursor || '',
       entityType: entityType || '', entityId: entityId || '',
       userId: userId || '', action: action || '',
       dateFrom: dateFrom || '', dateTo: dateTo || '',

@@ -87,174 +87,8 @@
           </div>
         </div>
 
-        <!-- ── Document ─────────────────────────────────────────── -->
-        <article class="relative mx-auto bg-white border border-[#E2E8F0] shadow-card max-w-[860px] w-full
-                        print:border-0 print:shadow-none print:max-w-none print:mx-0 print:
-                        overflow-hidden">
-
-          <!-- DRAFT diagonal stamp -->
-          <div v-if="sr.status === 'draft'"
-            class="pointer-events-none absolute inset-0 flex items-center justify-center z-10"
-            aria-hidden="true">
-            <span class="select-none font-black tracking-[0.2em] uppercase border-[6px] border-amber-400 text-amber-500
-                         px-6 py-2 text-[64px] sm:text-[88px] -rotate-[18deg] opacity-[0.12]">
-              Draft
-            </span>
-          </div>
-
-          <!-- Document header: company + title block -->
-          <header class="px-10 pt-10 pb-6 flex items-start justify-between gap-8 border-b border-dashed border-[#E2E8F0]">
-            <div class="flex-1 min-w-0 flex items-start gap-4">
-              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyName"
-                class="max-h-16 max-w-[160px] object-contain flex-shrink-0" />
-              <div class="min-w-0">
-                <p class="text-[20px] font-bold text-[#1C2434] tracking-tight">{{ companyName }}</p>
-                <p v-if="companyAddress" class="text-[11px] text-[#637381] mt-1 whitespace-pre-line leading-snug">
-                  {{ companyAddress }}
-                </p>
-                <div class="text-[11px] text-[#637381] mt-1 space-y-0.5">
-                  <p v-if="companyPhone">{{ t('erp.orders.docPhoneAbbr') }} {{ companyPhone }}</p>
-                  <p v-if="companyEmail">{{ companyEmail }}</p>
-                  <p v-if="companyTaxId" class="tabular-nums">
-                    <span class="text-[#9BA7B0]">{{ t('erp.orders.docTaxId') }}</span> {{ companyTaxId }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="text-right flex-shrink-0">
-              <h2 class="text-[22px] font-extrabold tracking-[0.18em] text-[#1C2434] uppercase">
-                {{ t('erp.stockReturn.documentTitle') }}
-              </h2>
-              <p class="mt-1 text-[10px] font-bold tracking-wider uppercase"
-                :class="sr.type === 'customer_return' ? 'text-blue-600' : 'text-orange-600'">
-                {{ sr.type === 'customer_return' ? t('erp.stockReturn.customerReturn') : t('erp.stockReturn.returnToVendor') }}
-              </p>
-              <dl class="mt-3 text-[12px] grid grid-cols-[auto_auto] gap-x-3 gap-y-1 justify-end">
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">#</dt>
-                <dd class="font-bold text-[#1C2434] tabular-nums text-right">{{ sr.refNo }}</dd>
-
-                <dt class="text-[#9BA7B0] uppercase tracking-wider text-[10px] font-semibold pt-0.5 text-right">
-                  {{ t('erp.common.date') }}
-                </dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums text-right">{{ fmtDate(sr.date) || '—' }}</dd>
-              </dl>
-            </div>
-          </header>
-
-          <!-- Counterparty / Store meta -->
-          <section class="px-10 py-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4 border-b border-dashed border-[#E2E8F0]">
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-                {{ sr.type === 'customer_return' ? t('erp.stockReturn.customer') : t('erp.stockReturn.vendor') }}
-              </p>
-              <p class="text-[14px] font-bold text-[#1C2434]">
-                {{ sr.type === 'customer_return' ? (sr.customer?.name || '—') : (sr.vendor?.name || '—') }}
-              </p>
-              <p v-if="sr.type === 'customer_return' && sr.customer?.company" class="text-[12px] text-[#374151]">
-                {{ sr.customer.company }}
-              </p>
-              <p v-if="sr.type === 'vendor_return' && sr.vendor?.code" class="text-[11px] text-[#637381] font-mono mt-0.5">
-                {{ sr.vendor.code }}
-              </p>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-                {{ t('erp.common.store') }}
-              </p>
-              <p class="text-[14px] font-bold text-[#1C2434]">{{ sr.store?.name || '—' }}</p>
-              <p v-if="sr.store?.code" class="text-[11px] text-[#637381] font-mono mt-0.5">{{ sr.store.code }}</p>
-            </div>
-          </section>
-
-          <!-- Line items table -->
-          <section class="px-10 pt-6 pb-2">
-            <table class="w-full text-[12px]">
-              <thead>
-                <tr class="border-b-2 border-[#1C2434] text-[10px] font-bold text-[#1C2434] uppercase tracking-wider">
-                  <th class="py-2.5 text-left w-8">#</th>
-                  <th class="py-2.5 text-left w-28">{{ t('erp.stockReturn.colSku') }}</th>
-                  <th class="py-2.5 text-left">{{ t('erp.common.product') }}</th>
-                  <th class="py-2.5 text-right w-20">{{ t('erp.stockReturn.colQty') }}</th>
-                  <th class="py-2.5 text-right w-24">{{ t('erp.stockReturn.colCost') }}</th>
-                  <th class="py-2.5 text-right w-28">{{ t('erp.stockReturn.totalValue') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, idx) in (sr.items || [])" :key="item.id" class="border-b border-[#F1F5F9]">
-                  <td class="py-2.5 align-top text-[#9BA7B0] tabular-nums">{{ idx + 1 }}</td>
-                  <td class="py-2.5 align-top text-[#637381] font-mono text-[11px]">{{ item.product?.sku || '—' }}</td>
-                  <td class="py-2.5 align-top">
-                    <span class="font-semibold text-[#1C2434]">{{ item.product?.name || '—' }}</span>
-                    <span v-if="item.batchId" class="block text-[10px] text-[#9BA7B0] font-mono mt-0.5">
-                      {{ t('erp.common.batchId') }}: {{ item.batchId }}
-                    </span>
-                    <span v-if="item.reason" class="block text-[10px] text-[#9BA7B0] mt-0.5">{{ item.reason }}</span>
-                  </td>
-                  <td class="py-2.5 align-top text-right font-semibold tabular-nums"
-                    :class="sr.type === 'customer_return' ? 'text-green-700' : 'text-red-600'">
-                    {{ sr.type === 'customer_return' ? '+' : '−' }}{{ Number(item.qty) }}
-                  </td>
-                  <td class="py-2.5 align-top text-right text-[#374151] tabular-nums">{{ fmtMoney(item.cost) }}</td>
-                  <td class="py-2.5 align-top text-right font-semibold text-[#1C2434] tabular-nums">
-                    {{ fmtMoney(Number(item.qty) * Number(item.cost)) }}
-                  </td>
-                </tr>
-                <tr v-if="!(sr.items || []).length">
-                  <td colspan="6" class="py-6 text-center text-[12px] text-[#9BA7B0] italic">
-                    {{ t('erp.common.noItems') }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-
-          <!-- Totals block — right-aligned -->
-          <section class="px-10 pb-6 flex justify-end">
-            <dl class="w-full sm:w-72 text-[12px] space-y-1.5">
-              <div class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.common.items') }}</dt>
-                <dd class="font-semibold text-[#1C2434] tabular-nums">{{ (sr.items || []).length }}</dd>
-              </div>
-              <div class="flex items-center justify-between">
-                <dt class="text-[#637381]">{{ t('erp.stockReturn.totalReturnQty') }}</dt>
-                <dd class="font-semibold tabular-nums"
-                  :class="sr.type === 'customer_return' ? 'text-green-700' : 'text-red-600'">
-                  {{ sr.type === 'customer_return' ? '+' : '−' }}{{ totalQty }}
-                </dd>
-              </div>
-              <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#1C2434]">
-                <dt class="text-[11px] font-bold text-[#1C2434] uppercase tracking-wider">{{ t('erp.stockReturn.totalValue') }}</dt>
-                <dd class="text-[16px] font-extrabold text-[#1C2434] tabular-nums">{{ fmtMoney(totalValue) }}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <!-- Notes -->
-          <section v-if="sr.notes" class="px-10 pt-2 pb-6 border-t border-dashed border-[#E2E8F0]">
-            <p class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-[0.15em] mb-1.5">
-              {{ t('erp.common.notes') }}
-            </p>
-            <p class="text-[12px] text-[#374151] whitespace-pre-line leading-relaxed">{{ sr.notes }}</p>
-          </section>
-
-          <!-- Signatures -->
-          <footer class="px-10 pt-6 pb-8 border-t border-dashed border-[#E2E8F0]">
-            <div class="grid grid-cols-2 gap-10">
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  {{ t('erp.stockReturn.docPreparedBy') }}
-                </p>
-              </div>
-              <div>
-                <div class="h-10 border-b border-[#1C2434]"></div>
-                <p class="text-[10px] text-[#637381] mt-1.5 text-center uppercase tracking-wider">
-                  {{ t('erp.stockReturn.docApprovedBy') }}
-                </p>
-              </div>
-            </div>
-          </footer>
-        </article>
+        <!-- Printable document (extracted report view) -->
+        <StockReturnReport :sr="sr" />
 
         <!-- Status action (hidden on print) -->
         <div v-if="sr.status === 'draft'" v-can="'erp.stock.edit'"
@@ -286,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -298,14 +132,12 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts.vue'
 import { useDetailShortcuts } from '@/composables/useShortcuts'
 import ActivityTimeline from '@/components/ActivityTimeline.vue'
+import StockReturnReport from '@shared/reporting/templates/erp/stock-return/StockReturnReport.vue'
 import api from '@/api'
-import { fmtDate, fmtMoney } from '@/utils/fmt'
-import { useAuthStore } from '@/stores/auth'
 
 const { t }    = useI18n()
 const route    = useRoute()
 const router   = useRouter()
-const auth     = useAuthStore()
 
 const sr           = ref(null)
 const loading      = ref(true)
@@ -344,23 +176,6 @@ const statusBadge = (s) => (s === 'confirmed' ? 'bg-green-50 text-green-700' : '
 const statusDot   = (s) => (s === 'confirmed' ? 'bg-green-500' : 'bg-amber-500')
 
 const typeBadge = (t) => (t === 'customer_return' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700')
-
-// Company profile from current organization (same pattern as OrderDetail)
-const org = computed(() => auth.user?.organization || {})
-const companyName    = computed(() => org.value.companyName || org.value.name || 'Your Company')
-const companyAddress = computed(() => org.value.address || '')
-const companyPhone   = computed(() => org.value.phone   || '')
-const companyEmail   = computed(() => org.value.email   || '')
-const companyTaxId   = computed(() => org.value.taxId   || '')
-const companyLogoSrc = computed(() => {
-  const p = org.value.logoPath
-  if (!p) return ''
-  if (/^https?:\/\//i.test(p)) return p
-  return p.startsWith('/') ? p : `/${p}`
-})
-
-const totalQty   = computed(() => (sr.value?.items || []).reduce((s, i) => s + (Number(i.qty) || 0), 0))
-const totalValue = computed(() => (sr.value?.items || []).reduce((s, i) => s + ((Number(i.qty) || 0) * (Number(i.cost) || 0)), 0))
 
 async function load() {
   loading.value = true
@@ -403,3 +218,24 @@ async function deleteSR() {
   }
 }
 </script>
+
+<style>
+@page {
+  size: A4;
+  margin: 12mm;
+}
+@media print {
+  aside, header, nav.print\:hidden { display: none !important; }
+  body { background: white !important; }
+  .shadow-card { box-shadow: none !important; }
+  /* Pin the document to the A4 printable width (210mm − 2×12mm margins)
+     so the table never overflows the page. */
+  article {
+    width: 186mm !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  article table { table-layout: fixed; width: 100% !important; }
+}
+</style>

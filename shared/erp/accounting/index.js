@@ -7,6 +7,7 @@ import {
   DocumentTextIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
+  ChartBarIcon,
 } from '@heroicons/vue/24/outline'
 
 export const routes = [
@@ -73,51 +74,11 @@ export const routes = [
     component: () => import('./views/journal/JournalEdit.vue'),
     meta: { requiresAuth: true, title: 'Edit Journal Entry' },
   },
-  // AR Aging
-  {
-    path: '/erp/accounting/ar-aging',
-    name: 'erp-accounting-ar-aging',
-    component: () => import('./views/ar-aging/ARAgingReport.vue'),
-    meta: { requiresAuth: true, title: 'AR Aging Report' },
-  },
-  // Financial Reports — Trial Balance & General Ledger
-  {
-    path: '/erp/accounting/reports/trial-balance',
-    name: 'erp-accounting-trial-balance',
-    component: () => import('./views/reports/TrialBalanceReport.vue'),
-    meta: { requiresAuth: true, title: 'Trial Balance' },
-  },
-  {
-    path: '/erp/accounting/reports/general-ledger',
-    name: 'erp-accounting-general-ledger',
-    component: () => import('./views/reports/GeneralLedgerReport.vue'),
-    meta: { requiresAuth: true, title: 'General Ledger' },
-  },
-  // Financial Statements — TFRS for NPAEs
-  {
-    path: '/erp/accounting/financial-statements/balance-sheet',
-    name: 'erp-accounting-balance-sheet',
-    component: () => import('./views/financial-statements/BalanceSheetReport.vue'),
-    meta: { requiresAuth: true, title: 'Statement of Financial Position' },
-  },
-  {
-    path: '/erp/accounting/financial-statements/income-statement',
-    name: 'erp-accounting-income-statement',
-    component: () => import('./views/financial-statements/IncomeStatementReport.vue'),
-    meta: { requiresAuth: true, title: 'Income Statement' },
-  },
-  {
-    path: '/erp/accounting/financial-statements/changes-in-equity',
-    name: 'erp-accounting-changes-in-equity',
-    component: () => import('./views/financial-statements/ChangesInEquityReport.vue'),
-    meta: { requiresAuth: true, title: 'Statement of Changes in Equity' },
-  },
-  {
-    path: '/erp/accounting/financial-statements/notes',
-    name: 'erp-accounting-notes',
-    component: () => import('./views/financial-statements/NotesReport.vue'),
-    meta: { requiresAuth: true, title: 'Notes to Financial Statements' },
-  },
+  // NOTE: report views (AR/AP aging, cash flow, trial balance, general ledger,
+  // financial statements) now live in the reporting module
+  // (shared/reporting/*) and are registered by shared/reporting/index.js.
+  // Reports are always created in the reporting module; their backend data
+  // endpoints stay here under /api/erp/accounting/*.
   // Tax Periods
   {
     path: '/erp/accounting/tax-periods',
@@ -130,6 +91,25 @@ export const routes = [
     name: 'erp-accounting-vat-report',
     component: () => import('./views/vat-report/VatReport.vue'),
     meta: { requiresAuth: true, title: 'VAT Report' },
+  },
+  // Make Payments (AP disbursement)
+  {
+    path: '/erp/billing/make-payments',
+    name: 'erp-billing-make-payments',
+    component: () => import('./views/vendor-payment/VendorPaymentList.vue'),
+    meta: { requiresAuth: true, title: 'Make Payments' },
+  },
+  {
+    path: '/erp/billing/make-payments/create',
+    name: 'erp-billing-make-payments-create',
+    component: () => import('./views/vendor-payment/VendorPaymentCreate.vue'),
+    meta: { requiresAuth: true, title: 'New Vendor Payment' },
+  },
+  {
+    path: '/erp/billing/make-payments/:id',
+    name: 'erp-billing-make-payments-detail',
+    component: () => import('./views/vendor-payment/VendorPaymentDetail.vue'),
+    meta: { requiresAuth: true, title: 'Vendor Payment Detail' },
   },
   // Receive Payments
   {
@@ -263,4 +243,12 @@ export const vendorBillsNavItem = {
   to: '/erp/purchasing/bills',
   icon: BanknotesIcon,
   permission: 'erp.bills.list',
+}
+
+// Make Payments (AP disbursement) — Purchasing nav group
+export const makePaymentsNavItem = {
+  label: 'nav.makePayments',
+  to: '/erp/billing/make-payments',
+  icon: BanknotesIcon,
+  permission: 'erp.accounting.list',
 }

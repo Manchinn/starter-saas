@@ -18,7 +18,7 @@
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable ref="dataTableRef" :columns="columns" :data="items" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
-          :selected-row-index="selectedRowIndex"
+          :selected-row-index="selectedRowIndex" row-clickable @row-click="openRow"
           searchable :search-placeholder="t('erp.bills.searchPh')">
 
           <template #toolbar>
@@ -73,7 +73,7 @@ const dataTableRef = ref(null)
 
 const totalPages = computed(() => Math.ceil(total.value / limit))
 
-const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
+const { selectedIndex: selectedRowIndex, shortcuts, open: openRow } = useListShortcuts({
   rows: items, page, totalPages,
   open:        r => router.push(`/erp/purchasing/bills/${r.id}`),
   create:      () => router.push('/erp/purchasing/bills/create'),
@@ -111,7 +111,7 @@ const columnHelper = createColumnHelper()
 const columns = [
   columnHelper.accessor('billNumber', {
     header: () => t('erp.bills.colBillNumber'),
-    cell: info => h(RouterLink, { to: `/erp/purchasing/bills/${info.row.original.id}`, class: 'font-mono text-xs text-primary-600 hover:underline' }, () => info.getValue()),
+    cell: info => h('span', { class: 'font-mono text-xs font-medium text-[#1C2434]' }, info.getValue()),
   }),
   columnHelper.accessor('billDate', { header: () => t('erp.bills.colDate'), cell: info => fmtDate(info.getValue()) || '—' }),
   columnHelper.accessor('vendor.name', { header: () => t('erp.bills.colVendor'), cell: info => info.getValue() || '—' }),
@@ -130,10 +130,13 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => '',
-    cell: info => h(RouterLink, {
-      to: `/erp/purchasing/bills/${info.row.original.id}`,
-      class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
-    }, () => h(EyeIcon, { class: 'w-4 h-4' })),
+    cell: info => h('div', { class: 'flex items-center justify-end gap-1.5' }, [
+      h(RouterLink, {
+        to: `/erp/purchasing/bills/${info.row.original.id}`,
+        class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
+        title: 'View',
+      }, () => h(EyeIcon, { class: 'w-4 h-4' })),
+    ]),
   }),
 ]
 </script>

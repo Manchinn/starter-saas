@@ -106,6 +106,19 @@ module.exports = {
     // sent to it, so a model loaded at 4096 there will still overflow.
     numCtx: parseInt(process.env.AI_NUM_CTX) || 16384,
   },
+  audit: {
+    // The ERP audit trail is append-only and high-volume. Old rows are pruned
+    // past this horizon (days); 0 disables pruning (keep forever).
+    retentionDays:   parseInt(process.env.AUDIT_RETENTION_DAYS, 10) || 365,
+    // Writes are buffered and flushed in batches to avoid one INSERT per
+    // business action. The buffer flushes whenever it reaches `batchSize` rows
+    // or `flushIntervalMs` elapses (and always on graceful shutdown).
+    flushIntervalMs: parseInt(process.env.AUDIT_FLUSH_INTERVAL_MS, 10) || 2000,
+    batchSize:       parseInt(process.env.AUDIT_BATCH_SIZE, 10) || 100,
+    // Summaries are JSON blobs; cap their serialized size so a pathological
+    // payload can't bloat the table.
+    maxSummaryBytes: parseInt(process.env.AUDIT_MAX_SUMMARY_BYTES, 10) || 4096,
+  },
   billing: {
     // Active billing provider. `manual` (default) means plans are assigned by an
     // admin/owner with no external gateway; `stripe` activates the (scaffolded)
