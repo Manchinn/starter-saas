@@ -9,8 +9,14 @@ const round2 = (v) => Math.round(v * 100) / 100
  * placed in the debit or credit column according to its normal balance, so the
  * column totals tie out (total debit === total credit).
  */
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const safeDate = (v) => {
+  const s = typeof v === 'string' ? v : Array.isArray(v) ? v[0] : null
+  return s && DATE_RE.test(s) ? s : null
+}
+
 const getReport = async ({ asOfDate, includeZero = false, organizationId } = {}) => {
-  const today = (asOfDate || new Date().toISOString().slice(0, 10)).slice(0, 10)
+  const today = safeDate(asOfDate) || new Date().toISOString().slice(0, 10)
 
   const journalWhere = { status: 'posted', dataFlag: { [Op.ne]: 2 }, date: { [Op.lte]: today } }
 
