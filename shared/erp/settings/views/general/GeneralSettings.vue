@@ -267,6 +267,21 @@
               </p>
             </div>
 
+            <!-- Withholding tax (WHT) -->
+            <div class="pt-5 border-t border-[#E2E8F0]">
+              <label class="flex items-start gap-4 p-4 border-2 cursor-pointer transition-colors"
+                :class="taxForm.withholding
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-[#E2E8F0] hover:border-[#CBD5E1]'">
+                <input type="checkbox" v-model="taxForm.withholding"
+                  class="mt-0.5 accent-primary-500 flex-shrink-0 w-4 h-4" />
+                <div>
+                  <p class="text-sm font-semibold text-[#1C2434]">{{ t('erp.settings.wht') }}</p>
+                  <p class="text-xs text-[#637381] mt-0.5">{{ t('erp.settings.whtDesc') }}</p>
+                </div>
+              </label>
+            </div>
+
           </div>
         </div>
 
@@ -426,8 +441,9 @@ async function saveCurrency() {
 
 // ── Tax form ──────────────────────────────────────────────
 const taxForm = reactive({
-  rate:      store.tax.rate,
-  inclusive: store.tax.inclusive,
+  rate:        store.tax.rate,
+  inclusive:   store.tax.inclusive,
+  withholding: store.tax.withholding,
 })
 const taxSaving = ref(false)
 const taxSaved  = ref(false)

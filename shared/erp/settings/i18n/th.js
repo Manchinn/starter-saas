@@ -40,6 +40,8 @@ export default {
       taxInclusive:    'ภาษีหลังยอดรวม',
       taxExclusiveDesc: 'ภาษีถูกเพิ่มบนยอดก่อนหักส่วนลด (exclusive)',
       taxInclusiveDesc: 'ราคาสินค้ารวมภาษีไว้แล้ว (inclusive)',
+      wht:             'ภาษีหัก ณ ที่จ่าย (WHT)',
+      whtDesc:         'เมื่อเปิดใช้งาน ใบแจ้งหนี้จะแสดงช่องภาษีหัก ณ ที่จ่าย เพื่อนำยอดที่ถูกหักไปลดยอดที่ต้องชำระ',
 
       seqTitle:       'เลขลำดับ',
       seqDesc:        'กำหนดรูปแบบเลขอ้างอิงสำหรับธุรกรรม ERP',
@@ -166,6 +168,7 @@ export default {
       addValue:           'เพิ่มค่า',
       colCode:            'รหัส',
       colName:            'ชื่อ',
+      colDataValue:       'ค่าข้อมูล',
       colSort:            'ลำดับ',
       colActive:          'ใช้งาน',
       noValues:           'ยังไม่มีค่า คลิก "เพิ่มค่า" เพื่อเริ่มต้น',
