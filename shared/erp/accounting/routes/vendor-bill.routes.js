@@ -15,8 +15,8 @@ const apiLimiter = rateLimit({
 })
 
 const router = Router()
-router.use(authenticate)
 router.use(apiLimiter)
+router.use(authenticate)
 
 router.get('/',                requirePermission('erp.bills.list'),   controller.list)
 router.get('/:id',             requirePermission('erp.bills.list'),   controller.getById)
