@@ -2,9 +2,11 @@ const { Router } = require('express')
 const controller = require('./summary.controller')
 const { authenticate } = require('../../../server/middleware/auth')
 const { requirePermission } = require('../../../server/middleware/permission')
+const { apiLimiter } = require('../../../server/middleware/rate-limit')
 
 const router = Router()
 
+router.use(apiLimiter)
 router.use(authenticate)
 
 // Gated on the ERP read permission — the ERP Summary visualizes the same data
