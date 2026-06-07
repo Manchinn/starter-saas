@@ -16,16 +16,22 @@ const movement = (line, normalBalance) =>
  * order with a running balance, and a closing balance. The running balance is
  * expressed on the account's normal side (a positive balance is "normal").
  */
-const getReport = async ({ accountId, fromDate, toDate, organizationId } = {}) => {
-  if (!accountId) throw { status: 400, message: 'accountId is required' }
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const asScalar = (v) => typeof v === 'string' ? v : Array.isArray(v) ? v[0] : null
+const safeDate = (v) => { const s = asScalar(v); return s && DATE_RE.test(s) ? s : null }
+const safeId   = (v) => { const s = asScalar(v); return s || null }
 
-  const account = await findByPkScoped(ChartOfAccount, accountId, organizationId, {
+const getReport = async ({ accountId, fromDate, toDate, organizationId } = {}) => {
+  const safeAccountId = safeId(accountId)
+  if (!safeAccountId) throw { status: 400, message: 'accountId is required' }
+
+  const account = await findByPkScoped(ChartOfAccount, safeAccountId, organizationId, {
     attributes: ['id', 'code', 'name', 'accountType', 'statementCategory', 'normalBalance'],
   })
   if (!account) throw { status: 404, message: 'Account not found' }
 
-  const from = fromDate ? fromDate.slice(0, 10) : null
-  const to   = toDate   ? toDate.slice(0, 10)   : null
+  const from = safeDate(fromDate)
+  const to   = safeDate(toDate)
 
   const baseLineWhere = { accountId, organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   const postedJournal = (dateWhere) => ({

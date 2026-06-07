@@ -203,7 +203,10 @@ const uploadLogo = async (id, { dataBase64, contentType }) => {
   ensureDir(LOGO_ROOT)
   // Random suffix so the browser breaks its cache when the logo changes.
   const filename = `${id}-${crypto.randomBytes(4).toString('hex')}${ext}`
-  const fullPath = path.join(LOGO_ROOT, filename) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- filename is server-generated (id + random hex + validated ext), not user-supplied
+  const fullPath = path.resolve(LOGO_ROOT, filename)
+  if (!fullPath.startsWith(LOGO_ROOT + path.sep)) {
+    throw { status: 400, message: 'Invalid file path' }
+  }
   fs.writeFileSync(fullPath, buf)
 
   // Cleanup the old file so we don't accumulate orphans.

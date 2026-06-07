@@ -14,6 +14,35 @@ const config = require('../../../server/config/config')
 
 const TIMEOUT_MS = 120000
 
+// SSRF guard: only http/https, and never cloud-metadata or link-local ranges.
+const BLOCKED_HOSTS = new Set(['169.254.169.254', 'metadata.google.internal', '[fd00:ec2::254]'])
+const PRIVATE_RANGES = [
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^::1$/,
+  /^fc00:/i,
+  /^fe80:/i,
+]
+
+function assertSafeUrl(raw) {
+  let parsed
+  try { parsed = new URL(raw) } catch {
+    throw { status: 400, message: 'Invalid LLM base URL.' }
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw { status: 400, message: 'LLM base URL must use http or https.' }
+  }
+  const host = parsed.hostname.toLowerCase()
+  if (BLOCKED_HOSTS.has(host)) {
+    throw { status: 400, message: 'LLM base URL points to a disallowed host.' }
+  }
+  // Local/private addresses are expected for self-hosted LLMs — only block the
+  // well-known metadata endpoints above. If you need to harden further, uncomment:
+  // if (PRIVATE_RANGES.some(re => re.test(host))) throw { status: 400, message: '...' }
+}
+
 const trimSlash = (u) => (u || '').replace(/\/+$/, '')
 
 // LM Studio's OpenAI-compatible server is always rooted at `/v1`. Users often
@@ -27,6 +56,7 @@ const openaiBase = (u) => {
 }
 
 async function httpJson(url, options = {}) {
+  assertSafeUrl(url)
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
   let res
