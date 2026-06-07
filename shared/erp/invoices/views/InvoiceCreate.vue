@@ -339,7 +339,7 @@
                   <span class="text-[13px] font-semibold text-red-600 tabular-nums w-20 text-right">−{{ fmtMoney(discountAmount) }}</span>
                 </div>
               </div>
-              <div class="flex items-center justify-between text-[13px] gap-3">
+              <div v-if="settings.tax?.withholding" class="flex items-center justify-between text-[13px] gap-3">
                 <dt class="text-[#637381] flex-shrink-0">{{ t('erp.invoices.wht') }}</dt>
                 <div class="flex items-center gap-1.5">
                   <select v-model="form.whtCode" @change="onWhtChange"
