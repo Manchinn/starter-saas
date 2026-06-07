@@ -208,7 +208,7 @@ describe('sequence.seedDefaultsForUser', () => {
     Sequence.findAll.mockResolvedValue(
       Object.keys({
         QT: 1, GR: 1, ADJ: 1, CNT: 1, STR: 1, RTN: 1, ISS: 1, DO: 1, PR: 1, PO: 1,
-        JE: 1, RCP: 1, BN: 1, DN: 1, CN: 1, BILL: 1,
+        JE: 1, RCP: 1, PMT: 1, BN: 1, DN: 1, CN: 1, BILL: 1,
         CUS: 1, CGP: 1, EMP: 1, DEP: 1, VND: 1, PRD: 1, CAT: 1, WHS: 1, PRC: 1,
         OI: 1, SI: 1, PKG: 1,
       }).map(code => ({ code })),
@@ -216,7 +216,7 @@ describe('sequence.seedDefaultsForUser', () => {
     const out = await service.seedDefaultsForUser('u')
     expect(out.seeded).toBe(false)
     expect(out.added).toBe(0)
-    expect(out.total).toBe(28) // total defaults
+    expect(out.total).toBe(29) // total defaults
   })
 
   test('bulk-creates only the missing codes', async () => {
