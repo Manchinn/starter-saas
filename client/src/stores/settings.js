@@ -11,8 +11,9 @@ const CURRENCY_DEFAULTS = {
 }
 
 const TAX_DEFAULTS = {
-  rate:      0,
-  inclusive: false,
+  rate:        0,
+  inclusive:   false,
+  withholding: true,
 }
 
 const CALENDAR_DEFAULTS = {

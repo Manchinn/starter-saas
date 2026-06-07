@@ -8,14 +8,14 @@ const { validate } = require('../../../server/middleware/validate')
 // never runs) and count the successful result with meter (which only increments
 // on a 2xx/3xx response). Copy this into any route that should be plan-limited.
 const { enforceLimit, meter } = require('../../../server/middleware/plan')
-const { itemsRules, statusRules } = require('./invoice.validators')
+const { itemsRules, statusRules, whtRules } = require('./invoice.validators')
 
 const router = Router()
 router.use(authenticate)
 
 router.get('/',                requirePermission('erp.invoices.list'),   (req, res) => controller.list(req, res))
 router.get('/:id',             requirePermission('erp.invoices.list'),   (req, res) => controller.getById(req, res))
-router.post('/',               requirePermission('erp.invoices.edit'),   enforceLimit('erp.invoices.monthly'), itemsRules, validate, meter('erp.invoices.monthly'), (req, res) => controller.create(req, res))
+router.post('/',               requirePermission('erp.invoices.edit'),   enforceLimit('erp.invoices.monthly'), itemsRules, whtRules, validate, meter('erp.invoices.monthly'), (req, res) => controller.create(req, res))
 router.put('/:id',             requirePermission('erp.invoices.edit'),   (req, res) => controller.update(req, res))
 router.patch('/:id/status',    requirePermission('erp.invoices.edit'),   statusRules, validate, (req, res) => controller.updateStatus(req, res))
 router.post('/:id/create-receipt', requirePermission('erp.receipts.edit'), (req, res) => controller.createReceipt(req, res))
