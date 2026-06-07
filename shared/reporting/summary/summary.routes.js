@@ -1,16 +1,8 @@
 const { Router } = require('express')
-const rateLimit = require('express-rate-limit')
 const controller = require('./summary.controller')
 const { authenticate } = require('../../../server/middleware/auth')
 const { requirePermission } = require('../../../server/middleware/permission')
-
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { success: false, message: 'Too many requests — please try again shortly.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-})
+const { apiLimiter } = require('../../../server/middleware/rate-limit')
 
 const router = Router()
 

@@ -1,26 +1,10 @@
 const { Router } = require('express')
-const rateLimit = require('express-rate-limit')
 const { validate } = require('../../../../server/middleware/validate')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requirePermission } = require('../../../../server/middleware/permission')
+const { apiLimiter, writeLimiter } = require('../../../../server/middleware/rate-limit')
 const controller = require('../controllers/vendor-bill.controller')
 const { writeRules, statusRules } = require('../validators/vendor-bill.validators')
-
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { success: false, message: 'Too many requests — please try again shortly.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-})
-
-const writeLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  message: { success: false, message: 'Too many write requests — please try again shortly.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-})
 
 const router = Router()
 router.use(apiLimiter)
