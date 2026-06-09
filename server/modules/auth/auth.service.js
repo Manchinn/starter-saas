@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const config = require('../../config/config')
-const { User, Role, Permission, RefreshToken, MasterDataCategory, MasterDataValue } = require('../../models')
+const { User, Role, Permission, Module, RefreshToken, MasterDataCategory, MasterDataValue } = require('../../models')
 const { Op } = require('sequelize')
 const mailer = require('../../core/mailer')
 const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
@@ -253,7 +253,16 @@ const DEFAULT_ROLES = [
 ]
 
 const seedDefaults = async () => {
-  for (const p of DEFAULT_PERMISSIONS) {
+  const moduleLoader = require('../../core/module.loader')
+
+  // Core admin permissions + every permission declared by the shared modules,
+  // so the shared features are grantable from /admin/roles and visible in
+  // /admin/permissions.
+  const catalog = [
+    ...DEFAULT_PERMISSIONS,
+    ...moduleLoader.sharedModulePermissionSlugs().map(moduleLoader.describePermissionSlug),
+  ]
+  for (const p of catalog) {
     await Permission.findOrCreate({ where: { slug: p.slug }, defaults: p })
   }
 
@@ -268,6 +277,17 @@ const seedDefaults = async () => {
     const perms = r.permissions ? r.permissions.map((s) => bySlug[s]).filter(Boolean) : allPerms
     await role.setPermissions(perms)
   }
+
+  // Customer role — full access to the shared (non-core) modules only, with no
+  // admin (organizations/roles/permissions/modules) access. isSystem:false so
+  // admins can tailor it from the UI.
+  const [customer] = await Role.findOrCreate({
+    where: { slug: 'customer' },
+    defaults: { name: 'Customer', slug: 'customer', description: 'Full access to the shared modules only — no admin access', color: '#0891b2', isSystem: false },
+  })
+  const customerSlugs = ['dashboard.view', ...moduleLoader.sharedModulePermissionSlugs()]
+  await customer.setPermissions(customerSlugs.map((s) => bySlug[s]).filter(Boolean))
+  await customer.setModules(await Module.findAll({ where: { isCore: false } }))
 }
 
 // ── Master Data seeded on first install ──────────────────────────────────────

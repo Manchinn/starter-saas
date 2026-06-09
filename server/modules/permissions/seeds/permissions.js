@@ -12,14 +12,23 @@ const DEFAULT_PERMISSIONS = [
   { name: 'Manage Permissions', slug: 'permissions.manage', group: 'permissions', description: 'Create/edit/delete permissions' },
 ]
 
+const moduleLoader = require('../../../core/module.loader')
+
 module.exports = {
   name: 'permissions',
   tier: 'core',
   order: 10,
   async run(ctx) {
     const { Permission } = ctx.models
+    // Core admin permissions + every permission declared by the shared modules
+    // (erp.*, hrms.*, reporting.*, ai-agent.*) so they are grantable to roles
+    // from /admin/roles and surface in /admin/permissions.
+    const catalog = [
+      ...DEFAULT_PERMISSIONS,
+      ...moduleLoader.sharedModulePermissionSlugs().map(moduleLoader.describePermissionSlug),
+    ]
     const bySlug = {}
-    for (const p of DEFAULT_PERMISSIONS) {
+    for (const p of catalog) {
       const [perm] = await Permission.findOrCreate({ where: { slug: p.slug }, defaults: p })
       bySlug[p.slug] = perm
     }
