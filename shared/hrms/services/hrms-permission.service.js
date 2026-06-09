@@ -4,7 +4,7 @@ const { HrmsPermission, HrmsRole } = require('../../../server/models')
 // there is no create/update/delete here — roles simply reference them.
 const list = async () => {
   const perms = await HrmsPermission.findAll({
-    order: [['group', 'ASC'], ['name', 'ASC']],
+    order: [['group', 'DESC'], ['name', 'DESC']],
     include: [{ model: HrmsRole, as: 'roles', attributes: ['id'], through: { attributes: [] } }],
   })
   return perms.map((p) => {

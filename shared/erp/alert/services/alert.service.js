@@ -192,7 +192,7 @@ const options = async (organizationId) => {
   const depts = await Department.findAll({
     where: { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } },
     attributes: ['id', 'name'],
-    order: [['name', 'ASC']],
+    order: [['name', 'DESC']],
   })
   return { modules, departments: depts.map((d) => ({ id: d.id, name: d.name })) }
 }

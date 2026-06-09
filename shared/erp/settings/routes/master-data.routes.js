@@ -17,7 +17,7 @@ router.get('/categories', requirePermission('erp.stock.list'), async (req, res, 
     const categories = await MasterDataCategory.findAll({
       where: { organizationId: orgId || null, dataFlag: { [Op.ne]: 2 } },
       include: [{ model: MasterDataValue, as: 'values', attributes: ['id'] }],
-      order: [['name', 'ASC']],
+      order: [['name', 'DESC']],
     })
     const result = categories.map(c => ({
       ...c.toJSON(),

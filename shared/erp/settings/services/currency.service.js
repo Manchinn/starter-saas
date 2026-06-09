@@ -6,7 +6,7 @@ const { findByPkScoped } = require('../../../../server/core/tenant')
 const listCurrencies = ({ organizationId } = {}) =>
   Currency.findAll({
     where: { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } },
-    order: [['isBase', 'DESC'], ['code', 'ASC']],
+    order: [['isBase', 'DESC'], ['code', 'DESC']],
   })
 
 const getCurrency = async (id, organizationId) => {

@@ -40,7 +40,7 @@ const getReport = async ({ asOfDate, vendorId, organizationId }) => {
   const bills = await VendorBill.findAll({
     where,
     include: [{ model: Vendor, as: 'vendor', attributes: vendorAttrs }],
-    order: [['dueDate', 'ASC'], ['billDate', 'ASC']],
+    order: [['dueDate', 'DESC'], ['billDate', 'DESC']],
   })
 
   const summary = emptyBuckets()

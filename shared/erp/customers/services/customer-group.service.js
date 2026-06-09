@@ -14,14 +14,14 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom
     where,
     limit,
     offset,
-    order: [['name', 'ASC']],
+    order: [['createdAt', 'DESC']],
   })
 
   return { total: count, page, limit, groups: rows }
 }
 
 const listAll = async (organizationId) => {
-  return CustomerGroup.findAll({ where: { status: 'active', organizationId: organizationId || null }, order: [['name', 'ASC']] })
+  return CustomerGroup.findAll({ where: { status: 'active', organizationId: organizationId || null }, order: [['name', 'DESC']] })
 }
 
 const getById = async (id, organizationId) => {

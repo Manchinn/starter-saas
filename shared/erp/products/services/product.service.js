@@ -85,7 +85,7 @@ const remove = async (id, organizationId) => {
 }
 
 const listStores = async () => {
-  return Store.findAll({ where: { status: 'active' }, attributes: ['id', 'name', 'code'], order: [['name', 'ASC']] })
+  return Store.findAll({ where: { status: 'active' }, attributes: ['id', 'name', 'code'], order: [['name', 'DESC']] })
 }
 
 const listStoreStocks = async (productId, organizationId) => {
@@ -94,7 +94,7 @@ const listStoreStocks = async (productId, organizationId) => {
   const storeStocks = await StoreStock.findAll({
     where: { productId },
     include: [{ model: Store, as: 'store', attributes: ['id', 'name', 'code'] }],
-    order: [[{ model: Store, as: 'store' }, 'name', 'ASC']],
+    order: [[{ model: Store, as: 'store' }, 'name', 'DESC']],
   })
   return { totalStock: product.stock, storeStocks }
 }

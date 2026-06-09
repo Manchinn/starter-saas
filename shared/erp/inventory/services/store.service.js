@@ -9,7 +9,7 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom
   if (status) where.status = status
   if (activeFrom) where.activeFrom = { [Op.gte]: activeFrom }
   if (activeTo) where.activeTo = { [Op.lte]: activeTo }
-  const { count, rows } = await Store.findAndCountAll({ where, limit, offset, order: [['name', 'ASC']] })
+  const { count, rows } = await Store.findAndCountAll({ where, limit, offset, order: [['createdAt', 'DESC']] })
   return { total: count, page, limit, stores: rows }
 }
 
