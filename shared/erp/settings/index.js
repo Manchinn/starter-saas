@@ -83,5 +83,5 @@ export const navChildren = [
   { label: 'nav.currencies',           to: '/erp/settings/currencies',            icon: CurrencyDollarIcon,         permission: 'erp.currencies.list' },
   { label: 'nav.sequenceNumbers',      to: '/erp/settings/sequence',              icon: HashtagIcon,                permission: 'erp.settings.view' },
   { label: 'nav.masterData',           to: '/erp/settings/master-data',           icon: CircleStackIcon,            permission: 'erp.stock.edit' },
-  { label: 'nav.demoData',             to: '/erp/settings/demo-data',             icon: SparklesIcon,               permission: 'erp.stock.edit' },
+  { label: 'nav.demoData',             to: '/erp/settings/demo-data',             icon: SparklesIcon,               permission: 'erp.settings.manage' },
 ]
