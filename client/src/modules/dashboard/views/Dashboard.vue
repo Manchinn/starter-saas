@@ -158,6 +158,90 @@
 
       </div>
 
+      <!-- ─ Billing: recent subscriptions + plan requests ───────────────── -->
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+        <!-- Recent subscriptions ── 2-col -->
+        <section class="card overflow-hidden xl:col-span-2">
+          <header class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-1 h-4 bg-primary-500 flex-shrink-0"></div>
+              <h3 class="text-[14px] font-semibold text-[#1C2434] truncate">{{ t('billing.adminSubscriptions') }}</h3>
+            </div>
+            <RouterLink to="/admin/billing/subscriptions" class="text-[12.5px] font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1 whitespace-nowrap">
+              {{ t('dashboard.seeAll') }}
+              <ArrowRightIcon class="w-3.5 h-3.5" />
+            </RouterLink>
+          </header>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-[#F7F9FC] border-b border-[#E2E8F0]">
+                <tr class="text-left">
+                  <th class="th">{{ t('billing.colOrg') }}</th>
+                  <th class="th">{{ t('billing.colPlan') }}</th>
+                  <th class="th">{{ t('billing.colStatus') }}</th>
+                  <th class="th">{{ t('billing.renews') }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-50">
+                <tr v-if="loadingBilling">
+                  <td colspan="4" class="text-center py-12">
+                    <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent animate-spin"></div>
+                  </td>
+                </tr>
+                <tr v-else-if="!subscriptions.length">
+                  <td colspan="4" class="text-center py-12 text-[#9BA7B0] text-sm">{{ t('billing.noSubscriptions') }}</td>
+                </tr>
+                <tr v-for="s in subscriptions" :key="s.id" @click="goToSub(s.organizationId)"
+                    class="hover:bg-[#F7F9FC]/60 transition-colors cursor-pointer">
+                  <td class="td">
+                    <p class="font-semibold text-[#1C2434] leading-tight truncate">{{ s.organization?.name || '—' }}</p>
+                    <p class="text-[#9BA7B0] text-xs mt-0.5 truncate">{{ s.organization?.email }}</p>
+                  </td>
+                  <td class="td text-[#637381]">{{ s.plan?.name || '—' }}</td>
+                  <td class="td"><span :class="['badge', subTone(s)]">{{ s.suspended ? t('billing.suspended') : t('billing.status.' + s.status) }}</span></td>
+                  <td class="td text-xs text-[#637381] tabular whitespace-nowrap">{{ fmtDate(s.currentPeriodEnd) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Plan requests -->
+        <section class="card overflow-hidden">
+          <header class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-1 h-4 bg-amber-500"></div>
+              <h3 class="text-[14px] font-semibold text-[#1C2434]">{{ t('billing.planRequests') }}</h3>
+            </div>
+            <RouterLink to="/admin/billing/requests" class="text-[12.5px] font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1 whitespace-nowrap">
+              {{ t('dashboard.seeAll') }}
+              <ArrowRightIcon class="w-3.5 h-3.5" />
+            </RouterLink>
+          </header>
+          <div class="px-2 py-2">
+            <div v-if="loadingBilling" class="px-3 py-8 text-center">
+              <div class="inline-block w-5 h-5 border-2 border-amber-500 border-t-transparent animate-spin"></div>
+            </div>
+            <div v-else-if="!planRequests.length" class="px-3 py-10 text-center text-[#9BA7B0]">
+              <InboxArrowDownIcon class="w-7 h-7 mx-auto opacity-40" />
+              <p class="text-sm mt-2">{{ t('billing.noRequests') }}</p>
+            </div>
+            <ul v-else class="divide-y divide-slate-50">
+              <li v-for="r in planRequests" :key="r.id" @click="goToSub(r.organizationId)"
+                  class="flex items-center gap-3 px-3 py-2.5 hover:bg-[#F7F9FC]/60 cursor-pointer">
+                <div class="flex-1 min-w-0">
+                  <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ r.organization?.name || '—' }}</p>
+                  <p class="text-[11.5px] text-[#637381] truncate">{{ t('billing.requestsPlan', { plan: r.plan?.name }) }}</p>
+                </div>
+                <span :class="['badge', reqTone(r.status)]">{{ t('billing.requestStatus.' + r.status) }}</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+      </div>
+
       <!-- ─ Module usage ──────────────────────────────────────────────── -->
       <section class="card overflow-hidden">
         <header class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between gap-3">
@@ -212,7 +296,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
   BuildingOffice2Icon, UserGroupIcon, ComputerDesktopIcon, PuzzlePieceIcon,
-  PlusIcon, ArrowRightIcon,
+  PlusIcon, ArrowRightIcon, InboxArrowDownIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -230,11 +314,14 @@ const organizations = ref([])
 const signIns       = ref([])
 const moduleUsage   = ref([])
 const moduleTotalOrgs = ref(0)
+const subscriptions = ref([])
+const planRequests  = ref([])
 
 const loadingStats   = ref(true)
 const loadingOrgs    = ref(true)
 const loadingSignIns = ref(true)
 const loadingModules = ref(true)
+const loadingBilling = ref(true)
 
 const totalOrgs = computed(() => stats.value.totalOrganizations)
 
@@ -302,14 +389,33 @@ async function loadModuleUsage() {
     moduleTotalOrgs.value = data.data.totalOrgs
   } catch {} finally { loadingModules.value = false }
 }
+// Both lists are returned newest-first; keep the most recent 20 of each.
+async function loadBilling() {
+  try {
+    const [subs, reqs] = await Promise.all([
+      api.get('/billing/admin/subscriptions'),
+      api.get('/billing/admin/plan-requests'),
+    ])
+    subscriptions.value = (subs.data.data.subscriptions || []).slice(0, 20)
+    planRequests.value  = (reqs.data.data.requests || []).slice(0, 20)
+  } catch {} finally { loadingBilling.value = false }
+}
 
 onMounted(() => {
-  loadStats(); loadOrgs(); loadSignIns(); loadModuleUsage()
+  loadStats(); loadOrgs(); loadSignIns(); loadModuleUsage(); loadBilling()
 })
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function goToOrg(id) { router.push(`/admin/organizations/${id}/edit`) }
+function goToSub(orgId) { router.push(`/admin/billing/subscriptions/${orgId}`) }
+
+const subTone = (s) =>
+  s.suspended ? 'badge-amber'
+    : s.status === 'active' || s.status === 'trialing' ? 'badge-green'
+    : s.status === 'past_due' ? 'badge-amber' : 'badge-gray'
+const reqTone = (s) =>
+  s === 'approved' ? 'badge-green' : s === 'pending' ? 'badge-amber' : 'badge-gray'
 
 function formatRelative(d) {
   if (!d) return ''
