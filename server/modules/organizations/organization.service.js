@@ -378,4 +378,4 @@ const listAll = async () => {
   })
 }
 
-module.exports = { create, list, getById, update, uploadLogo, removeLogo, remove, assignModules, assignRoles, getUserPermissions, getMyModules, getStaff, listAllStaff, listAll }
+module.exports = { create, list, getById, update, uploadLogo, removeLogo, remove, assignModules, assignRoles, getUserPermissions, getMyModules, getStaff, listAllStaff, listAll, assertCanAssignRoles, assertCanSetAdminRole }

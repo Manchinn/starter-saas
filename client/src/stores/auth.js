@@ -26,6 +26,13 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
   const isAdmin         = computed(() => user.value?.role === 'admin')
 
+  // Tenant staff management: the owner account (a top-level user with no
+  // organizationId) always manages its own staff; delegated staff need the
+  // `team.manage` permission. Mirrors the server-side requireTeamManager gate.
+  const canManageTeam = computed(() =>
+    isAdmin.value || (!!user.value && !user.value.organizationId) || permissions.value.includes('team.manage')
+  )
+
   function hasPermission(slug) {
     if (isAdmin.value) return true
     if (permissions.value.includes('*')) return true
@@ -147,7 +154,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user, roles, permissions, accessToken, impersonating, locked,
-    isAuthenticated, isAdmin,
+    isAuthenticated, isAdmin, canManageTeam,
     hasPermission, hasRole,
     fetchMe, bootstrap, login, register, install, logout, changePassword,
     loginAs, returnToAdmin,

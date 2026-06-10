@@ -283,6 +283,11 @@
                     <CreditCardIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('billing.nav') }}</span>
                   </RouterLink>
+                  <RouterLink v-if="auth.canManageTeam" to="/team" @click="userOpen = false"
+                    class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
+                    <UserGroupIcon class="w-4 h-4 text-[#637381]" />
+                    <span>{{ t('team.nav') }}</span>
+                  </RouterLink>
                 </div>
                 <div class="p-1.5 border-t border-[#E2E8F0]">
                   <button type="button" @click="handleLogout"
@@ -325,7 +330,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import {
   ChevronDownIcon, ArrowRightOnRectangleIcon,
-  UserCircleIcon, ComputerDesktopIcon, CreditCardIcon, Bars3Icon, XMarkIcon, SparklesIcon,
+  UserCircleIcon, ComputerDesktopIcon, CreditCardIcon, Bars3Icon, XMarkIcon, SparklesIcon, UserGroupIcon,
 } from '@heroicons/vue/24/outline'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
