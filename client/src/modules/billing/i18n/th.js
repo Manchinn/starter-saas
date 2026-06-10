@@ -84,6 +84,8 @@ export default {
     noRequests: 'ไม่มีคำขอแผน',
     approve: 'อนุมัติ',
     reject: 'ปฏิเสธ',
+    pendingRequest: 'คำขอแผนที่รออนุมัติ',
+    requestsPlan: 'ขอแผน {plan}',
     confirmApprove: 'อนุมัติคำขอแผน {plan} ของ {org} หรือไม่? จะเริ่มใช้งานทันที',
     rejectPrompt: 'เหตุผลในการปฏิเสธ (ไม่บังคับ):',
     requestStatus: { pending: 'รออนุมัติ', approved: 'อนุมัติแล้ว', rejected: 'ปฏิเสธแล้ว', canceled: 'ยกเลิก' },

@@ -122,12 +122,13 @@ module.exports = {
   async adminGetSubscription(req, res) {
     try {
       const { orgId } = req.params
-      const [subscription, invoices] = await Promise.all([
+      const [subscription, invoices, request] = await Promise.all([
         service.getSubscriptionDetail(orgId),
         service.listInvoices(orgId),
+        service.getPendingRequest(orgId),
       ])
       if (!subscription) return fail(res, 'Subscription not found', 404)
-      return ok(res, { subscription, invoices })
+      return ok(res, { subscription, invoices, request })
     } catch (err) {
       return fail(res, err.message, err.status || 400)
     }

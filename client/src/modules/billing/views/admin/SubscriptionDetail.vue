@@ -27,6 +27,35 @@
       <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- ── Main column ───────────────────────────────────────────────── -->
         <div class="lg:col-span-2 space-y-6">
+          <!-- Pending plan request -->
+          <div v-if="request" class="card border-l-4 border-l-amber-400 p-5">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div class="flex items-start gap-3">
+                <span class="grid place-items-center w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex-shrink-0">
+                  <InboxArrowDownIcon class="w-5 h-5" />
+                </span>
+                <div>
+                  <p class="font-semibold text-slate-800">{{ t('billing.pendingRequest') }}</p>
+                  <p class="text-sm text-slate-600 mt-0.5">
+                    {{ t('billing.requestsPlan', { plan: request.plan?.name }) }}
+                    <span class="text-slate-400">· {{ formatDate(request.createdAt) }}</span>
+                  </p>
+                  <p v-if="request.note" class="text-sm text-slate-500 italic mt-1">“{{ request.note }}”</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button @click="approveRequest" :disabled="busy"
+                  class="px-3 py-1.5 text-xs font-medium bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 rounded">
+                  {{ t('billing.approve') }}
+                </button>
+                <button @click="rejectRequest" :disabled="busy"
+                  class="px-3 py-1.5 text-xs font-medium bg-white border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 rounded">
+                  {{ t('billing.reject') }}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Subscription details -->
           <div class="card overflow-hidden">
             <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -221,7 +250,7 @@ import { useI18n } from 'vue-i18n'
 import {
   PencilSquareIcon, DocumentTextIcon, CalendarDaysIcon, ReceiptPercentIcon,
   BuildingOffice2Icon, TagIcon, BoltIcon, PauseCircleIcon, XCircleIcon,
-  EyeIcon, ArrowRightIcon, XMarkIcon, ExclamationCircleIcon,
+  EyeIcon, ArrowRightIcon, XMarkIcon, ExclamationCircleIcon, InboxArrowDownIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import PageHeader from '@/components/form/PageHeader.vue'
@@ -238,6 +267,7 @@ const busy = ref(false)
 const error = ref('')
 const sub = ref(null)
 const invoices = ref([])
+const request = ref(null)
 const viewInvoice = ref(null)
 
 const org = computed(() => sub.value?.organization)
@@ -292,10 +322,40 @@ async function load() {
     const data = await store.getAdminSubscription(orgId)
     sub.value = data.subscription
     invoices.value = data.invoices || []
+    request.value = data.request || null
   } catch (err) {
     if (err.response?.status !== 404) error.value = err.response?.data?.message || t('billing.saveFailed')
   } finally {
     loading.value = false
+  }
+}
+
+async function approveRequest() {
+  if (!confirm(t('billing.confirmApprove', { org: orgName.value, plan: request.value.plan?.name }))) return
+  busy.value = true
+  error.value = ''
+  try {
+    await store.approvePlanRequest(request.value.id)
+    await load() // refresh subscription + clear the pending request
+  } catch (err) {
+    error.value = err.response?.data?.message || t('billing.saveFailed')
+  } finally {
+    busy.value = false
+  }
+}
+
+async function rejectRequest() {
+  const note = prompt(t('billing.rejectPrompt'))
+  if (note === null) return
+  busy.value = true
+  error.value = ''
+  try {
+    await store.rejectPlanRequest(request.value.id, note)
+    await load()
+  } catch (err) {
+    error.value = err.response?.data?.message || t('billing.saveFailed')
+  } finally {
+    busy.value = false
   }
 }
 

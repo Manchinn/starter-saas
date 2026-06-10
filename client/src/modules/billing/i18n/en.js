@@ -89,6 +89,8 @@ export default {
     noRequests: 'No plan requests.',
     approve: 'Approve',
     reject: 'Reject',
+    pendingRequest: 'Pending plan request',
+    requestsPlan: 'Requesting the {plan} plan',
     confirmApprove: 'Approve {org}’s request for the {plan} plan? It activates immediately.',
     rejectPrompt: 'Reason for rejection (optional):',
     requestStatus: { pending: 'Pending', approved: 'Approved', rejected: 'Rejected', canceled: 'Canceled' },
