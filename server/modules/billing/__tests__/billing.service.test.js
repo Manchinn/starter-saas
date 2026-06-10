@@ -200,6 +200,14 @@ describe('plan-change requests', () => {
     await expect(service.requestPlanChange('org1', 'p3')).rejects.toMatchObject({ status: 400 })
   })
 
+  test('requestPlanChange is blocked when usage exceeds the target plan limits', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p4', name: 'Free', isActive: true, limits: { seats: 2 } })
+    User.count.mockResolvedValue(5) // 5 seats in use > limit of 2
+    await expect(service.requestPlanChange('org1', 'p4'))
+      .rejects.toMatchObject({ status: 400, code: 'USAGE_OVER_LIMIT' })
+    expect(PlanChangeRequest.create).not.toHaveBeenCalled()
+  })
+
   test('approve activates the plan (subscribe) and marks the request approved', async () => {
     const req = { id: 'r1', status: 'pending', organizationId: 'org1', planId: 'p1', update: jest.fn().mockResolvedValue() }
     PlanChangeRequest.findByPk.mockResolvedValue(req)

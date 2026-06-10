@@ -176,6 +176,33 @@ async function getUsage(orgId) {
   return out
 }
 
+// The metrics whose current usage exceeds `plan`'s limits (empty = within plan).
+// Used to block a downgrade that the org's existing usage wouldn't fit into.
+async function exceededLimits(orgId, plan) {
+  const limits = plan?.limits || {}
+  const offenders = []
+  for (const metric of Object.keys(limits)) {
+    if (isUnlimited(limits[metric])) continue
+    const limit = Number(limits[metric])
+    const used = metric === 'seats'
+      ? await User.count({ where: { organizationId: orgId } })
+      : await usedFor(orgId, metric)
+    if (used > limit) offenders.push({ metric, limit, used })
+  }
+  return offenders
+}
+
+// Throw a 400 if current usage doesn't fit the target plan.
+function assertWithinPlan(offenders, plan) {
+  if (!offenders.length) return
+  const detail = offenders.map((o) => `${o.metric} (${o.used}/${o.limit})`).join(', ')
+  throw {
+    status: 400,
+    code: 'USAGE_OVER_LIMIT',
+    message: `Current usage exceeds the "${plan.name}" plan limits: ${detail}. Reduce usage before switching to this plan.`,
+  }
+}
+
 // ── Subscription lifecycle ──────────────────────────────────────────────────────
 
 // Create or switch an organization's subscription to `planId`. For the manual
@@ -379,6 +406,8 @@ const getPendingRequest = (orgId) =>
 async function requestPlanChange(orgId, planId, { note = null } = {}) {
   const plan = await Plan.findByPk(planId)
   if (!plan || !plan.isActive) throw { status: 400, message: 'Plan not found or inactive' }
+  // Block requesting a plan the org's current usage already exceeds.
+  assertWithinPlan(await exceededLimits(orgId, plan), plan)
   const existing = await PlanChangeRequest.findOne({ where: { organizationId: orgId, status: PENDING } })
   if (existing) {
     await existing.update({ planId, note })
@@ -403,6 +432,10 @@ async function approvePlanChangeRequest(id, adminUserId) {
   const req = await PlanChangeRequest.findByPk(id)
   if (!req) throw { status: 404, message: 'Request not found' }
   if (req.status !== PENDING) throw { status: 400, message: 'Request is not pending' }
+  // Re-validate at approval time — usage may have grown since the request.
+  const plan = await Plan.findByPk(req.planId)
+  if (!plan || !plan.isActive) throw { status: 400, message: 'Plan not found or inactive' }
+  assertWithinPlan(await exceededLimits(req.organizationId, plan), plan)
   // Activate immediately via the manual provider — records a paid invoice for
   // paid plans and clears any billing-only lockout (subscribe invalidates cache).
   await subscribe(req.organizationId, req.planId)
@@ -425,7 +458,7 @@ module.exports = {
   // access gate
   isLockedOut, isOrgLocked, isUserLocked,
   // limits / metering
-  checkLimit, hasFeature, increment, assertSeatAvailable, getUsage, periodForMetric,
+  checkLimit, hasFeature, increment, assertSeatAvailable, getUsage, periodForMetric, exceededLimits,
   // lifecycle
   subscribe, cancel, ensureDefaultSubscription,
   // admin

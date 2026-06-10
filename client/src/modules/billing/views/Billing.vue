@@ -114,11 +114,12 @@
 
               <button
                 class="btn-primary w-full justify-center mt-6"
-                :disabled="!store.canManage || isCurrent(p) || requestedPlanId === p.id || busyId === p.id"
+                :disabled="!store.canManage || isCurrent(p) || requestedPlanId === p.id || busyId === p.id || (!isCurrent(p) && planExceeded(p))"
                 @click="choose(p)">
                 <span v-if="busyId === p.id">{{ t('common.saving') }}</span>
                 <span v-else-if="isCurrent(p)">{{ t('billing.current') }}</span>
                 <span v-else-if="requestedPlanId === p.id">{{ t('billing.requested') }}</span>
+                <span v-else-if="planExceeded(p)">{{ t('billing.usageOverLimit') }}</span>
                 <span v-else>{{ t('billing.requestPlan') }}</span>
               </button>
             </div>
@@ -203,6 +204,19 @@ const invoiceTone = (s) => (s === 'paid' ? 'badge-green' : s === 'void' ? 'badge
 
 const isCurrent = (p) => store.plan?.id === p.id
 const enabledFeatures = (p) => Object.fromEntries(Object.entries(p.features || {}).filter(([, v]) => v))
+
+// Current usage by metric (from the active plan's usage summary).
+const usedByMetric = computed(() => Object.fromEntries(store.usage.map((u) => [u.metric, u.used])))
+// A plan can't be selected if current usage already exceeds one of its limits.
+function planExceeded(p) {
+  const limits = p.limits || {}
+  return Object.keys(limits).some((m) => {
+    const lim = limits[m]
+    if (lim === -1 || lim == null) return false
+    const used = usedByMetric.value[m]
+    return used != null && used > Number(lim)
+  })
+}
 
 const pct = (u) => (u.limit > 0 ? Math.min(100, Math.round((u.used / u.limit) * 100)) : 0)
 const barTone = (u) => {

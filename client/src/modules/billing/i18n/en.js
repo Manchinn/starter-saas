@@ -21,6 +21,7 @@ export default {
     requestPlan: 'Request plan',
     requested: 'Requested',
     requestFailed: 'Could not submit the request. Please try again.',
+    usageOverLimit: 'Usage over limit',
     requestPendingFor: 'You requested the {plan} plan — pending admin approval.',
     confirmCancel: 'Cancel your subscription? You will keep access until the end of the period.',
     freePrice: 'Free',

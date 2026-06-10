@@ -19,6 +19,7 @@ export default {
     requestPlan: 'ขอแผน',
     requested: 'ขอแล้ว',
     requestFailed: 'ไม่สามารถส่งคำขอได้ กรุณาลองใหม่',
+    usageOverLimit: 'ใช้งานเกินขีดจำกัด',
     requestPendingFor: 'คุณได้ขอแผน {plan} — รอผู้ดูแลอนุมัติ',
     confirmCancel: 'ยกเลิกการสมัครหรือไม่? คุณจะยังใช้งานได้จนสิ้นสุดรอบ',
     freePrice: 'ฟรี',
