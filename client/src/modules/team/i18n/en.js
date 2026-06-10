@@ -26,7 +26,7 @@ export default {
     fullName:     'Full name',
     fullNamePh:   'e.g. Jane Smith',
     email:        'Email',
-    emailPh:      'name@company.com',
+    emailPh:      "name{'@'}company.com",
     password:     'Password',
     passwordPh:   'At least 8 characters',
     passwordHint: 'The staff member can change this after their first sign-in.',

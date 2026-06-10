@@ -26,7 +26,7 @@ export default {
     fullName:     'ชื่อ-นามสกุล',
     fullNamePh:   'เช่น สมหญิง ใจดี',
     email:        'อีเมล',
-    emailPh:      'name@company.com',
+    emailPh:      "name{'@'}company.com",
     password:     'รหัสผ่าน',
     passwordPh:   'อย่างน้อย 8 ตัวอักษร',
     passwordHint: 'พนักงานสามารถเปลี่ยนรหัสผ่านได้หลังเข้าสู่ระบบครั้งแรก',
