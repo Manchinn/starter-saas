@@ -1,5 +1,6 @@
 const { ok, created, fail, serverError } = require('../../../server/core/response')
 const { orgIdOf } = require('../../../server/core/tenant')
+const { resolvePermissions } = require('../../../server/middleware/permission')
 const agent = require('../services/agent.service')
 
 const ctxUser = (req) => ({ id: req.user.id, organizationId: orgIdOf(req) })
@@ -7,8 +8,11 @@ const ctxUser = (req) => ({ id: req.user.id, organizationId: orgIdOf(req) })
 module.exports = {
   async send(req, res) {
     try {
+      // Resolve the caller's permission set so tool execution can enforce the
+      // same RBAC the REST routes do (a tool must not bypass the user's role).
+      const permissions = [...await resolvePermissions(req.user)]
       const result = await agent.chat({
-        user: ctxUser(req),
+        user: { ...ctxUser(req), permissions },
         conversationId: req.body.conversationId || null,
         content: req.body.content,
         lang: req.body.lang,

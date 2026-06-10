@@ -34,4 +34,24 @@ describe('middleware.requireRole', () => {
     expect(next).toHaveBeenCalled()
     expect(res.status).not.toHaveBeenCalled()
   })
+
+  test('matching is exact — case differences and look-alike roles are refused', () => {
+    // 'Admin' (case) and 'administrator' (superstring) must NOT satisfy 'admin';
+    // a loosened comparison here would quietly widen every admin-only route.
+    for (const role of ['Admin', 'ADMIN', 'administrator', 'admin ', ' admin']) {
+      const res = makeRes()
+      const next = jest.fn()
+      requireRole('admin')({ user: { role } }, res, next)
+      expect(res.status).toHaveBeenCalledWith(403)
+      expect(next).not.toHaveBeenCalled()
+    }
+  })
+
+  test('fails closed when the user has no role at all', () => {
+    const res = makeRes()
+    const next = jest.fn()
+    requireRole('admin')({ user: {} }, res, next)
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(next).not.toHaveBeenCalled()
+  })
 })

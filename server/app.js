@@ -16,6 +16,8 @@ const cache = require('./config/redis')
 const realtime = require('./core/realtime')
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
+const sanitizeQuery = require('./middleware/sanitize-query')
+const { globalApiLimiter, globalWriteLimiter } = require('./middleware/rate-limit')
 const audit = require('../shared/erp/audit/audit.service')
 
 const app = express() // nosemgrep: javascript.express.security.audit.express-check-csurf-middleware-usage.express-check-csurf-middleware-usage -- stateless Bearer-token API; the only cookie (refresh) is httpOnly + SameSite=Strict, so CSRF is already mitigated without a token middleware
@@ -72,6 +74,10 @@ app.use((req, res, next) => {
   return smallJson(req, res, next)
 })
 app.use(express.urlencoded({ extended: true }))
+// Clamp pagination query params (page/limit) before any route sees them, so an
+// oversized `limit` can't trigger a memory-exhaustion query and a negative
+// `page` can't produce a negative SQL OFFSET.
+app.use(sanitizeQuery)
 app.use(requestLogger)
 
 // Public static — org logos and similar customer-facing assets. Hardened so a
@@ -90,6 +96,14 @@ app.use('/uploads/logos', express.static(path.join(__dirname, '..', 'uploads', '
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', env: config.env, timestamp: new Date().toISOString() })
 })
+
+// Blanket rate limiting for the whole API. Mounted here (after the health check,
+// so uptime probes aren't throttled, and before any module router is registered
+// in bootstrap) it guarantees every route — current and future — is covered by a
+// per-IP flood cap, with a tighter budget for mutating methods. Per-flow auth
+// limiters and any per-router limiters layer on top as stricter inner bounds.
+app.use('/api', globalApiLimiter)
+app.use('/api', globalWriteLimiter)
 
 async function bootstrap() {
   // Sync database
