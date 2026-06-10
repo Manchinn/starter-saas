@@ -200,6 +200,9 @@ async function subscribe(orgId, planId, { provider = config.billing.provider } =
     trialEndsAt,
     cancelAtPeriodEnd: false,
     canceledAt: null,
+    // Subscribing to a plan reactivates the org — clear any prior suspension so
+    // the new plan actually takes effect (isActive treats suspended as inactive).
+    suspended: false,
     provider,
   }
   const sub = existing ? await existing.update(fields) : await Subscription.create(fields)
