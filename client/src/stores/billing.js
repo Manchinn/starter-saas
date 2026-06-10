@@ -10,11 +10,13 @@ export const useBillingStore = defineStore('billing', () => {
   const canManage    = ref(false)
   const plans        = ref([])     // public plans (pricing)
   const invoices     = ref([])
+  const request      = ref(null)   // current pending plan-change request, if any
   const loading      = ref(false)
 
   // ── Admin state ────────────────────────────────────────────────────────────
   const adminPlans         = ref([])
   const adminSubscriptions = ref([])
+  const adminPlanRequests  = ref([])
 
   // Feature/limit helpers other modules can consult on the client to hide UI
   // the plan doesn't allow (the server still enforces — this is cosmetic).
@@ -31,6 +33,7 @@ export const useBillingStore = defineStore('billing', () => {
       subscription.value = data.data.subscription
       plan.value         = data.data.plan
       usage.value        = data.data.usage || []
+      request.value      = data.data.request || null
       canManage.value    = !!data.data.canManage
     } finally {
       loading.value = false
@@ -49,12 +52,11 @@ export const useBillingStore = defineStore('billing', () => {
     return invoices.value
   }
 
-  // Returns { checkoutUrl } when a gateway redirect is required, else null.
-  async function subscribe(planId) {
-    const { data } = await api.post('/billing/subscribe', { planId })
-    if (data.data?.checkoutUrl) return { checkoutUrl: data.data.checkoutUrl }
-    await fetchSubscription()
-    return null
+  // Tenants request a plan change; an admin approves it to activate.
+  async function requestPlanChange(planId, note) {
+    const { data } = await api.post('/billing/request', { planId, note })
+    request.value = data.data.request
+    return request.value
   }
 
   async function cancel(immediate = false) {
@@ -117,12 +119,30 @@ export const useBillingStore = defineStore('billing', () => {
     return data.data.subscription
   }
 
+  // ── Admin: plan-change requests ────────────────────────────────────────────────
+  async function fetchAdminPlanRequests(status) {
+    const { data } = await api.get('/billing/admin/plan-requests', { params: status ? { status } : {} })
+    adminPlanRequests.value = data.data.requests
+    return adminPlanRequests.value
+  }
+
+  async function approvePlanRequest(id) {
+    const { data } = await api.post(`/billing/admin/plan-requests/${id}/approve`)
+    return data.data.request
+  }
+
+  async function rejectPlanRequest(id, note) {
+    const { data } = await api.post(`/billing/admin/plan-requests/${id}/reject`, { note })
+    return data.data.request
+  }
+
   return {
-    subscription, plan, usage, canManage, plans, invoices, loading,
-    adminPlans, adminSubscriptions,
+    subscription, plan, usage, canManage, plans, invoices, request, loading,
+    adminPlans, adminSubscriptions, adminPlanRequests,
     hasFeature, limitFor, usageFor, isCanceling,
-    fetchSubscription, fetchPlans, fetchInvoices, subscribe, cancel,
+    fetchSubscription, fetchPlans, fetchInvoices, requestPlanChange, cancel,
     fetchAdminPlans, getAdminPlan, createPlan, updatePlan, deletePlan,
     fetchAdminSubscriptions, getAdminSubscription, setSubscription, suspendSubscription, cancelSubscription,
+    fetchAdminPlanRequests, approvePlanRequest, rejectPlanRequest,
   }
 })

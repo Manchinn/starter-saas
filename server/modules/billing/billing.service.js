@@ -7,7 +7,7 @@
  * organization's plan — resolve the owning org id with `orgKeyOf` upstream.
  */
 const { Op } = require('sequelize')
-const { Plan, Subscription, UsageCounter, SubscriptionInvoice, User } = require('../../models')
+const { Plan, Subscription, UsageCounter, SubscriptionInvoice, PlanChangeRequest, User } = require('../../models')
 const config = require('../../config/config')
 const log = require('../../core/logger').forLabel('billing')
 
@@ -350,6 +350,72 @@ const listInvoices = (orgId) =>
     order: [['createdAt', 'DESC']],
   })
 
+// ── Plan-change requests (tenant requests → admin approves) ──────────────────────
+// Tenants can't self-activate a plan; they file a request that an admin approves
+// (which activates the subscription immediately, manual provider) or rejects.
+const PENDING = 'pending'
+
+const PLAN_ATTRS = ['id', 'slug', 'name', 'price', 'currency', 'interval']
+
+const getPlanChangeRequest = (id) =>
+  PlanChangeRequest.findByPk(id, {
+    include: [
+      { model: Plan, as: 'plan', attributes: PLAN_ATTRS },
+      { model: User, as: 'organization', attributes: ['id', 'name', 'email'] },
+    ],
+  })
+
+// The org's current open request, if any (drives the tenant's billing UI).
+const getPendingRequest = (orgId) =>
+  PlanChangeRequest.findOne({
+    where: { organizationId: orgId, status: PENDING },
+    include: [{ model: Plan, as: 'plan', attributes: PLAN_ATTRS }],
+  })
+
+// File (or update) the org's single open request.
+async function requestPlanChange(orgId, planId, { note = null } = {}) {
+  const plan = await Plan.findByPk(planId)
+  if (!plan || !plan.isActive) throw { status: 400, message: 'Plan not found or inactive' }
+  const existing = await PlanChangeRequest.findOne({ where: { organizationId: orgId, status: PENDING } })
+  if (existing) {
+    await existing.update({ planId, note })
+    return getPlanChangeRequest(existing.id)
+  }
+  const req = await PlanChangeRequest.create({ organizationId: orgId, planId, note, status: PENDING })
+  log.info(`Org ${orgId} requested plan "${plan.slug}"`)
+  return getPlanChangeRequest(req.id)
+}
+
+const listPlanChangeRequests = ({ status } = {}) =>
+  PlanChangeRequest.findAll({
+    where: status ? { status } : {},
+    include: [
+      { model: Plan, as: 'plan', attributes: PLAN_ATTRS },
+      { model: User, as: 'organization', attributes: ['id', 'name', 'email'] },
+    ],
+    order: [['createdAt', 'DESC']],
+  })
+
+async function approvePlanChangeRequest(id, adminUserId) {
+  const req = await PlanChangeRequest.findByPk(id)
+  if (!req) throw { status: 404, message: 'Request not found' }
+  if (req.status !== PENDING) throw { status: 400, message: 'Request is not pending' }
+  // Activate immediately via the manual provider — records a paid invoice for
+  // paid plans and clears any billing-only lockout (subscribe invalidates cache).
+  await subscribe(req.organizationId, req.planId)
+  await req.update({ status: 'approved', decidedBy: adminUserId || null, decidedAt: new Date() })
+  log.info(`Plan request ${id} approved by ${adminUserId}`)
+  return getPlanChangeRequest(id)
+}
+
+async function rejectPlanChangeRequest(id, adminUserId, { note = null } = {}) {
+  const req = await PlanChangeRequest.findByPk(id)
+  if (!req) throw { status: 404, message: 'Request not found' }
+  if (req.status !== PENDING) throw { status: 400, message: 'Request is not pending' }
+  await req.update({ status: 'rejected', decidedBy: adminUserId || null, decidedAt: new Date(), decisionNote: note })
+  return getPlanChangeRequest(id)
+}
+
 module.exports = {
   // resolution
   getEffectivePlan, getSubscription, getDefaultPlan, isActive,
@@ -362,6 +428,9 @@ module.exports = {
   // admin
   listPlans, listPublicPlans, getPlan, createPlan, updatePlan, deletePlan,
   listSubscriptions, getSubscriptionDetail, adminSetSubscription, setSuspended, listInvoices,
+  // plan-change requests
+  requestPlanChange, getPendingRequest, listPlanChangeRequests,
+  approvePlanChangeRequest, rejectPlanChangeRequest,
   // cache (exposed for tests)
   _invalidate: invalidate,
 }

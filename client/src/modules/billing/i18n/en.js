@@ -17,6 +17,11 @@ export default {
     cancelNotice: 'Your subscription is set to cancel at the end of the current period.',
     lockedTitle: 'Your subscription is inactive',
     lockedDesc: 'Access to the app is paused until you choose an active plan. Billing is the only section available right now.',
+    // Plan requests (tenant side)
+    requestPlan: 'Request plan',
+    requested: 'Requested',
+    requestFailed: 'Could not submit the request. Please try again.',
+    requestPendingFor: 'You requested the {plan} plan — pending admin approval.',
     confirmCancel: 'Cancel your subscription? You will keep access until the end of the period.',
     freePrice: 'Free',
 
@@ -73,6 +78,20 @@ export default {
     override: 'Override',
     noSubscriptions: 'No subscriptions yet.',
     manage: 'Manage',
+
+    // Admin — plan requests
+    planRequests: 'Plan requests',
+    planRequestsDesc: 'Review and approve tenant plan-change requests.',
+    requestedPlan: 'Requested plan',
+    requestedOn: 'Requested',
+    decided: 'Decided',
+    allStatuses: 'All statuses',
+    noRequests: 'No plan requests.',
+    approve: 'Approve',
+    reject: 'Reject',
+    confirmApprove: 'Approve {org}’s request for the {plan} plan? It activates immediately.',
+    rejectPrompt: 'Reason for rejection (optional):',
+    requestStatus: { pending: 'Pending', approved: 'Approved', rejected: 'Rejected', canceled: 'Canceled' },
 
     // Admin — subscription management (detail page)
     subscriptionTitle: 'Subscription',

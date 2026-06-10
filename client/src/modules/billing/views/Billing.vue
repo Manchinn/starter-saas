@@ -4,6 +4,13 @@
 
       <SubscriptionLockedBanner />
 
+      <!-- Pending plan request -->
+      <div v-if="store.request"
+        class="flex items-center gap-3 px-5 py-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+        <ClockIcon class="w-5 h-5 flex-shrink-0 text-blue-500" />
+        {{ t('billing.requestPendingFor', { plan: store.request.plan?.name }) }}
+      </div>
+
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
@@ -111,7 +118,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowUpCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import { ArrowUpCircleIcon, ExclamationTriangleIcon, ClockIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import BillingOnlyLayout from '@/layouts/BillingOnlyLayout.vue'
 import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'

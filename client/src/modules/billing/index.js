@@ -1,4 +1,4 @@
-import { CreditCardIcon, RectangleStackIcon } from '@heroicons/vue/24/outline'
+import { CreditCardIcon, RectangleStackIcon, InboxArrowDownIcon } from '@heroicons/vue/24/outline'
 
 export default {
   slug: 'billing',
@@ -45,6 +45,12 @@ export default {
       meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.adminSubscriptions' },
     },
     {
+      path: '/admin/billing/requests',
+      name: 'admin-billing-requests',
+      component: () => import('./views/admin/PlanRequests.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.planRequests' },
+    },
+    {
       path: '/admin/billing/subscriptions/:orgId',
       name: 'admin-billing-subscription-detail',
       component: () => import('./views/admin/SubscriptionDetail.vue'),
@@ -65,6 +71,7 @@ export default {
     children: [
       { label: 'billing.adminPlans',         to: '/admin/billing/plans',         icon: RectangleStackIcon, permission: 'billing.manage' },
       { label: 'billing.adminSubscriptions', to: '/admin/billing/subscriptions', icon: CreditCardIcon,     permission: 'billing.manage' },
+      { label: 'billing.planRequests',       to: '/admin/billing/requests',      icon: InboxArrowDownIcon, permission: 'billing.manage' },
     ],
   },
 }

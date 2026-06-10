@@ -2,7 +2,6 @@ const { ok, created, fail, serverError } = require('../../core/response')
 const service = require('./billing.service')
 const { orgKeyOf } = require('../../middleware/plan')
 const { getProvider } = require('./providers')
-const config = require('../../config/config')
 
 // A staff user borrows their org's plan but must not change billing — only the
 // org-owner account (a top-level User) or a system admin may mutate it.
@@ -22,12 +21,13 @@ module.exports = {
   async mySubscription(req, res) {
     try {
       const orgId = orgKeyOf(req)
-      const [subscription, plan, usage] = await Promise.all([
+      const [subscription, plan, usage, request] = await Promise.all([
         service.getSubscription(orgId),
         service.getEffectivePlan(orgId),
         service.getUsage(orgId),
+        service.getPendingRequest(orgId),
       ])
-      return ok(res, { subscription, plan, usage, canManage: isBillingOwner(req) })
+      return ok(res, { subscription, plan, usage, request, canManage: isBillingOwner(req) })
     } catch (err) {
       return serverError(res)
     }
@@ -41,26 +41,13 @@ module.exports = {
     }
   },
 
-  async subscribe(req, res) {
+  // Tenant plan request — replaces direct self-service activation. The request
+  // stays pending until an admin approves it (see admin endpoints below).
+  async requestPlanChange(req, res) {
     try {
-      if (!isBillingOwner(req)) return fail(res, 'Only the organization owner can change the plan', 403)
-      const orgId = orgKeyOf(req)
-      const plan = await service.getPlan(req.body.planId)
-
-      // Gateway providers redirect to a hosted checkout; manual/disabled ones
-      // (and free plans) activate the subscription inline.
-      const provider = getProvider(config.billing.provider)
-      if (provider.enabled() && provider.name !== 'manual' && Number(plan.price) > 0) {
-        const session = await provider.createCheckout(
-          { id: orgId },
-          plan,
-          { successUrl: `${config.clientUrl}/billing`, cancelUrl: `${config.clientUrl}/billing/plans` },
-        )
-        if (session?.checkoutUrl) return ok(res, { checkoutUrl: session.checkoutUrl })
-      }
-
-      const subscription = await service.subscribe(orgId, plan.id)
-      return ok(res, { subscription }, 'Subscription updated')
+      if (!isBillingOwner(req)) return fail(res, 'Only the organization owner can request a plan change', 403)
+      const request = await service.requestPlanChange(orgKeyOf(req), req.body.planId, { note: req.body.note })
+      return ok(res, { request }, 'Plan request submitted')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
     }
@@ -175,6 +162,33 @@ module.exports = {
       const atPeriodEnd = req.body?.immediate !== true
       const subscription = await service.cancel(req.params.orgId, { atPeriodEnd })
       return ok(res, { subscription }, 'Subscription canceled')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  // ── Admin: plan-change requests ─────────────────────────────────────────────
+  async adminListPlanRequests(req, res) {
+    try {
+      return ok(res, { requests: await service.listPlanChangeRequests({ status: req.query.status }) })
+    } catch (err) {
+      return serverError(res)
+    }
+  },
+
+  async adminApprovePlanRequest(req, res) {
+    try {
+      const request = await service.approvePlanChangeRequest(req.params.id, req.user.id)
+      return ok(res, { request }, 'Plan request approved')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async adminRejectPlanRequest(req, res) {
+    try {
+      const request = await service.rejectPlanChangeRequest(req.params.id, req.user.id, { note: req.body.note })
+      return ok(res, { request }, 'Plan request rejected')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
     }

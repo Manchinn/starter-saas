@@ -15,6 +15,11 @@ export default {
     cancelNotice: 'การสมัครของคุณจะถูกยกเลิกเมื่อสิ้นสุดรอบปัจจุบัน',
     lockedTitle: 'การสมัครของคุณไม่ได้ใช้งาน',
     lockedDesc: 'การเข้าใช้งานแอปถูกระงับจนกว่าคุณจะเลือกแผนที่ใช้งานได้ ขณะนี้ใช้ได้เฉพาะส่วนการเรียกเก็บเงินเท่านั้น',
+    // Plan requests (tenant side)
+    requestPlan: 'ขอแผน',
+    requested: 'ขอแล้ว',
+    requestFailed: 'ไม่สามารถส่งคำขอได้ กรุณาลองใหม่',
+    requestPendingFor: 'คุณได้ขอแผน {plan} — รอผู้ดูแลอนุมัติ',
     confirmCancel: 'ยกเลิกการสมัครหรือไม่? คุณจะยังใช้งานได้จนสิ้นสุดรอบ',
     freePrice: 'ฟรี',
 
@@ -68,6 +73,20 @@ export default {
     override: 'กำหนดเอง',
     noSubscriptions: 'ยังไม่มีการสมัคร',
     manage: 'จัดการ',
+
+    // Admin — plan requests
+    planRequests: 'คำขอแผน',
+    planRequestsDesc: 'ตรวจสอบและอนุมัติคำขอเปลี่ยนแผนของผู้เช่า',
+    requestedPlan: 'แผนที่ขอ',
+    requestedOn: 'วันที่ขอ',
+    decided: 'ตัดสินเมื่อ',
+    allStatuses: 'ทุกสถานะ',
+    noRequests: 'ไม่มีคำขอแผน',
+    approve: 'อนุมัติ',
+    reject: 'ปฏิเสธ',
+    confirmApprove: 'อนุมัติคำขอแผน {plan} ของ {org} หรือไม่? จะเริ่มใช้งานทันที',
+    rejectPrompt: 'เหตุผลในการปฏิเสธ (ไม่บังคับ):',
+    requestStatus: { pending: 'รออนุมัติ', approved: 'อนุมัติแล้ว', rejected: 'ปฏิเสธแล้ว', canceled: 'ยกเลิก' },
 
     // Admin — subscription management (detail page)
     subscriptionTitle: 'การสมัครสมาชิก',

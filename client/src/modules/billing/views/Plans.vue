@@ -4,6 +4,13 @@
 
       <SubscriptionLockedBanner :show-action="false" />
 
+      <!-- Pending request notice -->
+      <div v-if="store.request"
+        class="flex items-center gap-3 px-5 py-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+        <ClockIcon class="w-5 h-5 flex-shrink-0 text-blue-500" />
+        {{ t('billing.requestPendingFor', { plan: store.request.plan?.name }) }}
+      </div>
+
       <!-- Header -->
       <div class="flex items-center gap-3">
         <RouterLink to="/billing" class="text-[#9BA7B0] hover:text-[#637381] transition">
@@ -46,11 +53,12 @@
 
           <button
             class="btn-primary w-full justify-center mt-6"
-            :disabled="!store.canManage || isCurrent(p) || busyId === p.id"
+            :disabled="!store.canManage || isCurrent(p) || requestedPlanId === p.id || busyId === p.id"
             @click="choose(p)">
             <span v-if="busyId === p.id">{{ t('common.saving') }}</span>
             <span v-else-if="isCurrent(p)">{{ t('billing.current') }}</span>
-            <span v-else>{{ p.trialDays > 0 ? t('billing.startTrial', { n: p.trialDays }) : t('billing.selectPlan') }}</span>
+            <span v-else-if="requestedPlanId === p.id">{{ t('billing.requested') }}</span>
+            <span v-else>{{ t('billing.requestPlan') }}</span>
           </button>
         </div>
       </div>
@@ -65,9 +73,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
+import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, ClockIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import BillingOnlyLayout from '@/layouts/BillingOnlyLayout.vue'
 import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'
@@ -75,7 +82,6 @@ import { useBillingStore } from '@/stores/billing'
 import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
-const router = useRouter()
 const store = useBillingStore()
 const auth = useAuthStore()
 const loading = ref(true)
@@ -84,6 +90,7 @@ const error = ref('')
 
 // Locked tenants get a minimal shell (see Billing.vue).
 const layout = computed(() => (auth.locked ? BillingOnlyLayout : AppLayout))
+const requestedPlanId = computed(() => store.request?.planId)
 
 onMounted(async () => {
   try {
@@ -120,17 +127,10 @@ async function choose(p) {
   error.value = ''
   busyId.value = p.id
   try {
-    const res = await store.subscribe(p.id)
-    if (res?.checkoutUrl) { window.location.href = res.checkoutUrl; return }
-    await store.fetchSubscription()
-    // If this was a locked tenant re-subscribing, the subscription is now active
-    // — refresh the session to clear billing-only mode and return to the app.
-    if (auth.locked) {
-      await auth.fetchMe()
-      if (!auth.locked) router.push(auth.user?.defaultPage || '/dashboard')
-    }
+    // Tenants can't self-activate — this files a request for admin approval.
+    await store.requestPlanChange(p.id)
   } catch (err) {
-    error.value = err.response?.data?.message || t('billing.subscribeFailed')
+    error.value = err.response?.data?.message || t('billing.requestFailed')
   } finally {
     busyId.value = null
   }
