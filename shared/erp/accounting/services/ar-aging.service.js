@@ -33,7 +33,7 @@ const getReport = async ({ asOfDate, customerId, organizationId }) => {
   const invoices = await Invoice.findAll({
     where,
     include: [{ model: Customer, as: 'customer', attributes: ['id', 'name', 'company', 'email', 'phone'] }],
-    order: [['dueDate', 'ASC'], ['invoiceDate', 'ASC']],
+    order: [['dueDate', 'DESC'], ['invoiceDate', 'DESC']],
   })
 
   const summary = emptyBuckets()

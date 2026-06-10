@@ -93,7 +93,7 @@ const list = async ({ page = 1, limit = 20, search = '', accountType = '', statu
     include: [{ model: ChartOfAccount, as: 'parent', attributes: ['id', 'code', 'name'] }],
     limit,
     offset,
-    order: [['code', 'ASC']],
+    order: [['code', 'DESC']],
   })
 
   return { total: count, page, limit, accounts: rows }
@@ -103,7 +103,7 @@ const listAll = async (organizationId) => {
   const accounts = await ChartOfAccount.findAll({
     where: { organizationId: organizationId || null, status: 'active', dataFlag: { [Op.ne]: 2 } },
     attributes: ['id', 'code', 'name', 'accountType', 'statementCategory', 'level'],
-    order: [['code', 'ASC']],
+    order: [['code', 'DESC']],
   })
   return accounts
 }

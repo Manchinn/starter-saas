@@ -54,6 +54,12 @@ const Subscription = sequelize.define('Subscription', {
     defaultValue: false,
     comment: 'Cancel when the current period ends (ยกเลิกเมื่อสิ้นสุดรอบ)',
   },
+  suspended: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    comment: 'Admin-suspended — access blocked without canceling (ระงับการใช้งานโดยผู้ดูแล)',
+  },
   canceledAt: {
     type: DataTypes.DATE,
     allowNull: true,

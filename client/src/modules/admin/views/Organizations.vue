@@ -112,7 +112,7 @@
                   <RouterLink v-can="'organizations.edit'" :to="`/admin/organizations/${u.id}/edit`" class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors" :title="$t('common.edit')">
                     <PencilIcon class="w-4 h-4" />
                   </RouterLink>
-                  <RouterLink :to="`/admin/staff?organizationId=${u.id}`" class="p-1.5 text-[#9BA7B0] hover:text-violet-600 hover:bg-violet-50 transition-colors">
+                  <RouterLink :to="`/hrms/employees?organizationId=${u.id}`" class="p-1.5 text-[#9BA7B0] hover:text-violet-600 hover:bg-violet-50 transition-colors" :title="$t('nav.employees') || 'Staff'">
                     <UserGroupIcon class="w-4 h-4" />
                   </RouterLink>
                   <button @click="seedSequences(u)" :disabled="seedingId === u.id" class="p-1.5 text-[#9BA7B0] hover:text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-40">

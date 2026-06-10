@@ -7,10 +7,11 @@ jest.mock('../../../models', () => ({
   Subscription:        { findOne: jest.fn(), findByPk: jest.fn(), create: jest.fn(), count: jest.fn(), findAll: jest.fn() },
   UsageCounter:        { findOne: jest.fn(), findOrCreate: jest.fn() },
   SubscriptionInvoice: { create: jest.fn(), findAll: jest.fn() },
+  PlanChangeRequest:   { findByPk: jest.fn(), findOne: jest.fn(), create: jest.fn(), findAll: jest.fn() },
   User:                { count: jest.fn() },
 }))
 
-const { Plan, Subscription, UsageCounter, User } = require('../../../models')
+const { Plan, Subscription, UsageCounter, PlanChangeRequest, User } = require('../../../models')
 const service = require('../billing.service')
 
 const future = new Date(Date.now() + 30 * 86400000)
@@ -105,6 +106,138 @@ describe('hasFeature', () => {
   test('is false for a feature the plan does not include', async () => {
     Subscription.findOne.mockResolvedValue({ status: 'active', currentPeriodEnd: future, plan: FREE })
     await expect(service.hasFeature('o', 'ai-agent')).resolves.toBe(false)
+  })
+})
+
+describe('suspended subscriptions', () => {
+  test('a suspended subscription falls back to the default plan', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'active', currentPeriodEnd: future, suspended: true, plan: PRO })
+    Plan.findOne.mockResolvedValue(FREE)
+    await expect(service.getEffectivePlan('org-suspended')).resolves.toBe(FREE)
+  })
+
+  test('setSuspended flips the flag and returns the subscription', async () => {
+    const sub = { update: jest.fn().mockResolvedValue() }
+    Subscription.findOne.mockResolvedValue(sub)
+    await service.setSuspended('o', true)
+    expect(sub.update).toHaveBeenCalledWith({ suspended: true })
+  })
+
+  test('setSuspended throws 404 when there is no subscription', async () => {
+    Subscription.findOne.mockResolvedValue(null)
+    await expect(service.setSuspended('o', true)).rejects.toMatchObject({ status: 404 })
+  })
+})
+
+describe('access gate', () => {
+  test('isLockedOut: only active/trialing are allowed; suspended always locks', () => {
+    expect(service.isLockedOut(null)).toBe(false)                              // no row → not locked
+    expect(service.isLockedOut({ status: 'active' })).toBe(false)
+    expect(service.isLockedOut({ status: 'trialing' })).toBe(false)
+    expect(service.isLockedOut({ status: 'active', suspended: true })).toBe(true)
+    expect(service.isLockedOut({ status: 'canceled' })).toBe(true)
+    expect(service.isLockedOut({ status: 'past_due' })).toBe(true)
+    expect(service.isLockedOut({ status: 'expired' })).toBe(true)
+  })
+
+  test('isUserLocked exempts system admins without hitting the DB', async () => {
+    Subscription.findOne.mockReset()
+    await expect(service.isUserLocked({ role: 'admin', id: 'a1' })).resolves.toBe(false)
+    expect(Subscription.findOne).not.toHaveBeenCalled()
+  })
+
+  test('isUserLocked is true when the org is locked out', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'canceled' })
+    await expect(service.isUserLocked({ role: 'user', id: 'org-locked' })).resolves.toBe(true)
+  })
+
+  test('isUserLocked is false for an active subscription', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'active' })
+    await expect(service.isUserLocked({ role: 'user', id: 'org-ok' })).resolves.toBe(false)
+  })
+})
+
+describe('adminSetSubscription', () => {
+  test('does not re-subscribe when the plan is unchanged', async () => {
+    const sub = { planId: 'pro', update: jest.fn().mockResolvedValue() }
+    Subscription.findOne.mockResolvedValue(sub)
+    await service.adminSetSubscription('o', { planId: 'pro', status: 'past_due' })
+    expect(Plan.findByPk).not.toHaveBeenCalled() // subscribe() would have looked the plan up
+    expect(sub.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'past_due' }))
+  })
+
+  test('applies suspended and date overrides', async () => {
+    const sub = { planId: 'pro', update: jest.fn().mockResolvedValue() }
+    Subscription.findOne.mockResolvedValue(sub)
+    await service.adminSetSubscription('o', { suspended: true, currentPeriodEnd: future })
+    expect(sub.update).toHaveBeenCalledWith(expect.objectContaining({ suspended: true, currentPeriodEnd: future }))
+  })
+
+  test('blocks an admin downgrade that current usage exceeds', async () => {
+    Subscription.findOne.mockResolvedValue({ planId: 'pro', update: jest.fn().mockResolvedValue() })
+    Plan.findByPk.mockResolvedValue({ id: 'free', name: 'Free', isActive: true, limits: { seats: 2 } })
+    User.count.mockResolvedValue(5)
+    await expect(service.adminSetSubscription('o', { planId: 'free' }))
+      .rejects.toMatchObject({ status: 400, code: 'USAGE_OVER_LIMIT' })
+  })
+})
+
+describe('plan-change requests', () => {
+  test('requestPlanChange creates a pending request when none is open', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p1', slug: 'pro', isActive: true })
+    PlanChangeRequest.findOne.mockResolvedValue(null)
+    PlanChangeRequest.create.mockResolvedValue({ id: 'r1' })
+    PlanChangeRequest.findByPk.mockResolvedValue({ id: 'r1', status: 'pending' })
+    await service.requestPlanChange('org1', 'p1', { note: 'please' })
+    expect(PlanChangeRequest.create).toHaveBeenCalledWith(
+      expect.objectContaining({ organizationId: 'org1', planId: 'p1', status: 'pending', note: 'please' }))
+  })
+
+  test('requestPlanChange reuses the existing open request', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p2', slug: 'ent', isActive: true })
+    const existing = { id: 'r9', update: jest.fn().mockResolvedValue() }
+    PlanChangeRequest.findOne.mockResolvedValue(existing)
+    PlanChangeRequest.findByPk.mockResolvedValue({ id: 'r9' })
+    await service.requestPlanChange('org1', 'p2', { note: 'switch' })
+    expect(existing.update).toHaveBeenCalledWith({ planId: 'p2', note: 'switch' })
+    expect(PlanChangeRequest.create).not.toHaveBeenCalled()
+  })
+
+  test('requestPlanChange rejects an inactive plan', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p3', isActive: false })
+    await expect(service.requestPlanChange('org1', 'p3')).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('requestPlanChange is blocked when usage exceeds the target plan limits', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p4', name: 'Free', isActive: true, limits: { seats: 2 } })
+    User.count.mockResolvedValue(5) // 5 seats in use > limit of 2
+    await expect(service.requestPlanChange('org1', 'p4'))
+      .rejects.toMatchObject({ status: 400, code: 'USAGE_OVER_LIMIT' })
+    expect(PlanChangeRequest.create).not.toHaveBeenCalled()
+  })
+
+  test('approve activates the plan (subscribe) and marks the request approved', async () => {
+    const req = { id: 'r1', status: 'pending', organizationId: 'org1', planId: 'p1', update: jest.fn().mockResolvedValue() }
+    PlanChangeRequest.findByPk.mockResolvedValue(req)
+    // subscribe() path: free plan, no existing subscription → no invoice.
+    Plan.findByPk.mockResolvedValue({ id: 'p1', slug: 'free', price: 0, currency: 'USD', interval: 'month', trialDays: 0, isActive: true })
+    Subscription.findOne.mockResolvedValue(null)
+    Subscription.create.mockResolvedValue({})
+    await service.approvePlanChangeRequest('r1', 'admin1')
+    expect(Subscription.create).toHaveBeenCalledWith(expect.objectContaining({ organizationId: 'org1', planId: 'p1' }))
+    expect(req.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'approved', decidedBy: 'admin1' }))
+  })
+
+  test('approve refuses a non-pending request', async () => {
+    PlanChangeRequest.findByPk.mockResolvedValue({ id: 'r1', status: 'approved' })
+    await expect(service.approvePlanChangeRequest('r1', 'admin1')).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('reject marks the request rejected with a note', async () => {
+    const req = { id: 'r2', status: 'pending', update: jest.fn().mockResolvedValue() }
+    PlanChangeRequest.findByPk.mockResolvedValue(req)
+    await service.rejectPlanChangeRequest('r2', 'admin1', { note: 'nope' })
+    expect(req.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'rejected', decisionNote: 'nope', decidedBy: 'admin1' }))
   })
 })
 

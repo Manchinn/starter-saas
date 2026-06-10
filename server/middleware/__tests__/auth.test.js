@@ -7,10 +7,16 @@
 jest.mock('jsonwebtoken', () => ({ verify: jest.fn() }))
 jest.mock('../../models', () => ({ User: { findByPk: jest.fn() } }))
 jest.mock('../../config/config', () => ({ jwt: { secret: 'test-secret' } }))
+// Isolate the middleware from billing internals — the subscription gate is
+// exercised via the mocked isUserLocked decision.
+jest.mock('../../modules/billing/billing.service', () => ({ isUserLocked: jest.fn() }))
 
 const jwt = require('jsonwebtoken')
 const { User } = require('../../models')
+const billing = require('../../modules/billing/billing.service')
 const { authenticate } = require('../auth')
+
+beforeEach(() => billing.isUserLocked.mockResolvedValue(false))
 
 const makeRes = () => {
   const r = {}
@@ -35,6 +41,24 @@ describe('middleware.authenticate', () => {
     expect(res.status).toHaveBeenCalledWith(401)
   })
 
+  test('the Bearer scheme is matched case-sensitively ("bearer" is refused)', async () => {
+    const res = makeRes()
+    const next = jest.fn()
+    await authenticate({ headers: { authorization: 'bearer tok' } }, res, next)
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  test('a bare "Bearer " with no token yields 401, never a crash', async () => {
+    jwt.verify.mockImplementation(() => { throw new Error('jwt must be provided') })
+    const res = makeRes()
+    const next = jest.fn()
+    await authenticate({ headers: { authorization: 'Bearer ' } }, res, next)
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Invalid access token' })
+    expect(next).not.toHaveBeenCalled()
+  })
+
   test('attaches the user and calls next() for a valid token + active account', async () => {
     jwt.verify.mockReturnValue({ id: 'u1' })
     const user = { id: 'u1', isActive: true }
@@ -54,6 +78,65 @@ describe('middleware.authenticate', () => {
     await authenticate({ headers: { authorization: 'Bearer t' } }, res, jest.fn())
     expect(res.status).toHaveBeenCalledWith(401)
     expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Invalid or inactive account' })
+  })
+
+  test('403 SUBSCRIPTION_INACTIVE when a locked tenant hits a non-billing route', async () => {
+    jwt.verify.mockReturnValue({ id: 'u1' })
+    User.findByPk.mockResolvedValue({ id: 'u1', isActive: true })
+    billing.isUserLocked.mockResolvedValue(true)
+    const res = makeRes()
+    const next = jest.fn()
+    await authenticate({ headers: { authorization: 'Bearer t' }, originalUrl: '/api/erp/products' }, res, next)
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'SUBSCRIPTION_INACTIVE' }))
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  test('a locked tenant may still reach the billing pages', async () => {
+    jwt.verify.mockReturnValue({ id: 'u1' })
+    User.findByPk.mockResolvedValue({ id: 'u1', isActive: true })
+    billing.isUserLocked.mockResolvedValue(true)
+    const req = { headers: { authorization: 'Bearer t' }, originalUrl: '/api/billing/subscribe' }
+    const next = jest.fn()
+    await authenticate(req, makeRes(), next)
+    expect(next).toHaveBeenCalled()
+    expect(req.orgLocked).toBe(true)
+  })
+
+  test('the billing-only allowlist is anchored — a look-alike prefix is NOT exempt', async () => {
+    // /api/billingX must not slip past the `/api/billing(/|$)` gate for a locked
+    // tenant; otherwise a route merely *prefixed* with "billing" would bypass the
+    // subscription lock.
+    jwt.verify.mockReturnValue({ id: 'u1' })
+    User.findByPk.mockResolvedValue({ id: 'u1', isActive: true })
+    billing.isUserLocked.mockResolvedValue(true)
+    const res = makeRes()
+    const next = jest.fn()
+    await authenticate({ headers: { authorization: 'Bearer t' }, originalUrl: '/api/billingfoo/leak' }, res, next)
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'SUBSCRIPTION_INACTIVE' }))
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  test('the billing-only allowlist ignores the query string when matching', async () => {
+    jwt.verify.mockReturnValue({ id: 'u1' })
+    User.findByPk.mockResolvedValue({ id: 'u1', isActive: true })
+    billing.isUserLocked.mockResolvedValue(true)
+    const req = { headers: { authorization: 'Bearer t' }, originalUrl: '/api/billing?tab=plans' }
+    const next = jest.fn()
+    await authenticate(req, makeRes(), next)
+    expect(next).toHaveBeenCalled()
+  })
+
+  test('a locked tenant keeps access to /api/auth (so they can load the session and sign out)', async () => {
+    jwt.verify.mockReturnValue({ id: 'u1' })
+    User.findByPk.mockResolvedValue({ id: 'u1', isActive: true })
+    billing.isUserLocked.mockResolvedValue(true)
+    const req = { headers: { authorization: 'Bearer t' }, originalUrl: '/api/auth/me' }
+    const next = jest.fn()
+    await authenticate(req, makeRes(), next)
+    expect(next).toHaveBeenCalled()
+    expect(req.orgLocked).toBe(true)
   })
 
   test('401 with TOKEN_EXPIRED code when the token is expired', async () => {

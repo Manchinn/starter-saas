@@ -71,7 +71,7 @@ const remove = async (id, organizationId) => {
 }
 
 const listAll = async (organizationId) => {
-  return Vendor.findAll({ where: { status: 'active', organizationId: organizationId || null }, order: [['name', 'ASC']] })
+  return Vendor.findAll({ where: { status: 'active', organizationId: organizationId || null }, order: [['name', 'DESC']] })
 }
 
 module.exports = { list, getById, create, update, remove, listAll }

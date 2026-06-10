@@ -16,7 +16,31 @@ const HOUR_1 = 60 * 60 * 1000
 
 const limiter = (opts) => rateLimit({ standardHeaders: true, legacyHeaders: false, ...opts })
 
-// ── Generic ──────────────────────────────────────────────────────────────────
+// ── Global (mounted once on /api in app.js) ───────────────────────────────────
+// These blanket every route — current and future — so no router can ship without
+// a flood cap. They are deliberately generous: a real SPA fires many reads per
+// page, so the read ceiling is high while writes (the costlier, abuse-prone
+// methods) get a tighter budget. Both are per-IP and tunable via env.
+const READ_MAX  = parseInt(process.env.RATE_LIMIT_API_MAX, 10)   || 1500
+const WRITE_MAX = parseInt(process.env.RATE_LIMIT_WRITE_MAX, 10) || 300
+const isReadMethod = (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS'
+
+const globalApiLimiter = limiter({
+  windowMs: MIN_15,
+  max: READ_MAX,
+  message: { success: false, message: 'Too many requests — please slow down and try again shortly.' },
+})
+
+// Applies only to mutating methods so reads don't consume the (tighter) write
+// budget; GET/HEAD/OPTIONS are skipped and fall through to globalApiLimiter.
+const globalWriteLimiter = limiter({
+  windowMs: MIN_15,
+  max: WRITE_MAX,
+  skip: isReadMethod,
+  message: { success: false, message: 'Too many write requests — please slow down and try again shortly.' },
+})
+
+// ── Generic (opt-in, per-router) ───────────────────────────────────────────────
 const apiLimiter = limiter({
   windowMs: MIN_15,
   max: 100,
@@ -75,6 +99,8 @@ const impersonationLimiter = limiter({
 })
 
 module.exports = {
+  globalApiLimiter,
+  globalWriteLimiter,
   apiLimiter,
   writeLimiter,
   loginLimiter,

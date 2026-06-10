@@ -16,6 +16,7 @@ const Plan                = require('./plan.model')
 const Subscription        = require('./subscription.model')
 const UsageCounter        = require('./usage-counter.model')
 const SubscriptionInvoice = require('./subscription-invoice.model')
+const PlanChangeRequest   = require('./plan-change-request.model')
 
 // ── Shared-layer models ───────────────────────────────────────────────────────
 const erpModels  = require('../../shared/erp/models')
@@ -27,7 +28,7 @@ const models = {
   sequelize,
   User, Module, UserModule, RefreshToken,
   Role, Permission, RolePermission, RoleModule, UserRole,
-  Plan, Subscription, UsageCounter, SubscriptionInvoice,
+  Plan, Subscription, UsageCounter, SubscriptionInvoice, PlanChangeRequest,
   ...erpModels,
   ...hrmsModels,
   ...aiModels,

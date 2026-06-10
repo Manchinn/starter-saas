@@ -7,7 +7,7 @@
  * organization's plan — resolve the owning org id with `orgKeyOf` upstream.
  */
 const { Op } = require('sequelize')
-const { Plan, Subscription, UsageCounter, SubscriptionInvoice, User } = require('../../models')
+const { Plan, Subscription, UsageCounter, SubscriptionInvoice, PlanChangeRequest, User } = require('../../models')
 const config = require('../../config/config')
 const log = require('../../core/logger').forLabel('billing')
 
@@ -30,13 +30,18 @@ const addInterval = (from, interval) => {
 
 // ── Effective-plan cache (per org, short TTL) ─────────────────────────────────
 const CACHE_TTL_MS = 60 * 1000
-const planCache = new Map() // orgId → { plan, expires }
-const invalidate = (orgId) => { if (orgId) planCache.delete(orgId); else planCache.clear() }
+const planCache = new Map()   // orgId → { plan, expires }
+const accessCache = new Map() // orgId → { locked, expires }
+const invalidate = (orgId) => {
+  if (orgId) { planCache.delete(orgId); accessCache.delete(orgId) }
+  else { planCache.clear(); accessCache.clear() }
+}
 
 // ── Plan resolution ───────────────────────────────────────────────────────────
 
 const isActive = (sub) => {
-  if (!sub || !ACTIVE_STATUSES.includes(sub.status)) return false
+  if (!sub || sub.suspended) return false
+  if (!ACTIVE_STATUSES.includes(sub.status)) return false
   if (sub.currentPeriodEnd && new Date(sub.currentPeriodEnd) < new Date()) return false
   return true
 }
@@ -62,6 +67,37 @@ async function getEffectivePlan(orgId) {
   const plan = isActive(sub) ? sub.plan : await getDefaultPlan()
   planCache.set(orgId, { plan, expires: Date.now() + CACHE_TTL_MS })
   return plan
+}
+
+// ── Access gate (hard lockout) ────────────────────────────────────────────────
+// A subscription locks the org out of the app entirely when it is suspended or
+// is in any state other than active/trialing (canceled, expired, past_due).
+// An org with no subscription row is NOT locked out — it predates billing or is
+// admin-managed, and falls back to the default plan as before.
+const isLockedOut = (sub) => {
+  if (!sub) return false
+  if (sub.suspended) return true
+  return !ACTIVE_STATUSES.includes(sub.status)
+}
+
+// Cached per-org lockout decision (short TTL; invalidated on any subscription
+// change) so it can be consulted on every authenticated request cheaply.
+async function isOrgLocked(orgId) {
+  if (!orgId) return false
+  const cached = accessCache.get(orgId)
+  if (cached && cached.expires > Date.now()) return cached.locked
+  const sub = await Subscription.findOne({ where: { organizationId: orgId } })
+  const locked = isLockedOut(sub)
+  accessCache.set(orgId, { locked, expires: Date.now() + CACHE_TTL_MS })
+  return locked
+}
+
+// Whether this caller is in billing-only mode (locked out of everything except
+// the billing pages). System admins (role 'admin' — the platform operator) are
+// always exempt so a misconfigured subscription can never lock them out.
+async function isUserLocked(user) {
+  if (!user || user.role === 'admin') return false
+  return isOrgLocked(user.organizationId || user.id)
 }
 
 // ── Limits & metering ──────────────────────────────────────────────────────────
@@ -140,6 +176,33 @@ async function getUsage(orgId) {
   return out
 }
 
+// The metrics whose current usage exceeds `plan`'s limits (empty = within plan).
+// Used to block a downgrade that the org's existing usage wouldn't fit into.
+async function exceededLimits(orgId, plan) {
+  const limits = plan?.limits || {}
+  const offenders = []
+  for (const metric of Object.keys(limits)) {
+    if (isUnlimited(limits[metric])) continue
+    const limit = Number(limits[metric])
+    const used = metric === 'seats'
+      ? await User.count({ where: { organizationId: orgId } })
+      : await usedFor(orgId, metric)
+    if (used > limit) offenders.push({ metric, limit, used })
+  }
+  return offenders
+}
+
+// Throw a 400 if current usage doesn't fit the target plan.
+function assertWithinPlan(offenders, plan) {
+  if (!offenders.length) return
+  const detail = offenders.map((o) => `${o.metric} (${o.used}/${o.limit})`).join(', ')
+  throw {
+    status: 400,
+    code: 'USAGE_OVER_LIMIT',
+    message: `Current usage exceeds the "${plan.name}" plan limits: ${detail}. Reduce usage before switching to this plan.`,
+  }
+}
+
 // ── Subscription lifecycle ──────────────────────────────────────────────────────
 
 // Create or switch an organization's subscription to `planId`. For the manual
@@ -164,6 +227,9 @@ async function subscribe(orgId, planId, { provider = config.billing.provider } =
     trialEndsAt,
     cancelAtPeriodEnd: false,
     canceledAt: null,
+    // Subscribing to a plan reactivates the org — clear any prior suspension so
+    // the new plan actually takes effect (isActive treats suspended as inactive).
+    suspended: false,
     provider,
   }
   const sub = existing ? await existing.update(fields) : await Subscription.create(fields)
@@ -264,14 +330,52 @@ const listSubscriptions = () =>
     order: [['updatedAt', 'DESC']],
   })
 
-// Admin override — assign a plan and/or force a status, bypassing trial/payment.
-async function adminSetSubscription(orgId, { planId, status }) {
-  if (planId) await subscribe(orgId, planId)
-  if (status) {
-    const sub = await Subscription.findOne({ where: { organizationId: orgId } })
-    if (sub) await sub.update({ status })
-    invalidate(orgId)
+// One organization's subscription with its plan and owning org, for the admin
+// management screen. Returns null when the org has no subscription row yet.
+const getSubscriptionDetail = (orgId) =>
+  Subscription.findOne({
+    where: { organizationId: orgId },
+    include: [
+      { model: Plan, as: 'plan' },
+      { model: User, as: 'organization', attributes: ['id', 'name', 'email', 'companyName'] },
+    ],
+  })
+
+// Admin override — assign a plan and/or force status, dates and suspension,
+// bypassing trial/payment. Only the keys provided are touched.
+async function adminSetSubscription(orgId, { planId, status, suspended, currentPeriodStart, currentPeriodEnd } = {}) {
+  // Only (re)subscribe when the plan actually changes — re-running subscribe()
+  // would reset the period and mint a fresh invoice on every save otherwise.
+  const current = await Subscription.findOne({ where: { organizationId: orgId } })
+  if (planId && (!current || current.planId !== planId)) {
+    // Admins can't push an org onto a plan its current usage exceeds either.
+    const plan = await Plan.findByPk(planId)
+    if (!plan || !plan.isActive) throw { status: 400, message: 'Plan not found or inactive' }
+    assertWithinPlan(await exceededLimits(orgId, plan), plan)
+    await subscribe(orgId, planId)
   }
+
+  const sub = await Subscription.findOne({ where: { organizationId: orgId } })
+  if (sub) {
+    const fields = {}
+    if (status !== undefined) fields.status = status
+    if (suspended !== undefined) fields.suspended = !!suspended
+    if (currentPeriodStart !== undefined) fields.currentPeriodStart = currentPeriodStart
+    if (currentPeriodEnd !== undefined) fields.currentPeriodEnd = currentPeriodEnd
+    if (Object.keys(fields).length) await sub.update(fields)
+  }
+  invalidate(orgId)
+  return getSubscription(orgId)
+}
+
+// Suspend / resume an organization. Suspending blocks plan access immediately
+// (isActive falls through to the default plan) without altering the lifecycle.
+async function setSuspended(orgId, suspended) {
+  const sub = await Subscription.findOne({ where: { organizationId: orgId } })
+  if (!sub) throw { status: 404, message: 'No subscription' }
+  await sub.update({ suspended: !!suspended })
+  invalidate(orgId)
+  log.info(`Org ${orgId} subscription ${suspended ? 'suspended' : 'resumed'}`)
   return getSubscription(orgId)
 }
 
@@ -282,16 +386,93 @@ const listInvoices = (orgId) =>
     order: [['createdAt', 'DESC']],
   })
 
+// ── Plan-change requests (tenant requests → admin approves) ──────────────────────
+// Tenants can't self-activate a plan; they file a request that an admin approves
+// (which activates the subscription immediately, manual provider) or rejects.
+const PENDING = 'pending'
+
+const PLAN_ATTRS = ['id', 'slug', 'name', 'price', 'currency', 'interval']
+
+const getPlanChangeRequest = (id) =>
+  PlanChangeRequest.findByPk(id, {
+    include: [
+      { model: Plan, as: 'plan', attributes: PLAN_ATTRS },
+      { model: User, as: 'organization', attributes: ['id', 'name', 'email'] },
+    ],
+  })
+
+// The org's current open request, if any (drives the tenant's billing UI).
+const getPendingRequest = (orgId) =>
+  PlanChangeRequest.findOne({
+    where: { organizationId: orgId, status: PENDING },
+    include: [{ model: Plan, as: 'plan', attributes: PLAN_ATTRS }],
+  })
+
+// File (or update) the org's single open request.
+async function requestPlanChange(orgId, planId, { note = null } = {}) {
+  const plan = await Plan.findByPk(planId)
+  if (!plan || !plan.isActive) throw { status: 400, message: 'Plan not found or inactive' }
+  // Block requesting a plan the org's current usage already exceeds.
+  assertWithinPlan(await exceededLimits(orgId, plan), plan)
+  const existing = await PlanChangeRequest.findOne({ where: { organizationId: orgId, status: PENDING } })
+  if (existing) {
+    await existing.update({ planId, note })
+    return getPlanChangeRequest(existing.id)
+  }
+  const req = await PlanChangeRequest.create({ organizationId: orgId, planId, note, status: PENDING })
+  log.info(`Org ${orgId} requested plan "${plan.slug}"`)
+  return getPlanChangeRequest(req.id)
+}
+
+const listPlanChangeRequests = ({ status } = {}) =>
+  PlanChangeRequest.findAll({
+    where: status ? { status } : {},
+    include: [
+      { model: Plan, as: 'plan', attributes: PLAN_ATTRS },
+      { model: User, as: 'organization', attributes: ['id', 'name', 'email'] },
+    ],
+    order: [['createdAt', 'DESC']],
+  })
+
+async function approvePlanChangeRequest(id, adminUserId) {
+  const req = await PlanChangeRequest.findByPk(id)
+  if (!req) throw { status: 404, message: 'Request not found' }
+  if (req.status !== PENDING) throw { status: 400, message: 'Request is not pending' }
+  // Re-validate at approval time — usage may have grown since the request.
+  const plan = await Plan.findByPk(req.planId)
+  if (!plan || !plan.isActive) throw { status: 400, message: 'Plan not found or inactive' }
+  assertWithinPlan(await exceededLimits(req.organizationId, plan), plan)
+  // Activate immediately via the manual provider — records a paid invoice for
+  // paid plans and clears any billing-only lockout (subscribe invalidates cache).
+  await subscribe(req.organizationId, req.planId)
+  await req.update({ status: 'approved', decidedBy: adminUserId || null, decidedAt: new Date() })
+  log.info(`Plan request ${id} approved by ${adminUserId}`)
+  return getPlanChangeRequest(id)
+}
+
+async function rejectPlanChangeRequest(id, adminUserId, { note = null } = {}) {
+  const req = await PlanChangeRequest.findByPk(id)
+  if (!req) throw { status: 404, message: 'Request not found' }
+  if (req.status !== PENDING) throw { status: 400, message: 'Request is not pending' }
+  await req.update({ status: 'rejected', decidedBy: adminUserId || null, decidedAt: new Date(), decisionNote: note })
+  return getPlanChangeRequest(id)
+}
+
 module.exports = {
   // resolution
   getEffectivePlan, getSubscription, getDefaultPlan, isActive,
+  // access gate
+  isLockedOut, isOrgLocked, isUserLocked,
   // limits / metering
-  checkLimit, hasFeature, increment, assertSeatAvailable, getUsage, periodForMetric,
+  checkLimit, hasFeature, increment, assertSeatAvailable, getUsage, periodForMetric, exceededLimits,
   // lifecycle
   subscribe, cancel, ensureDefaultSubscription,
   // admin
   listPlans, listPublicPlans, getPlan, createPlan, updatePlan, deletePlan,
-  listSubscriptions, adminSetSubscription, listInvoices,
+  listSubscriptions, getSubscriptionDetail, adminSetSubscription, setSuspended, listInvoices,
+  // plan-change requests
+  requestPlanChange, getPendingRequest, listPlanChangeRequests,
+  approvePlanChangeRequest, rejectPlanChangeRequest,
   // cache (exposed for tests)
   _invalidate: invalidate,
 }

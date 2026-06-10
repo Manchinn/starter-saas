@@ -210,8 +210,8 @@
         </div>
       </div>
 
-      <!-- Reset All Data -->
-      <div class="bg-white border border-red-200 shadow-sm overflow-hidden">
+      <!-- Reset All Data — system admins only (wipes all ERP data across every tenant) -->
+      <div v-if="isAdmin" class="bg-white border border-red-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-red-100 flex items-center justify-between">
           <div class="flex items-start gap-2">
             <TrashIcon class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
@@ -310,8 +310,11 @@ import {
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from '@/stores/auth'
 
 const { t, locale, getLocaleMessage } = useI18n()
+const { isAdmin } = storeToRefs(useAuthStore())
 
 const seeding      = ref(false)
 const resetting    = ref(false)

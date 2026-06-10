@@ -116,6 +116,7 @@ import {
   ChartBarIcon, UserGroupIcon, CubeIcon, BanknotesIcon,
 } from '@heroicons/vue/24/outline'
 import { useAiAgentStore } from '@/stores/aiAgent'
+import { useAuthStore } from '@/stores/auth'
 import RichText from '@/components/RichText.vue'
 
 const props = defineProps({ modelValue: Boolean })
@@ -125,6 +126,7 @@ const { t } = useI18n()
 const router = useRouter()
 const route  = useRoute()
 const store  = useAiAgentStore()
+const auth   = useAuthStore()
 
 const draft   = ref('')
 const scrollEl = ref(null)
@@ -153,8 +155,12 @@ function scrollToBottom() {
   })
 }
 
-watch(() => props.modelValue, (open) => {
+watch(() => props.modelValue, async (open) => {
   if (open) {
+    // Re-check the subscription when the user tries to use the AI sidebar — if
+    // the org is in billing-only mode, close the panel and send them to billing.
+    await auth.checkSubscription()
+    if (auth.locked) { close(); router.push('/billing'); return }
     store.newConversation()
     store.loadConversations()
     nextTick(() => inputEl.value?.focus())

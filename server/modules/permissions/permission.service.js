@@ -2,7 +2,7 @@ const { Permission, Role } = require('../../models')
 
 const list = async () => {
   const perms = await Permission.findAll({
-    order: [['group', 'ASC'], ['name', 'ASC']],
+    order: [['group', 'DESC'], ['name', 'DESC']],
     include: [{ model: Role, as: 'roles', attributes: ['id'], through: { attributes: [] } }],
   })
   return perms.map((p) => {

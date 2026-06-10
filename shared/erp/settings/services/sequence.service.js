@@ -130,7 +130,7 @@ const getPreview = async (code, userId) => {
 // ── CRUD ──────────────────────────────────────────────────────────────────────
 const list = async (userId) => {
   const where = userId ? { userId } : { userId: null }
-  const rows = await Sequence.findAll({ where, order: [['code', 'ASC']] })
+  const rows = await Sequence.findAll({ where, order: [['code', 'DESC']] })
   return rows.map(s => ({ ...s.toJSON(), preview: preview(s) }))
 }
 

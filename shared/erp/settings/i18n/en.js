@@ -3,6 +3,14 @@ export default {
     settings: {
       generalTitle:   'General Settings',
       generalDesc:    'Configure display preferences for your ERP',
+
+      tabGeneral:           'General',
+      generalSection:       'Display Preferences',
+      generalSectionDesc:   'Controls default list ordering across all ERP modules',
+      sortOrderLabel:       'Default List Order',
+      sortOrderDesc:        'DESC — Newest records appear at the top of every list',
+      sortOrderAsc:         'ASC — Oldest records appear at the top of every list',
+
       currency:       'Currency Format',
       currencyDesc:   'Controls how monetary values are displayed across the ERP',
       preview:        'Preview',

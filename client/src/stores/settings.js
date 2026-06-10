@@ -2,6 +2,10 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '@/api'
 
+const GENERAL_DEFAULTS = {
+  sortOrder: 'DESC',
+}
+
 const CURRENCY_DEFAULTS = {
   symbol:      '฿',
   position:    'suffix',
@@ -26,6 +30,7 @@ const AUDIT_DEFAULTS = {
 }
 
 export const useSettingsStore = defineStore('settings', () => {
+  const general  = ref({ ...GENERAL_DEFAULTS })
   const currency = ref({ ...CURRENCY_DEFAULTS })
   const tax      = ref({ ...TAX_DEFAULTS })
   const calendar = ref({ ...CALENDAR_DEFAULTS })
@@ -34,6 +39,9 @@ export const useSettingsStore = defineStore('settings', () => {
   async function load() {
     try {
       const { data } = await api.get('/erp/settings/general')
+      if (data?.data?.general) {
+        general.value = { ...GENERAL_DEFAULTS, ...data.data.general }
+      }
       if (data?.data?.currency) {
         currency.value = { ...CURRENCY_DEFAULTS, ...data.data.currency }
       }
@@ -49,6 +57,11 @@ export const useSettingsStore = defineStore('settings', () => {
     } catch {
       // fall back to defaults
     }
+  }
+
+  async function saveGeneral(config) {
+    const { data } = await api.put('/erp/settings/general', { general: config })
+    general.value = { ...GENERAL_DEFAULTS, ...data.data.general }
   }
 
   async function saveCurrency(config) {
@@ -77,5 +90,5 @@ export const useSettingsStore = defineStore('settings', () => {
     if (data?.data?.tax)      tax.value      = { ...TAX_DEFAULTS,      ...data.data.tax }
   }
 
-  return { currency, tax, calendar, audit, load, saveCurrency, saveTax, saveCalendar, saveAudit, saveAll }
+  return { general, currency, tax, calendar, audit, load, saveGeneral, saveCurrency, saveTax, saveCalendar, saveAudit, saveAll }
 })

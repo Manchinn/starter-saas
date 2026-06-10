@@ -116,21 +116,6 @@ module.exports = {
     }
   },
 
-  async listAllStaff(req, res) {
-    try {
-      const { page, limit, search, organizationId } = req.query
-      const result = await organizationService.listAllStaff({
-        page: +page || 1,
-        limit: +limit || 20,
-        search: search || '',
-        organizationId: organizationId || null,
-      })
-      return ok(res, result)
-    } catch (err) {
-      return serverError(res)
-    }
-  },
-
   async listAll(req, res) {
     try {
       const organizations = await organizationService.listAll()

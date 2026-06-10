@@ -96,6 +96,15 @@ describe('profile.revokeSession', () => {
     await expect(service.revokeSession('u1', 's1')).rejects.toEqual({ status: 404, message: 'Session not found' })
   })
 
+  test('scopes the lookup by userId so one user cannot revoke another\'s session', async () => {
+    // A user passing someone else's session id must not match: the query is
+    // constrained to their own userId, so a foreign id resolves to 404.
+    RefreshToken.findOne.mockResolvedValue(null)
+    await expect(service.revokeSession('u1', 'someone-elses-session'))
+      .rejects.toEqual({ status: 404, message: 'Session not found' })
+    expect(RefreshToken.findOne).toHaveBeenCalledWith({ where: { id: 'someone-elses-session', userId: 'u1' } })
+  })
+
   test('is a no-op when already revoked', async () => {
     const row = { isRevoked: true, update: jest.fn() }
     RefreshToken.findOne.mockResolvedValue(row)

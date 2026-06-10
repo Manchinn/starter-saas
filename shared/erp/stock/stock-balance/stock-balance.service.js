@@ -11,8 +11,8 @@ const list = async ({ storeId = '', productId = '', includeZero = false }) => {
   const rows = await StoreStock.findAll({
     where,
     order: [
-      [{ model: Store, as: 'store' }, 'name', 'ASC'],
-      [{ model: Product, as: 'product' }, 'name', 'ASC'],
+      [{ model: Store, as: 'store' }, 'name', 'DESC'],
+      [{ model: Product, as: 'product' }, 'name', 'DESC'],
     ],
     include: [
       { model: Store, as: 'store', attributes: ['id', 'name', 'code'] },
@@ -43,8 +43,8 @@ const list = async ({ storeId = '', productId = '', includeZero = false }) => {
 
 const lookups = async () => {
   const [stores, products] = await Promise.all([
-    Store.findAll({ attributes: ['id', 'name', 'code'], order: [['name', 'ASC']] }),
-    Product.findAll({ where: { status: 'active' }, attributes: ['id', 'name', 'sku'], order: [['name', 'ASC']] }),
+    Store.findAll({ attributes: ['id', 'name', 'code'], order: [['name', 'DESC']] }),
+    Product.findAll({ where: { status: 'active' }, attributes: ['id', 'name', 'sku'], order: [['name', 'DESC']] }),
   ])
   return { stores, products }
 }
@@ -61,7 +61,7 @@ const getProductSummary = async (productId) => {
   const storeStocks = await StoreStock.findAll({
     where: { productId },
     include: [{ model: Store, as: 'store', attributes: ['id', 'name', 'code'] }],
-    order: [[{ model: Store, as: 'store' }, 'name', 'ASC']],
+    order: [[{ model: Store, as: 'store' }, 'name', 'DESC']],
   })
 
   const movements = await StockMovement.findAll({

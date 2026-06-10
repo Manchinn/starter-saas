@@ -15,7 +15,7 @@ const list = async ({ page = 1, limit = 20, search = '', status = '', activeFrom
     where,
     limit,
     offset,
-    order: [['name', 'ASC']],
+    order: [['createdAt', 'DESC']],
     include: [parentInclude],
     distinct: true,
   })
@@ -26,7 +26,7 @@ const listAll = async (organizationId) => {
   return ProductCategory.findAll({
     where: { status: 'active', organizationId: organizationId || null },
     attributes: ['id', 'name', 'parentId'],
-    order: [['name', 'ASC']],
+    order: [['name', 'DESC']],
   })
 }
 

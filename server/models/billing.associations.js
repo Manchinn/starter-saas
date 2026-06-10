@@ -4,7 +4,7 @@
  * Invoked from server/models/index.js once the full registry is built.
  */
 module.exports = function associate({
-  User, Plan, Subscription, SubscriptionInvoice, UsageCounter,
+  User, Plan, Subscription, SubscriptionInvoice, UsageCounter, PlanChangeRequest,
 }) {
   // ── Plan ↔ Subscription ───────────────────────────────────────────────────
   Plan.hasMany(Subscription,        { foreignKey: 'planId', as: 'subscriptions' })
@@ -23,4 +23,12 @@ module.exports = function associate({
 
   User.hasMany(UsageCounter,        { foreignKey: 'organizationId', as: 'usageCounters', onDelete: 'CASCADE' })
   UsageCounter.belongsTo(User,      { foreignKey: 'organizationId', as: 'organization' })
+
+  // ── Plan-change requests ──────────────────────────────────────────────────────
+  Plan.hasMany(PlanChangeRequest,        { foreignKey: 'planId', as: 'changeRequests' })
+  PlanChangeRequest.belongsTo(Plan,      { foreignKey: 'planId', as: 'plan' })
+
+  User.hasMany(PlanChangeRequest,        { foreignKey: 'organizationId', as: 'planChangeRequests', onDelete: 'CASCADE' })
+  PlanChangeRequest.belongsTo(User,      { foreignKey: 'organizationId', as: 'organization' })
+  PlanChangeRequest.belongsTo(User,      { foreignKey: 'decidedBy', as: 'decider', constraints: false })
 }

@@ -2,15 +2,15 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.employees.edit')" back-to="/hrms/employees"
+      <PageHeader :title="t('erp.employees.edit')" :back-to="listTo"
         :breadcrumb="[
-          { label: t('erp.employees.title'), to: '/hrms/employees' },
+          { label: t('erp.employees.title'), to: listTo },
           { label: t('erp.employees.edit') },
         ]">
         <template #actions>
           <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
-            cancel-to="/hrms/employees"
+            :cancel-to="listTo"
             :cancel-label="t('common.cancel')"
             :saving="saving"
             :saving-label="t('erp.common.saving')"
@@ -82,31 +82,40 @@
           <!-- Right: User Account + Departments -->
           <div class="space-y-6">
             <FormCard :title="t('erp.employees.userAccount')" :icon="UserCircleIcon" icon-color="green">
-              <p class="text-xs text-[#9BA7B0] -mt-1 mb-3">{{ t('erp.employees.linkedUser') }}</p>
+              <p class="text-xs text-[#9BA7B0] -mt-1 mb-3">{{ t('erp.employees.accountHint') }}</p>
 
-              <FieldLabel :text="t('erp.employees.user')" />
-              <SearchSelect v-model="form.userId" :options="userOptions" placeholder="— None —" />
+              <!-- Existing login → edit it inline -->
+              <template v-if="account.hasUser">
+                <FormField name="email" :label="t('erp.employees.emailUsername')" :errors="fieldErrors"
+                  v-model="account.email" type="email" />
 
-              <div v-if="selectedUser" class="mt-4 p-3.5 bg-[#F7F9FC] space-y-2 border border-[#E2E8F0]">
-                <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 bg-primary-100 text-primary-500 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                    {{ selectedUser.name.charAt(0).toUpperCase() }}
-                  </div>
-                  <div>
-                    <p class="text-sm font-bold text-[#1C2434] leading-tight">{{ selectedUser.name }}</p>
-                    <p class="text-xs text-[#637381]">{{ selectedUser.email }}</p>
-                  </div>
+                <div class="mt-4">
+                  <FieldLabel :text="t('erp.employees.loginStatus')" />
+                  <SearchSelect v-model="account.isActive" :options="ACCOUNT_STATUS_OPTIONS" :allow-empty="false" />
                 </div>
-                <div class="flex items-center gap-4 pt-1">
-                  <span class="text-xs text-[#637381] flex items-center gap-1">
-                    Role: <span class="font-semibold text-[#374151] capitalize">{{ selectedUser.role }}</span>
-                  </span>
-                  <span :class="selectedUser.isActive ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'"
-                    class="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5">
-                    {{ selectedUser.isActive ? t('erp.employees.active') : t('erp.employees.inactive') }}
-                  </span>
+
+                <div class="mt-4 pt-4 border-t border-[#E2E8F0]">
+                  <FieldLabel :text="t('erp.employees.resetPassword')" />
+                  <FormField name="newPassword" :errors="fieldErrors"
+                    v-model="account.newPassword" type="password" :placeholder="t('erp.employees.resetPasswordPh')" />
+                  <p class="text-xs text-[#9BA7B0] mt-1">{{ t('erp.employees.resetPasswordHint') }}</p>
                 </div>
-              </div>
+              </template>
+
+              <!-- No login yet → optionally create one -->
+              <template v-else>
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" v-model="account.create" class="text-primary-500 focus:ring-primary-500" />
+                  <span class="text-sm font-medium text-[#374151]">{{ t('erp.employees.createLogin') }}</span>
+                </label>
+                <div v-if="account.create" class="space-y-4 pt-4 mt-2 border-t border-slate-50">
+                  <FormField name="email" :label="t('erp.employees.emailUsername')" :errors="fieldErrors"
+                    v-model="account.email" type="email" placeholder="employee@company.com" required />
+                  <FormField name="password" :label="t('erp.employees.password')" :errors="fieldErrors"
+                    v-model="account.password" type="password" placeholder="Min 8 characters" required />
+                </div>
+                <p v-else class="text-xs text-[#9BA7B0] py-2">{{ t('erp.employees.loginNoneHint') }}</p>
+              </template>
 
               <!-- Department Assignments -->
               <div class="pt-5 mt-5 border-t border-[#E2E8F0]">
@@ -189,14 +198,18 @@ const route        = useRoute()
 const id           = route.params.id
 const codeInputRef = ref(null)
 
+// Admin org-scope (carried from the Organizations drill-in); threaded into the
+// fetch/update so the right org's record is targeted, and back to the list.
+const orgId  = computed(() => route.query.organizationId || '')
+const listTo = computed(() => orgId.value ? `/hrms/employees?organizationId=${orgId.value}` : '/hrms/employees')
+
 const { shortcuts } = useFormShortcuts({
   save: () => save(),
-  cancel: () => router.push('/hrms/employees'),
+  cancel: () => router.push(listTo.value),
   cancelLabel: 'Back to list',
 })
 const loading = ref(true)
 const saving  = ref(false)
-const users   = ref([])
 const departments = ref([])
 const roles   = ref([])
 const error   = ref('')
@@ -208,9 +221,10 @@ const EMP_STATUS_OPTIONS = computed(() => [
   { id: 'terminated', name: t('erp.employees.terminated') },
 ])
 
-const userOptions = computed(() =>
-  users.value.map(u => ({ id: u.id, name: `${u.name} · ${u.email}` }))
-)
+const ACCOUNT_STATUS_OPTIONS = computed(() => [
+  { id: true,  name: t('erp.employees.active') },
+  { id: false, name: t('erp.employees.inactive') },
+])
 
 const form = ref({
   employeeCode:  '',
@@ -224,20 +238,25 @@ const form = ref({
   status:        'active',
   activeFrom:    '',
   activeTo:      '',
-  userId:        '',
 })
 
-const selectedUser = computed(() => users.value.find(u => u.id === form.value.userId) || null)
+// Inline login-account state (no linking to an existing account).
+const account = ref({
+  hasUser:     false,
+  create:      false,
+  email:       '',
+  isActive:    true,
+  password:    '',
+  newPassword: '',
+})
 
 onMounted(async () => {
   try {
-    const [empRes, staffRes, deptRes, rolesRes] = await Promise.all([
-      api.get(`/hrms/employees/${id}`),
-      api.get('/organizations/staff', { params: { limit: 500 } }),
+    const [empRes, deptRes, rolesRes] = await Promise.all([
+      api.get(`/hrms/employees/${id}`, { params: { organizationId: orgId.value || undefined } }),
       api.get('/hrms/departments', { params: { limit: 1000 } }),
       api.get('/hrms/roles'),
     ])
-    users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
     roles.value       = rolesRes.data.data.roles
     const emp = empRes.data.data.employee
@@ -253,7 +272,11 @@ onMounted(async () => {
       status:        emp.status,
       activeFrom:    emp.activeFrom  || '',
       activeTo:      emp.activeTo    || '',
-      userId:        emp.userId      || '',
+    }
+    if (emp.user) {
+      account.value.hasUser  = true
+      account.value.email    = emp.user.email
+      account.value.isActive = emp.user.isActive
     }
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load employee'
@@ -264,16 +287,34 @@ onMounted(async () => {
   }
 })
 
+// Build the `account` slice of the payload, or null when there's nothing to do.
+function accountPayload() {
+  const a = account.value
+  if (a.hasUser) {
+    return { email: a.email, isActive: a.isActive, newPassword: a.newPassword || undefined }
+  }
+  if (a.create) {
+    return { create: true, email: a.email, password: a.password }
+  }
+  return null
+}
+
 async function save() {
   error.value = ''
   resetErrors()
   if (!form.value.firstName.trim()) { setField('firstName', t('common.errors.required', { field: t('erp.employees.firstName') })); return }
   if (!form.value.lastName.trim())  { setField('lastName',  t('common.errors.required', { field: t('erp.employees.lastName') })); return }
+  if (!account.value.hasUser && account.value.create) {
+    if (!account.value.email.trim()) { setField('email', t('common.errors.required', { field: t('erp.employees.emailUsername') })); return }
+    if (!account.value.password || account.value.password.length < 8) { setField('password', t('common.errors.minLength', { field: t('erp.employees.password'), n: 8 })); return }
+  }
 
   saving.value = true
   try {
-    await api.put(`/hrms/employees/${id}`, { ...form.value })
-    router.push('/hrms/employees')
+    const payload = { ...form.value, account: accountPayload() }
+    if (orgId.value) payload.organizationId = orgId.value
+    await api.put(`/hrms/employees/${id}`, payload)
+    router.push(listTo.value)
   } catch (err) {
     const had = setFromError(err)
     if (!had) error.value = parseApiError(err, 'Failed to save')

@@ -23,6 +23,12 @@ jest.mock('../../../models', () => ({
   Employee:           { findOne: jest.fn() },
   HrmsRole:           {},
   HrmsPermission:     {},
+  // Used by billing.service (required via auth.service's subscription gate).
+  // findOne resolving undefined → no subscription row → not locked out.
+  Subscription:        { findOne: jest.fn() },
+  Plan:                {},
+  UsageCounter:        {},
+  SubscriptionInvoice: {},
 }))
 jest.mock('../../../core/mailer', () => ({ sendEmailVerification: jest.fn(), sendPasswordReset: jest.fn() }))
 jest.mock('../../../core/logger', () => ({ forLabel: () => ({ warn: jest.fn() }) }))
@@ -169,6 +175,44 @@ describe('auth.changePassword', () => {
     scopedFindByPk.mockResolvedValue(user)
     await service.changePassword('u1', { currentPassword: 'ok', newPassword: 'new' })
     expect(user.update).toHaveBeenCalledWith({ password: 'new' })
+  })
+
+  test('revokes every OTHER session but preserves the caller\'s current one', async () => {
+    const { Op } = require('sequelize')
+    const user = makeUser()
+    scopedFindByPk.mockResolvedValue(user)
+    RefreshToken.update.mockResolvedValue([2])
+    await service.changePassword('u1', { currentPassword: 'ok', newPassword: 'new' }, 'CURRENT-TOKEN')
+    const where = RefreshToken.update.mock.calls[0][1].where
+    expect(where.userId).toBe('u1')
+    expect(where.isRevoked).toBe(false)
+    // The current session is explicitly excluded from revocation.
+    expect(where.token[Op.ne]).toBe('CURRENT-TOKEN')
+  })
+
+  test('revokes ALL sessions when the caller does not identify its token', async () => {
+    const user = makeUser()
+    scopedFindByPk.mockResolvedValue(user)
+    RefreshToken.update.mockResolvedValue([3])
+    await service.changePassword('u1', { currentPassword: 'ok', newPassword: 'new' })
+    expect(RefreshToken.update.mock.calls[0][1].where.token).toBeUndefined()
+  })
+})
+
+describe('auth.login — enumeration resistance', () => {
+  // An unknown email and a wrong password must be indistinguishable to the
+  // caller: identical status + message, so response shape can't reveal whether
+  // an email is registered. (The service also runs a dummy bcrypt compare for
+  // unknown users to equalise timing.)
+  test('unknown email and wrong password reject with the identical error', async () => {
+    scopedFindOne.mockResolvedValue(null)
+    const unknownErr = await service.login({ email: 'nobody@x.com', password: 'p' }).catch((e) => e)
+
+    scopedFindOne.mockResolvedValue(makeUser({ comparePassword: jest.fn().mockResolvedValue(false) }))
+    const wrongPwErr = await service.login({ email: 'real@x.com', password: 'bad' }).catch((e) => e)
+
+    expect(unknownErr).toEqual({ status: 401, message: 'Invalid credentials' })
+    expect(wrongPwErr).toEqual(unknownErr)
   })
 })
 

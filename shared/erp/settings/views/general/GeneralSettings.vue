@@ -21,6 +21,64 @@
         </button>
       </div>
 
+      <!-- ── General tab ──────────────────────────────────────────────── -->
+      <template v-if="activeTab === 'general'">
+
+        <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0]">
+            <h2 class="text-sm font-semibold text-[#374151]">{{ t('erp.settings.generalSection') }}</h2>
+            <p class="text-xs text-[#9BA7B0] mt-0.5">{{ t('erp.settings.generalSectionDesc') }}</p>
+          </div>
+
+          <div class="px-6 py-5">
+            <div class="max-w-sm">
+              <label class="block text-xs font-semibold text-[#637381] uppercase tracking-wide mb-1.5">
+                {{ t('erp.settings.sortOrderLabel') }}
+              </label>
+              <div class="flex border border-[#E2E8F0] overflow-hidden text-sm">
+                <button type="button" @click="generalForm.sortOrder = 'DESC'"
+                  :class="generalForm.sortOrder === 'DESC'
+                    ? 'flex-1 py-2.5 bg-primary-500 text-white font-medium'
+                    : 'flex-1 py-2.5 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
+                  DESC
+                </button>
+                <button type="button" @click="generalForm.sortOrder = 'ASC'"
+                  :class="generalForm.sortOrder === 'ASC'
+                    ? 'flex-1 py-2.5 bg-primary-500 text-white font-medium'
+                    : 'flex-1 py-2.5 bg-white text-[#637381] hover:bg-[#F7F9FC]'">
+                  ASC
+                </button>
+              </div>
+              <p class="mt-1.5 text-xs text-[#9BA7B0]">
+                {{ generalForm.sortOrder === 'DESC' ? t('erp.settings.sortOrderDesc') : t('erp.settings.sortOrderAsc') }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback + save -->
+        <div v-if="generalError"
+          class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
+          <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ generalError }}
+        </div>
+        <div v-if="generalSaved"
+          class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
+          <CheckCircleIcon class="w-4 h-4 flex-shrink-0" />
+          {{ t('erp.settings.savedOk') }}
+        </div>
+        <div class="flex justify-end">
+          <button @click="saveGeneral" :disabled="generalSaving"
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
+                   bg-primary-500 text-white hover:bg-primary-700
+                   disabled:opacity-50 transition-colors shadow-sm">
+            <CheckIcon v-if="!generalSaving" class="w-4 h-4" />
+            {{ generalSaving ? t('erp.common.saving') : t('erp.settings.saveSettings') }}
+          </button>
+        </div>
+
+      </template>
+
       <!-- ── Currency tab ─────────────────────────────────────────────── -->
       <template v-if="activeTab === 'currency'">
 
@@ -373,13 +431,37 @@ const { t } = useI18n()
 const store = useSettingsStore()
 
 // ── Tabs ──────────────────────────────────────────────────
-const activeTab = ref('currency')
+const activeTab = ref('general')
 const TABS = computed(() => [
+  { key: 'general',  label: t('erp.settings.tabGeneral') },
   { key: 'currency', label: t('erp.settings.currency') },
   { key: 'tax',      label: t('erp.settings.tax') },
   { key: 'date',     label: t('erp.settings.tabDate') },
   { key: 'auditlog', label: t('erp.settings.tabAuditLog') },
 ])
+
+// ── General form ──────────────────────────────────────────
+const generalForm = reactive({
+  sortOrder: store.general.sortOrder,
+})
+const generalSaving = ref(false)
+const generalSaved  = ref(false)
+const generalError  = ref('')
+
+async function saveGeneral() {
+  generalError.value = ''
+  generalSaved.value = false
+  generalSaving.value = true
+  try {
+    await store.saveGeneral({ ...generalForm })
+    generalSaved.value = true
+    setTimeout(() => { generalSaved.value = false }, 3000)
+  } catch (err) {
+    generalError.value = err.response?.data?.message || 'Failed to save general settings'
+  } finally {
+    generalSaving.value = false
+  }
+}
 
 // ── Options ───────────────────────────────────────────────
 const thousandSepOptions = [
@@ -532,6 +614,7 @@ async function saveAudit() {
 // ── Load ──────────────────────────────────────────────────
 onMounted(async () => {
   await store.load()
+  Object.assign(generalForm, store.general)
   Object.assign(currencyForm, store.currency)
   Object.assign(taxForm, store.tax)
   Object.assign(calendarForm, {

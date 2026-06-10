@@ -18,7 +18,7 @@ router.use(authenticate)
 router.get('/plans',        (req, res) => controller.listPlans(req, res))
 router.get('/subscription', (req, res) => controller.mySubscription(req, res))
 router.get('/invoices',     (req, res) => controller.myInvoices(req, res))
-router.post('/subscribe',   subscribeRules, validate, (req, res) => controller.subscribe(req, res))
+router.post('/request',     subscribeRules, validate, (req, res) => controller.requestPlanChange(req, res))
 router.post('/cancel',      (req, res) => controller.cancel(req, res))
 
 // ── Admin: plan catalog ─────────────────────────────────────────────────────────
@@ -29,7 +29,15 @@ router.put('/admin/plans/:id',    requirePermission('billing.manage'), planUpdat
 router.delete('/admin/plans/:id', requirePermission('billing.manage'), (req, res) => controller.adminDeletePlan(req, res))
 
 // ── Admin: subscriptions overview / override ──────────────────────────────────────
-router.get('/admin/subscriptions',        requirePermission('billing.manage'), (req, res) => controller.adminListSubscriptions(req, res))
-router.put('/admin/subscriptions/:orgId', requirePermission('billing.manage'), (req, res) => controller.adminSetSubscription(req, res))
+router.get('/admin/subscriptions',               requirePermission('billing.manage'), (req, res) => controller.adminListSubscriptions(req, res))
+router.get('/admin/subscriptions/:orgId',        requirePermission('billing.manage'), (req, res) => controller.adminGetSubscription(req, res))
+router.put('/admin/subscriptions/:orgId',        requirePermission('billing.manage'), (req, res) => controller.adminSetSubscription(req, res))
+router.post('/admin/subscriptions/:orgId/suspend', requirePermission('billing.manage'), (req, res) => controller.adminSuspendSubscription(req, res))
+router.post('/admin/subscriptions/:orgId/cancel',  requirePermission('billing.manage'), (req, res) => controller.adminCancelSubscription(req, res))
+
+// ── Admin: plan-change requests ───────────────────────────────────────────────────
+router.get('/admin/plan-requests',              requirePermission('billing.manage'), (req, res) => controller.adminListPlanRequests(req, res))
+router.post('/admin/plan-requests/:id/approve', requirePermission('billing.manage'), (req, res) => controller.adminApprovePlanRequest(req, res))
+router.post('/admin/plan-requests/:id/reject',  requirePermission('billing.manage'), (req, res) => controller.adminRejectPlanRequest(req, res))
 
 module.exports = router

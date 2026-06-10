@@ -20,7 +20,7 @@ describe('permission.list', () => {
       { id: 'p1', slug: 'a', roleCount: 2 },
       { id: 'p2', slug: 'b', roleCount: 0 },
     ])
-    expect(Permission.findAll.mock.calls[0][0].order).toEqual([['group', 'ASC'], ['name', 'ASC']])
+    expect(Permission.findAll.mock.calls[0][0].order).toEqual([['group', 'DESC'], ['name', 'DESC']])
   })
 })
 

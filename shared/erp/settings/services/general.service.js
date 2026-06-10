@@ -3,6 +3,9 @@ const { Setting } = require('../../../../server/models')
 const KEY = 'erp.general'
 
 const DEFAULTS = {
+  general: {
+    sortOrder: 'DESC',  // 'DESC' = newest first | 'ASC' = oldest first
+  },
   currency: {
     symbol:      '฿',
     position:    'suffix',   // 'prefix' | 'suffix'
@@ -32,6 +35,7 @@ const get = async (userId) => {
     return {
       ...DEFAULTS,
       ...parsed,
+      general:  { ...DEFAULTS.general,  ...parsed.general },
       currency: { ...DEFAULTS.currency, ...parsed.currency },
       tax:      { ...DEFAULTS.tax,      ...parsed.tax },
       calendar: { ...DEFAULTS.calendar, ...parsed.calendar },
@@ -42,10 +46,11 @@ const get = async (userId) => {
   }
 }
 
-const save = async (userId, { currency, tax, calendar, audit } = {}) => {
+const save = async (userId, { general, currency, tax, calendar, audit } = {}) => {
   const current = await get(userId)
   const merged = {
     ...current,
+    ...(general  && { general:  { ...current.general,  ...general  } }),
     ...(currency && { currency: { ...current.currency, ...currency } }),
     ...(tax      && { tax:      { ...current.tax,      ...tax      } }),
     ...(calendar && { calendar: { ...current.calendar, ...calendar } }),

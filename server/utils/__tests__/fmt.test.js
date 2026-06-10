@@ -30,3 +30,27 @@ describe('fmt.toFixed', () => {
     expect(toFixed(0.1 + 0.2, 2)).toBe(0.3)
   })
 })
+
+// Integrity edge cases. toFixed feeds financial calculations, so its behaviour
+// on hostile / malformed input is a data-integrity contract: garbage must
+// surface as NaN (so callers can detect and reject it) rather than silently
+// becoming a plausible-looking number that corrupts a total. These tests pin
+// that contract so a future refactor can't quietly change it.
+describe('fmt.toFixed — integrity on malformed input', () => {
+  test('non-numeric / undefined input becomes NaN, never a silent number', () => {
+    expect(toFixed(undefined)).toBeNaN()
+    expect(toFixed(NaN)).toBeNaN()
+    expect(toFixed('abc')).toBeNaN()
+    expect(toFixed('12.5px')).toBeNaN()
+  })
+
+  test('does not throw on adversarial input (callers get NaN to guard on)', () => {
+    expect(() => toFixed({})).not.toThrow()
+    expect(() => toFixed([1, 2, 3])).not.toThrow()
+    expect(toFixed({})).toBeNaN()
+  })
+
+  test('a very large finite number stays finite (no exponent-string leakage)', () => {
+    expect(Number.isFinite(toFixed(1e21, 2))).toBe(true)
+  })
+})

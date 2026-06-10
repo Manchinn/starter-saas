@@ -14,7 +14,9 @@ const provider = require('../services/provider.service')
 const productSvc = require('../../erp/products/services/product.service')
 const agent = require('../services/agent.service')
 
-const USER = { id: 'u1', organizationId: 'o1' }
+// Permissions are resolved at the controller and threaded into the agent so
+// tool execution enforces RBAC; '*' (system admin) clears every tool gate.
+const USER = { id: 'u1', organizationId: 'o1', permissions: ['*'] }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -53,6 +55,25 @@ describe('agent.chat — tool loop', () => {
     // final reply + a client action surfaced to the UI
     expect(res.message.content).toBe('Created Widget.')
     expect(res.message.actions.some((a) => a.type === 'navigate')).toBe(true)
+  })
+
+  test('a tool the caller lacks permission for is refused — no service call, told to the model', async () => {
+    const LIMITED = { id: 'u2', organizationId: 'o1', permissions: ['erp.products.list'] }
+    provider.chat
+      .mockResolvedValueOnce({ role: 'assistant', content: '', tool_calls: [
+        { id: 't1', name: 'create_product', arguments: { name: 'Widget' } },
+      ] })
+      .mockResolvedValueOnce({ role: 'assistant', content: 'You are not allowed to do that.', tool_calls: [] })
+
+    const res = await agent.chat({ user: LIMITED, conversationId: null, content: 'add a product called Widget' })
+
+    // the underlying service is never reached
+    expect(productSvc.create).not.toHaveBeenCalled()
+    // the denial is fed back to the model as the tool result
+    const toolMsg = provider.chat.mock.calls[1][0].messages.find((m) => m.role === 'tool')
+    expect(toolMsg.content).toMatch(/permission denied/i)
+    expect(toolMsg.content).toContain('erp.products.edit')
+    expect(res.message.content).toBe('You are not allowed to do that.')
   })
 
   test('navigate is a client tool — produces an action, writes no data', async () => {
@@ -147,6 +168,37 @@ describe('agent.chat — tool loop', () => {
     const toolMsg = provider.chat.mock.calls[1][0].messages.find((m) => m.role === 'tool')
     expect(toolMsg.content).toContain('SKU already exists')
     expect(res.message.content).toBe('Sorry, that SKU exists.')
+  })
+})
+
+describe('conversation ownership — cross-user/org isolation (IDOR)', () => {
+  const OTHER = { id: 'intruder', organizationId: 'o1' }
+
+  test('chat against an unowned conversationId is rejected 404 before any model call', async () => {
+    AiConversation.findOne.mockResolvedValue(null) // not found under this user+org
+    await expect(agent.chat({ user: OTHER, conversationId: 'someone-elses', content: 'hi' }))
+      .rejects.toMatchObject({ status: 404, message: 'Conversation not found' })
+    // the lookup is scoped to the caller's identity, and no LLM round-trip happens
+    expect(AiConversation.findOne).toHaveBeenCalledWith({
+      where: { id: 'someone-elses', userId: 'intruder', organizationId: 'o1' },
+    })
+    expect(provider.chat).not.toHaveBeenCalled()
+  })
+
+  test('getConversation scopes by user+org and 404s on a foreign id', async () => {
+    AiConversation.findOne.mockResolvedValue(null)
+    await expect(agent.getConversation(OTHER, 'foreign')).rejects.toMatchObject({ status: 404 })
+    expect(AiConversation.findOne).toHaveBeenCalledWith({
+      where: { id: 'foreign', userId: 'intruder', organizationId: 'o1' },
+    })
+    expect(AiMessage.findAll).not.toHaveBeenCalled()
+  })
+
+  test('removeConversation 404s on a foreign id and deletes nothing', async () => {
+    AiConversation.findOne.mockResolvedValue(null)
+    await expect(agent.removeConversation(OTHER, 'foreign')).rejects.toMatchObject({ status: 404 })
+    expect(AiMessage.destroy).not.toHaveBeenCalled()
+    expect(AiConversation.destroy).not.toHaveBeenCalled()
   })
 })
 

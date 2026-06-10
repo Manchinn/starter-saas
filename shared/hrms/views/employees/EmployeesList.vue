@@ -9,17 +9,28 @@
         </div>
         <div class="flex items-center gap-2">
           <KeyboardShortcuts :shortcuts="shortcuts" />
-          <AppButton to="/hrms/employees/create" variant="primary">
+          <AppButton :to="createTo" variant="primary">
             <PlusIcon class="w-4 h-4" />
             {{ t('erp.employees.new') }}
           </AppButton>
         </div>
       </div>
 
+      <!-- Admin org-scope banner: shown when viewing a specific org's staff. -->
+      <div v-if="orgId" class="flex items-center justify-between gap-3 px-4 py-2.5 bg-primary-50 border border-primary-200 text-sm">
+        <span class="text-primary-700">
+          {{ t('erp.employees.viewingOrg', { org: orgName || t('erp.employees.thisOrg') }) }}
+        </span>
+        <RouterLink to="/hrms/employees" class="font-medium text-primary-600 hover:text-primary-700 whitespace-nowrap">
+          {{ t('erp.employees.viewAll') }}
+        </RouterLink>
+      </div>
+
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable ref="dataTableRef" :columns="columns" :data="employees" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           :selected-row-index="selectedRowIndex"
+          row-clickable @row-click="e => router.push(editTo(e.id))"
           searchable :search-placeholder="t('erp.employees.searchPh')">
 
           <template #toolbar>
@@ -153,7 +164,7 @@
 
 <script setup>
 import { h, ref, computed, reactive, watch, onMounted } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, PencilIcon, TrashIcon, IdentificationIcon,
@@ -171,6 +182,16 @@ import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
 const router = useRouter()
+const route  = useRoute()
+
+// Admins can drill into a specific organization's staff (e.g. from the
+// Organizations list). The id is carried in the URL and threaded through every
+// read/write so the actions target that org; absent for normal HRMS users.
+const orgId   = computed(() => route.query.organizationId || '')
+const orgName = ref('')
+const orgQuery = computed(() => (orgId.value ? { organizationId: orgId.value } : {}))
+const editTo = (id) => ({ path: `/hrms/employees/${id}/edit`, query: orgQuery.value })
+const createTo = computed(() => ({ path: '/hrms/employees/create', query: orgQuery.value }))
 
 const statusOptions = computed(() => [
   { id: 'active',     name: t('erp.employees.active')     },
@@ -198,8 +219,8 @@ const totalPages = computed(() => Math.ceil(total.value / limit))
 
 const { selectedIndex: selectedRowIndex, shortcuts } = useListShortcuts({
   rows: employees, page, totalPages,
-  open:        e => router.push(`/hrms/employees/${e.id}/edit`),
-  create:      () => router.push('/hrms/employees/create'),
+  open:        e => router.push(editTo(e.id)),
+  create:      () => router.push(createTo.value),
   remove:      e => confirmDelete(e),
   focusSearch: () => dataTableRef.value?.focusSearch(),
   newLabel: 'New employee',
@@ -215,6 +236,15 @@ async function fetchDepartments() {
   } catch (err) { console.error(err.message) }
 }
 
+// When scoped to a specific org (admin drill-in), resolve its name for the banner.
+async function fetchOrgName() {
+  if (!orgId.value) return
+  try {
+    const { data } = await api.get(`/organizations/${orgId.value}`)
+    orgName.value = data.data.organization?.name || ''
+  } catch { /* non-fatal: banner falls back to a generic label */ }
+}
+
 async function load() {
   loading.value = true
   try {
@@ -225,6 +255,7 @@ async function load() {
         departmentId: filterDeptId.value || undefined,
         activeFrom: filterActiveFrom.value || undefined,
         activeTo: filterActiveTo.value || undefined,
+        organizationId: orgId.value || undefined,
       },
     })
     employees.value = data.data.employees
@@ -237,7 +268,8 @@ function onFilterChange() { page.value = 1; load() }
 function clearFilters() { filterStatus.value = ''; filterDeptId.value = ''; filterActiveFrom.value = ''; filterActiveTo.value = ''; page.value = 1; load() }
 
 watch([page, search], load)
-onMounted(() => { fetchDepartments(); load() })
+watch(orgId, () => { page.value = 1; fetchOrgName(); load() })
+onMounted(() => { fetchDepartments(); fetchOrgName(); load() })
 
 function statusClass(s) {
   return s === 'active' ? 'bg-green-50 text-green-700' : s === 'terminated' ? 'bg-red-50 text-red-700' : 'bg-[#F1F5F9] text-[#637381]'
@@ -258,7 +290,7 @@ function rolePermNames(roles) {
 async function doDelete() {
   deleteModal.saving = true; deleteModal.error = ''
   try {
-    await api.delete(`/hrms/employees/${deleteModal.emp.id}`)
+    await api.delete(`/hrms/employees/${deleteModal.emp.id}`, { params: { organizationId: orgId.value || undefined } })
     deleteModal.open = false
     load()
   } catch (err) {
@@ -365,7 +397,7 @@ const columns = [
     meta: { thClass: 'w-20', tdClass: '' },
     cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
       h(RouterLink, {
-        to: `/hrms/employees/${info.row.original.id}/edit`,
+        to: editTo(info.row.original.id),
         class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
         title: 'Edit',
       }, () => h(PencilIcon, { class: 'w-4 h-4' })),
