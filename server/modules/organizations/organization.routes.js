@@ -13,7 +13,6 @@ router.use(authenticate)
 router.get('/my-modules', (req, res) => controller.myModules(req, res))
 router.get('/my-permissions', (req, res) => controller.myPermissions(req, res))
 router.get('/staff', (req, res) => controller.listStaff(req, res))
-router.get('/all-staff', requirePermission('organizations.list'), (req, res) => controller.listAllStaff(req, res))
 
 // All organizations flat list (for select dropdowns)
 router.get('/all', requirePermission('organizations.list'), (req, res) => controller.listAll(req, res))

@@ -1,14 +1,17 @@
 // Unit tests for hrms/employee.service.
 //
-// The interesting paths: organizationId is always required, create supports
-// three credential modes (existing user, new user, none), the User↔Employee
-// link is unique, and the departments junction is only touched when the
-// caller explicitly passes departmentIds.
+// The interesting paths: organizationId is always required; the login account
+// is managed inline (no linking to an existing user) — create provisions one
+// when `account.create` is set, update can create/edit/reset it; and the
+// departments junction is only touched when the caller passes departmentIds.
 
 jest.mock('../../../server/models', () => ({
-  Employee:   { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), create: jest.fn() },
-  User:       { findByPk: jest.fn() },
-  Department: {},
+  Employee:     { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), create: jest.fn() },
+  User:         { findByPk: jest.fn(), findOne: jest.fn() },
+  Department:   {},
+  HrmsRole:     { findAll: jest.fn() },
+  HrmsPermission: {},
+  RefreshToken: { update: jest.fn() },
 }))
 
 jest.mock('../../erp/settings/services/sequence.service', () => ({
@@ -20,10 +23,12 @@ jest.mock('../../../server/modules/organizations/organization.service', () => ({
 }), { virtual: true })
 
 const { Op } = require('sequelize')
-const { Employee, User } = require('../../../server/models')
+const { Employee, User, RefreshToken } = require('../../../server/models')
 const seqService = require('../../erp/settings/services/sequence.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
 const service = require('../services/employee.service')
+
+beforeEach(() => jest.clearAllMocks())
 
 describe('employee.list', () => {
   test('rejects when organizationId is missing', async () => {
@@ -74,56 +79,44 @@ describe('employee.create — validation', () => {
   })
 })
 
-describe('employee.create — credential modes', () => {
-  test('credentialMode "new" creates a User and links it', async () => {
+describe('employee.create — inline login account', () => {
+  test('account.create provisions a User (role user + org) and links it', async () => {
     organizationService.create.mockResolvedValue({ id: 'new-user-id' })
     Employee.create.mockResolvedValue({ id: 'e1', setDepartments: jest.fn() })
     Employee.findOne.mockResolvedValue({ id: 'e1', userId: 'new-user-id' })
 
     await service.create({
       organizationId: 'o', firstName: '  Ada ', lastName: ' Lovelace ',
-      credentialMode: 'new', email: '  a@b.com ', password: 'pw',
+      account: { create: true, email: '  a@b.com ', password: 'secret12' },
     })
 
     expect(organizationService.create).toHaveBeenCalledWith({
       name: 'Ada Lovelace',
       email: 'a@b.com',
-      password: 'pw',
+      password: 'secret12',
       role: 'user',
       organizationId: 'o',
     })
     expect(Employee.create.mock.calls[0][0].userId).toBe('new-user-id')
   })
 
-  test('credentialMode "new" rejects missing email/password', async () => {
-    await expect(service.create({ organizationId: 'o', firstName: 'A', lastName: 'B', credentialMode: 'new', password: 'pw' }))
+  test('account.create rejects missing email / password / short password', async () => {
+    await expect(service.create({ organizationId: 'o', firstName: 'A', lastName: 'B', account: { create: true, password: 'secret12' } }))
       .rejects.toEqual({ status: 400, message: 'Email is required' })
-    await expect(service.create({ organizationId: 'o', firstName: 'A', lastName: 'B', credentialMode: 'new', email: 'a@b' }))
+    await expect(service.create({ organizationId: 'o', firstName: 'A', lastName: 'B', account: { create: true, email: 'a@b.com' } }))
       .rejects.toEqual({ status: 400, message: 'Password is required' })
+    await expect(service.create({ organizationId: 'o', firstName: 'A', lastName: 'B', account: { create: true, email: 'a@b.com', password: 'short' } }))
+      .rejects.toEqual({ status: 400, message: 'Password must be at least 8 characters' })
+    expect(organizationService.create).not.toHaveBeenCalled()
   })
 
-  test('existing-user mode validates user exists', async () => {
-    User.findByPk.mockResolvedValue(null)
-    await expect(service.create({
-      organizationId: 'o', firstName: 'A', lastName: 'B', userId: 'missing',
-    })).rejects.toEqual({ status: 404, message: 'Selected user account not found' })
-  })
-
-  test('existing-user mode rejects if user already linked to another employee', async () => {
-    User.findByPk.mockResolvedValue({ id: 'u' })
-    Employee.findOne.mockResolvedValue({ id: 'other-emp' })
-    await expect(service.create({
-      organizationId: 'o', firstName: 'A', lastName: 'B', userId: 'u',
-    })).rejects.toEqual({ status: 409, message: 'This user account is already linked to another employee' })
-  })
-
-  test('no userId and credentialMode "existing" → emp gets userId: null', async () => {
+  test('no account → employee created with userId null, no User provisioned', async () => {
     const emp = { id: 'e1', setDepartments: jest.fn() }
     Employee.create.mockResolvedValue(emp)
     Employee.findOne.mockResolvedValue({ id: 'e1' })
     await service.create({ organizationId: 'o', firstName: 'A', lastName: 'B' })
     expect(Employee.create.mock.calls[0][0].userId).toBeNull()
-    expect(User.findByPk).not.toHaveBeenCalled()
+    expect(organizationService.create).not.toHaveBeenCalled()
   })
 })
 
@@ -165,27 +158,9 @@ describe('employee.update', () => {
       .rejects.toEqual({ status: 404, message: 'Employee not found' })
   })
 
-  test('changing userId to one already taken by another employee → 409', async () => {
-    const emp = { id: 'e1', userId: 'old', update: jest.fn() }
-    Employee.findOne
-      .mockResolvedValueOnce(emp)                       // initial lookup
-      .mockResolvedValueOnce({ id: 'e-other' })         // duplicate-link check
-    User.findByPk.mockResolvedValue({ id: 'new' })
-    await expect(service.update('e1', { userId: 'new' }, 'o', 'u'))
-      .rejects.toEqual({ status: 409, message: 'This user already has an employee record' })
-  })
-
-  test('userId change to a non-existent user → 404', async () => {
-    const emp = { id: 'e1', userId: 'old', update: jest.fn() }
-    Employee.findOne.mockResolvedValue(emp)
-    User.findByPk.mockResolvedValue(null)
-    await expect(service.update('e1', { userId: 'missing' }, 'o', 'u'))
-      .rejects.toEqual({ status: 404, message: 'Selected user not found' })
-  })
-
   test('only applies supplied fields (undefined skipped); empty string → null on optional text fields', async () => {
     const emp = {
-      id: 'e1', userId: null,
+      id: 'e1', userId: null, firstName: 'Ada', lastName: 'L',
       update:         jest.fn().mockResolvedValue(),
       setDepartments: jest.fn(),
     }
@@ -207,9 +182,57 @@ describe('employee.update', () => {
     expect(patch.modifiedBy).toBe('u')
   })
 
+  test('account.create provisions + links a login when the employee has none', async () => {
+    const emp = {
+      id: 'e1', userId: null, firstName: 'Ada', lastName: 'Lovelace',
+      update: jest.fn().mockResolvedValue(), setDepartments: jest.fn(),
+    }
+    Employee.findOne.mockResolvedValueOnce(emp).mockResolvedValueOnce({ id: 'e1' })
+    organizationService.create.mockResolvedValue({ id: 'u-new' })
+
+    await service.update('e1', { account: { create: true, email: 'a@b.com', password: 'secret12' } }, 'o', 'u')
+
+    expect(organizationService.create).toHaveBeenCalledWith(expect.objectContaining({ email: 'a@b.com', role: 'user', organizationId: 'o' }))
+    // userId persisted via emp.update (second update call is the account link)
+    expect(emp.update).toHaveBeenCalledWith({ userId: 'u-new' })
+  })
+
+  test('edits the linked account email + active flag (scoped to org)', async () => {
+    const emp = { id: 'e1', userId: 'u1', firstName: 'Ada', lastName: 'L', update: jest.fn().mockResolvedValue() }
+    const user = { id: 'u1', email: 'old@b.com', name: 'Ada L', update: jest.fn().mockResolvedValue() }
+    Employee.findOne.mockResolvedValueOnce(emp).mockResolvedValueOnce({ id: 'e1' })
+    User.findOne
+      .mockResolvedValueOnce(user)   // load linked user (scoped)
+      .mockResolvedValueOnce(null)   // email-uniqueness check → free
+    await service.update('e1', { account: { email: 'new@b.com', isActive: false } }, 'o', 'u')
+    expect(User.findOne.mock.calls[0][0]).toEqual({ where: { id: 'u1', organizationId: 'o' } })
+    expect(user.update).toHaveBeenCalledWith(expect.objectContaining({ email: 'new@b.com', isActive: false }))
+  })
+
+  test('rejects an account email that collides with another user', async () => {
+    const emp = { id: 'e1', userId: 'u1', firstName: 'Ada', lastName: 'L', update: jest.fn().mockResolvedValue() }
+    const user = { id: 'u1', email: 'old@b.com', name: 'Ada L', update: jest.fn() }
+    Employee.findOne.mockResolvedValueOnce(emp).mockResolvedValueOnce({ id: 'e1' })
+    User.findOne.mockResolvedValueOnce(user).mockResolvedValueOnce({ id: 'someone-else' })
+    await expect(service.update('e1', { account: { email: 'taken@b.com' } }, 'o', 'u'))
+      .rejects.toEqual({ status: 409, message: 'Email already registered' })
+  })
+
+  test('resetting the account password revokes the user’s sessions', async () => {
+    const emp = { id: 'e1', userId: 'u1', firstName: 'Ada', lastName: 'L', update: jest.fn().mockResolvedValue() }
+    const user = { id: 'u1', email: 'a@b.com', name: 'Ada L', update: jest.fn().mockResolvedValue() }
+    Employee.findOne.mockResolvedValueOnce(emp).mockResolvedValueOnce({ id: 'e1' })
+    User.findOne.mockResolvedValue(user)
+    await service.update('e1', { account: { newPassword: 'brandnew1' } }, 'o', 'u')
+    expect(user.update).toHaveBeenCalledWith({ password: 'brandnew1' })
+    expect(RefreshToken.update).toHaveBeenCalledWith(
+      { isRevoked: true }, { where: { userId: 'u1', isRevoked: false } },
+    )
+  })
+
   test('setDepartments runs whenever departmentIds is present, with [] clearing', async () => {
     const emp = {
-      id: 'e1', userId: null,
+      id: 'e1', userId: null, firstName: 'A', lastName: 'B',
       update:         jest.fn().mockResolvedValue(),
       setDepartments: jest.fn(),
     }
@@ -222,7 +245,7 @@ describe('employee.update', () => {
 
   test('omitting departmentIds leaves the existing junction untouched', async () => {
     const emp = {
-      id: 'e1', userId: null,
+      id: 'e1', userId: null, firstName: 'A', lastName: 'B',
       update:         jest.fn().mockResolvedValue(),
       setDepartments: jest.fn(),
     }

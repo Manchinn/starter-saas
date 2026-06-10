@@ -261,20 +261,6 @@ describe('organization.getStaff', () => {
   })
 })
 
-describe('organization.listAllStaff', () => {
-  test('filters by a specific org when provided', async () => {
-    User.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
-    await service.listAllStaff({ organizationId: 'o1' })
-    expect(User.findAndCountAll.mock.calls[0][0].where.organizationId).toBe('o1')
-  })
-
-  test('falls back to all staff (organizationId != null) when no org given', async () => {
-    User.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
-    await service.listAllStaff({})
-    expect(User.findAndCountAll.mock.calls[0][0].where.organizationId[Op.ne]).toBeNull()
-  })
-})
-
 describe('organization.listAll', () => {
   test('returns only top-level orgs', async () => {
     User.findAll.mockResolvedValue([])
