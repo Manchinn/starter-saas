@@ -30,6 +30,7 @@
         <DataTable ref="dataTableRef" :columns="columns" :data="employees" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
           :selected-row-index="selectedRowIndex"
+          row-clickable @row-click="e => router.push(editTo(e.id))"
           searchable :search-placeholder="t('erp.employees.searchPh')">
 
           <template #toolbar>
