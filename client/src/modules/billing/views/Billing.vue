@@ -163,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ExclamationTriangleIcon, ClockIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -190,28 +190,7 @@ onMounted(async () => {
   } finally {
     initialLoading.value = false
   }
-  window.addEventListener('focus', refresh)
-  document.addEventListener('visibilitychange', onVisible)
 })
-
-onUnmounted(() => {
-  window.removeEventListener('focus', refresh)
-  document.removeEventListener('visibilitychange', onVisible)
-})
-
-const onVisible = () => { if (document.visibilityState === 'visible') refresh() }
-
-// Re-check the subscription on demand (when the tab/window regains focus) instead
-// of polling on a timer — picks up an admin's decision without a refresh loop or
-// the screen blinking. Refreshing the session also lifts billing-only mode once
-// the request is approved.
-async function refresh() {
-  const hadRequest = !!store.request
-  await store.fetchSubscription()
-  if (hadRequest && !store.request) {
-    await Promise.all([store.fetchInvoices(), auth.fetchMe()])
-  }
-}
 
 const statusTone = computed(() => {
   const s = store.subscription?.status

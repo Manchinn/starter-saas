@@ -84,6 +84,12 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth && !auth.isAuthenticated) return next('/login')
   if (requiresAdmin && !auth.isAdmin) return next('/erp/dashboard')
 
+  // Re-check the subscription on each navigation (page change / menu click) so a
+  // plan change made elsewhere is reflected without polling.
+  if (requiresAuth && auth.isAuthenticated && !auth.isAdmin) {
+    await auth.checkSubscription()
+  }
+
   // Billing-only mode: a locked tenant may only reach the self-service billing
   // pages. Send every other authenticated route to /billing to re-subscribe.
   if (requiresAuth && auth.isAuthenticated && auth.locked && !to.path.startsWith('/billing')) {

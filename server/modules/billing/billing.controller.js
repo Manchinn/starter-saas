@@ -21,13 +21,14 @@ module.exports = {
   async mySubscription(req, res) {
     try {
       const orgId = orgKeyOf(req)
-      const [subscription, plan, usage, request] = await Promise.all([
+      const [subscription, plan, usage, request, locked] = await Promise.all([
         service.getSubscription(orgId),
         service.getEffectivePlan(orgId),
         service.getUsage(orgId),
         service.getPendingRequest(orgId),
+        service.isUserLocked(req.user),
       ])
-      return ok(res, { subscription, plan, usage, request, canManage: isBillingOwner(req) })
+      return ok(res, { subscription, plan, usage, request, locked, canManage: isBillingOwner(req) })
     } catch (err) {
       return serverError(res)
     }

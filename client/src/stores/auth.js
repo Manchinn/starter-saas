@@ -56,6 +56,18 @@ export const useAuthStore = defineStore('auth', () => {
     locked.value = true
   }
 
+  // Re-check the org's subscription (billing-only state) on demand — called on
+  // navigation and when opening the AI sidebar so a plan change made elsewhere
+  // (admin approve/suspend) is picked up without polling. Resilient: a failed
+  // check never changes state or blocks the caller.
+  async function checkSubscription() {
+    if (!accessToken.value || isAdmin.value) return
+    try {
+      const { data } = await api.get('/billing/subscription')
+      locked.value = !!data.data.locked
+    } catch { /* leave state as-is */ }
+  }
+
   // Called by the API interceptor after a silent token refresh.
   function syncTokensFromRefresh(access) {
     accessToken.value = access
@@ -139,6 +151,6 @@ export const useAuthStore = defineStore('auth', () => {
     hasPermission, hasRole,
     fetchMe, bootstrap, login, register, install, logout, changePassword,
     loginAs, returnToAdmin,
-    setAccessToken, clearSession, syncTokensFromRefresh, markLocked,
+    setAccessToken, clearSession, syncTokensFromRefresh, markLocked, checkSubscription,
   }
 })
