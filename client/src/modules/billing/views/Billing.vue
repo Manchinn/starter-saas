@@ -17,7 +17,7 @@
         <p class="page-subtitle">{{ t('billing.subtitle') }}</p>
       </div>
 
-      <div v-if="store.loading" class="card p-10 flex justify-center">
+      <div v-if="initialLoading" class="card p-10 flex justify-center">
         <div class="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
 
@@ -178,13 +178,18 @@ const auth = useAuthStore()
 const busy = ref(false)
 const busyId = ref(null)
 const error = ref('')
+const initialLoading = ref(true) // full-page spinner only on first load, not polls
 
 // Locked tenants get a minimal shell (no module nav / alerts).
 const layout = computed(() => (auth.locked ? BillingOnlyLayout : AppLayout))
 const requestedPlanId = computed(() => store.request?.planId)
 
 onMounted(async () => {
-  await Promise.all([store.fetchSubscription(), store.fetchInvoices(), store.fetchPlans()])
+  try {
+    await Promise.all([store.fetchSubscription(), store.fetchInvoices(), store.fetchPlans()])
+  } finally {
+    initialLoading.value = false
+  }
   startPolling()
 })
 
