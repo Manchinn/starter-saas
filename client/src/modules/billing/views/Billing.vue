@@ -190,29 +190,25 @@ onMounted(async () => {
   } finally {
     initialLoading.value = false
   }
-  startPolling()
+  window.addEventListener('focus', refresh)
+  document.addEventListener('visibilitychange', onVisible)
 })
 
-onUnmounted(stopPolling)
+onUnmounted(() => {
+  window.removeEventListener('focus', refresh)
+  document.removeEventListener('visibilitychange', onVisible)
+})
 
-// While a request is pending, poll so the page reflects the admin's decision
-// (approval activates the new plan and clears the request) without a manual
-// reload. Refreshing the session also lifts billing-only mode once approved.
-let pollTimer = null
-function startPolling() {
-  stopPolling()
-  if (store.request) pollTimer = setInterval(poll, 8000)
-}
-function stopPolling() {
-  if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
-}
-async function poll() {
+const onVisible = () => { if (document.visibilityState === 'visible') refresh() }
+
+// Re-check the subscription on demand (when the tab/window regains focus) instead
+// of polling on a timer — picks up an admin's decision without a refresh loop or
+// the screen blinking. Refreshing the session also lifts billing-only mode once
+// the request is approved.
+async function refresh() {
   const hadRequest = !!store.request
   await store.fetchSubscription()
   if (hadRequest && !store.request) {
-    // The request was decided — refresh invoices and the session (clears the
-    // locked flag if it was approved) and stop polling.
-    stopPolling()
     await Promise.all([store.fetchInvoices(), auth.fetchMe()])
   }
 }
@@ -270,7 +266,6 @@ async function choose(p) {
   busyId.value = p.id
   try {
     await store.requestPlanChange(p.id)
-    startPolling() // watch for the admin's decision
   } catch (err) {
     error.value = err.response?.data?.message || t('billing.requestFailed')
   } finally {
