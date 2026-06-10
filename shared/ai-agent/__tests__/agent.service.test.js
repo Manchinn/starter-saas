@@ -150,6 +150,37 @@ describe('agent.chat — tool loop', () => {
   })
 })
 
+describe('conversation ownership — cross-user/org isolation (IDOR)', () => {
+  const OTHER = { id: 'intruder', organizationId: 'o1' }
+
+  test('chat against an unowned conversationId is rejected 404 before any model call', async () => {
+    AiConversation.findOne.mockResolvedValue(null) // not found under this user+org
+    await expect(agent.chat({ user: OTHER, conversationId: 'someone-elses', content: 'hi' }))
+      .rejects.toMatchObject({ status: 404, message: 'Conversation not found' })
+    // the lookup is scoped to the caller's identity, and no LLM round-trip happens
+    expect(AiConversation.findOne).toHaveBeenCalledWith({
+      where: { id: 'someone-elses', userId: 'intruder', organizationId: 'o1' },
+    })
+    expect(provider.chat).not.toHaveBeenCalled()
+  })
+
+  test('getConversation scopes by user+org and 404s on a foreign id', async () => {
+    AiConversation.findOne.mockResolvedValue(null)
+    await expect(agent.getConversation(OTHER, 'foreign')).rejects.toMatchObject({ status: 404 })
+    expect(AiConversation.findOne).toHaveBeenCalledWith({
+      where: { id: 'foreign', userId: 'intruder', organizationId: 'o1' },
+    })
+    expect(AiMessage.findAll).not.toHaveBeenCalled()
+  })
+
+  test('removeConversation 404s on a foreign id and deletes nothing', async () => {
+    AiConversation.findOne.mockResolvedValue(null)
+    await expect(agent.removeConversation(OTHER, 'foreign')).rejects.toMatchObject({ status: 404 })
+    expect(AiMessage.destroy).not.toHaveBeenCalled()
+    expect(AiConversation.destroy).not.toHaveBeenCalled()
+  })
+})
+
 describe('removeAllConversations', () => {
   test('deletes every conversation and its messages, scoped to the user/org', async () => {
     AiConversation.findAll.mockResolvedValue([{ id: 'c1' }, { id: 'c2' }])

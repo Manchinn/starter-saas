@@ -69,6 +69,31 @@ describe('attachment.getById', () => {
   })
 })
 
+describe('attachment.getByIdScoped — cross-org isolation (IDOR)', () => {
+  // download/remove resolve through this, so it is the multi-tenant boundary:
+  // a user must never reach another org's attachment by guessing its id.
+  test('throws 404 when the row is missing', async () => {
+    Attachment.findByPk.mockResolvedValue(null)
+    await expect(service.getByIdScoped('a1', 'my-org')).rejects.toEqual({ status: 404, message: 'Attachment not found' })
+  })
+
+  test('throws 404 (not 403) when the attachment belongs to another org — no existence leak', async () => {
+    Attachment.findByPk.mockResolvedValue({ id: 'a1', organizationId: 'other-org' })
+    await expect(service.getByIdScoped('a1', 'my-org')).rejects.toEqual({ status: 404, message: 'Attachment not found' })
+  })
+
+  test('returns the row when the org matches', async () => {
+    const att = { id: 'a1', organizationId: 'my-org' }
+    Attachment.findByPk.mockResolvedValue(att)
+    await expect(service.getByIdScoped('a1', 'my-org')).resolves.toBe(att)
+  })
+
+  test('compares org ids as strings (numeric vs string id parity)', async () => {
+    Attachment.findByPk.mockResolvedValue({ id: 'a1', organizationId: 7 })
+    await expect(service.getByIdScoped('a1', '7')).resolves.toMatchObject({ id: 'a1' })
+  })
+})
+
 describe('attachment.create — validation', () => {
   const ok = {
     refType: 'Invoice', refId: 'i1',
@@ -209,9 +234,17 @@ describe('attachment.streamFile', () => {
 })
 
 describe('attachment.remove', () => {
-  test('throws 404 when row missing (via getById)', async () => {
+  test('throws 404 when row missing (via getByIdScoped)', async () => {
     Attachment.findByPk.mockResolvedValue(null)
     await expect(service.remove('missing')).rejects.toEqual({ status: 404, message: 'Attachment not found' })
+  })
+
+  test('refuses to remove another org\'s attachment and touches neither disk nor row', async () => {
+    const att = { id: 'a1', organizationId: 'other-org', storedName: '2025/01/uuid-1', destroy: jest.fn() }
+    Attachment.findByPk.mockResolvedValue(att)
+    await expect(service.remove('a1', 'my-org')).rejects.toEqual({ status: 404, message: 'Attachment not found' })
+    expect(fs.unlinkSync).not.toHaveBeenCalled()
+    expect(att.destroy).not.toHaveBeenCalled()
   })
 
   test('unlinks the file and destroys the row', async () => {
