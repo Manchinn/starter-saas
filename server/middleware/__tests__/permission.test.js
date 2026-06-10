@@ -87,6 +87,17 @@ describe('permission.requirePermission', () => {
     expect(next).not.toHaveBeenCalled()
   })
 
+  test('fails closed when mounted with no slugs (route misconfiguration)', async () => {
+    // requirePermission() with an empty list can only be a wiring mistake; a
+    // non-admin must still get 403 rather than the check degrading to a pass.
+    const user = { role: 'user', getRoles: jest.fn().mockResolvedValue([{ permissions: [{ slug: 'users.view' }] }]) }
+    const res = makeRes()
+    const next = jest.fn()
+    await requirePermission()({ user }, res, next)
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(next).not.toHaveBeenCalled()
+  })
+
   test('grants access via an HRMS-only slug the user holds via their employee record', async () => {
     employeePermissionSlugs.mockResolvedValue(['hrms.employees.edit'])
     const user = { id: 'u1', role: 'user', getRoles: jest.fn().mockResolvedValue([]) } // no platform perms

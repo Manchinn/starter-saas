@@ -39,4 +39,20 @@ describe('middleware.validate', () => {
       errors: [{ field: 'email', message: 'Invalid email' }, { field: 'name', message: 'Required' }],
     })
   })
+
+  test('never echoes the submitted value back (secret-leak prevention)', () => {
+    // express-validator error objects carry the offending `value` — e.g. a
+    // too-short password attempt. The 422 body must strip it: only field +
+    // message may surface, or rejected credentials would land in responses
+    // (and anything logging them).
+    validationResult.mockReturnValue({
+      isEmpty: () => false,
+      array: () => [{ path: 'password', msg: 'Too short', value: 'hunter2', location: 'body' }],
+    })
+    const res = makeRes()
+    validate({}, res, jest.fn())
+    const body = res.json.mock.calls[0][0]
+    expect(body.errors).toEqual([{ field: 'password', message: 'Too short' }])
+    expect(JSON.stringify(body)).not.toContain('hunter2')
+  })
 })
