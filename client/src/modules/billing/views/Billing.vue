@@ -2,6 +2,8 @@
   <AppLayout>
     <div class="space-y-5">
 
+      <SubscriptionLockedBanner />
+
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
@@ -111,6 +113,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowUpCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'
 import { useBillingStore } from '@/stores/billing'
 
 const { t } = useI18n()

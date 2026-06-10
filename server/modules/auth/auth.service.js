@@ -109,6 +109,9 @@ const resolveSession = async (userId) => {
 
   const userJson = user.toJSON()
   userJson.organization = organization
+  // Billing-only flag: an inactive subscription locks the tenant to the billing
+  // pages (admins exempt). The client routes locked users to /billing.
+  userJson.locked = user.role === 'admin' ? false : await billing.isOrgLocked(orgId)
 
   return { user: userJson, permissions }
 }
@@ -159,9 +162,8 @@ const login = async ({ email, password }, meta = {}) => {
     throw { status: 403, message: 'Please verify your email address before signing in.' }
   }
 
-  // Reject sign-in when the organization's subscription is inactive (admins exempt).
-  await billing.assertOrgAccess(user)
-
+  // Sign-in is allowed even with an inactive subscription — the resolved session
+  // carries a `locked` flag and the client confines such users to billing.
   await user.update({ lastLoginAt: new Date() })
 
   const accessToken = signAccess(user)
@@ -181,8 +183,8 @@ const refresh = async (token, meta = {}) => {
     const decoded = jwt.verify(token, config.jwt.refreshSecret)
     const user = await User.findByPk(decoded.id)
     if (!user || !user.isActive) throw { status: 401, message: 'User not found' }
-    // Stop silently re-issuing access tokens once the subscription is inactive.
-    await billing.assertOrgAccess(user)
+    // Refresh stays available in billing-only mode so a locked tenant keeps a
+    // working session to re-subscribe; the access gate lives in the middleware.
 
     // Rotate — carry forward device info if the new request didn't bring fresh meta
     await record.update({ isRevoked: true, lastUsedAt: new Date() })

@@ -2,6 +2,8 @@
   <AppLayout>
     <div class="space-y-6">
 
+      <SubscriptionLockedBanner :show-action="false" />
+
       <!-- Header -->
       <div class="flex items-center gap-3">
         <RouterLink to="/billing" class="text-[#9BA7B0] hover:text-[#637381] transition">
@@ -63,13 +65,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'
 import { useBillingStore } from '@/stores/billing'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
+const router = useRouter()
 const store = useBillingStore()
+const auth = useAuthStore()
 const loading = ref(true)
 const busyId = ref(null)
 const error = ref('')
@@ -112,6 +119,12 @@ async function choose(p) {
     const res = await store.subscribe(p.id)
     if (res?.checkoutUrl) { window.location.href = res.checkoutUrl; return }
     await store.fetchSubscription()
+    // If this was a locked tenant re-subscribing, the subscription is now active
+    // — refresh the session to clear billing-only mode and return to the app.
+    if (auth.locked) {
+      await auth.fetchMe()
+      if (!auth.locked) router.push(auth.user?.defaultPage || '/dashboard')
+    }
   } catch (err) {
     error.value = err.response?.data?.message || t('billing.subscribeFailed')
   } finally {

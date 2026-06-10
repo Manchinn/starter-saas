@@ -7,10 +7,16 @@
 jest.mock('jsonwebtoken', () => ({ verify: jest.fn() }))
 jest.mock('../../models', () => ({ User: { findByPk: jest.fn() } }))
 jest.mock('../../config/config', () => ({ jwt: { secret: 'test-secret' } }))
+// Isolate the middleware from billing internals — the subscription gate is
+// exercised via the mocked isUserLocked decision.
+jest.mock('../../modules/billing/billing.service', () => ({ isUserLocked: jest.fn() }))
 
 const jwt = require('jsonwebtoken')
 const { User } = require('../../models')
+const billing = require('../../modules/billing/billing.service')
 const { authenticate } = require('../auth')
+
+beforeEach(() => billing.isUserLocked.mockResolvedValue(false))
 
 const makeRes = () => {
   const r = {}
@@ -54,6 +60,29 @@ describe('middleware.authenticate', () => {
     await authenticate({ headers: { authorization: 'Bearer t' } }, res, jest.fn())
     expect(res.status).toHaveBeenCalledWith(401)
     expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Invalid or inactive account' })
+  })
+
+  test('403 SUBSCRIPTION_INACTIVE when a locked tenant hits a non-billing route', async () => {
+    jwt.verify.mockReturnValue({ id: 'u1' })
+    User.findByPk.mockResolvedValue({ id: 'u1', isActive: true })
+    billing.isUserLocked.mockResolvedValue(true)
+    const res = makeRes()
+    const next = jest.fn()
+    await authenticate({ headers: { authorization: 'Bearer t' }, originalUrl: '/api/erp/products' }, res, next)
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'SUBSCRIPTION_INACTIVE' }))
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  test('a locked tenant may still reach the billing pages', async () => {
+    jwt.verify.mockReturnValue({ id: 'u1' })
+    User.findByPk.mockResolvedValue({ id: 'u1', isActive: true })
+    billing.isUserLocked.mockResolvedValue(true)
+    const req = { headers: { authorization: 'Bearer t' }, originalUrl: '/api/billing/subscribe' }
+    const next = jest.fn()
+    await authenticate(req, makeRes(), next)
+    expect(next).toHaveBeenCalled()
+    expect(req.orgLocked).toBe(true)
   })
 
   test('401 with TOKEN_EXPIRED code when the token is expired', async () => {

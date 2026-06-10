@@ -92,19 +92,12 @@ async function isOrgLocked(orgId) {
   return locked
 }
 
-// Throw a 403 when the caller's organization is locked out. System admins
-// (role 'admin' — the platform operator) are always exempt so a misconfigured
-// subscription can never lock them out of the admin panel.
-async function assertOrgAccess(user) {
-  if (!user || user.role === 'admin') return
-  const orgId = user.organizationId || user.id
-  if (await isOrgLocked(orgId)) {
-    throw {
-      status: 403,
-      code: 'SUBSCRIPTION_INACTIVE',
-      message: 'This account’s subscription is inactive. Please renew your plan or contact support.',
-    }
-  }
+// Whether this caller is in billing-only mode (locked out of everything except
+// the billing pages). System admins (role 'admin' — the platform operator) are
+// always exempt so a misconfigured subscription can never lock them out.
+async function isUserLocked(user) {
+  if (!user || user.role === 'admin') return false
+  return isOrgLocked(user.organizationId || user.id)
 }
 
 // ── Limits & metering ──────────────────────────────────────────────────────────
@@ -361,7 +354,7 @@ module.exports = {
   // resolution
   getEffectivePlan, getSubscription, getDefaultPlan, isActive,
   // access gate
-  isLockedOut, isOrgLocked, assertOrgAccess,
+  isLockedOut, isOrgLocked, isUserLocked,
   // limits / metering
   checkLimit, hasFeature, increment, assertSeatAvailable, getUsage, periodForMetric,
   // lifecycle

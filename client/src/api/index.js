@@ -35,10 +35,13 @@ api.interceptors.response.use(
     const original = err.config
     const data = err.response?.data
 
-    // Subscription went inactive mid-session — drop the session and explain why.
-    // The login request itself is left to the form so it can show the message.
+    // Subscription is inactive — enter billing-only mode rather than logging out,
+    // so the tenant can re-subscribe. Mark the session locked and bounce any
+    // non-billing page to /billing (the router guard keeps them there).
     if (err.response?.status === 403 && data?.code === 'SUBSCRIPTION_INACTIVE') {
-      if (!original?.url?.includes('/auth/login')) forceLogout(data.message)
+      try { useAuthStore().markLocked() } catch {}
+      const p = window.location.pathname
+      if (!p.startsWith('/billing') && !p.startsWith('/login')) window.location.href = '/billing'
       return Promise.reject(err)
     }
 
@@ -73,15 +76,9 @@ api.interceptors.response.use(
         refreshQueue = []
 
         // Only force-logout on an explicit 401 from the refresh endpoint (invalid/
-        // expired refresh cookie) or a subscription-inactive 403. Network errors
-        // or 5xx should NOT clear the session — the access token may still become
-        // valid once the server recovers.
-        const refreshStatus = refreshErr.response?.status
-        if (refreshStatus === 403 && refreshErr.response?.data?.code === 'SUBSCRIPTION_INACTIVE') {
-          forceLogout(refreshErr.response.data.message)
-        } else if (refreshStatus === 401) {
-          forceLogout()
-        }
+        // expired refresh cookie). Network errors or 5xx should NOT clear the
+        // session — the access token may still become valid once the server recovers.
+        if (refreshErr.response?.status === 401) forceLogout()
 
         return Promise.reject(refreshErr)
       } finally {

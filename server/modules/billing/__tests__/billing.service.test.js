@@ -139,21 +139,20 @@ describe('access gate', () => {
     expect(service.isLockedOut({ status: 'expired' })).toBe(true)
   })
 
-  test('assertOrgAccess exempts system admins without hitting the DB', async () => {
+  test('isUserLocked exempts system admins without hitting the DB', async () => {
     Subscription.findOne.mockReset()
-    await expect(service.assertOrgAccess({ role: 'admin', id: 'a1' })).resolves.toBeUndefined()
+    await expect(service.isUserLocked({ role: 'admin', id: 'a1' })).resolves.toBe(false)
     expect(Subscription.findOne).not.toHaveBeenCalled()
   })
 
-  test('assertOrgAccess throws 403 SUBSCRIPTION_INACTIVE when the org is locked out', async () => {
+  test('isUserLocked is true when the org is locked out', async () => {
     Subscription.findOne.mockResolvedValue({ status: 'canceled' })
-    await expect(service.assertOrgAccess({ role: 'user', id: 'org-locked' }))
-      .rejects.toMatchObject({ status: 403, code: 'SUBSCRIPTION_INACTIVE' })
+    await expect(service.isUserLocked({ role: 'user', id: 'org-locked' })).resolves.toBe(true)
   })
 
-  test('assertOrgAccess passes for an active subscription', async () => {
+  test('isUserLocked is false for an active subscription', async () => {
     Subscription.findOne.mockResolvedValue({ status: 'active' })
-    await expect(service.assertOrgAccess({ role: 'user', id: 'org-ok' })).resolves.toBeUndefined()
+    await expect(service.isUserLocked({ role: 'user', id: 'org-ok' })).resolves.toBe(false)
   })
 })
 

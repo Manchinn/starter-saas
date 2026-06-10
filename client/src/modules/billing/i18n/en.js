@@ -15,6 +15,8 @@ export default {
     endsOn: 'Ends on',
     cancelPlan: 'Cancel subscription',
     cancelNotice: 'Your subscription is set to cancel at the end of the current period.',
+    lockedTitle: 'Your subscription is inactive',
+    lockedDesc: 'Access to the app is paused until you choose an active plan. Billing is the only section available right now.',
     confirmCancel: 'Cancel your subscription? You will keep access until the end of the period.',
     freePrice: 'Free',
 

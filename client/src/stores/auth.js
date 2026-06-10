@@ -21,6 +21,7 @@ export const useAuthStore = defineStore('auth', () => {
   const permissions = ref([])
   const accessToken = ref(null)        // in-memory only
   const impersonating = ref(false)
+  const locked        = ref(false)     // billing-only mode (inactive subscription)
 
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
   const isAdmin         = computed(() => user.value?.role === 'admin')
@@ -45,7 +46,14 @@ export const useAuthStore = defineStore('auth', () => {
     roles.value        = []
     permissions.value  = []
     impersonating.value = false
+    locked.value        = false
     disconnectSocket()
+  }
+
+  // Flip into billing-only mode when the API reports an inactive subscription
+  // mid-session (the router guard then confines navigation to /billing).
+  function markLocked() {
+    locked.value = true
   }
 
   // Called by the API interceptor after a silent token refresh.
@@ -57,6 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value        = data.user
     roles.value       = data.user?.roles ?? []
     permissions.value = data.permissions ?? []
+    locked.value      = !!data.user?.locked
     if (typeof data.impersonating === 'boolean') impersonating.value = data.impersonating
   }
 
@@ -125,11 +134,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    user, roles, permissions, accessToken, impersonating,
+    user, roles, permissions, accessToken, impersonating, locked,
     isAuthenticated, isAdmin,
     hasPermission, hasRole,
     fetchMe, bootstrap, login, register, install, logout, changePassword,
     loginAs, returnToAdmin,
-    setAccessToken, clearSession, syncTokensFromRefresh,
+    setAccessToken, clearSession, syncTokensFromRefresh, markLocked,
   }
 })
