@@ -1,7 +1,6 @@
 <template>
   <component :is="layout">
-    <!-- Break out of the layout's horizontal padding for an edge-to-edge page. -->
-    <div class="space-y-6 -mx-4 md:-mx-6">
+    <div class="space-y-6 billing-page">
 
       <SubscriptionLockedBanner :show-action="false" />
 
@@ -254,3 +253,12 @@ async function onCancel() {
   try { await store.cancel(false) } finally { busy.value = false }
 }
 </script>
+
+<style scoped>
+/* Square corners everywhere on the billing page (cards, badges, buttons,
+   inputs, tables, progress bars, banners — including child components). */
+.billing-page,
+.billing-page :deep(*) {
+  border-radius: 0 !important;
+}
+</style>
