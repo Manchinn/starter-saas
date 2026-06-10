@@ -31,7 +31,7 @@ describe('uom.service.list', () => {
     expect(args.offset).toBe(2)
     expect(args.where.organizationId).toBe('org-1')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.order).toEqual([['name', 'ASC']])
+    expect(args.order).toEqual([['createdAt', 'DESC']])
   })
 
   test('search filters across name and abbreviation', async () => {

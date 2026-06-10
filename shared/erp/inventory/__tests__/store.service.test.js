@@ -39,7 +39,7 @@ describe('store.service.list', () => {
     expect(args.offset).toBe(4)
     expect(args.where.organizationId).toBe('org-1')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.order).toEqual([['name', 'ASC']])
+    expect(args.order).toEqual([['createdAt', 'DESC']])
   })
 
   test('search filters across name and code via OR', async () => {
