@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -86,12 +86,22 @@ const edits = reactive({})
 
 const STATUSES = ['trialing', 'active', 'past_due', 'canceled', 'expired']
 
+// Keep an override-row entry for every subscription. Runs immediately so cached
+// store data (e.g. after navigating back from the detail page) has its `edits`
+// entry before the table first renders — otherwise the row binds to undefined.
+watch(
+  () => store.adminSubscriptions,
+  (subs) => {
+    for (const s of subs) {
+      if (!edits[s.organizationId]) edits[s.organizationId] = { planId: s.planId, status: s.status }
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   try {
     await Promise.all([store.fetchAdminSubscriptions(), store.fetchAdminPlans()])
-    for (const s of store.adminSubscriptions) {
-      edits[s.organizationId] = { planId: s.planId, status: s.status }
-    }
   } finally {
     loading.value = false
   }
