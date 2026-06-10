@@ -61,13 +61,16 @@ async function assertCanAssignRoles(actor, roleIds) {
 // Served publicly from /uploads/logos/* (see server/app.js).
 const LOGO_ROOT = path.join(__dirname, '..', '..', '..', 'uploads', 'logos')
 const LOGO_MAX_BYTES = 2 * 1024 * 1024 // 2 MB
+// SVG is intentionally excluded: logos are served from the app origin under
+// /uploads/logos/* and an SVG can carry inline <script>, so allowing it would be
+// a stored-XSS vector (the script runs on direct navigation to the file). Only
+// raster formats, which cannot execute script, are accepted.
 const LOGO_ALLOWED_MIME = {
   'image/png':  '.png',
   'image/jpeg': '.jpg',
   'image/jpg':  '.jpg',
   'image/gif':  '.gif',
   'image/webp': '.webp',
-  'image/svg+xml': '.svg',
 }
 const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) }
 
