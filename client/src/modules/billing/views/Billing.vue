@@ -1,5 +1,5 @@
 <template>
-  <AppLayout>
+  <component :is="layout">
     <div class="space-y-5">
 
       <SubscriptionLockedBanner />
@@ -105,7 +105,7 @@
         </div>
       </template>
     </div>
-  </AppLayout>
+  </component>
 </template>
 
 <script setup>
@@ -113,12 +113,19 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowUpCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import BillingOnlyLayout from '@/layouts/BillingOnlyLayout.vue'
 import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'
 import { useBillingStore } from '@/stores/billing'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
 const store = useBillingStore()
+const auth = useAuthStore()
 const busy = ref(false)
+
+// Locked tenants get a minimal shell (no module nav / alerts) so it doesn't
+// fire the API calls that billing-only mode blocks.
+const layout = computed(() => (auth.locked ? BillingOnlyLayout : AppLayout))
 
 onMounted(async () => {
   await store.fetchSubscription()

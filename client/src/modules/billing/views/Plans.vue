@@ -1,5 +1,5 @@
 <template>
-  <AppLayout>
+  <component :is="layout">
     <div class="space-y-6">
 
       <SubscriptionLockedBanner :show-action="false" />
@@ -60,15 +60,16 @@
         {{ error }}
       </div>
     </div>
-  </AppLayout>
+  </component>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import BillingOnlyLayout from '@/layouts/BillingOnlyLayout.vue'
 import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'
 import { useBillingStore } from '@/stores/billing'
 import { useAuthStore } from '@/stores/auth'
@@ -80,6 +81,9 @@ const auth = useAuthStore()
 const loading = ref(true)
 const busyId = ref(null)
 const error = ref('')
+
+// Locked tenants get a minimal shell (see Billing.vue).
+const layout = computed(() => (auth.locked ? BillingOnlyLayout : AppLayout))
 
 onMounted(async () => {
   try {
