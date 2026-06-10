@@ -108,6 +108,43 @@ describe('hasFeature', () => {
   })
 })
 
+describe('suspended subscriptions', () => {
+  test('a suspended subscription falls back to the default plan', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'active', currentPeriodEnd: future, suspended: true, plan: PRO })
+    Plan.findOne.mockResolvedValue(FREE)
+    await expect(service.getEffectivePlan('org-suspended')).resolves.toBe(FREE)
+  })
+
+  test('setSuspended flips the flag and returns the subscription', async () => {
+    const sub = { update: jest.fn().mockResolvedValue() }
+    Subscription.findOne.mockResolvedValue(sub)
+    await service.setSuspended('o', true)
+    expect(sub.update).toHaveBeenCalledWith({ suspended: true })
+  })
+
+  test('setSuspended throws 404 when there is no subscription', async () => {
+    Subscription.findOne.mockResolvedValue(null)
+    await expect(service.setSuspended('o', true)).rejects.toMatchObject({ status: 404 })
+  })
+})
+
+describe('adminSetSubscription', () => {
+  test('does not re-subscribe when the plan is unchanged', async () => {
+    const sub = { planId: 'pro', update: jest.fn().mockResolvedValue() }
+    Subscription.findOne.mockResolvedValue(sub)
+    await service.adminSetSubscription('o', { planId: 'pro', status: 'past_due' })
+    expect(Plan.findByPk).not.toHaveBeenCalled() // subscribe() would have looked the plan up
+    expect(sub.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'past_due' }))
+  })
+
+  test('applies suspended and date overrides', async () => {
+    const sub = { planId: 'pro', update: jest.fn().mockResolvedValue() }
+    Subscription.findOne.mockResolvedValue(sub)
+    await service.adminSetSubscription('o', { suspended: true, currentPeriodEnd: future })
+    expect(sub.update).toHaveBeenCalledWith(expect.objectContaining({ suspended: true, currentPeriodEnd: future }))
+  })
+})
+
 describe('cancel', () => {
   test('flags cancelAtPeriodEnd by default', async () => {
     const sub = { update: jest.fn().mockResolvedValue() }

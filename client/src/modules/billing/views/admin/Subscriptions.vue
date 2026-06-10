@@ -15,20 +15,23 @@
               <th class="th">{{ t('billing.colStatus') }}</th>
               <th class="th">{{ t('billing.renews') }}</th>
               <th class="th w-72">{{ t('billing.override') }}</th>
+              <th class="th w-24 text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
             <tr v-if="loading">
-              <td colspan="5" class="text-center py-14">
+              <td colspan="6" class="text-center py-14">
                 <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
               </td>
             </tr>
             <tr v-else-if="!store.adminSubscriptions.length">
-              <td colspan="5" class="text-center py-14 text-slate-400">{{ t('billing.noSubscriptions') }}</td>
+              <td colspan="6" class="text-center py-14 text-slate-400">{{ t('billing.noSubscriptions') }}</td>
             </tr>
             <tr v-for="s in store.adminSubscriptions" :key="s.id" class="hover:bg-[#F7F9FC] align-middle">
               <td class="px-5 py-3">
-                <div class="font-medium text-slate-800">{{ s.organization?.name || '—' }}</div>
+                <RouterLink :to="`/admin/billing/subscriptions/${s.organizationId}`" class="font-medium text-slate-800 hover:text-primary-600">
+                  {{ s.organization?.name || '—' }}
+                </RouterLink>
                 <div class="text-xs text-slate-400">{{ s.organization?.email }}</div>
               </td>
               <td class="px-5 py-3 text-slate-600">{{ s.plan?.name || '—' }}</td>
@@ -47,6 +50,12 @@
                     {{ t('billing.apply') }}
                   </button>
                 </div>
+              </td>
+              <td class="px-5 py-3 text-right">
+                <RouterLink :to="`/admin/billing/subscriptions/${s.organizationId}`"
+                  class="text-primary-600 hover:text-primary-700 text-xs font-medium whitespace-nowrap">
+                  {{ t('billing.manage') }} →
+                </RouterLink>
               </td>
             </tr>
           </tbody>

@@ -44,6 +44,18 @@ export default {
       component: () => import('./views/admin/Subscriptions.vue'),
       meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.adminSubscriptions' },
     },
+    {
+      path: '/admin/billing/subscriptions/:orgId',
+      name: 'admin-billing-subscription-detail',
+      component: () => import('./views/admin/SubscriptionDetail.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.subscriptionTitle' },
+    },
+    {
+      path: '/admin/billing/subscriptions/:orgId/edit',
+      name: 'admin-billing-subscription-edit',
+      component: () => import('./views/admin/SubscriptionEdit.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.editSubscription' },
+    },
   ],
 
   // Admin management group — rendered in the Core "Admin" section for admins.

@@ -36,7 +36,8 @@ const invalidate = (orgId) => { if (orgId) planCache.delete(orgId); else planCac
 // ── Plan resolution ───────────────────────────────────────────────────────────
 
 const isActive = (sub) => {
-  if (!sub || !ACTIVE_STATUSES.includes(sub.status)) return false
+  if (!sub || sub.suspended) return false
+  if (!ACTIVE_STATUSES.includes(sub.status)) return false
   if (sub.currentPeriodEnd && new Date(sub.currentPeriodEnd) < new Date()) return false
   return true
 }
@@ -264,14 +265,46 @@ const listSubscriptions = () =>
     order: [['updatedAt', 'DESC']],
   })
 
-// Admin override — assign a plan and/or force a status, bypassing trial/payment.
-async function adminSetSubscription(orgId, { planId, status }) {
-  if (planId) await subscribe(orgId, planId)
-  if (status) {
-    const sub = await Subscription.findOne({ where: { organizationId: orgId } })
-    if (sub) await sub.update({ status })
-    invalidate(orgId)
+// One organization's subscription with its plan and owning org, for the admin
+// management screen. Returns null when the org has no subscription row yet.
+const getSubscriptionDetail = (orgId) =>
+  Subscription.findOne({
+    where: { organizationId: orgId },
+    include: [
+      { model: Plan, as: 'plan' },
+      { model: User, as: 'organization', attributes: ['id', 'name', 'email', 'companyName'] },
+    ],
+  })
+
+// Admin override — assign a plan and/or force status, dates and suspension,
+// bypassing trial/payment. Only the keys provided are touched.
+async function adminSetSubscription(orgId, { planId, status, suspended, currentPeriodStart, currentPeriodEnd } = {}) {
+  // Only (re)subscribe when the plan actually changes — re-running subscribe()
+  // would reset the period and mint a fresh invoice on every save otherwise.
+  const current = await Subscription.findOne({ where: { organizationId: orgId } })
+  if (planId && (!current || current.planId !== planId)) await subscribe(orgId, planId)
+
+  const sub = await Subscription.findOne({ where: { organizationId: orgId } })
+  if (sub) {
+    const fields = {}
+    if (status !== undefined) fields.status = status
+    if (suspended !== undefined) fields.suspended = !!suspended
+    if (currentPeriodStart !== undefined) fields.currentPeriodStart = currentPeriodStart
+    if (currentPeriodEnd !== undefined) fields.currentPeriodEnd = currentPeriodEnd
+    if (Object.keys(fields).length) await sub.update(fields)
   }
+  invalidate(orgId)
+  return getSubscription(orgId)
+}
+
+// Suspend / resume an organization. Suspending blocks plan access immediately
+// (isActive falls through to the default plan) without altering the lifecycle.
+async function setSuspended(orgId, suspended) {
+  const sub = await Subscription.findOne({ where: { organizationId: orgId } })
+  if (!sub) throw { status: 404, message: 'No subscription' }
+  await sub.update({ suspended: !!suspended })
+  invalidate(orgId)
+  log.info(`Org ${orgId} subscription ${suspended ? 'suspended' : 'resumed'}`)
   return getSubscription(orgId)
 }
 
@@ -291,7 +324,7 @@ module.exports = {
   subscribe, cancel, ensureDefaultSubscription,
   // admin
   listPlans, listPublicPlans, getPlan, createPlan, updatePlan, deletePlan,
-  listSubscriptions, adminSetSubscription, listInvoices,
+  listSubscriptions, getSubscriptionDetail, adminSetSubscription, setSuspended, listInvoices,
   // cache (exposed for tests)
   _invalidate: invalidate,
 }

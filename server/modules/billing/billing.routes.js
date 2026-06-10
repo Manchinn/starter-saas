@@ -29,7 +29,10 @@ router.put('/admin/plans/:id',    requirePermission('billing.manage'), planUpdat
 router.delete('/admin/plans/:id', requirePermission('billing.manage'), (req, res) => controller.adminDeletePlan(req, res))
 
 // ── Admin: subscriptions overview / override ──────────────────────────────────────
-router.get('/admin/subscriptions',        requirePermission('billing.manage'), (req, res) => controller.adminListSubscriptions(req, res))
-router.put('/admin/subscriptions/:orgId', requirePermission('billing.manage'), (req, res) => controller.adminSetSubscription(req, res))
+router.get('/admin/subscriptions',               requirePermission('billing.manage'), (req, res) => controller.adminListSubscriptions(req, res))
+router.get('/admin/subscriptions/:orgId',        requirePermission('billing.manage'), (req, res) => controller.adminGetSubscription(req, res))
+router.put('/admin/subscriptions/:orgId',        requirePermission('billing.manage'), (req, res) => controller.adminSetSubscription(req, res))
+router.post('/admin/subscriptions/:orgId/suspend', requirePermission('billing.manage'), (req, res) => controller.adminSuspendSubscription(req, res))
+router.post('/admin/subscriptions/:orgId/cancel',  requirePermission('billing.manage'), (req, res) => controller.adminCancelSubscription(req, res))
 
 module.exports = router

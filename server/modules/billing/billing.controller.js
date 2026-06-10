@@ -130,13 +130,51 @@ module.exports = {
     }
   },
 
+  // One organization's subscription + plan + owning org + billing history, for
+  // the admin management screen.
+  async adminGetSubscription(req, res) {
+    try {
+      const { orgId } = req.params
+      const [subscription, invoices] = await Promise.all([
+        service.getSubscriptionDetail(orgId),
+        service.listInvoices(orgId),
+      ])
+      if (!subscription) return fail(res, 'Subscription not found', 404)
+      return ok(res, { subscription, invoices })
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
   async adminSetSubscription(req, res) {
     try {
       const subscription = await service.adminSetSubscription(req.params.orgId, {
         planId: req.body.planId,
         status: req.body.status,
+        suspended: req.body.suspended,
+        currentPeriodStart: req.body.currentPeriodStart,
+        currentPeriodEnd: req.body.currentPeriodEnd,
       })
       return ok(res, { subscription }, 'Subscription updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async adminSuspendSubscription(req, res) {
+    try {
+      const subscription = await service.setSuspended(req.params.orgId, req.body.suspended !== false)
+      return ok(res, { subscription }, 'Subscription updated')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async adminCancelSubscription(req, res) {
+    try {
+      const atPeriodEnd = req.body?.immediate !== true
+      const subscription = await service.cancel(req.params.orgId, { atPeriodEnd })
+      return ok(res, { subscription }, 'Subscription canceled')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
     }
