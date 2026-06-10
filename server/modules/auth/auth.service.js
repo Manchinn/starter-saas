@@ -6,6 +6,7 @@ const { User, Role, Permission, Module, RefreshToken, MasterDataCategory, Master
 const { Op } = require('sequelize')
 const mailer = require('../../core/mailer')
 const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
+const billing = require('../billing/billing.service')
 
 // ── Token generation (random, opaque, URL-safe) ──────────────────────────────
 const generateRawToken = () => crypto.randomBytes(32).toString('hex')
@@ -108,6 +109,9 @@ const resolveSession = async (userId) => {
 
   const userJson = user.toJSON()
   userJson.organization = organization
+  // Billing-only flag: an inactive subscription locks the tenant to the billing
+  // pages (admins exempt). The client routes locked users to /billing.
+  userJson.locked = user.role === 'admin' ? false : await billing.isOrgLocked(orgId)
 
   return { user: userJson, permissions }
 }
@@ -158,6 +162,8 @@ const login = async ({ email, password }, meta = {}) => {
     throw { status: 403, message: 'Please verify your email address before signing in.' }
   }
 
+  // Sign-in is allowed even with an inactive subscription — the resolved session
+  // carries a `locked` flag and the client confines such users to billing.
   await user.update({ lastLoginAt: new Date() })
 
   const accessToken = signAccess(user)
@@ -177,6 +183,8 @@ const refresh = async (token, meta = {}) => {
     const decoded = jwt.verify(token, config.jwt.refreshSecret)
     const user = await User.findByPk(decoded.id)
     if (!user || !user.isActive) throw { status: 401, message: 'User not found' }
+    // Refresh stays available in billing-only mode so a locked tenant keeps a
+    // working session to re-subscribe; the access gate lives in the middleware.
 
     // Rotate — carry forward device info if the new request didn't bring fresh meta
     await record.update({ isRevoked: true, lastUsedAt: new Date() })

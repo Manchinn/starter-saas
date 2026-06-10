@@ -22,8 +22,10 @@ app.use(i18n)
 const auth = useAuthStore()
 await auth.bootstrap()
 
+// Skip the ERP settings fetch for locked (billing-only) tenants — it's blocked
+// in that mode and not needed on the billing pages.
 const settings = useSettingsStore()
-if (auth.isAuthenticated) await settings.load()
+if (auth.isAuthenticated && !auth.locked) await settings.load()
 
 app.use(router)
 app.directive('can', vCan)

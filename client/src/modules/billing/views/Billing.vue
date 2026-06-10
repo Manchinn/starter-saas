@@ -1,75 +1,127 @@
 <template>
-  <AppLayout>
-    <div class="space-y-5">
+  <component :is="layout">
+    <div class="space-y-6 billing-page">
 
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-        <div>
-          <h1 class="page-title">{{ t('billing.title') }}</h1>
-          <p class="page-subtitle">{{ t('billing.subtitle') }}</p>
-        </div>
-        <RouterLink v-if="store.canManage" to="/billing/plans" class="btn-primary">
-          <ArrowUpCircleIcon class="w-4 h-4" />
-          {{ t('billing.changePlan') }}
-        </RouterLink>
+      <SubscriptionLockedBanner :show-action="false" />
+
+      <!-- Pending plan request -->
+      <div v-if="store.request"
+        class="flex items-center gap-3 px-5 py-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+        <ClockIcon class="w-5 h-5 flex-shrink-0 text-blue-500" />
+        {{ t('billing.requestPendingFor', { plan: store.request.plan?.name }) }}
       </div>
 
-      <div v-if="store.loading" class="card p-10 flex justify-center">
+      <!-- Header -->
+      <div>
+        <h1 class="page-title">{{ t('billing.title') }}</h1>
+        <p class="page-subtitle">{{ t('billing.subtitle') }}</p>
+      </div>
+
+      <div v-if="initialLoading" class="card p-10 flex justify-center">
         <div class="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
 
       <template v-else>
-        <!-- Current plan -->
-        <div class="card p-6">
-          <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div class="flex items-center gap-2">
-                <h2 class="text-lg font-semibold text-slate-800">{{ store.plan?.name || '—' }}</h2>
-                <span :class="['badge', statusTone]">{{ t('billing.status.' + (store.subscription?.status || 'none')) }}</span>
+        <!-- Current plan + usage -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="card p-6 lg:col-span-2">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-lg font-semibold text-slate-800">{{ store.plan?.name || '—' }}</h2>
+                  <span :class="['badge', statusTone]">{{ t('billing.status.' + (store.subscription?.status || 'none')) }}</span>
+                </div>
+                <p class="text-sm text-slate-500 mt-1">{{ store.plan?.description }}</p>
               </div>
-              <p class="text-sm text-slate-500 mt-1">{{ store.plan?.description }}</p>
+              <div class="text-right">
+                <div class="text-2xl font-semibold text-slate-800">
+                  {{ price(store.plan?.price, store.plan?.currency) }}
+                  <span v-if="Number(store.plan?.price) > 0" class="text-sm font-normal text-slate-400">/ {{ t('billing.interval.' + (store.plan?.interval || 'month')) }}</span>
+                </div>
+                <p v-if="store.subscription?.currentPeriodEnd" class="text-xs text-slate-400 mt-1">
+                  {{ store.isCanceling ? t('billing.endsOn') : t('billing.renewsOn') }}
+                  {{ formatDate(store.subscription.currentPeriodEnd) }}
+                </p>
+              </div>
             </div>
-            <div class="text-right">
-              <div class="text-2xl font-semibold text-slate-800">
-                {{ price(store.plan?.price, store.plan?.currency) }}
-                <span v-if="Number(store.plan?.price) > 0" class="text-sm font-normal text-slate-400">/ {{ t('billing.interval.' + (store.plan?.interval || 'month')) }}</span>
-              </div>
-              <p v-if="store.subscription?.currentPeriodEnd" class="text-xs text-slate-400 mt-1">
-                {{ store.isCanceling ? t('billing.endsOn') : t('billing.renewsOn') }}
-                {{ formatDate(store.subscription.currentPeriodEnd) }}
-              </p>
+
+            <div v-if="store.isCanceling" class="mt-4 flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded">
+              <ExclamationTriangleIcon class="w-4 h-4 flex-shrink-0" />
+              {{ t('billing.cancelNotice') }}
+            </div>
+
+            <div v-if="store.canManage && store.subscription && !store.isCanceling && Number(store.plan?.price) > 0" class="mt-5">
+              <button @click="onCancel" :disabled="busy" class="text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50">
+                {{ t('billing.cancelPlan') }}
+              </button>
             </div>
           </div>
 
-          <div v-if="store.isCanceling" class="mt-4 flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded">
-            <ExclamationTriangleIcon class="w-4 h-4 flex-shrink-0" />
-            {{ t('billing.cancelNotice') }}
-          </div>
-
-          <div v-if="store.canManage && store.subscription && !store.isCanceling && Number(store.plan?.price) > 0" class="mt-5">
-            <button @click="onCancel" :disabled="busy" class="text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50">
-              {{ t('billing.cancelPlan') }}
-            </button>
+          <!-- Usage vs limits -->
+          <div v-if="store.usage.length" class="card p-6">
+            <h2 class="text-sm font-semibold text-slate-700 mb-4">{{ t('billing.usage') }}</h2>
+            <div class="space-y-4">
+              <div v-for="u in store.usage" :key="u.metric">
+                <div class="flex justify-between text-sm mb-1">
+                  <span class="text-slate-600">{{ metricLabel(u.metric) }}</span>
+                  <span class="text-slate-500 tabular-nums">
+                    {{ u.used }}<template v-if="u.limit !== null"> / {{ u.limit }}</template>
+                    <span v-else class="text-emerald-600">· {{ t('billing.unlimited') }}</span>
+                  </span>
+                </div>
+                <div v-if="u.limit !== null" class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all" :class="barTone(u)" :style="{ width: pct(u) + '%' }"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Usage vs limits -->
-        <div v-if="store.usage.length" class="card p-6">
-          <h2 class="text-sm font-semibold text-slate-700 mb-4">{{ t('billing.usage') }}</h2>
-          <div class="space-y-4">
-            <div v-for="u in store.usage" :key="u.metric">
-              <div class="flex justify-between text-sm mb-1">
-                <span class="text-slate-600">{{ metricLabel(u.metric) }}</span>
-                <span class="text-slate-500 tabular-nums">
-                  {{ u.used }}<template v-if="u.limit !== null"> / {{ u.limit }}</template>
-                  <span v-else class="text-emerald-600">· {{ t('billing.unlimited') }}</span>
-                </span>
+        <!-- Plan picker -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-semibold text-slate-800">{{ t('billing.choosePlan') }}</h2>
+              <p class="text-sm text-slate-500">{{ t('billing.choosePlanDesc') }}</p>
+            </div>
+          </div>
+
+          <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div v-for="p in store.plans" :key="p.id"
+                 class="card p-6 flex flex-col"
+                 :class="isCurrent(p) ? 'ring-2 ring-primary-500' : ''">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-800">{{ p.name }}</h3>
+                <span v-if="isCurrent(p)" class="badge badge-blue">{{ t('billing.current') }}</span>
+                <span v-else-if="requestedPlanId === p.id" class="badge badge-amber">{{ t('billing.requested') }}</span>
               </div>
-              <div v-if="u.limit !== null" class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all"
-                     :class="barTone(u)"
-                     :style="{ width: pct(u) + '%' }"></div>
+              <div class="mt-3 mb-1">
+                <span class="text-3xl font-bold text-slate-900">{{ price(p.price, p.currency) }}</span>
+                <span v-if="Number(p.price) > 0" class="text-sm text-slate-400">/ {{ t('billing.interval.' + p.interval) }}</span>
               </div>
+              <p class="text-sm text-slate-500 min-h-[40px]">{{ p.description }}</p>
+
+              <ul class="mt-4 space-y-2 text-sm flex-1">
+                <li v-for="(val, key) in p.limits" :key="key" class="flex items-center gap-2 text-slate-600">
+                  <CheckIcon class="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>{{ limitLabel(key, val) }}</span>
+                </li>
+                <li v-for="(on, key) in enabledFeatures(p)" :key="key" class="flex items-center gap-2 text-slate-600">
+                  <CheckIcon class="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>{{ featureLabel(key) }}</span>
+                </li>
+              </ul>
+
+              <button
+                class="btn-primary w-full justify-center mt-6"
+                :disabled="!store.canManage || isCurrent(p) || requestedPlanId === p.id || busyId === p.id || (!isCurrent(p) && planExceeded(p))"
+                @click="choose(p)">
+                <span v-if="busyId === p.id">{{ t('common.saving') }}</span>
+                <span v-else-if="isCurrent(p)">{{ t('billing.current') }}</span>
+                <span v-else-if="requestedPlanId === p.id">{{ t('billing.requested') }}</span>
+                <span v-else-if="planExceeded(p)">{{ t('billing.usageOverLimit') }}</span>
+                <span v-else>{{ t('billing.requestPlan') }}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -102,35 +154,69 @@
           </table>
         </div>
       </template>
+
+      <div v-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded">
+        <ExclamationCircleIcon class="w-4 h-4 flex-shrink-0" />
+        {{ error }}
+      </div>
     </div>
-  </AppLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowUpCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import { ExclamationTriangleIcon, ClockIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
+import BillingOnlyLayout from '@/layouts/BillingOnlyLayout.vue'
+import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'
 import { useBillingStore } from '@/stores/billing'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
 const store = useBillingStore()
+const auth = useAuthStore()
 const busy = ref(false)
+const busyId = ref(null)
+const error = ref('')
+const initialLoading = ref(true) // full-page spinner only on first load, not polls
+
+// Locked tenants get a minimal shell (no module nav / alerts).
+const layout = computed(() => (auth.locked ? BillingOnlyLayout : AppLayout))
+const requestedPlanId = computed(() => store.request?.planId)
 
 onMounted(async () => {
-  await store.fetchSubscription()
-  await store.fetchInvoices()
+  try {
+    await Promise.all([store.fetchSubscription(), store.fetchInvoices(), store.fetchPlans()])
+  } finally {
+    initialLoading.value = false
+  }
 })
 
 const statusTone = computed(() => {
   const s = store.subscription?.status
   if (s === 'active' || s === 'trialing') return 'badge-green'
   if (s === 'past_due') return 'badge-amber'
-  if (s === 'canceled' || s === 'expired') return 'badge-gray'
   return 'badge-gray'
 })
 
 const invoiceTone = (s) => (s === 'paid' ? 'badge-green' : s === 'void' ? 'badge-gray' : 'badge-amber')
+
+const isCurrent = (p) => store.plan?.id === p.id
+const enabledFeatures = (p) => Object.fromEntries(Object.entries(p.features || {}).filter(([, v]) => v))
+
+// Current usage by metric (from the active plan's usage summary).
+const usedByMetric = computed(() => Object.fromEntries(store.usage.map((u) => [u.metric, u.used])))
+// A plan can't be selected if current usage already exceeds one of its limits.
+function planExceeded(p) {
+  const limits = p.limits || {}
+  return Object.keys(limits).some((m) => {
+    const lim = limits[m]
+    if (lim === -1 || lim == null) return false
+    const used = usedByMetric.value[m]
+    return used != null && used > Number(lim)
+  })
+}
 
 const pct = (u) => (u.limit > 0 ? Math.min(100, Math.round((u.used / u.limit) * 100)) : 0)
 const barTone = (u) => {
@@ -145,6 +231,16 @@ function metricLabel(metric) {
   const translated = t(key)
   return translated === key ? metric : translated
 }
+function limitLabel(key, val) {
+  const unlimited = val === -1 || val === null
+  const k = `billing.metric.${key}`
+  const name = t(k) === k ? key : t(k)
+  return unlimited ? t('billing.unlimitedOf', { name }) : `${val} ${name}`
+}
+function featureLabel(key) {
+  const k = `billing.feature.${key}`
+  return t(k) === k ? key : t(k)
+}
 
 function price(amount, currency) {
   if (amount == null) return '—'
@@ -154,8 +250,20 @@ function price(amount, currency) {
 }
 
 function formatDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString()
+  return d ? new Date(d).toLocaleDateString() : '—'
+}
+
+// Tenants can't self-activate — this files a request for admin approval.
+async function choose(p) {
+  error.value = ''
+  busyId.value = p.id
+  try {
+    await store.requestPlanChange(p.id)
+  } catch (err) {
+    error.value = err.response?.data?.message || t('billing.requestFailed')
+  } finally {
+    busyId.value = null
+  }
 }
 
 async function onCancel() {
@@ -164,3 +272,12 @@ async function onCancel() {
   try { await store.cancel(false) } finally { busy.value = false }
 }
 </script>
+
+<style scoped>
+/* Square corners everywhere on the billing page (cards, badges, buttons,
+   inputs, tables, progress bars, banners — including child components). */
+.billing-page,
+.billing-page :deep(*) {
+  border-radius: 0 !important;
+}
+</style>

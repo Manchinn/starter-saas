@@ -84,6 +84,18 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth && !auth.isAuthenticated) return next('/login')
   if (requiresAdmin && !auth.isAdmin) return next('/erp/dashboard')
 
+  // Re-check the subscription on each navigation (page change / menu click) so a
+  // plan change made elsewhere is reflected without polling.
+  if (requiresAuth && auth.isAuthenticated && !auth.isAdmin) {
+    await auth.checkSubscription()
+  }
+
+  // Billing-only mode: a locked tenant may only reach the self-service billing
+  // pages. Send every other authenticated route to /billing to re-subscribe.
+  if (requiresAuth && auth.isAuthenticated && auth.locked && !to.path.startsWith('/billing')) {
+    return next('/billing')
+  }
+
   // Block direct-URL access to permissioned pages the user can't see in the nav.
   // We render the 404 page (rather than a 403) so restricted pages don't reveal
   // their existence. The attempted URL is preserved via the catch-all params.

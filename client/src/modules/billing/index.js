@@ -1,4 +1,4 @@
-import { CreditCardIcon, RectangleStackIcon } from '@heroicons/vue/24/outline'
+import { CreditCardIcon, RectangleStackIcon, InboxArrowDownIcon } from '@heroicons/vue/24/outline'
 
 export default {
   slug: 'billing',
@@ -12,12 +12,9 @@ export default {
       component: () => import('./views/Billing.vue'),
       meta: { requiresAuth: true, title: 'billing.title' },
     },
-    {
-      path: '/billing/plans',
-      name: 'billing-plans',
-      component: () => import('./views/Plans.vue'),
-      meta: { requiresAuth: true, title: 'billing.choosePlan' },
-    },
+    // Plans are now part of the single /billing page — keep the old path as a
+    // redirect for bookmarks/links.
+    { path: '/billing/plans', redirect: '/billing' },
 
     // ── Admin: plan catalog + subscription oversight ─────────────────────────
     {
@@ -44,6 +41,24 @@ export default {
       component: () => import('./views/admin/Subscriptions.vue'),
       meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.adminSubscriptions' },
     },
+    {
+      path: '/admin/billing/requests',
+      name: 'admin-billing-requests',
+      component: () => import('./views/admin/PlanRequests.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.planRequests' },
+    },
+    {
+      path: '/admin/billing/subscriptions/:orgId',
+      name: 'admin-billing-subscription-detail',
+      component: () => import('./views/admin/SubscriptionDetail.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.subscriptionTitle' },
+    },
+    {
+      path: '/admin/billing/subscriptions/:orgId/edit',
+      name: 'admin-billing-subscription-edit',
+      component: () => import('./views/admin/SubscriptionEdit.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.editSubscription' },
+    },
   ],
 
   // Admin management group — rendered in the Core "Admin" section for admins.
@@ -53,6 +68,7 @@ export default {
     children: [
       { label: 'billing.adminPlans',         to: '/admin/billing/plans',         icon: RectangleStackIcon, permission: 'billing.manage' },
       { label: 'billing.adminSubscriptions', to: '/admin/billing/subscriptions', icon: CreditCardIcon,     permission: 'billing.manage' },
+      { label: 'billing.planRequests',       to: '/admin/billing/requests',      icon: InboxArrowDownIcon, permission: 'billing.manage' },
     ],
   },
 }

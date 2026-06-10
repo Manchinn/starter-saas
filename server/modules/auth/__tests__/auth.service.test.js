@@ -23,6 +23,12 @@ jest.mock('../../../models', () => ({
   Employee:           { findOne: jest.fn() },
   HrmsRole:           {},
   HrmsPermission:     {},
+  // Used by billing.service (required via auth.service's subscription gate).
+  // findOne resolving undefined → no subscription row → not locked out.
+  Subscription:        { findOne: jest.fn() },
+  Plan:                {},
+  UsageCounter:        {},
+  SubscriptionInvoice: {},
 }))
 jest.mock('../../../core/mailer', () => ({ sendEmailVerification: jest.fn(), sendPasswordReset: jest.fn() }))
 jest.mock('../../../core/logger', () => ({ forLabel: () => ({ warn: jest.fn() }) }))

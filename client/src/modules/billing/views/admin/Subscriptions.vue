@@ -15,18 +15,20 @@
               <th class="th">{{ t('billing.colStatus') }}</th>
               <th class="th">{{ t('billing.renews') }}</th>
               <th class="th w-72">{{ t('billing.override') }}</th>
+              <th class="th w-24 text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
             <tr v-if="loading">
-              <td colspan="5" class="text-center py-14">
+              <td colspan="6" class="text-center py-14">
                 <div class="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
               </td>
             </tr>
             <tr v-else-if="!store.adminSubscriptions.length">
-              <td colspan="5" class="text-center py-14 text-slate-400">{{ t('billing.noSubscriptions') }}</td>
+              <td colspan="6" class="text-center py-14 text-slate-400">{{ t('billing.noSubscriptions') }}</td>
             </tr>
-            <tr v-for="s in store.adminSubscriptions" :key="s.id" class="hover:bg-[#F7F9FC] align-middle">
+            <tr v-for="s in store.adminSubscriptions" :key="s.id" @click="goTo(s.organizationId)"
+                class="hover:bg-[#F7F9FC] align-middle cursor-pointer">
               <td class="px-5 py-3">
                 <div class="font-medium text-slate-800">{{ s.organization?.name || '—' }}</div>
                 <div class="text-xs text-slate-400">{{ s.organization?.email }}</div>
@@ -35,7 +37,7 @@
               <td class="px-5 py-3"><span :class="['badge', statusTone(s.status)]">{{ t('billing.status.' + s.status) }}</span></td>
               <td class="px-5 py-3 text-slate-500">{{ formatDate(s.currentPeriodEnd) }}</td>
               <td class="px-5 py-3">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" @click.stop>
                   <select v-model="edits[s.organizationId].planId" class="input py-1.5 text-xs">
                     <option v-for="p in store.adminPlans" :key="p.id" :value="p.id">{{ p.name }}</option>
                   </select>
@@ -47,6 +49,12 @@
                     {{ t('billing.apply') }}
                   </button>
                 </div>
+              </td>
+              <td class="px-5 py-3 text-right">
+                <RouterLink :to="`/admin/billing/subscriptions/${s.organizationId}`"
+                  class="text-primary-600 hover:text-primary-700 text-xs font-medium whitespace-nowrap">
+                  {{ t('billing.manage') }} →
+                </RouterLink>
               </td>
             </tr>
           </tbody>
@@ -62,14 +70,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useBillingStore } from '@/stores/billing'
 
 const { t } = useI18n()
+const router = useRouter()
 const store = useBillingStore()
+
+const goTo = (orgId) => router.push(`/admin/billing/subscriptions/${orgId}`)
 const loading = ref(true)
 const busyId = ref(null)
 const error = ref('')
@@ -77,12 +89,22 @@ const edits = reactive({})
 
 const STATUSES = ['trialing', 'active', 'past_due', 'canceled', 'expired']
 
+// Keep an override-row entry for every subscription. Runs immediately so cached
+// store data (e.g. after navigating back from the detail page) has its `edits`
+// entry before the table first renders — otherwise the row binds to undefined.
+watch(
+  () => store.adminSubscriptions,
+  (subs) => {
+    for (const s of subs) {
+      if (!edits[s.organizationId]) edits[s.organizationId] = { planId: s.planId, status: s.status }
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   try {
     await Promise.all([store.fetchAdminSubscriptions(), store.fetchAdminPlans()])
-    for (const s of store.adminSubscriptions) {
-      edits[s.organizationId] = { planId: s.planId, status: s.status }
-    }
   } finally {
     loading.value = false
   }
