@@ -5,8 +5,15 @@
 // requirePermission passes when the user has the wildcard or ANY listed slug.
 
 jest.mock('../../models', () => ({ Role: {}, Permission: {} }))
+// The middleware folds HRMS-role grants into the effective permission set.
+// Mock the resolver so we can drive that merge deterministically; defaults to
+// none so the existing platform-role tests are unaffected.
+jest.mock('../../../shared/hrms/services/access.service', () => ({ employeePermissionSlugs: jest.fn() }))
 
+const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
 const { requirePermission, resolvePermissions } = require('../permission')
+
+beforeEach(() => employeePermissionSlugs.mockResolvedValue([]))
 
 const makeRes = () => {
   const r = {}
@@ -33,6 +40,17 @@ describe('permission.resolvePermissions', () => {
     }
     const perms = await resolvePermissions(user)
     expect([...perms].sort()).toEqual(['users.edit', 'users.view'])
+  })
+
+  test('folds HRMS-role grants (from the linked employee) into the effective set', async () => {
+    employeePermissionSlugs.mockResolvedValue(['hrms.payroll.run'])
+    const user = {
+      id: 'u1', role: 'user',
+      getRoles: jest.fn().mockResolvedValue([{ permissions: [{ slug: 'users.view' }] }]),
+    }
+    const perms = await resolvePermissions(user)
+    expect([...perms].sort()).toEqual(['hrms.payroll.run', 'users.view'])
+    expect(employeePermissionSlugs).toHaveBeenCalledWith('u1')
   })
 })
 
@@ -67,6 +85,15 @@ describe('permission.requirePermission', () => {
     await requirePermission('users.edit')({ user }, res, next)
     expect(res.status).toHaveBeenCalledWith(403)
     expect(next).not.toHaveBeenCalled()
+  })
+
+  test('grants access via an HRMS-only slug the user holds via their employee record', async () => {
+    employeePermissionSlugs.mockResolvedValue(['hrms.employees.edit'])
+    const user = { id: 'u1', role: 'user', getRoles: jest.fn().mockResolvedValue([]) } // no platform perms
+    const res = makeRes()
+    const next = jest.fn()
+    await requirePermission('hrms.employees.edit')({ user }, res, next)
+    expect(next).toHaveBeenCalled()
   })
 
   test('500 when resolving permissions throws', async () => {
