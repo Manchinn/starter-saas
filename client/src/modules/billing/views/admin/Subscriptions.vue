@@ -27,18 +27,17 @@
             <tr v-else-if="!store.adminSubscriptions.length">
               <td colspan="6" class="text-center py-14 text-slate-400">{{ t('billing.noSubscriptions') }}</td>
             </tr>
-            <tr v-for="s in store.adminSubscriptions" :key="s.id" class="hover:bg-[#F7F9FC] align-middle">
+            <tr v-for="s in store.adminSubscriptions" :key="s.id" @click="goTo(s.organizationId)"
+                class="hover:bg-[#F7F9FC] align-middle cursor-pointer">
               <td class="px-5 py-3">
-                <RouterLink :to="`/admin/billing/subscriptions/${s.organizationId}`" class="font-medium text-slate-800 hover:text-primary-600">
-                  {{ s.organization?.name || '—' }}
-                </RouterLink>
+                <div class="font-medium text-slate-800">{{ s.organization?.name || '—' }}</div>
                 <div class="text-xs text-slate-400">{{ s.organization?.email }}</div>
               </td>
               <td class="px-5 py-3 text-slate-600">{{ s.plan?.name || '—' }}</td>
               <td class="px-5 py-3"><span :class="['badge', statusTone(s.status)]">{{ t('billing.status.' + s.status) }}</span></td>
               <td class="px-5 py-3 text-slate-500">{{ formatDate(s.currentPeriodEnd) }}</td>
               <td class="px-5 py-3">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" @click.stop>
                   <select v-model="edits[s.organizationId].planId" class="input py-1.5 text-xs">
                     <option v-for="p in store.adminPlans" :key="p.id" :value="p.id">{{ p.name }}</option>
                   </select>
@@ -72,13 +71,17 @@
 
 <script setup>
 import { ref, reactive, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useBillingStore } from '@/stores/billing'
 
 const { t } = useI18n()
+const router = useRouter()
 const store = useBillingStore()
+
+const goTo = (orgId) => router.push(`/admin/billing/subscriptions/${orgId}`)
 const loading = ref(true)
 const busyId = ref(null)
 const error = ref('')

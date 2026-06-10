@@ -33,11 +33,10 @@
             <tr v-else-if="!store.adminPlanRequests.length">
               <td colspan="6" class="text-center py-14 text-slate-400">{{ t('billing.noRequests') }}</td>
             </tr>
-            <tr v-for="r in store.adminPlanRequests" :key="r.id" class="hover:bg-[#F7F9FC] align-middle">
+            <tr v-for="r in store.adminPlanRequests" :key="r.id" @click="goTo(r.organizationId)"
+                class="hover:bg-[#F7F9FC] align-middle cursor-pointer">
               <td class="px-5 py-3">
-                <RouterLink :to="`/admin/billing/subscriptions/${r.organizationId}`" class="font-medium text-slate-800 hover:text-primary-600">
-                  {{ r.organization?.name || '—' }}
-                </RouterLink>
+                <div class="font-medium text-slate-800">{{ r.organization?.name || '—' }}</div>
                 <div class="text-xs text-slate-400">{{ r.organization?.email }}</div>
               </td>
               <td class="px-5 py-3 text-slate-700">
@@ -55,7 +54,7 @@
                 <span v-else>—</span>
               </td>
               <td class="px-5 py-3 text-right">
-                <div v-if="r.status === 'pending'" class="flex items-center justify-end gap-2">
+                <div v-if="r.status === 'pending'" class="flex items-center justify-end gap-2" @click.stop>
                   <button @click="approve(r)" :disabled="busyId === r.id"
                     class="px-3 py-1.5 text-xs font-medium bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 rounded">
                     {{ t('billing.approve') }}
@@ -82,13 +81,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useBillingStore } from '@/stores/billing'
 
 const { t } = useI18n()
+const router = useRouter()
 const store = useBillingStore()
+
+const goTo = (orgId) => router.push(`/admin/billing/subscriptions/${orgId}`)
 const loading = ref(true)
 const busyId = ref(null)
 const error = ref('')
