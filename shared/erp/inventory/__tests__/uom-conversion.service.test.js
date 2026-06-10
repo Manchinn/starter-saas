@@ -29,7 +29,7 @@ describe('uom-conversion.service.list', () => {
     expect(args.where.organizationId).toBe('org-1')
     expect(args.where).not.toHaveProperty('createdBy')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.order).toEqual([['createdAt', 'ASC']])
+    expect(args.order).toEqual([['createdAt', 'DESC']])
   })
 
   test('falls back to createdBy when organizationId is absent', async () => {

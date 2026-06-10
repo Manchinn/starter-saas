@@ -227,7 +227,7 @@ describe('vendor.service.listAll', () => {
     expect(out).toEqual([{ id: 'v1', name: 'Acme' }])
     expect(Vendor.findAll).toHaveBeenCalledWith({
       where: { status: 'active', organizationId: 'org-1' },
-      order: [['name', 'ASC']],
+      order: [['name', 'DESC']],
     })
   })
 

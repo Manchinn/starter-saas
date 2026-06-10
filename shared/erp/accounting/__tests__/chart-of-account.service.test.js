@@ -23,7 +23,7 @@ describe('chart-of-account.list', () => {
     expect(args.offset).toBe(5)
     expect(args.where.organizationId).toBe('org-1')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.order).toEqual([['code', 'ASC']])
+    expect(args.order).toEqual([['code', 'DESC']])
     expect(args.include[0].as).toBe('parent')
   })
 

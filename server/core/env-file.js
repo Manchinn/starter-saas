@@ -35,12 +35,17 @@ function readEnv() {
 }
 
 // Serialise a key→value map back to .env, quoting values with whitespace or
-// special characters.
+// special characters. CR/LF is stripped from every key and value first: the
+// parser is line-based, so a newline embedded in a value would otherwise let a
+// settings-form value inject an entirely new key=value line (env-var injection).
 function writeEnv(map) {
+  const stripNewlines = (s) => String(s ?? '').replace(/[\r\n]+/g, ' ')
   const lines = Object.entries(map).map(([k, v]) => {
-    const needsQuote = v && /[\s#"']/.test(v)
-    const value = needsQuote ? `"${String(v).replace(/"/g, '\\"')}"` : (v ?? '')
-    return `${k}=${value}`
+    const key = stripNewlines(k).trim()
+    const val = stripNewlines(v)
+    const needsQuote = val && /[\s#"']/.test(val)
+    const value = needsQuote ? `"${val.replace(/"/g, '\\"')}"` : val
+    return `${key}=${value}`
   })
   fs.writeFileSync(ENV_PATH, lines.join('\n') + '\n', 'utf8')
 }

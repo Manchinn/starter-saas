@@ -8,13 +8,13 @@ const { Currency, ExchangeRate } = require('../../../../server/models')
 const service = require('../services/currency.service')
 
 describe('currency.listCurrencies', () => {
-  test('orders by isBase DESC then code ASC, excludes soft-deleted', async () => {
+  test('orders by isBase DESC then code DESC, excludes soft-deleted', async () => {
     Currency.findAll.mockResolvedValue([])
     await service.listCurrencies({ organizationId: 'o' })
     const args = Currency.findAll.mock.calls[0][0]
     expect(args.where.organizationId).toBe('o')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.order).toEqual([['isBase', 'DESC'], ['code', 'ASC']])
+    expect(args.order).toEqual([['isBase', 'DESC'], ['code', 'DESC']])
   })
 })
 

@@ -280,7 +280,7 @@ describe('product.service.listStores', () => {
     expect(Store.findAll).toHaveBeenCalledWith({
       where: { status: 'active' },
       attributes: ['id', 'name', 'code'],
-      order: [['name', 'ASC']],
+      order: [['name', 'DESC']],
     })
   })
 })

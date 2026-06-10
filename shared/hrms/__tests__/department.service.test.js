@@ -15,7 +15,7 @@ describe('department.list', () => {
     Department.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
   })
 
-  test('paginates, scopes by org, excludes soft-deleted, alphabetises by name', async () => {
+  test('paginates, scopes by org, excludes soft-deleted, orders by createdAt DESC', async () => {
     Department.findAndCountAll.mockResolvedValueOnce({ count: 4, rows: [{ id: 'd1' }] })
     const out = await service.list({ organizationId: 'o', page: 2, limit: 2 })
     expect(out).toEqual({ departments: [{ id: 'd1' }], total: 4 })
@@ -23,7 +23,7 @@ describe('department.list', () => {
     expect(args.offset).toBe(2)
     expect(args.where.organizationId).toBe('o')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.order).toEqual([['name', 'ASC']])
+    expect(args.order).toEqual([['createdAt', 'DESC']])
   })
 
   test('search filters across name and code', async () => {

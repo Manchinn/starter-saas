@@ -18,7 +18,7 @@ describe('approval-threshold.list', () => {
     const args = ApprovalThreshold.findAll.mock.calls[0][0]
     expect(args.where.organizationId).toBe('o')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.order).toEqual([['docType', 'ASC'], ['amount', 'ASC']])
+    expect(args.order).toEqual([['docType', 'DESC'], ['amount', 'DESC']])
   })
 
   test('docType filter applied when provided', async () => {

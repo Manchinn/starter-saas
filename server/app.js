@@ -74,8 +74,17 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: true }))
 app.use(requestLogger)
 
-// Public static — org logos and similar customer-facing assets.
-app.use('/uploads/logos', express.static(path.join(__dirname, '..', 'uploads', 'logos')))
+// Public static — org logos and similar customer-facing assets. Hardened so a
+// served file can never execute script in the app origin: `sandbox` (no script
+// allowed) defends against a script-bearing SVG slipping through, nosniff stops
+// MIME confusion, and Content-Disposition: inline keeps <img> embedding working.
+app.use('/uploads/logos', express.static(path.join(__dirname, '..', 'uploads', 'logos'), {
+  setHeaders: (res) => {
+    res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.setHeader('Content-Disposition', 'inline')
+  },
+}))
 
 // Health check
 app.get('/api/health', (req, res) => {

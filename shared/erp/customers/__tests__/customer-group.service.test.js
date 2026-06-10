@@ -32,7 +32,7 @@ describe('customer-group.service.list', () => {
     expect(args.offset).toBe(10)
     expect(args.where.organizationId).toBe('org-1')
     expect(args.where.dataFlag[Op.ne]).toBe(2)
-    expect(args.order).toEqual([['name', 'ASC']])
+    expect(args.order).toEqual([['createdAt', 'DESC']])
   })
 
   test('search filters on the name column only', async () => {
@@ -50,7 +50,7 @@ describe('customer-group.service.listAll', () => {
     expect(out).toEqual([{ id: 'g1', status: 'active' }])
     expect(CustomerGroup.findAll).toHaveBeenCalledWith({
       where: { status: 'active', organizationId: 'org-1' },
-      order: [['name', 'ASC']],
+      order: [['name', 'DESC']],
     })
   })
 })

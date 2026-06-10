@@ -55,7 +55,7 @@ describe('product-category.service.listAll', () => {
     expect(ProductCategory.findAll).toHaveBeenCalledWith({
       where: { status: 'active', organizationId: 'org-1' },
       attributes: ['id', 'name', 'parentId'],
-      order: [['name', 'ASC']],
+      order: [['name', 'DESC']],
     })
   })
 })
