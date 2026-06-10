@@ -16,6 +16,7 @@
 
 const fs   = require('fs')
 const path = require('path')
+const { isAllowed, requiredPermission } = require('./tool-permissions')
 
 const ERP_DIR = path.join(__dirname, '../../erp')
 
@@ -110,6 +111,11 @@ const schemas = ({ compact = false } = {}) => tools.map((t) => ({
 const execute = async (name, args, ctx) => {
   const tool = byName.get(name)
   if (!tool) return { content: `Error: no such tool "${name}".` }
+  // Enforce the same permission the tool's REST counterpart requires, so
+  // `ai-agent.use` can't be used to perform actions the caller's role forbids.
+  if (!isAllowed(ctx?.user?.permissions, name)) {
+    return { content: `Permission denied: you do not have access to run "${name}" (requires the "${requiredPermission(name)}" permission).` }
+  }
   try {
     const { result, action } = await tool.handler(args || {}, ctx)
     const content = typeof result === 'string' ? result : JSON.stringify(result)

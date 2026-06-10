@@ -16,6 +16,7 @@ const cache = require('./config/redis')
 const realtime = require('./core/realtime')
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
+const sanitizeQuery = require('./middleware/sanitize-query')
 const audit = require('../shared/erp/audit/audit.service')
 
 const app = express() // nosemgrep: javascript.express.security.audit.express-check-csurf-middleware-usage.express-check-csurf-middleware-usage -- stateless Bearer-token API; the only cookie (refresh) is httpOnly + SameSite=Strict, so CSRF is already mitigated without a token middleware
@@ -72,6 +73,10 @@ app.use((req, res, next) => {
   return smallJson(req, res, next)
 })
 app.use(express.urlencoded({ extended: true }))
+// Clamp pagination query params (page/limit) before any route sees them, so an
+// oversized `limit` can't trigger a memory-exhaustion query and a negative
+// `page` can't produce a negative SQL OFFSET.
+app.use(sanitizeQuery)
 app.use(requestLogger)
 
 // Public static — org logos and similar customer-facing assets. Hardened so a

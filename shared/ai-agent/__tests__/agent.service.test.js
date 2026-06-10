@@ -14,7 +14,9 @@ const provider = require('../services/provider.service')
 const productSvc = require('../../erp/products/services/product.service')
 const agent = require('../services/agent.service')
 
-const USER = { id: 'u1', organizationId: 'o1' }
+// Permissions are resolved at the controller and threaded into the agent so
+// tool execution enforces RBAC; '*' (system admin) clears every tool gate.
+const USER = { id: 'u1', organizationId: 'o1', permissions: ['*'] }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -53,6 +55,25 @@ describe('agent.chat — tool loop', () => {
     // final reply + a client action surfaced to the UI
     expect(res.message.content).toBe('Created Widget.')
     expect(res.message.actions.some((a) => a.type === 'navigate')).toBe(true)
+  })
+
+  test('a tool the caller lacks permission for is refused — no service call, told to the model', async () => {
+    const LIMITED = { id: 'u2', organizationId: 'o1', permissions: ['erp.products.list'] }
+    provider.chat
+      .mockResolvedValueOnce({ role: 'assistant', content: '', tool_calls: [
+        { id: 't1', name: 'create_product', arguments: { name: 'Widget' } },
+      ] })
+      .mockResolvedValueOnce({ role: 'assistant', content: 'You are not allowed to do that.', tool_calls: [] })
+
+    const res = await agent.chat({ user: LIMITED, conversationId: null, content: 'add a product called Widget' })
+
+    // the underlying service is never reached
+    expect(productSvc.create).not.toHaveBeenCalled()
+    // the denial is fed back to the model as the tool result
+    const toolMsg = provider.chat.mock.calls[1][0].messages.find((m) => m.role === 'tool')
+    expect(toolMsg.content).toMatch(/permission denied/i)
+    expect(toolMsg.content).toContain('erp.products.edit')
+    expect(res.message.content).toBe('You are not allowed to do that.')
   })
 
   test('navigate is a client tool — produces an action, writes no data', async () => {
