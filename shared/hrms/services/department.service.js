@@ -21,7 +21,7 @@ const list = async ({ organizationId, page = 1, limit = 20, search = '', isActiv
     where,
     offset,
     limit,
-    order: [['name', 'ASC']],
+    order: [['createdAt', 'DESC']],
   })
 
   return { departments: rows, total: count }

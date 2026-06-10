@@ -329,7 +329,7 @@ const getStaff = async (organizationId, search = '') => {
   return User.findAll({
     where,
     attributes: ['id', 'name', 'email', 'role', 'isActive'],
-    order: [['name', 'ASC']],
+    order: [['name', 'DESC']],
   })
 }
 
@@ -371,7 +371,7 @@ const listAll = async () => {
   return User.findAll({
     where: { organizationId: null },
     attributes: ['id', 'name', 'email'],
-    order: [['name', 'ASC']],
+    order: [['name', 'DESC']],
   })
 }
 

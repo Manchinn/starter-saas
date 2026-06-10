@@ -14,7 +14,7 @@ const list = async () => {
       { model: Module, as: 'modules', attributes: ['id', 'slug', 'name', 'icon', 'isActive'] },
       { model: User, as: 'users', attributes: ['id'], through: { attributes: [] } },
     ],
-    order: [['name', 'ASC']],
+    order: [['name', 'DESC']],
   })
   return roles.map((r) => {
     const json = r.toJSON()

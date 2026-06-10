@@ -14,7 +14,7 @@ const list = async ({ createdBy, organizationId } = {}) => {
   const rows = await UOMConversion.findAll({
     where,
     include: uomInclude,
-    order: [['createdAt', 'ASC']],
+    order: [['createdAt', 'DESC']],
   })
   return rows
 }

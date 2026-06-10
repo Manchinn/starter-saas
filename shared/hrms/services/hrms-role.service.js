@@ -16,7 +16,7 @@ const list = async (organizationId) => {
       { model: HrmsPermission, as: 'permissions', attributes: ['id', 'slug', 'name', 'group'] },
       { model: Employee, as: 'employees', attributes: ['id'], through: { attributes: [] } },
     ],
-    order: [['name', 'ASC']],
+    order: [['name', 'DESC']],
   })
   return roles.map((r) => {
     const json = r.toJSON()

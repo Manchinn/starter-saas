@@ -6,7 +6,7 @@ const { findByPkScoped } = require('../../../../server/core/tenant')
 const list = async ({ docType = '', organizationId } = {}) => {
   const where = { organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } }
   if (docType) where.docType = docType
-  return ApprovalThreshold.findAll({ where, order: [['docType', 'ASC'], ['amount', 'ASC']] })
+  return ApprovalThreshold.findAll({ where, order: [['docType', 'DESC'], ['amount', 'DESC']] })
 }
 
 const getById = async (id, organizationId) => {
