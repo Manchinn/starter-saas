@@ -1,6 +1,7 @@
 <template>
   <component :is="layout">
-    <div class="space-y-6">
+    <!-- Break out of the layout's horizontal padding for an edge-to-edge page. -->
+    <div class="space-y-6 -mx-4 md:-mx-6">
 
       <SubscriptionLockedBanner :show-action="false" />
 

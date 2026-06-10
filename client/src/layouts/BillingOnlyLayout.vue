@@ -21,7 +21,7 @@
       </div>
     </header>
 
-    <main class="flex-1 w-full max-w-5xl mx-auto px-6 py-8">
+    <main class="flex-1 overflow-y-auto p-4 md:p-6">
       <slot />
     </main>
   </div>
