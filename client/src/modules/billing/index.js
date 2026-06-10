@@ -12,12 +12,9 @@ export default {
       component: () => import('./views/Billing.vue'),
       meta: { requiresAuth: true, title: 'billing.title' },
     },
-    {
-      path: '/billing/plans',
-      name: 'billing-plans',
-      component: () => import('./views/Plans.vue'),
-      meta: { requiresAuth: true, title: 'billing.choosePlan' },
-    },
+    // Plans are now part of the single /billing page — keep the old path as a
+    // redirect for bookmarks/links.
+    { path: '/billing/plans', redirect: '/billing' },
 
     // ── Admin: plan catalog + subscription oversight ─────────────────────────
     {
