@@ -347,7 +347,13 @@ async function adminSetSubscription(orgId, { planId, status, suspended, currentP
   // Only (re)subscribe when the plan actually changes — re-running subscribe()
   // would reset the period and mint a fresh invoice on every save otherwise.
   const current = await Subscription.findOne({ where: { organizationId: orgId } })
-  if (planId && (!current || current.planId !== planId)) await subscribe(orgId, planId)
+  if (planId && (!current || current.planId !== planId)) {
+    // Admins can't push an org onto a plan its current usage exceeds either.
+    const plan = await Plan.findByPk(planId)
+    if (!plan || !plan.isActive) throw { status: 400, message: 'Plan not found or inactive' }
+    assertWithinPlan(await exceededLimits(orgId, plan), plan)
+    await subscribe(orgId, planId)
+  }
 
   const sub = await Subscription.findOne({ where: { organizationId: orgId } })
   if (sub) {

@@ -172,6 +172,14 @@ describe('adminSetSubscription', () => {
     await service.adminSetSubscription('o', { suspended: true, currentPeriodEnd: future })
     expect(sub.update).toHaveBeenCalledWith(expect.objectContaining({ suspended: true, currentPeriodEnd: future }))
   })
+
+  test('blocks an admin downgrade that current usage exceeds', async () => {
+    Subscription.findOne.mockResolvedValue({ planId: 'pro', update: jest.fn().mockResolvedValue() })
+    Plan.findByPk.mockResolvedValue({ id: 'free', name: 'Free', isActive: true, limits: { seats: 2 } })
+    User.count.mockResolvedValue(5)
+    await expect(service.adminSetSubscription('o', { planId: 'free' }))
+      .rejects.toMatchObject({ status: 400, code: 'USAGE_OVER_LIMIT' })
+  })
 })
 
 describe('plan-change requests', () => {
