@@ -2,15 +2,15 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.employees.edit')" back-to="/hrms/employees"
+      <PageHeader :title="t('erp.employees.edit')" :back-to="listTo"
         :breadcrumb="[
-          { label: t('erp.employees.title'), to: '/hrms/employees' },
+          { label: t('erp.employees.title'), to: listTo },
           { label: t('erp.employees.edit') },
         ]">
         <template #actions>
           <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
-            cancel-to="/hrms/employees"
+            :cancel-to="listTo"
             :cancel-label="t('common.cancel')"
             :saving="saving"
             :saving-label="t('erp.common.saving')"
@@ -198,9 +198,14 @@ const route        = useRoute()
 const id           = route.params.id
 const codeInputRef = ref(null)
 
+// Admin org-scope (carried from the Organizations drill-in); threaded into the
+// fetch/update so the right org's record is targeted, and back to the list.
+const orgId  = computed(() => route.query.organizationId || '')
+const listTo = computed(() => orgId.value ? `/hrms/employees?organizationId=${orgId.value}` : '/hrms/employees')
+
 const { shortcuts } = useFormShortcuts({
   save: () => save(),
-  cancel: () => router.push('/hrms/employees'),
+  cancel: () => router.push(listTo.value),
   cancelLabel: 'Back to list',
 })
 const loading = ref(true)
@@ -248,7 +253,7 @@ const account = ref({
 onMounted(async () => {
   try {
     const [empRes, deptRes, rolesRes] = await Promise.all([
-      api.get(`/hrms/employees/${id}`),
+      api.get(`/hrms/employees/${id}`, { params: { organizationId: orgId.value || undefined } }),
       api.get('/hrms/departments', { params: { limit: 1000 } }),
       api.get('/hrms/roles'),
     ])
@@ -306,8 +311,10 @@ async function save() {
 
   saving.value = true
   try {
-    await api.put(`/hrms/employees/${id}`, { ...form.value, account: accountPayload() })
-    router.push('/hrms/employees')
+    const payload = { ...form.value, account: accountPayload() }
+    if (orgId.value) payload.organizationId = orgId.value
+    await api.put(`/hrms/employees/${id}`, payload)
+    router.push(listTo.value)
   } catch (err) {
     const had = setFromError(err)
     if (!had) error.value = parseApiError(err, 'Failed to save')

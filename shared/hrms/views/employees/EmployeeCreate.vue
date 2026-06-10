@@ -2,15 +2,15 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.employees.new')" back-to="/hrms/employees"
+      <PageHeader :title="t('erp.employees.new')" :back-to="listTo"
         :breadcrumb="[
-          { label: t('erp.employees.title'), to: '/hrms/employees' },
+          { label: t('erp.employees.title'), to: listTo },
           { label: t('common.create') },
         ]">
         <template #actions>
           <KeyboardShortcuts :shortcuts="shortcuts" width="w-48" />
           <HeaderSaveActions
-            cancel-to="/hrms/employees"
+            :cancel-to="listTo"
             :cancel-label="t('common.cancel')"
             :saving="saving"
             :saving-label="t('erp.common.creating')"
@@ -165,7 +165,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { IdentificationIcon, KeyIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
@@ -192,12 +192,18 @@ const EMP_STATUS_OPTIONS = computed(() => [
 ])
 
 const router        = useRouter()
+const route         = useRoute()
 const codeInputRef  = ref(null)
 const autoCode      = useAutoCode('EMP')
 
+// Admin org-scope (carried from the Organizations drill-in); threaded back to
+// the list and into the create payload so the new staff lands in that org.
+const orgId  = computed(() => route.query.organizationId || '')
+const listTo = computed(() => orgId.value ? `/hrms/employees?organizationId=${orgId.value}` : '/hrms/employees')
+
 const { shortcuts } = useFormShortcuts({
   save: () => save(),
-  cancel: () => router.push('/hrms/employees'),
+  cancel: () => router.push(listTo.value),
   cancelLabel: 'Back to list',
 })
 const departments   = ref([])
@@ -258,9 +264,10 @@ async function save() {
       ...rest,
       account: createAccount.value ? { create: true, email, password } : null,
     }
+    if (orgId.value) payload.organizationId = orgId.value
     if (autoCode.enabled.value) { payload.autoCode = true; payload.employeeCode = null }
     await api.post('/hrms/employees', payload)
-    router.push('/hrms/employees')
+    router.push(listTo.value)
   } catch (err) {
     const had = setFromError(err)
     if (!had) error.value = parseApiError(err, 'Failed to create employee')

@@ -2,6 +2,9 @@ export default {
   erp: {
     employees: {
       title:            'พนักงาน',
+      viewingOrg:       'กำลังดูพนักงานของ {org}',
+      thisOrg:          'องค์กรนี้',
+      viewAll:          'ดูทั้งหมด',
       new:              'พนักงานใหม่',
       edit:             'แก้ไขพนักงาน',
       create:           'สร้างพนักงาน',

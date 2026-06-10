@@ -25,24 +25,6 @@ export default {
       meta: { requiresAuth: true, requiresAdmin: true, title: 'org.edit' },
     },
     {
-      path: '/admin/staff',
-      name: 'admin-staff',
-      component: () => import('./views/Staff.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true, title: 'staff.title' },
-    },
-    {
-      path: '/admin/staff/create',
-      name: 'admin-staff-create',
-      component: () => import('./views/StaffCreate.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true, title: 'staff.createTitle' },
-    },
-    {
-      path: '/admin/staff/:id/edit',
-      name: 'admin-staff-edit',
-      component: () => import('./views/StaffEdit.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true, title: 'staff.editTitle' },
-    },
-    {
       path: '/admin/roles',
       name: 'admin-roles',
       component: () => import('./views/Roles.vue'),

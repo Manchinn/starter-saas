@@ -336,39 +336,6 @@ const getStaff = async (organizationId, search = '') => {
   })
 }
 
-const listAllStaff = async ({ page = 1, limit = 20, search = '', organizationId = null }) => {
-  const offset = (page - 1) * limit
-  const where = {
-    organizationId: organizationId ? organizationId : { [Op.ne]: null }, // Filter by specific org OR all staff
-    ...(search && {
-      [Op.or]: [
-        { name: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } },
-      ],
-    }),
-  }
-
-  const { count, rows } = await User.findAndCountAll({
-    where,
-    limit,
-    offset,
-    attributes: ['id', 'name', 'email', 'role', 'isActive', 'organizationId', 'createdAt'],
-    include: [
-      { model: User, as: 'organization', attributes: ['id', 'name'] },
-      {
-        model: Employee, as: 'employee', attributes: ['id'], required: false,
-        include: [{
-          model: HrmsRole, as: 'roles', attributes: ['id', 'name', 'color'], through: { attributes: [] },
-          include: [{ model: HrmsPermission, as: 'permissions', attributes: ['slug', 'name'], through: { attributes: [] } }],
-        }],
-      },
-    ],
-    order: [['createdAt', 'DESC']],
-    distinct: true,
-  })
-
-  return { total: count, page, limit, staff: rows }
-}
 
 const listAll = async () => {
   return User.findAll({
@@ -378,4 +345,4 @@ const listAll = async () => {
   })
 }
 
-module.exports = { create, list, getById, update, uploadLogo, removeLogo, remove, assignModules, assignRoles, getUserPermissions, getMyModules, getStaff, listAllStaff, listAll }
+module.exports = { create, list, getById, update, uploadLogo, removeLogo, remove, assignModules, assignRoles, getUserPermissions, getMyModules, getStaff, listAll }
