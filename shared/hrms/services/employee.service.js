@@ -1,4 +1,4 @@
-const { Employee, User, Department, HrmsRole, HrmsPermission } = require('../../../server/models')
+const { Employee, User, Department, HrmsRole, HrmsPermission, RefreshToken } = require('../../../server/models')
 const { Op } = require('sequelize')
 const seqService  = require('../../erp/settings/services/sequence.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
@@ -42,7 +42,7 @@ const list = async ({ organizationId, page = 1, limit = 20, search = '', status 
 const getById = async (id, organizationId) => {
   const where = { id }
   if (organizationId) where.organizationId = organizationId
-  
+
   const emp = await Employee.findOne({
     where,
     include: [
@@ -55,34 +55,38 @@ const getById = async (id, organizationId) => {
   return emp
 }
 
+// Create the login account for an employee inline (no linking to an existing
+// account). Reuses the organization service so seat limits and the staff-user
+// wiring (role 'user' + organizationId) are enforced exactly as elsewhere.
+const createLoginAccount = async ({ name, email, password, organizationId }) => {
+  if (!email?.trim()) throw { status: 400, message: 'Email is required' }
+  if (!password)      throw { status: 400, message: 'Password is required' }
+  if (String(password).length < 8) throw { status: 400, message: 'Password must be at least 8 characters' }
+  const user = await organizationService.create({
+    name,
+    email: email.trim(),
+    password,
+    role: 'user',
+    organizationId,
+  })
+  return user.id
+}
+
 const create = async ({ firstName, lastName, position, phone, startDate, status = 'active',
-  activeFrom, activeTo,
-  employeeCode, autoCode, userId, email, password, credentialMode = 'existing', createdByUserId, organizationId, departmentIds, roleIds }) => {
+  activeFrom, activeTo, employeeCode, autoCode, account,
+  createdByUserId, organizationId, departmentIds, roleIds }) => {
   if (!organizationId) throw { status: 400, message: 'Organization ID is required' }
   if (!firstName?.trim()) throw { status: 400, message: 'First name is required' }
   if (!lastName?.trim())  throw { status: 400, message: 'Last name is required' }
 
-  let resolvedUserId = userId || null
+  const fullName = `${firstName.trim()} ${lastName.trim()}`
 
-  if (credentialMode === 'new') {
-    // Create a brand-new User account
-    if (!email?.trim()) throw { status: 400, message: 'Email is required' }
-    if (!password)      throw { status: 400, message: 'Password is required' }
-    const newUser = await organizationService.create({
-      name: `${firstName.trim()} ${lastName.trim()}`,
-      email: email.trim(),
-      password,
-      role: 'user',
-      organizationId: organizationId, // Link staff user to the organization
+  // Optionally provision a login account for this employee.
+  let resolvedUserId = null
+  if (account?.create) {
+    resolvedUserId = await createLoginAccount({
+      name: fullName, email: account.email, password: account.password, organizationId,
     })
-    resolvedUserId = newUser.id
-  } else if (resolvedUserId) {
-    const userExists = await User.findByPk(resolvedUserId)
-    if (!userExists) throw { status: 404, message: 'Selected user account not found' }
-    
-    // Check if the user is already linked
-    const already = await Employee.findOne({ where: { userId: resolvedUserId } })
-    if (already) throw { status: 409, message: 'This user account is already linked to another employee' }
   }
 
   let code = null
@@ -119,19 +123,53 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
   return getById(emp.id)
 }
 
+// Apply inline login-account changes for an employee on update. Handles three
+// cases: create a login when none exists yet, edit the linked account's
+// email/active flag, and reset its password (which revokes its sessions).
+const applyAccountChanges = async (emp, account, organizationId, fullName) => {
+  if (!account) return
+
+  // No login yet → optionally create one.
+  if (!emp.userId) {
+    if (account.create) {
+      const userId = await createLoginAccount({
+        name: fullName, email: account.email, password: account.password, organizationId,
+      })
+      await emp.update({ userId })
+    }
+    return
+  }
+
+  // Existing login → edit in place. Scope the lookup to the org so a tampered
+  // userId can never reach another tenant's account.
+  const user = await User.findOne({ where: { id: emp.userId, organizationId } })
+  if (!user) return
+
+  const patch = {}
+  if (account.email !== undefined && account.email.trim() && account.email.trim() !== user.email) {
+    const taken = await User.findOne({ where: { email: account.email.trim(), id: { [Op.ne]: user.id } } })
+    if (taken) throw { status: 409, message: 'Email already registered' }
+    patch.email = account.email.trim()
+  }
+  if (account.isActive !== undefined) patch.isActive = !!account.isActive
+  if (fullName && fullName !== user.name) patch.name = fullName
+  if (Object.keys(patch).length) await user.update(patch)
+
+  if (account.newPassword) {
+    if (String(account.newPassword).length < 8) {
+      throw { status: 400, message: 'Password must be at least 8 characters' }
+    }
+    await user.update({ password: account.newPassword }) // model hook hashes it
+    await RefreshToken.update({ isRevoked: true }, { where: { userId: user.id, isRevoked: false } })
+  }
+}
+
 const update = async (id, payload, organizationId, modifiedByUserId) => {
   const { firstName, lastName, position, phone, startDate, status,
-    activeFrom, activeTo,
-    employeeCode, userId, organizationId: newOrgId, departmentIds, roleIds } = payload
+    activeFrom, activeTo, employeeCode, organizationId: newOrgId,
+    departmentIds, roleIds, account } = payload
   const emp = await Employee.findOne({ where: { id, organizationId } })
   if (!emp) throw { status: 404, message: 'Employee not found' }
-
-  if (userId && userId !== emp.userId) {
-    const userExists = await User.findByPk(userId)
-    if (!userExists) throw { status: 404, message: 'Selected user not found' }
-    const already = await Employee.findOne({ where: { userId, id: { [Op.ne]: id } } })
-    if (already) throw { status: 409, message: 'This user already has an employee record' }
-  }
 
   await emp.update({
     ...(firstName    !== undefined && { firstName:    firstName.trim() }),
@@ -143,10 +181,14 @@ const update = async (id, payload, organizationId, modifiedByUserId) => {
     ...(activeFrom   !== undefined && { activeFrom: activeFrom || null }),
     ...(activeTo     !== undefined && { activeTo: activeTo || null }),
     ...(employeeCode !== undefined && { employeeCode: employeeCode?.trim() || null }),
-    ...(userId       !== undefined && { userId:       userId || null }),
     ...(newOrgId     !== undefined && newOrgId && { organizationId: newOrgId }),
     modifiedBy: modifiedByUserId || null,
   })
+
+  // Login-account changes (create / edit email+active / reset password). Use the
+  // employee's resulting name so the account name tracks the employee.
+  const fullName = `${emp.firstName} ${emp.lastName}`
+  await applyAccountChanges(emp, account, organizationId, fullName)
 
   if (departmentIds !== undefined) {
     await emp.setDepartments(departmentIds || [])

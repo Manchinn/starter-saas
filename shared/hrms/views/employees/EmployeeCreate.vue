@@ -106,12 +106,12 @@
               </FormField>
 
               <p class="text-xs text-[#637381] italic">
-                A system user account will be created and linked to this employee.
+                {{ t('erp.employees.loginCreateHint') }}
               </p>
             </div>
 
             <div v-else class="text-xs text-[#9BA7B0] py-2">
-              This employee record will not have a login account associated with it.
+              {{ t('erp.employees.loginNoneHint') }}
             </div>
 
             <!-- Department Assignments -->
@@ -200,7 +200,6 @@ const { shortcuts } = useFormShortcuts({
   cancel: () => router.push('/hrms/employees'),
   cancelLabel: 'Back to list',
 })
-const users         = ref([])
 const departments   = ref([])
 const roles         = ref([])
 const error         = ref('')
@@ -221,19 +220,16 @@ const form = ref({
   status:        'active',
   activeFrom:    '',
   activeTo:      '',
-  userId:        '',
   email:         '',
   password:      '',
 })
 
 onMounted(async () => {
   try {
-    const [staffRes, deptRes, rolesRes] = await Promise.all([
-      api.get('/organizations/staff', { params: { limit: 500 } }),
+    const [deptRes, rolesRes] = await Promise.all([
       api.get('/hrms/departments', { params: { limit: 1000 } }),
       api.get('/hrms/roles'),
     ])
-    users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
     roles.value       = rolesRes.data.data.roles
   } catch (err) {
@@ -257,9 +253,10 @@ async function save() {
 
   saving.value = true
   try {
+    const { email, password, ...rest } = form.value
     const payload = {
-      ...form.value,
-      credentialMode: createAccount.value ? 'new' : 'existing'
+      ...rest,
+      account: createAccount.value ? { create: true, email, password } : null,
     }
     if (autoCode.enabled.value) { payload.autoCode = true; payload.employeeCode = null }
     await api.post('/hrms/employees', payload)

@@ -84,12 +84,6 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth && !auth.isAuthenticated) return next('/login')
   if (requiresAdmin && !auth.isAdmin) return next('/erp/dashboard')
 
-  // Tenant staff-management pages: owner accounts or holders of team.manage only.
-  // Render the 404 (not a 403) so the page doesn't reveal itself to others.
-  if (to.meta.requiresTeamManager === true && auth.isAuthenticated && !auth.canManageTeam) {
-    return next({ name: 'not-found', params: { pathMatch: to.path.substring(1).split('/') } })
-  }
-
   // Re-check the subscription on each navigation (page change / menu click) so a
   // plan change made elsewhere is reflected without polling.
   if (requiresAuth && auth.isAuthenticated && !auth.isAdmin) {

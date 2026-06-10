@@ -240,7 +240,6 @@ const DEFAULT_PERMISSIONS = [
   { slug: 'permissions.manage',   name: 'Manage Permissions',   group: 'permissions', description: 'Create, edit and delete permissions' },
   { slug: 'modules.list',         name: 'List Modules',         group: 'modules',     description: 'View installed modules' },
   { slug: 'modules.manage',       name: 'Manage Modules',       group: 'modules',     description: 'Enable and disable modules' },
-  { slug: 'team.manage',          name: 'Manage Team',          group: 'team',        description: 'Manage your organization’s staff login accounts' },
 ]
 
 const DEFAULT_ROLES = [
