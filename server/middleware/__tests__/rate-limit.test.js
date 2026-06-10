@@ -19,6 +19,8 @@ const optsOf = (limiter) => limiter.__opts
 describe('rate-limit — limiter budgets are pinned', () => {
   test.each([
     // [name, windowMs, max]
+    ['globalApiLimiter',     MIN_15, 1500],
+    ['globalWriteLimiter',   MIN_15, 300],
     ['apiLimiter',           MIN_15, 100],
     ['writeLimiter',         MIN_15, 30],
     ['loginLimiter',         MIN_15, 10],
@@ -31,6 +33,21 @@ describe('rate-limit — limiter budgets are pinned', () => {
     const opts = optsOf(limiters[name])
     expect(opts.windowMs).toBe(windowMs)
     expect(opts.max).toBe(max)
+  })
+
+  test('the global write limiter skips read methods so reads do not spend the write budget', () => {
+    const { skip } = optsOf(limiters.globalWriteLimiter)
+    expect(skip({ method: 'GET' })).toBe(true)
+    expect(skip({ method: 'HEAD' })).toBe(true)
+    expect(skip({ method: 'OPTIONS' })).toBe(true)
+    expect(skip({ method: 'POST' })).toBe(false)
+    expect(skip({ method: 'PUT' })).toBe(false)
+    expect(skip({ method: 'PATCH' })).toBe(false)
+    expect(skip({ method: 'DELETE' })).toBe(false)
+  })
+
+  test('the global write budget is tighter than the global read budget', () => {
+    expect(optsOf(limiters.globalWriteLimiter).max).toBeLessThan(optsOf(limiters.globalApiLimiter).max)
   })
 
   test('every limiter uses standard RateLimit headers and disables the legacy ones', () => {
@@ -59,12 +76,13 @@ describe('rate-limit — limiter budgets are pinned', () => {
     }
   })
 
-  test('exactly the eight expected limiters are exported (none dropped, none stray)', () => {
+  test('exactly the expected limiters are exported (none dropped, none stray)', () => {
     // (Call-count on the rateLimit mock is unusable here: jest's resetMocks
     // wipes require-time call history. The export list pins the same thing.)
     expect(Object.keys(limiters).sort()).toEqual([
-      'apiLimiter', 'emailLimiter', 'impersonationLimiter', 'loginLimiter',
-      'refreshLimiter', 'registerLimiter', 'tokenLimiter', 'writeLimiter',
+      'apiLimiter', 'emailLimiter', 'globalApiLimiter', 'globalWriteLimiter',
+      'impersonationLimiter', 'loginLimiter', 'refreshLimiter', 'registerLimiter',
+      'tokenLimiter', 'writeLimiter',
     ])
   })
 })
