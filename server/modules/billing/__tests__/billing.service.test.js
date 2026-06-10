@@ -128,6 +128,35 @@ describe('suspended subscriptions', () => {
   })
 })
 
+describe('access gate', () => {
+  test('isLockedOut: only active/trialing are allowed; suspended always locks', () => {
+    expect(service.isLockedOut(null)).toBe(false)                              // no row → not locked
+    expect(service.isLockedOut({ status: 'active' })).toBe(false)
+    expect(service.isLockedOut({ status: 'trialing' })).toBe(false)
+    expect(service.isLockedOut({ status: 'active', suspended: true })).toBe(true)
+    expect(service.isLockedOut({ status: 'canceled' })).toBe(true)
+    expect(service.isLockedOut({ status: 'past_due' })).toBe(true)
+    expect(service.isLockedOut({ status: 'expired' })).toBe(true)
+  })
+
+  test('assertOrgAccess exempts system admins without hitting the DB', async () => {
+    Subscription.findOne.mockReset()
+    await expect(service.assertOrgAccess({ role: 'admin', id: 'a1' })).resolves.toBeUndefined()
+    expect(Subscription.findOne).not.toHaveBeenCalled()
+  })
+
+  test('assertOrgAccess throws 403 SUBSCRIPTION_INACTIVE when the org is locked out', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'canceled' })
+    await expect(service.assertOrgAccess({ role: 'user', id: 'org-locked' }))
+      .rejects.toMatchObject({ status: 403, code: 'SUBSCRIPTION_INACTIVE' })
+  })
+
+  test('assertOrgAccess passes for an active subscription', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'active' })
+    await expect(service.assertOrgAccess({ role: 'user', id: 'org-ok' })).resolves.toBeUndefined()
+  })
+})
+
 describe('adminSetSubscription', () => {
   test('does not re-subscribe when the plan is unchanged', async () => {
     const sub = { planId: 'pro', update: jest.fn().mockResolvedValue() }

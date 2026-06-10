@@ -16,6 +16,14 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// Clear the session and bounce to the login screen, stashing a one-time notice
+// the login page can display (e.g. why the session ended).
+function forceLogout(message) {
+  try { useAuthStore().clearSession() } catch {}
+  if (message) { try { sessionStorage.setItem('authNotice', message) } catch {} }
+  if (!window.location.pathname.startsWith('/login')) window.location.href = '/login'
+}
+
 // Auto-refresh on 401 TOKEN_EXPIRED — the refresh token is sent automatically
 // as the httpOnly cookie, so the call carries no token in the body.
 let isRefreshing = false
@@ -26,6 +34,13 @@ api.interceptors.response.use(
   async (err) => {
     const original = err.config
     const data = err.response?.data
+
+    // Subscription went inactive mid-session — drop the session and explain why.
+    // The login request itself is left to the form so it can show the message.
+    if (err.response?.status === 403 && data?.code === 'SUBSCRIPTION_INACTIVE') {
+      if (!original?.url?.includes('/auth/login')) forceLogout(data.message)
+      return Promise.reject(err)
+    }
 
     if (err.response?.status === 401 && data?.code === 'TOKEN_EXPIRED' && !original._retry) {
       if (isRefreshing) {
@@ -58,11 +73,14 @@ api.interceptors.response.use(
         refreshQueue = []
 
         // Only force-logout on an explicit 401 from the refresh endpoint (invalid/
-        // expired refresh cookie). Network errors or 5xx should NOT clear the
-        // session — the access token may still become valid once the server recovers.
-        if (refreshErr.response?.status === 401) {
-          try { useAuthStore().clearSession() } catch {}
-          window.location.href = '/login'
+        // expired refresh cookie) or a subscription-inactive 403. Network errors
+        // or 5xx should NOT clear the session — the access token may still become
+        // valid once the server recovers.
+        const refreshStatus = refreshErr.response?.status
+        if (refreshStatus === 403 && refreshErr.response?.data?.code === 'SUBSCRIPTION_INACTIVE') {
+          forceLogout(refreshErr.response.data.message)
+        } else if (refreshStatus === 401) {
+          forceLogout()
         }
 
         return Promise.reject(refreshErr)

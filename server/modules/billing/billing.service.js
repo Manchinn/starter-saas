@@ -30,8 +30,12 @@ const addInterval = (from, interval) => {
 
 // ── Effective-plan cache (per org, short TTL) ─────────────────────────────────
 const CACHE_TTL_MS = 60 * 1000
-const planCache = new Map() // orgId → { plan, expires }
-const invalidate = (orgId) => { if (orgId) planCache.delete(orgId); else planCache.clear() }
+const planCache = new Map()   // orgId → { plan, expires }
+const accessCache = new Map() // orgId → { locked, expires }
+const invalidate = (orgId) => {
+  if (orgId) { planCache.delete(orgId); accessCache.delete(orgId) }
+  else { planCache.clear(); accessCache.clear() }
+}
 
 // ── Plan resolution ───────────────────────────────────────────────────────────
 
@@ -63,6 +67,44 @@ async function getEffectivePlan(orgId) {
   const plan = isActive(sub) ? sub.plan : await getDefaultPlan()
   planCache.set(orgId, { plan, expires: Date.now() + CACHE_TTL_MS })
   return plan
+}
+
+// ── Access gate (hard lockout) ────────────────────────────────────────────────
+// A subscription locks the org out of the app entirely when it is suspended or
+// is in any state other than active/trialing (canceled, expired, past_due).
+// An org with no subscription row is NOT locked out — it predates billing or is
+// admin-managed, and falls back to the default plan as before.
+const isLockedOut = (sub) => {
+  if (!sub) return false
+  if (sub.suspended) return true
+  return !ACTIVE_STATUSES.includes(sub.status)
+}
+
+// Cached per-org lockout decision (short TTL; invalidated on any subscription
+// change) so it can be consulted on every authenticated request cheaply.
+async function isOrgLocked(orgId) {
+  if (!orgId) return false
+  const cached = accessCache.get(orgId)
+  if (cached && cached.expires > Date.now()) return cached.locked
+  const sub = await Subscription.findOne({ where: { organizationId: orgId } })
+  const locked = isLockedOut(sub)
+  accessCache.set(orgId, { locked, expires: Date.now() + CACHE_TTL_MS })
+  return locked
+}
+
+// Throw a 403 when the caller's organization is locked out. System admins
+// (role 'admin' — the platform operator) are always exempt so a misconfigured
+// subscription can never lock them out of the admin panel.
+async function assertOrgAccess(user) {
+  if (!user || user.role === 'admin') return
+  const orgId = user.organizationId || user.id
+  if (await isOrgLocked(orgId)) {
+    throw {
+      status: 403,
+      code: 'SUBSCRIPTION_INACTIVE',
+      message: 'This account’s subscription is inactive. Please renew your plan or contact support.',
+    }
+  }
 }
 
 // ── Limits & metering ──────────────────────────────────────────────────────────
@@ -318,6 +360,8 @@ const listInvoices = (orgId) =>
 module.exports = {
   // resolution
   getEffectivePlan, getSubscription, getDefaultPlan, isActive,
+  // access gate
+  isLockedOut, isOrgLocked, assertOrgAccess,
   // limits / metering
   checkLimit, hasFeature, increment, assertSeatAvailable, getUsage, periodForMetric,
   // lifecycle

@@ -6,6 +6,7 @@ const { User, Role, Permission, Module, RefreshToken, MasterDataCategory, Master
 const { Op } = require('sequelize')
 const mailer = require('../../core/mailer')
 const { employeePermissionSlugs } = require('../../../shared/hrms/services/access.service')
+const billing = require('../billing/billing.service')
 
 // ── Token generation (random, opaque, URL-safe) ──────────────────────────────
 const generateRawToken = () => crypto.randomBytes(32).toString('hex')
@@ -158,6 +159,9 @@ const login = async ({ email, password }, meta = {}) => {
     throw { status: 403, message: 'Please verify your email address before signing in.' }
   }
 
+  // Reject sign-in when the organization's subscription is inactive (admins exempt).
+  await billing.assertOrgAccess(user)
+
   await user.update({ lastLoginAt: new Date() })
 
   const accessToken = signAccess(user)
@@ -177,6 +181,8 @@ const refresh = async (token, meta = {}) => {
     const decoded = jwt.verify(token, config.jwt.refreshSecret)
     const user = await User.findByPk(decoded.id)
     if (!user || !user.isActive) throw { status: 401, message: 'User not found' }
+    // Stop silently re-issuing access tokens once the subscription is inactive.
+    await billing.assertOrgAccess(user)
 
     // Rotate — carry forward device info if the new request didn't bring fresh meta
     await record.update({ isRevoked: true, lastUsedAt: new Date() })

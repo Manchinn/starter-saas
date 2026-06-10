@@ -329,6 +329,12 @@ const stats = computed(() => [
 onMounted(() => {
   const saved = localStorage.getItem('rememberedEmail')
   if (saved) form.value.email = saved
+  // Surface a one-time notice left by a forced logout (e.g. inactive subscription).
+  const notice = sessionStorage.getItem('authNotice')
+  if (notice) {
+    error.value = notice
+    sessionStorage.removeItem('authNotice')
+  }
 })
 
 async function handleLogin() {
