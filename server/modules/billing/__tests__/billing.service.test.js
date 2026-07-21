@@ -65,6 +65,20 @@ describe('quota enforcement', () => {
     expect(Invoice.count).toHaveBeenCalled()
   })
 
+  test('live-counts invoices this month (not UsageCounter) and excludes soft-deletes', async () => {
+    Invoice.count.mockResolvedValue(12)
+    await expect(service.checkLimit('org-1', 'erp.invoices.monthly', 0))
+      .resolves.toMatchObject({ used: 12, limit: 100 })
+    expect(Invoice.count).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        organizationId: 'org-1',
+        dataFlag: expect.anything(),
+        status: expect.anything(),
+      }),
+    }))
+    expect(UsageCounter.findOne).not.toHaveBeenCalled()
+  })
+
   test('counts seats from active staff instead of a usage counter', async () => {
     User.count.mockResolvedValue(5)
 

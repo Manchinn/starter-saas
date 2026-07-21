@@ -1,5 +1,22 @@
 const billing = require('../modules/billing/billing.service')
 
+/**
+ * Plan gates:
+ *   requireFeature('ai-agent')                 → 403 if the plan lacks the feature
+ *   enforceLimit('erp.invoices.monthly')       → 403 once the quota is reached
+ *   meter('storageMb', { amount: n })          → counts a successful request
+ *
+ * Put `enforceLimit` before the handler so an over-quota request never runs
+ * (see shared/erp/invoices/invoice.routes.js). Metrics listed in the billing
+ * service's LIVE_COUNTERS (seats, erp.invoices.monthly, …) are counted straight
+ * from the database and need no metering; add `meter` after the handler only
+ * for metrics that have no live counter — it increments the UsageCounter on a
+ * successful 2xx/3xx response.
+ *
+ * The org key is the caller's owning organization: a staff user carries
+ * `organizationId`; a top-level org user *is* the org, so its own `id` is used.
+ */
+
 const limitLocks = new Map()
 
 const organizationIdOf = (req) => req?.user?.organizationId || req?.user?.id || null

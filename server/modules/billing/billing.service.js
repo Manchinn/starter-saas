@@ -64,6 +64,25 @@ async function isUserLocked(user) {
 const isUnlimited = (limit) => limit === undefined || limit === null || Number(limit) < 0
 const pickPlanFields = (data) => Object.fromEntries(Object.entries(data).filter(([key]) => planFields.has(key)))
 
+// First instant of the current calendar month (UTC — same clock as monthKey).
+const monthStart = (d = new Date()) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))
+
+// Live-counted metrics: the database is authoritative because rows appear and
+// disappear outside the meter middleware (seed, conversions, deletes). Monthly
+// metrics use the current UTC calendar month; seats count active staff only.
+// Metrics not listed here fall back to the UsageCounter row.
+const LIVE_COUNTERS = {
+  seats: (organizationId) => User.count({ where: { organizationId, isActive: true } }),
+  'erp.invoices.monthly': (organizationId) => Invoice.count({
+    where: {
+      organizationId,
+      dataFlag: { [Op.ne]: 2 },
+      invoiceDate: { [Op.gte]: monthStart() },
+      status: { [Op.ne]: 'cancelled' },
+    },
+  }),
+}
+
 async function withSeatLock(organizationId, task) {
   const previous = seatLocks.get(organizationId) || Promise.resolve()
   let releaseCurrent
@@ -99,29 +118,18 @@ async function getEffectivePlan(organizationId) {
 }
 
 async function usedFor(organizationId, metric, period = periodForMetric(metric)) {
-  if (metric === 'erp.invoices.monthly') {
-    const [year, month] = period.split('-').map(Number)
-    const start = new Date(Date.UTC(year, month - 1, 1))
-    const end = new Date(Date.UTC(year, month, 1))
-    return Invoice.count({
-      where: {
-        organizationId,
-        invoiceDate: { [Op.gte]: start, [Op.lt]: end },
-        status: { [Op.ne]: 'cancelled' },
-      },
-    })
-  }
+  const live = LIVE_COUNTERS[metric]
+  if (live) return live(organizationId)
   const counter = await UsageCounter.findOne({ where: { organizationId, metric, period } })
   return counter ? counter.count : 0
 }
 
+// Evaluate a quota against the current usage (live count where available).
 async function checkLimit(organizationId, metric, amount = 1) {
   const plan = await getEffectivePlan(organizationId)
   const limit = plan?.limits?.[metric]
   if (isUnlimited(limit)) return { allowed: true, unlimited: true, limit: null, used: null, remaining: null }
-  const used = metric === 'seats'
-    ? await User.count({ where: { organizationId, isActive: true } })
-    : await usedFor(organizationId, metric)
+  const used = await usedFor(organizationId, metric)
   const numericLimit = Number(limit)
   return {
     allowed: used + amount <= numericLimit,
@@ -155,13 +163,11 @@ async function assertSeatAvailable(organizationId) {
 async function getUsage(organizationId) {
   const plan = await getEffectivePlan(organizationId)
   const limits = plan?.limits || {}
-  return Promise.all(Object.keys(limits).map(async (metric) => {
-    const quota = await checkLimit(organizationId, metric, 0)
-    const used = metric === 'seats'
-      ? await User.count({ where: { organizationId, isActive: true } })
-      : await usedFor(organizationId, metric)
-    return { metric, limit: quota.limit, used }
-  }))
+  return Promise.all(Object.keys(limits).map(async (metric) => ({
+    metric,
+    limit: isUnlimited(limits[metric]) ? null : Number(limits[metric]),
+    used: await usedFor(organizationId, metric),
+  })))
 }
 
 // Metrics whose current usage exceeds `plan`'s limits (empty = within plan).
@@ -172,9 +178,7 @@ async function exceededLimits(organizationId, plan) {
   for (const metric of Object.keys(limits)) {
     if (isUnlimited(limits[metric])) continue
     const limit = Number(limits[metric])
-    const used = metric === 'seats'
-      ? await User.count({ where: { organizationId, isActive: true } })
-      : await usedFor(organizationId, metric)
+    const used = await usedFor(organizationId, metric)
     if (used > limit) offenders.push({ metric, limit, used })
   }
   return offenders

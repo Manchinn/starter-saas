@@ -55,6 +55,10 @@ Git history remains the complete implementation-level record.
   redirects there; focus/visibility refresh replaces interval polling so
   admin approval lifts lockout without a full-page blink.
 - Locked-tenant banner “Choose a plan” links to `/billing`.
+- Billing usage for `seats` and `erp.invoices.monthly` is live-counted from
+  the database (active staff; non-deleted invoices in the current UTC month)
+  instead of trusting the UsageCounter meter alone. Invoice create no longer
+  needs `meter()`.
 
 ### Security
 

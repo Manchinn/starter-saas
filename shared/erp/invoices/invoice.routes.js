@@ -3,7 +3,11 @@ const controller = require('./invoice.controller')
 const { authenticate } = require('../../../server/middleware/auth')
 const { requirePermission } = require('../../../server/middleware/permission')
 const { validate } = require('../../../server/middleware/validate')
-const { requireFeature, enforceLimit, meter } = require('../../../server/middleware/plan')
+// Plan-limit enforcement: gate create with enforceLimit so over-quota requests
+// never run. erp.invoices.monthly is live-counted from Invoices (billing.service
+// LIVE_COUNTERS), so no meter() is needed here — add meter() only for metrics
+// without a live counter.
+const { requireFeature, enforceLimit } = require('../../../server/middleware/plan')
 const { itemsRules, statusRules } = require('./invoice.validators')
 
 const router = Router()
@@ -11,7 +15,7 @@ router.use(authenticate)
 
 router.get('/',                requirePermission('erp.invoices.list'),   (req, res) => controller.list(req, res))
 router.get('/:id',             requirePermission('erp.invoices.list'),   (req, res) => controller.getById(req, res))
-router.post('/',               requirePermission('erp.invoices.edit'),   requireFeature('erp.invoices'), enforceLimit('erp.invoices.monthly'), meter('erp.invoices.monthly'), itemsRules, validate, (req, res) => controller.create(req, res))
+router.post('/',               requirePermission('erp.invoices.edit'),   requireFeature('erp.invoices'), enforceLimit('erp.invoices.monthly'), itemsRules, validate, (req, res) => controller.create(req, res))
 router.put('/:id',             requirePermission('erp.invoices.edit'),   (req, res) => controller.update(req, res))
 router.patch('/:id/status',    requirePermission('erp.invoices.edit'),   statusRules, validate, (req, res) => controller.updateStatus(req, res))
 router.post('/:id/create-receipt', requirePermission('erp.receipts.edit'), (req, res) => controller.createReceipt(req, res))
