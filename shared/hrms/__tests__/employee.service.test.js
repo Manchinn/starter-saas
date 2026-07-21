@@ -267,7 +267,7 @@ describe('employee.update', () => {
       .mockResolvedValueOnce(emp)
       .mockResolvedValueOnce({ id: 'e1' })
     await service.update('e1', { departmentIds: [] }, 'o', 'u')
-    expect(emp.setDepartments).toHaveBeenCalledWith([])
+    expect(emp.setDepartments).toHaveBeenCalledWith([], { transaction: { id: 'tx' } })
   })
 
   test('omitting departmentIds leaves the existing junction untouched', async () => {
@@ -312,6 +312,16 @@ describe('employee.update', () => {
     expect(emp.update).not.toHaveBeenCalled()
   })
 
+  test('cannot bypass offboarding by unlinking the account while terminating', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn() }
+    Employee.findOne.mockResolvedValue(emp)
+
+    await expect(service.update('e1', { userId: '', status: 'terminated' }, 'o', 'manager-1', { id: 'manager-1' }))
+      .rejects.toEqual({ status: 400, message: 'Use offboarding to terminate an employee with a linked login account' })
+
+    expect(emp.update).not.toHaveBeenCalled()
+  })
+
   test('rejects nonexistent role IDs even for platform administrators', async () => {
     const emp = { id: 'e1', userId: 'u1', update: jest.fn().mockResolvedValue() }
     Employee.findOne.mockResolvedValue(emp)
@@ -322,6 +332,29 @@ describe('employee.update', () => {
 
     expect(organizationService.assignRoles).not.toHaveBeenCalled()
     expect(auditService.logStrict).not.toHaveBeenCalled()
+  })
+
+  test('keeps employee, department, role, and audit writes in the same transaction', async () => {
+    const emp = {
+      id: 'e1',
+      userId: 'u1',
+      update: jest.fn().mockResolvedValue(),
+      setDepartments: jest.fn().mockResolvedValue(),
+    }
+    Employee.findOne.mockResolvedValue(emp)
+    Role.findAll.mockResolvedValue([{ id: 'r1', permissions: [] }])
+    UserRole.findAll.mockResolvedValue([{ roleId: 'old-role' }])
+    auditService.logStrict.mockRejectedValueOnce(new Error('audit unavailable'))
+
+    await expect(service.update('e1', {
+      firstName: 'Ada', departmentIds: ['d1'], roleIds: ['r1'],
+    }, 'o', 'manager-1', { id: 'manager-1', role: 'admin' })).rejects.toThrow('audit unavailable')
+
+    expect(emp.update).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Ada' }), { transaction: { id: 'tx' } })
+    expect(emp.setDepartments).toHaveBeenCalledWith(['d1'], { transaction: { id: 'tx' } })
+    expect(organizationService.assignRoles).toHaveBeenCalledWith(
+      'u1', ['r1'], { id: 'manager-1', role: 'admin' }, { transaction: { id: 'tx' } },
+    )
   })
 })
 

@@ -162,45 +162,45 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
 const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
   const { firstName, lastName, position, phone, startDate, status,
     activeFrom, activeTo, employeeCode, userId, organizationId: newOrgId, departmentIds, roleIds } = payload
-  const emp = await Employee.findOne({ where: { id, organizationId } })
-  if (!emp) throw { status: 404, message: 'Employee not found' }
+  await sequelize.transaction(async (transaction) => {
+    const emp = await Employee.findOne({ where: { id, organizationId }, transaction })
+    if (!emp) throw { status: 404, message: 'Employee not found' }
 
-  const resultingUserId = userId !== undefined ? userId || null : emp.userId
-  if (status === 'terminated' && resultingUserId) {
-    throw { status: 400, message: 'Use offboarding to terminate an employee with a linked login account' }
-  }
+    const resultingUserId = userId !== undefined ? userId || null : emp.userId
+    if (status === 'terminated' && (emp.userId || resultingUserId)) {
+      throw { status: 400, message: 'Use offboarding to terminate an employee with a linked login account' }
+    }
 
-  if (userId && userId !== emp.userId) {
-    const userExists = await User.findByPk(userId)
-    if (!userExists) throw { status: 404, message: 'Selected user not found' }
-    assertUserBelongsToOrganization(userExists, organizationId)
-    const already = await Employee.findOne({ where: { userId, id: { [Op.ne]: id } } })
-    if (already) throw { status: 409, message: 'This user already has an employee record' }
-  }
+    if (userId && userId !== emp.userId) {
+      const userExists = await User.findByPk(userId, { transaction })
+      if (!userExists) throw { status: 404, message: 'Selected user not found' }
+      assertUserBelongsToOrganization(userExists, organizationId)
+      const already = await Employee.findOne({ where: { userId, id: { [Op.ne]: id } }, transaction })
+      if (already) throw { status: 409, message: 'This user already has an employee record' }
+    }
 
-  await emp.update({
-    ...(firstName    !== undefined && { firstName:    firstName.trim() }),
-    ...(lastName     !== undefined && { lastName:     lastName.trim() }),
-    ...(position     !== undefined && { position:     position?.trim()   || null }),
-    ...(phone        !== undefined && { phone:        phone?.trim()      || null }),
-    ...(startDate    !== undefined && { startDate:    startDate || null }),
-    ...(status       !== undefined && { status }),
-    ...(activeFrom   !== undefined && { activeFrom: activeFrom || null }),
-    ...(activeTo     !== undefined && { activeTo: activeTo || null }),
-    ...(employeeCode !== undefined && { employeeCode: employeeCode?.trim() || null }),
-    ...(userId       !== undefined && { userId:       userId || null }),
-    ...(newOrgId     !== undefined && newOrgId && { organizationId: newOrgId }),
-    modifiedBy: modifiedByUserId || null,
-  })
+    await emp.update({
+      ...(firstName    !== undefined && { firstName:    firstName.trim() }),
+      ...(lastName     !== undefined && { lastName:     lastName.trim() }),
+      ...(position     !== undefined && { position:     position?.trim()   || null }),
+      ...(phone        !== undefined && { phone:        phone?.trim()      || null }),
+      ...(startDate    !== undefined && { startDate:    startDate || null }),
+      ...(status       !== undefined && { status }),
+      ...(activeFrom   !== undefined && { activeFrom: activeFrom || null }),
+      ...(activeTo     !== undefined && { activeTo: activeTo || null }),
+      ...(employeeCode !== undefined && { employeeCode: employeeCode?.trim() || null }),
+      ...(userId       !== undefined && { userId:       userId || null }),
+      ...(newOrgId     !== undefined && newOrgId && { organizationId: newOrgId }),
+      modifiedBy: modifiedByUserId || null,
+    }, { transaction })
 
-  if (departmentIds !== undefined) {
-    await emp.setDepartments(departmentIds || [])
-  }
-  if (roleIds !== undefined) {
-    const normalizedRoleIds = Array.isArray(roleIds) ? [...new Set(roleIds)] : []
-    const linkedUserId = resultingUserId
-    if (linkedUserId) {
-      await sequelize.transaction(async (transaction) => {
+    if (departmentIds !== undefined) {
+      await emp.setDepartments(departmentIds || [], { transaction })
+    }
+    if (roleIds !== undefined) {
+      const normalizedRoleIds = Array.isArray(roleIds) ? [...new Set(roleIds)] : []
+      const linkedUserId = resultingUserId
+      if (linkedUserId) {
         await assertAssignableRoles(normalizedRoleIds, actor, transaction)
         const previousRoleLinks = await UserRole.findAll({
           where: { userId: linkedUserId },
@@ -222,11 +222,11 @@ const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
             summary: { targetUserId: linkedUserId, previousRoleIds, roleIds: normalizedRoleIds },
           }, { transaction })
         }
-      })
-    } else if (normalizedRoleIds.length) {
-      throw { status: 400, message: 'Assign a login account before assigning roles' }
+      } else if (normalizedRoleIds.length) {
+        throw { status: 400, message: 'Assign a login account before assigning roles' }
+      }
     }
-  }
+  })
 
   return getById(id)
 }
