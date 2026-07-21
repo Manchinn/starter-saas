@@ -11,7 +11,11 @@ module.exports = {
   async mySubscription(req, res) {
     try {
       const organizationId = organizationIdOf(req.user)
-      const [subscription, plan, usage] = await Promise.all([billing.getSubscription(organizationId), billing.getEffectivePlan(organizationId), billing.getUsage(organizationId)])
+      const [subscription, plan, usage] = await Promise.all([
+        billing.getSubscription(organizationId),
+        billing.getEffectivePlan(organizationId),
+        billing.getUsage(organizationId),
+      ])
       return ok(res, { subscription, plan, usage, canManage: isBillingOwner(req.user) })
     } catch { return serverError(res) }
   },
@@ -50,10 +54,41 @@ module.exports = {
   async adminListSubscriptions(req, res) {
     try { return ok(res, { subscriptions: await billing.listSubscriptions() }) } catch { return serverError(res) }
   },
+  async adminGetSubscription(req, res) {
+    try {
+      const organizationId = req.params.organizationId
+      const [subscription, invoices] = await Promise.all([
+        billing.getSubscriptionDetail(organizationId),
+        billing.listInvoices(organizationId),
+      ])
+      if (!subscription) return fail(res, 'Subscription not found', 404)
+      return ok(res, { subscription, invoices })
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
   async adminSetSubscription(req, res) {
     try {
-      const subscription = await billing.adminSetSubscription(req.params.organizationId, req.body)
+      const subscription = await billing.adminSetSubscription(req.params.organizationId, {
+        planId: req.body.planId,
+        status: req.body.status,
+        suspended: req.body.suspended,
+        currentPeriodStart: req.body.currentPeriodStart,
+        currentPeriodEnd: req.body.currentPeriodEnd,
+      })
       return ok(res, { subscription }, 'Subscription updated')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async adminSuspendSubscription(req, res) {
+    try {
+      const subscription = await billing.setSuspended(req.params.organizationId, req.body.suspended !== false)
+      return ok(res, { subscription }, 'Subscription updated')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async adminCancelSubscription(req, res) {
+    try {
+      const subscription = await billing.cancel(req.params.organizationId, {
+        atPeriodEnd: req.body?.immediate !== true,
+      })
+      return ok(res, { subscription }, 'Subscription canceled')
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },
 }

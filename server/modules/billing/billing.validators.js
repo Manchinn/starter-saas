@@ -22,6 +22,9 @@ const planUpdateRules = [
 const subscriptionRules = [
   body('planId').optional().isUUID().withMessage('Plan ID must be a UUID'),
   body('status').optional().isIn(['trialing', 'active', 'past_due', 'canceled', 'expired']).withMessage('Invalid subscription status'),
+  body('suspended').optional().isBoolean().withMessage('Suspended must be a boolean'),
+  body('currentPeriodStart').optional({ nullable: true }).isISO8601().withMessage('Period start must be a date'),
+  body('currentPeriodEnd').optional({ nullable: true }).isISO8601().withMessage('Period end must be a date'),
 ]
 const subscribeRules = [
   body('planId').isUUID().withMessage('Plan ID must be a UUID'),

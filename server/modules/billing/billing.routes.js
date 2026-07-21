@@ -18,5 +18,8 @@ router.get('/admin/plans/:id', requirePermission('billing.manage'), controller.a
 router.put('/admin/plans/:id', requirePermission('billing.manage'), planUpdateRules, validate, controller.adminUpdatePlan)
 router.delete('/admin/plans/:id', requirePermission('billing.manage'), controller.adminDeletePlan)
 router.get('/admin/subscriptions', requirePermission('billing.manage'), controller.adminListSubscriptions)
+router.get('/admin/subscriptions/:organizationId', requirePermission('billing.manage'), controller.adminGetSubscription)
 router.put('/admin/subscriptions/:organizationId', requirePermission('billing.manage'), subscriptionRules, validate, controller.adminSetSubscription)
+router.post('/admin/subscriptions/:organizationId/suspend', requirePermission('billing.manage'), controller.adminSuspendSubscription)
+router.post('/admin/subscriptions/:organizationId/cancel', requirePermission('billing.manage'), controller.adminCancelSubscription)
 module.exports = router

@@ -28,6 +28,10 @@ Git history remains the complete implementation-level record.
   canceled, expired, past_due, or suspended can still sign in, but are confined
   to `/billing` (minimal shell) until they re-subscribe; platform admins remain
   exempt. Server gate allows `/api/billing/*` and `/api/auth/*` only.
+- Admin subscription detail: per-organization screen with plan/tenant cards,
+  payment history, Suspend/Resume, immediate Cancel, and Edit overrides
+  (`suspended` flag, period dates). `subscribe` clears suspension so restored
+  plans take effect.
 
 ### Changed
 

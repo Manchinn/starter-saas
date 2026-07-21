@@ -14,6 +14,7 @@ const Subscription = sequelize.define('Subscription', {
   currentPeriodEnd: { type: DataTypes.DATE, allowNull: true },
   trialEndsAt: { type: DataTypes.DATE, allowNull: true },
   cancelAtPeriodEnd: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+  suspended: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   canceledAt: { type: DataTypes.DATE, allowNull: true },
   provider: { type: DataTypes.STRING, allowNull: false, defaultValue: 'manual' },
   providerCustomerId: { type: DataTypes.STRING, allowNull: true },

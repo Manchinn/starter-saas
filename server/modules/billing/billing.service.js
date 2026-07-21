@@ -174,6 +174,9 @@ async function subscribe(organizationId, planId, { provider = config.billing.pro
     status: trialing ? 'trialing' : 'active',
     currentPeriodStart: now, currentPeriodEnd: periodEnd, trialEndsAt,
     cancelAtPeriodEnd: false, canceledAt: null,
+    // Subscribing reactivates the org — clear prior admin suspension so the
+    // new plan actually takes effect (isActive treats suspended as inactive).
+    suspended: false,
   }
   const existing = await Subscription.findOne({ where: { organizationId } })
   if (existing) await existing.update(fields)
@@ -248,14 +251,45 @@ const listSubscriptions = () => Subscription.findAll({
   ], order: [['updatedAt', 'DESC']],
 })
 
-async function adminSetSubscription(organizationId, { planId, status } = {}) {
-  let subscription = await Subscription.findOne({ where: { organizationId } })
-  if (planId && (!subscription || subscription.planId !== planId)) subscription = await subscribe(organizationId, planId)
-  if (!subscription) throw { status: 404, message: 'Subscription not found' }
-  if (status) {
-    await subscription.update({ status })
-    invalidate(organizationId)
+// One org's subscription with plan + owning org for the admin detail screen.
+const getSubscriptionDetail = (organizationId) => Subscription.findOne({
+  where: { organizationId },
+  include: [
+    { model: Plan, as: 'plan' },
+    { model: User, as: 'organization', attributes: ['id', 'name', 'email', 'companyName'] },
+  ],
+})
+
+// Admin override — only (re)subscribe when the plan actually changes so saves
+// do not reset the period or mint a duplicate invoice.
+async function adminSetSubscription(organizationId, {
+  planId, status, suspended, currentPeriodStart, currentPeriodEnd,
+} = {}) {
+  const current = await Subscription.findOne({ where: { organizationId } })
+  if (planId && (!current || current.planId !== planId)) {
+    await subscribe(organizationId, planId)
   }
+
+  const subscription = await Subscription.findOne({ where: { organizationId } })
+  if (!subscription) throw { status: 404, message: 'Subscription not found' }
+
+  const fields = {}
+  if (status !== undefined) fields.status = status
+  if (suspended !== undefined) fields.suspended = !!suspended
+  if (currentPeriodStart !== undefined) fields.currentPeriodStart = currentPeriodStart
+  if (currentPeriodEnd !== undefined) fields.currentPeriodEnd = currentPeriodEnd
+  if (Object.keys(fields).length) await subscription.update(fields)
+  invalidate(organizationId)
+  return getSubscription(organizationId)
+}
+
+// Suspend / resume without altering lifecycle status. Suspension locks the org
+// into billing-only mode via isLockedOut / isActive.
+async function setSuspended(organizationId, suspended) {
+  const subscription = await Subscription.findOne({ where: { organizationId } })
+  if (!subscription) throw { status: 404, message: 'No subscription' }
+  await subscription.update({ suspended: !!suspended })
+  invalidate(organizationId)
   return getSubscription(organizationId)
 }
 
@@ -265,5 +299,6 @@ module.exports = {
   checkLimit, hasFeature, increment, assertSeatAvailable, getUsage, periodForMetric,
   subscribe, ensureDefaultSubscription, cancel,
   listPlans, listPublicPlans, getPlan, createPlan, updatePlan, deletePlan,
-  listInvoices, listSubscriptions, adminSetSubscription, withSeatLock, _invalidate: invalidate,
+  listInvoices, listSubscriptions, getSubscriptionDetail, adminSetSubscription, setSuspended,
+  withSeatLock, _invalidate: invalidate,
 }

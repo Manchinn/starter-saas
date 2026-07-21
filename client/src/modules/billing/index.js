@@ -9,6 +9,18 @@ export default {
     { path: '/billing/plans', name: 'billing-plans', component: () => import('./views/Plans.vue'), meta: { requiresAuth: true, title: 'billing.plans' } },
     { path: '/admin/billing/plans', name: 'admin-billing-plans', component: () => import('./views/admin/PlanList.vue'), meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.plans' } },
     { path: '/admin/billing/subscriptions', name: 'admin-billing-subscriptions', component: () => import('./views/admin/Subscriptions.vue'), meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.subscriptions' } },
+    {
+      path: '/admin/billing/subscriptions/:orgId',
+      name: 'admin-billing-subscription-detail',
+      component: () => import('./views/admin/SubscriptionDetail.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.subscriptionTitle' },
+    },
+    {
+      path: '/admin/billing/subscriptions/:orgId/edit',
+      name: 'admin-billing-subscription-edit',
+      component: () => import('./views/admin/SubscriptionEdit.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.editSubscription' },
+    },
   ],
   navItem: { label: 'billing.title', to: '/billing', icon: CreditCardIcon },
   adminNavItem: {

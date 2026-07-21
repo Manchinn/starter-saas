@@ -145,3 +145,54 @@ describe('access gate', () => {
     expect(Subscription.findOne).toHaveBeenCalledWith({ where: { organizationId: 'org-1' } })
   })
 })
+
+describe('suspended subscriptions', () => {
+  test('a suspended subscription falls back to the default plan', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'active', currentPeriodEnd: future, suspended: true, plan: pro })
+    Plan.findOne.mockResolvedValue(free)
+    await expect(service.getEffectivePlan('org-suspended')).resolves.toBe(free)
+  })
+
+  test('setSuspended flips the flag and returns the subscription', async () => {
+    const sub = { update: jest.fn().mockResolvedValue() }
+    Subscription.findOne
+      .mockResolvedValueOnce(sub)
+      .mockResolvedValueOnce({ status: 'active', plan: pro })
+    await service.setSuspended('o', true)
+    expect(sub.update).toHaveBeenCalledWith({ suspended: true })
+  })
+
+  test('setSuspended throws 404 when there is no subscription', async () => {
+    Subscription.findOne.mockResolvedValue(null)
+    await expect(service.setSuspended('o', true)).rejects.toMatchObject({ status: 404 })
+  })
+})
+
+describe('adminSetSubscription', () => {
+  test('does not re-subscribe when the plan is unchanged', async () => {
+    const sub = { planId: 'pro', update: jest.fn().mockResolvedValue() }
+    Subscription.findOne.mockResolvedValue(sub)
+    await service.adminSetSubscription('o', { planId: 'pro', status: 'past_due' })
+    expect(Plan.findByPk).not.toHaveBeenCalled()
+    expect(sub.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'past_due' }))
+  })
+
+  test('applies suspended and date overrides', async () => {
+    const sub = { planId: 'pro', update: jest.fn().mockResolvedValue() }
+    Subscription.findOne.mockResolvedValue(sub)
+    await service.adminSetSubscription('o', { suspended: true, currentPeriodEnd: future })
+    expect(sub.update).toHaveBeenCalledWith(expect.objectContaining({ suspended: true, currentPeriodEnd: future }))
+  })
+})
+
+describe('subscribe clears suspension', () => {
+  test('updates existing subscription with suspended false', async () => {
+    const existing = { planId: 'old', update: jest.fn().mockResolvedValue() }
+    Plan.findByPk.mockResolvedValue({ id: 'pro', isActive: true, trialDays: 0, interval: 'month', price: 0, currency: 'USD' })
+    Subscription.findOne
+      .mockResolvedValueOnce(existing)
+      .mockResolvedValueOnce({ status: 'active', plan: pro })
+    await service.subscribe('org-1', 'pro')
+    expect(existing.update).toHaveBeenCalledWith(expect.objectContaining({ suspended: false, status: 'active' }))
+  })
+})

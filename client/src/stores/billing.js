@@ -58,14 +58,27 @@ export const useBillingStore = defineStore('billing', () => {
     const { data } = await api.get('/billing/admin/subscriptions')
     subscriptions.value = data.data.subscriptions || []
   }
+  async function getAdminSubscription(organizationId) {
+    const { data } = await api.get(`/billing/admin/subscriptions/${organizationId}`)
+    return data.data
+  }
   async function setSubscription(organizationId, payload) {
-    return api.put(`/billing/admin/subscriptions/${organizationId}`, payload)
+    const { data } = await api.put(`/billing/admin/subscriptions/${organizationId}`, payload)
+    return data.data.subscription
+  }
+  async function suspendSubscription(organizationId, suspended) {
+    const { data } = await api.post(`/billing/admin/subscriptions/${organizationId}/suspend`, { suspended })
+    return data.data.subscription
+  }
+  async function cancelSubscription(organizationId, immediate = false) {
+    const { data } = await api.post(`/billing/admin/subscriptions/${organizationId}/cancel`, { immediate })
+    return data.data.subscription
   }
 
   return {
     subscription, plan, usage, invoices, plans, adminPlans, subscriptions, loading, canManage,
     fetchSubscription, fetchInvoices, fetchPlans, subscribe, cancel,
     fetchAdminPlans, createPlan, updatePlan, deletePlan,
-    fetchSubscriptions, setSubscription,
+    fetchSubscriptions, getAdminSubscription, setSubscription, suspendSubscription, cancelSubscription,
   }
 })
