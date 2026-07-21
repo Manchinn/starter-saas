@@ -17,6 +17,9 @@ Git history remains the complete implementation-level record.
 - HRMS Staff Management: employee login accounts can be created or linked with
   centrally managed roles; role assignment is constrained by the manager's own
   permissions, and employee/department APIs now enforce their module permissions.
+- HRMS staff offboarding: managers can terminate an employee's access in one
+  action, deactivating the login, revoking active sessions, removing roles, and
+  retaining an organization-scoped access history on the employee record.
 
 ### Changed
 

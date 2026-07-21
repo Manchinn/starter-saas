@@ -9,6 +9,7 @@ const roomOrg   = (orgId)         => `org:${orgId}`
 const roomAdmin = (orgId)         => `orgadmin:${orgId}`
 const roomDept  = (deptId)        => `dept:${deptId}`
 const roomMod   = (orgId, slug)   => `mod:${orgId}:${slug}`
+const roomUser  = (userId)        => `user:${userId}`
 
 const orgKeyOf = (user) => user.organizationId || user.id
 
@@ -38,6 +39,7 @@ const init = (server) => {
   io.on('connection', async (socket) => {
     const user = socket.user
     const orgId = orgKeyOf(user)
+    socket.join(roomUser(user.id))
     socket.join(roomOrg(orgId))
     if (user.role === 'admin') socket.join(roomAdmin(orgId))
 
@@ -83,4 +85,10 @@ const emitAlertsChanged = (alert, reason = 'new') => {
 
 const getIO = () => io
 
-module.exports = { init, emitAlertsChanged, getIO }
+const disconnectUser = (userId) => {
+  if (!io || !userId) return false
+  io.in(roomUser(userId)).disconnectSockets(true)
+  return true
+}
+
+module.exports = { init, emitAlertsChanged, disconnectUser, getIO }

@@ -18,5 +18,6 @@ are actionable product work; `CHANGELOG.md` records shipped behavior.
 
 ### Staff Management
 
-The next product slice. Start with an upstream comparison and preserve the
-existing organization-scoped employee, department, and user-account model.
+Continue with an organization-admin drill-down into employee management while
+preserving the existing organization-scoped employee, department, user-account,
+and central RBAC models.

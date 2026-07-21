@@ -9,35 +9,48 @@ const logger = require('../../../server/core/logger').forLabel('audit')
  * Call with:
  *   audit.log({ user, action: 'invoice.send', entityType: 'Invoice', entityId, summary })
  */
-const log = async ({ user, userId, userEmail, action, entityType, entityId, summary, organizationId }) => {
-  try {
-    const resolvedUserId = user?.id || userId || null
-    let orgId      = organizationId || user?.organizationId || user?.id || null
-    let resolvedEmail = user?.email || userEmail || null
+const buildRow = async ({ user, userId, userEmail, action, entityType, entityId, summary, organizationId }, transaction) => {
+  const resolvedUserId = user?.id || userId || null
+  let orgId = organizationId || user?.organizationId || user?.id || null
+  let resolvedEmail = user?.email || userEmail || null
 
-    // Most callers only pass userId — look up the user to derive the effective
-    // organizationId so audit rows are visible in the org-scoped list query.
-    // Same convention as controllers: organizationId || user.id (self-org).
-    if ((!orgId || !resolvedEmail) && resolvedUserId) {
-      const { User } = require('../../../server/models')
-      const u = await User.findByPk(resolvedUserId, { attributes: ['id', 'organizationId', 'email'] })
-      if (u) {
-        orgId         = orgId         || u.organizationId || u.id
-        resolvedEmail = resolvedEmail || u.email
-      }
+  // Most callers only pass userId — look up the user to derive the effective
+  // organizationId so audit rows are visible in the org-scoped list query.
+  // Same convention as controllers: organizationId || user.id (self-org).
+  if ((!orgId || !resolvedEmail) && resolvedUserId) {
+    const { User } = require('../../../server/models')
+    const options = { attributes: ['id', 'organizationId', 'email'] }
+    if (transaction) options.transaction = transaction
+    const u = await User.findByPk(resolvedUserId, options)
+    if (u) {
+      orgId = orgId || u.organizationId || u.id
+      resolvedEmail = resolvedEmail || u.email
     }
+  }
 
-    await AuditLog.create({
-      userId:         resolvedUserId,
-      userEmail:      resolvedEmail,
-      action,
-      entityType,
-      entityId:       entityId || null,
-      summary:        summary  || null,
-      organizationId: orgId,
-    })
+  return {
+    userId: resolvedUserId,
+    userEmail: resolvedEmail,
+    action,
+    entityType,
+    entityId: entityId || null,
+    summary: summary || null,
+    organizationId: orgId,
+  }
+}
+
+// Security-sensitive callers can require the audit row to commit atomically
+// with their business mutation.
+const logStrict = async (event, { transaction } = {}) => {
+  const row = await buildRow(event, transaction)
+  return transaction ? AuditLog.create(row, { transaction }) : AuditLog.create(row)
+}
+
+const log = async (event) => {
+  try {
+    await logStrict(event)
   } catch (err) {
-    logger.error('failed to record event', { action, error: err.message || String(err) })
+    logger.error('failed to record event', { action: event.action, error: err.message || String(err) })
   }
 }
 
@@ -61,4 +74,4 @@ const list = async ({ page = 1, limit = 50, entityType = '', entityId = '', user
   return { total: count, page, limit, logs: rows }
 }
 
-module.exports = { log, list }
+module.exports = { log, logStrict, list }

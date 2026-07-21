@@ -8,8 +8,10 @@ router.use(authenticate)
 
 router.get('/',            requirePermission('hrms.employees.list'),   (req, res) => controller.list(req, res))
 router.get('/role-options', requirePermission('hrms.employees.edit'),  (req, res) => controller.roleOptions(req, res))
+router.get('/:id/access-history', requirePermission('hrms.employees.list'), (req, res) => controller.accessHistory(req, res))
 router.get('/:id',         requirePermission('hrms.employees.list'),   (req, res) => controller.getById(req, res))
 router.post('/',           requirePermission('hrms.employees.edit'),   (req, res) => controller.create(req, res))
+router.post('/:id/offboard', requirePermission('hrms.employees.edit'), (req, res) => controller.offboard(req, res))
 router.put('/:id',         requirePermission('hrms.employees.edit'),   (req, res) => controller.update(req, res))
 router.delete('/:id',      requirePermission('hrms.employees.delete'), (req, res) => controller.remove(req, res))
 

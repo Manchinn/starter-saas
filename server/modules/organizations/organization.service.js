@@ -204,11 +204,21 @@ const assignModules = async (organizationId, moduleIds) => {
   return getById(organizationId)
 }
 
-const assignRoles = async (organizationId, roleIds, actor) => {
-  const organization = await User.findByPk(organizationId)
+const assignRoles = async (organizationId, roleIds, actor, { transaction } = {}) => {
+  const organization = transaction
+    ? await User.findByPk(organizationId, { transaction })
+    : await User.findByPk(organizationId)
   if (!organization) throw { status: 404, message: 'Organization not found' }
   await assertCanAssignRoles(actor, roleIds)
-  const roles = await Role.findAll({ where: { id: roleIds } })
+  const uniqueRoleIds = [...new Set(roleIds)]
+  const roleQuery = { where: { id: uniqueRoleIds } }
+  if (transaction) roleQuery.transaction = transaction
+  const roles = await Role.findAll(roleQuery)
+  if (roles.length !== uniqueRoleIds.length) throw { status: 400, message: 'One or more roles do not exist' }
+  if (transaction) {
+    await organization.setRoles(roles, { transaction })
+    return organization
+  }
   await organization.setRoles(roles)
   return getById(organizationId)
 }

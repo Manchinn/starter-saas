@@ -6,8 +6,11 @@
 // caller explicitly passes departmentIds.
 
 jest.mock('../../../server/models', () => ({
+  sequelize:  { transaction: jest.fn((callback) => callback({ id: 'tx' })) },
   Employee:   { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), create: jest.fn() },
   User:       { findByPk: jest.fn() },
+  UserRole:   { findAll: jest.fn(), destroy: jest.fn() },
+  RefreshToken: { update: jest.fn() },
   Department: {},
   Role:       { findAll: jest.fn() },
   Permission: {},
@@ -26,12 +29,29 @@ jest.mock('../../../server/middleware/permission', () => ({
   resolvePermissions: jest.fn(),
 }))
 
+jest.mock('../../../server/core/realtime', () => ({
+  disconnectUser: jest.fn(),
+}))
+
+jest.mock('../../erp/audit/audit.service', () => ({
+  log: jest.fn(),
+  logStrict: jest.fn(),
+  list: jest.fn(),
+}))
+
 const { Op } = require('sequelize')
-const { Employee, User, Role } = require('../../../server/models')
+const { sequelize, Employee, User, UserRole, RefreshToken, Role } = require('../../../server/models')
 const seqService = require('../../erp/settings/services/sequence.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
 const { resolvePermissions } = require('../../../server/middleware/permission')
+const realtime = require('../../../server/core/realtime')
+const auditService = require('../../erp/audit/audit.service')
 const service = require('../services/employee.service')
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  sequelize.transaction.mockImplementation((callback) => callback({ id: 'tx' }))
+})
 
 describe('employee.list', () => {
   test('rejects when organizationId is missing', async () => {
@@ -134,6 +154,8 @@ describe('employee.create — credential modes', () => {
 
   test('assigns selected global roles to an existing linked account', async () => {
     User.findByPk.mockResolvedValue({ id: 'u', organizationId: 'o' })
+    Role.findAll.mockResolvedValue([{ id: 'r1', permissions: [] }])
+    UserRole.findAll.mockResolvedValue([{ roleId: 'r1' }])
     Employee.findOne
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce({ id: 'e1', userId: 'u' })
@@ -143,7 +165,15 @@ describe('employee.create — credential modes', () => {
       organizationId: 'o', firstName: 'A', lastName: 'B', userId: 'u', roleIds: ['r1'], actor: { role: 'admin' },
     })
 
-    expect(organizationService.assignRoles).toHaveBeenCalledWith('u', ['r1'], { role: 'admin' })
+    expect(organizationService.assignRoles).toHaveBeenCalledWith(
+      'u', ['r1'], { role: 'admin' }, { transaction: { id: 'tx' } },
+    )
+    expect(auditService.logStrict).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'hrms.employee.access.account_linked',
+      entityId: 'e1',
+      organizationId: 'o',
+      summary: { targetUserId: 'u', roleIds: ['r1'], credentialMode: 'existing' },
+    }), { transaction: { id: 'tx' } })
   })
 
   test('no userId and credentialMode "existing" → emp gets userId: null', async () => {
@@ -183,7 +213,7 @@ describe('employee.create — autoCode and departments', () => {
     const emp2 = { id: 'e2', setDepartments: jest.fn() }
     Employee.create.mockResolvedValue(emp2)
     await service.create({ organizationId: 'o', firstName: 'A', lastName: 'B', departmentIds: ['d1', 'd2'] })
-    expect(emp2.setDepartments).toHaveBeenCalledWith(['d1', 'd2'])
+    expect(emp2.setDepartments).toHaveBeenCalledWith(['d1', 'd2'], { transaction: { id: 'tx' } })
   })
 })
 
@@ -194,8 +224,8 @@ describe('employee.update', () => {
       .rejects.toEqual({ status: 404, message: 'Employee not found' })
   })
 
-  test('changing userId to one already taken by another employee → 409', async () => {
-    const emp = { id: 'e1', userId: 'old', update: jest.fn() }
+  test('linking a userId already taken by another employee → 409', async () => {
+    const emp = { id: 'e1', userId: null, update: jest.fn() }
     Employee.findOne
       .mockResolvedValueOnce(emp)                       // initial lookup
       .mockResolvedValueOnce({ id: 'e-other' })         // duplicate-link check
@@ -204,8 +234,8 @@ describe('employee.update', () => {
       .rejects.toEqual({ status: 409, message: 'This user already has an employee record' })
   })
 
-  test('userId change to a non-existent user → 404', async () => {
-    const emp = { id: 'e1', userId: 'old', update: jest.fn() }
+  test('linking a non-existent userId → 404', async () => {
+    const emp = { id: 'e1', userId: null, update: jest.fn() }
     Employee.findOne.mockResolvedValue(emp)
     User.findByPk.mockResolvedValue(null)
     await expect(service.update('e1', { userId: 'missing' }, 'o', 'u'))
@@ -246,7 +276,7 @@ describe('employee.update', () => {
       .mockResolvedValueOnce(emp)
       .mockResolvedValueOnce({ id: 'e1' })
     await service.update('e1', { departmentIds: [] }, 'o', 'u')
-    expect(emp.setDepartments).toHaveBeenCalledWith([])
+    expect(emp.setDepartments).toHaveBeenCalledWith([], { transaction: { id: 'tx' } })
   })
 
   test('omitting departmentIds leaves the existing junction untouched', async () => {
@@ -267,8 +297,101 @@ describe('employee.update', () => {
     Employee.findOne
       .mockResolvedValueOnce(emp)
       .mockResolvedValueOnce({ id: 'e1' })
+    UserRole.findAll.mockResolvedValue([{ roleId: 'old-role' }])
+    Role.findAll.mockResolvedValue([{ id: 'r1', permissions: [] }])
     await service.update('e1', { roleIds: ['r1'] }, 'o', 'u-admin', { role: 'admin' })
-    expect(organizationService.assignRoles).toHaveBeenCalledWith('u1', ['r1'], { role: 'admin' })
+    expect(organizationService.assignRoles).toHaveBeenCalledWith('u1', ['r1'], { role: 'admin' }, { transaction: { id: 'tx' } })
+    expect(auditService.logStrict).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'hrms.employee.access.roles_changed',
+      entityType: 'Employee',
+      entityId: 'e1',
+      organizationId: 'o',
+      summary: { targetUserId: 'u1', previousRoleIds: ['old-role'], roleIds: ['r1'] },
+    }), { transaction: { id: 'tx' } })
+  })
+
+  test('rejects a direct terminated status while the linked login is active', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn() }
+    Employee.findOne.mockResolvedValue(emp)
+    User.findByPk.mockResolvedValue({ id: 'u1', organizationId: 'o', isActive: true })
+
+    await expect(service.update('e1', { status: 'terminated' }, 'o', 'manager-1', { id: 'manager-1' }))
+      .rejects.toEqual({ status: 400, message: 'Use offboarding to terminate an employee with a linked login account' })
+
+    expect(emp.update).not.toHaveBeenCalled()
+  })
+
+  test('cannot bypass offboarding by unlinking the account while terminating', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn() }
+    Employee.findOne.mockResolvedValue(emp)
+
+    await expect(service.update('e1', { userId: '', status: 'terminated' }, 'o', 'manager-1', { id: 'manager-1' }))
+      .rejects.toEqual({ status: 400, message: 'Use offboarding to terminate an employee with a linked login account' })
+
+    expect(emp.update).not.toHaveBeenCalled()
+  })
+
+  test('cannot unlink an account first and terminate it in a later request', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn() }
+    Employee.findOne.mockResolvedValue(emp)
+
+    await expect(service.update('e1', { userId: '' }, 'o', 'manager-1', { id: 'manager-1' }))
+      .rejects.toEqual({ status: 400, message: 'Use offboarding before changing a linked login account' })
+
+    expect(emp.update).not.toHaveBeenCalled()
+  })
+
+  test('audits linking an account to an employee without one', async () => {
+    const emp = { id: 'e1', userId: null, update: jest.fn().mockResolvedValue() }
+    Employee.findOne
+      .mockResolvedValueOnce(emp)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'e1', userId: 'u1' })
+    User.findByPk.mockResolvedValue({ id: 'u1', organizationId: 'o' })
+
+    await service.update('e1', { userId: 'u1' }, 'o', 'manager-1', { id: 'manager-1' })
+
+    expect(auditService.logStrict).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'hrms.employee.access.account_linked',
+      entityId: 'e1',
+      organizationId: 'o',
+      summary: { targetUserId: 'u1', roleIds: [] },
+    }), { transaction: { id: 'tx' } })
+  })
+
+  test('rejects nonexistent role IDs even for platform administrators', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn().mockResolvedValue() }
+    Employee.findOne.mockResolvedValue(emp)
+    Role.findAll.mockResolvedValue([])
+
+    await expect(service.update('e1', { roleIds: ['missing-role'] }, 'o', 'admin-1', { id: 'admin-1', role: 'admin' }))
+      .rejects.toEqual({ status: 400, message: 'One or more roles do not exist' })
+
+    expect(organizationService.assignRoles).not.toHaveBeenCalled()
+    expect(auditService.logStrict).not.toHaveBeenCalled()
+  })
+
+  test('keeps employee, department, role, and audit writes in the same transaction', async () => {
+    const emp = {
+      id: 'e1',
+      userId: 'u1',
+      update: jest.fn().mockResolvedValue(),
+      setDepartments: jest.fn().mockResolvedValue(),
+    }
+    Employee.findOne.mockResolvedValue(emp)
+    Role.findAll.mockResolvedValue([{ id: 'r1', permissions: [] }])
+    UserRole.findAll.mockResolvedValue([{ roleId: 'old-role' }])
+    auditService.logStrict.mockRejectedValueOnce(new Error('audit unavailable'))
+
+    await expect(service.update('e1', {
+      firstName: 'Ada', departmentIds: ['d1'], roleIds: ['r1'],
+    }, 'o', 'manager-1', { id: 'manager-1', role: 'admin' })).rejects.toThrow('audit unavailable')
+
+    expect(emp.update).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Ada' }), { transaction: { id: 'tx' } })
+    expect(emp.setDepartments).toHaveBeenCalledWith(['d1'], { transaction: { id: 'tx' } })
+    expect(organizationService.assignRoles).toHaveBeenCalledWith(
+      'u1', ['r1'], { id: 'manager-1', role: 'admin' }, { transaction: { id: 'tx' } },
+    )
   })
 })
 
@@ -298,5 +421,102 @@ describe('employee.remove', () => {
     Employee.findOne.mockResolvedValue(emp)
     await service.remove('e1', 'o')
     expect(emp.destroy).toHaveBeenCalled()
+  })
+})
+
+describe('employee.offboard', () => {
+  test('terminates employment, deactivates login, revokes sessions and roles, and records the access change', async () => {
+    const emp = {
+      id: 'e1',
+      userId: 'u1',
+      status: 'active',
+      update: jest.fn().mockResolvedValue(),
+    }
+    const user = {
+      id: 'u1',
+      organizationId: 'o1',
+      isActive: true,
+      update: jest.fn().mockResolvedValue(),
+    }
+    Employee.findOne.mockResolvedValue(emp)
+    User.findByPk.mockResolvedValue(user)
+    UserRole.findAll.mockResolvedValue([{ roleId: 'r1' }, { roleId: 'r2' }])
+    UserRole.destroy.mockResolvedValue(2)
+    RefreshToken.update.mockResolvedValue([3])
+
+    const result = await service.offboard('e1', 'o1', 'manager-1', { id: 'manager-1', organizationId: 'o1' }, '2026-07-21')
+
+    expect(user.update).toHaveBeenCalledWith({ isActive: false }, { transaction: { id: 'tx' } })
+    expect(UserRole.destroy).toHaveBeenCalledWith({ where: { userId: 'u1' }, transaction: { id: 'tx' } })
+    expect(RefreshToken.update).toHaveBeenCalledWith(
+      { isRevoked: true },
+      { where: { userId: 'u1', isRevoked: false }, transaction: { id: 'tx' } },
+    )
+    expect(emp.update).toHaveBeenCalledWith(
+      { status: 'terminated', activeTo: '2026-07-21', modifiedBy: 'manager-1' },
+      { transaction: { id: 'tx' } },
+    )
+    expect(auditService.logStrict).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'hrms.employee.access.offboarded',
+      entityType: 'Employee',
+      entityId: 'e1',
+      organizationId: 'o1',
+      summary: expect.objectContaining({ targetUserId: 'u1', revokedRoleIds: ['r1', 'r2'], revokedSessions: 3 }),
+    }), { transaction: { id: 'tx' } })
+    expect(realtime.disconnectUser).toHaveBeenCalledWith('u1')
+    expect(result).toEqual({ employeeId: 'e1', userId: 'u1', revokedRoles: 2, revokedSessions: 3 })
+  })
+
+  test('does not disconnect realtime sessions when the transactional audit write fails', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn().mockResolvedValue() }
+    const user = { id: 'u1', organizationId: 'o1', update: jest.fn().mockResolvedValue() }
+    Employee.findOne.mockResolvedValue(emp)
+    User.findByPk.mockResolvedValue(user)
+    UserRole.findAll.mockResolvedValue([])
+    UserRole.destroy.mockResolvedValue(0)
+    RefreshToken.update.mockResolvedValue([1])
+    auditService.logStrict.mockRejectedValueOnce(new Error('audit unavailable'))
+
+    await expect(service.offboard('e1', 'o1', 'manager-1', { id: 'manager-1', organizationId: 'o1' }))
+      .rejects.toThrow('audit unavailable')
+
+    expect(realtime.disconnectUser).not.toHaveBeenCalled()
+  })
+
+  test('rejects offboarding an employee without a linked login account', async () => {
+    Employee.findOne.mockResolvedValue({ id: 'e1', userId: null })
+
+    await expect(service.offboard('e1', 'o1', 'manager-1', { id: 'manager-1' }))
+      .rejects.toEqual({ status: 400, message: 'Employee has no linked login account' })
+
+    expect(auditService.logStrict).not.toHaveBeenCalled()
+  })
+
+  test('prevents managers from offboarding their own account', async () => {
+    Employee.findOne.mockResolvedValue({ id: 'e1', userId: 'manager-1' })
+
+    await expect(service.offboard('e1', 'o1', 'manager-1', { id: 'manager-1' }))
+      .rejects.toEqual({ status: 400, message: 'You cannot offboard your own account' })
+
+    expect(User.findByPk).not.toHaveBeenCalled()
+  })
+})
+
+describe('employee.listAccessHistory', () => {
+  test('lists only access events for the employee in the current organization', async () => {
+    Employee.findOne.mockResolvedValue({ id: 'e1' })
+    auditService.list.mockResolvedValue({ total: 1, page: 1, limit: 20, logs: [{ id: 'a1' }] })
+
+    const result = await service.listAccessHistory('e1', 'o1', { page: 1, limit: 20 })
+
+    expect(auditService.list).toHaveBeenCalledWith({
+      page: 1,
+      limit: 20,
+      entityType: 'Employee',
+      entityId: 'e1',
+      action: 'hrms.employee.access.',
+      organizationId: 'o1',
+    })
+    expect(result.logs).toEqual([{ id: 'a1' }])
   })
 })
