@@ -31,3 +31,12 @@ re-applied the LINE LIFF ordering stack on the upstream architecture.
   `LineBotClient.fromChannelAccessToken` so `@line/bot-sdk` v11 wires
   push delegates correctly.
   ([`f618a66`](https://github.com/Manchinn/starter-saas/commit/f618a66))
+
+### Docs / fork policy
+
+- Documented that **`main` = upstream base + LINE port only**. Pre-rebase
+  legacy fork work is **not** continued on this tree (HRMS fork-only path,
+  offboarding/drill-down as previously layered on the old main, deferred
+  billing payment workflow from the old backlog, etc.). Historical branches
+  remain on the remote for reference only.
+  See [docs/FORK.md](docs/FORK.md).
