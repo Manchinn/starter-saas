@@ -4,6 +4,7 @@ const crypto = require('crypto')
 const { User, Module, Role, Permission } = require('../../models')
 const { Op } = require('sequelize')
 const { resolvePermissions } = require('../../middleware/permission')
+const billing = require('../billing/billing.service')
 
 // ── Privilege-escalation guards ───────────────────────────────────────────────
 // `organizations.edit` is a delegable permission, so without these guards a
@@ -73,21 +74,28 @@ const create = async ({ name, email, password, role = 'user', defaultPage = null
   assertCanSetAdminRole(actor, role)
   await assertCanAssignRoles(actor, roleIds)
 
-  const exists = await User.findOne({ where: { email } })
-  if (exists) throw { status: 409, message: 'Email already registered' }
+  const createAccount = async () => {
+    const exists = await User.findOne({ where: { email } })
+    if (exists) throw { status: 409, message: 'Email already registered' }
 
-  const organization = await User.create({ name, email, password, role, defaultPage, organizationId, parentId: parentId || null })
+    if (organizationId) await billing.assertSeatAvailable(organizationId)
 
-  if (roleIds.length) {
-    const roles = await Role.findAll({ where: { id: roleIds } })
-    await organization.setRoles(roles)
-  } else {
-    // assign default viewer role
-    const viewer = await Role.findOne({ where: { slug: 'viewer' } })
-    if (viewer) await organization.setRoles([viewer])
+    const organization = await User.create({ name, email, password, role, defaultPage, organizationId, parentId: parentId || null })
+
+    if (!organizationId) await billing.ensureDefaultSubscription(organization.id)
+
+    if (roleIds.length) {
+      const roles = await Role.findAll({ where: { id: roleIds } })
+      await organization.setRoles(roles)
+    } else {
+      const viewer = await Role.findOne({ where: { slug: 'viewer' } })
+      if (viewer) await organization.setRoles([viewer])
+    }
+
+    return getById(organization.id)
   }
 
-  return getById(organization.id)
+  return organizationId ? billing.withSeatLock(organizationId, createAccount) : createAccount()
 }
 
 const list = async ({ page = 1, limit = 20, search = '' }) => {

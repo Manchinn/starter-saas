@@ -12,9 +12,20 @@ jest.mock('../../../models', () => ({
   Permission: {},
 }))
 
+jest.mock('../../billing/billing.service', () => ({
+  ensureDefaultSubscription: jest.fn(),
+  assertSeatAvailable: jest.fn(),
+  withSeatLock: jest.fn((organizationId, task) => task()),
+}))
+
 const { Op } = require('sequelize')
 const { User, Module, Role } = require('../../../models')
+const billing = require('../../billing/billing.service')
 const service = require('../organization.service')
+
+beforeEach(() => {
+  billing.withSeatLock.mockImplementation((organizationId, task) => task())
+})
 
 describe('organization.create', () => {
   test('rejects a duplicate email', async () => {
@@ -41,6 +52,30 @@ describe('organization.create', () => {
     User.findByPk.mockResolvedValue({ id: 'o1' })
     await service.create({ name: 'Acme', email: 'a@x.com', password: 'p', roleIds: ['r1', 'r2'] })
     expect(org.setRoles).toHaveBeenCalledWith([{ id: 'r1' }, { id: 'r2' }])
+  })
+
+  test('creates a default subscription for a top-level organization', async () => {
+    User.findOne.mockResolvedValue(null)
+    const org = { id: 'o1', setRoles: jest.fn().mockResolvedValue() }
+    User.create.mockResolvedValue(org)
+    Role.findOne.mockResolvedValue({ id: 'viewer' })
+    User.findByPk.mockResolvedValue({ id: 'o1' })
+
+    await service.create({ name: 'Acme', email: 'a@x.com', password: 'p' })
+
+    expect(billing.ensureDefaultSubscription).toHaveBeenCalledWith('o1')
+  })
+
+  test('checks the owning organization has a free seat before creating staff', async () => {
+    User.findOne.mockResolvedValue(null)
+    const staff = { id: 'u1', setRoles: jest.fn().mockResolvedValue() }
+    User.create.mockResolvedValue(staff)
+    Role.findOne.mockResolvedValue({ id: 'viewer' })
+    User.findByPk.mockResolvedValue({ id: 'u1' })
+
+    await service.create({ name: 'Jane', email: 'j@x.com', password: 'p', organizationId: 'o1' })
+
+    expect(billing.assertSeatAvailable).toHaveBeenCalledWith('o1')
   })
 })
 

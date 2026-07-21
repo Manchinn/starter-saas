@@ -2,6 +2,7 @@ const { Router } = require('express')
 const { validate } = require('../../../../server/middleware/validate')
 const { authenticate } = require('../../../../server/middleware/auth')
 const { requirePermission } = require('../../../../server/middleware/permission')
+const { requireFeature, enforceLimit, meter } = require('../../../../server/middleware/plan')
 const controller = require('../controllers/delivery-order.controller')
 const { createRules } = require('../validators/delivery-order.validators')
 
@@ -16,7 +17,7 @@ router.post('/:id/confirm',  requirePermission('erp.orders.edit'),   controller.
 router.post('/:id/ship',     requirePermission('erp.orders.edit'),   controller.ship)
 router.post('/:id/deliver',  requirePermission('erp.orders.edit'),   controller.deliver)
 router.post('/:id/cancel',   requirePermission('erp.orders.edit'),   controller.cancel)
-router.post('/:id/create-invoice', requirePermission('erp.invoices.edit'), controller.createInvoice)
+router.post('/:id/create-invoice', requirePermission('erp.invoices.edit'), requireFeature('erp.invoices'), enforceLimit('erp.invoices.monthly'), meter('erp.invoices.monthly'), controller.createInvoice)
 router.delete('/:id',        requirePermission('erp.orders.delete'), controller.remove)
 
 module.exports = { mountPath: '/delivery-orders', router }

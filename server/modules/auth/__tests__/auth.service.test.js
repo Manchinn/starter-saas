@@ -23,11 +23,13 @@ jest.mock('../../../models', () => ({
 }))
 jest.mock('../../../core/mailer', () => ({ sendEmailVerification: jest.fn(), sendPasswordReset: jest.fn() }))
 jest.mock('../../../core/logger', () => ({ forLabel: () => ({ warn: jest.fn() }) }))
+jest.mock('../../billing/billing.service', () => ({ ensureDefaultSubscription: jest.fn() }))
 
 const jwt = require('jsonwebtoken')
 const config = require('../../../config/config')
 const { User, Role, RefreshToken } = require('../../../models')
 const mailer = require('../../../core/mailer')
+const billing = require('../../billing/billing.service')
 const service = require('../auth.service')
 
 // Scoped lookups: User.scope('withPassword').findOne / .findByPk
@@ -51,6 +53,7 @@ const makeUser = (over = {}) => ({
 })
 
 beforeEach(() => {
+  billing.ensureDefaultSubscription.mockResolvedValue()
   jwt.sign.mockReturnValue('signed-token')
   jwt.decode.mockReturnValue({ exp: Math.floor(Date.now() / 1000) + 3600 })
   jwt.verify.mockReturnValue({ id: 'u1' })
@@ -78,6 +81,17 @@ describe('auth.register', () => {
     expect(out.refreshToken).toBe('signed-token')
     expect(out.permissions).toEqual([])
     expect(RefreshToken.create).toHaveBeenCalled()
+    expect(billing.ensureDefaultSubscription).toHaveBeenCalledWith('u1')
+  })
+
+  test('removes the new user when subscription provisioning fails', async () => {
+    const user = makeUser({ destroy: jest.fn().mockResolvedValue() })
+    User.findOne.mockResolvedValue(null)
+    User.create.mockResolvedValue(user)
+    billing.ensureDefaultSubscription.mockRejectedValue(new Error('billing unavailable'))
+
+    await expect(service.register({ name: 'U', email: 'u@x.com', password: 'p' })).rejects.toThrow('billing unavailable')
+    expect(user.destroy).toHaveBeenCalled()
   })
 })
 

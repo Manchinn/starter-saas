@@ -7,6 +7,20 @@ Git history remains the complete implementation-level record.
 
 ## [Unreleased]
 
+### Added
+
+- Subscription and billing foundation: organization-scoped plans,
+  subscriptions, platform billing history, usage counters, default plans, and
+  billing dashboards for users and administrators.
+- Plan-aware staff-seat and monthly-invoice quota enforcement, including a
+  permission-protected administration API for catalog and subscription changes.
+
+### Changed
+
+- New organizations receive the default subscription automatically; manual
+  paid-plan changes remain administrator-only until a request/approval and
+  payment-provider flow is introduced.
+
 ### Security
 
 - Hardened organization logo uploads and static delivery by rejecting SVGs and

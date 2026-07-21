@@ -11,6 +11,7 @@ const DEFAULT_PERMISSIONS = [
   { name: 'List Permissions', slug: 'permissions.list', group: 'permissions', description: 'View permissions' },
   { name: 'Manage Permissions', slug: 'permissions.manage', group: 'permissions', description: 'Create/edit/delete permissions' },
   { name: 'Manage LINE Integration', slug: 'erp.line-integration.manage', group: 'erp', description: 'Configure LINE LIFF and Messaging API' },
+  { name: 'Manage Billing', slug: 'billing.manage', group: 'billing', description: 'Manage plans and organization subscriptions' },
 ]
 
 module.exports = {

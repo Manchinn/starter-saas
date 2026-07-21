@@ -1,0 +1,15 @@
+export default {
+  billing: {
+    title: 'Billing', subtitle: 'Plan, usage, and subscription history.', admin: 'Billing Administration',
+    plans: 'Plans', subscriptions: 'Subscriptions', currentPlan: 'Current plan', usage: 'Usage', invoices: 'Invoice history',
+    noPlan: 'No plan is available.', noInvoices: 'No billing invoices yet.', unlimited: 'Unlimited', free: 'Free',
+    plan: 'Plan', organization: 'Organization', status: 'Status', price: 'Price', interval: 'Interval', actions: 'Actions',
+    active: 'Active', trialing: 'Trialing', past_due: 'Past due', canceled: 'Canceled', expired: 'Expired',
+    cancelAtPeriodEnd: 'Cancellation is scheduled at the end of the current period.', cancelPlan: 'Cancel plan', confirmCancel: 'Cancel this subscription at period end?',
+    newPlan: 'New plan', editPlan: 'Edit plan', savePlan: 'Save plan', deletePlan: 'Delete plan', confirmDelete: 'Delete plan "{name}"?',
+    slug: 'Slug', name: 'Name', description: 'Description', currency: 'Currency', monthly: 'Monthly', yearly: 'Yearly', trialDays: 'Trial days',
+    features: 'Features JSON', limits: 'Limits JSON', public: 'Public', enabled: 'Enabled',
+    selectPlan: 'Select plan', saveSubscription: 'Save subscription', noSubscriptions: 'No subscriptions found.',
+    metric: { seats: 'Active staff seats', 'erp.invoices.monthly': 'Invoices this month' },
+  },
+}

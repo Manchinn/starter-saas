@@ -51,6 +51,10 @@ module.exports = {
   line: {
     credentialEncryptionKey: process.env.LINE_CREDENTIAL_ENCRYPTION_KEY || '',
   },
+  billing: {
+    defaultPlanSlug: process.env.BILLING_DEFAULT_PLAN_SLUG || 'free',
+    provider: process.env.BILLING_PROVIDER || 'manual',
+  },
   appName: process.env.APP_NAME || 'Starter SaaS',
   smtp: {
     host: process.env.SMTP_HOST || '',

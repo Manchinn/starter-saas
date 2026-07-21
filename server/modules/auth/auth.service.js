@@ -5,6 +5,7 @@ const config = require('../../config/config')
 const { User, Role, Permission, RefreshToken, MasterDataCategory, MasterDataValue } = require('../../models')
 const { Op } = require('sequelize')
 const mailer = require('../../core/mailer')
+const billing = require('../billing/billing.service')
 
 // ── Token generation (random, opaque, URL-safe) ──────────────────────────────
 const generateRawToken = () => crypto.randomBytes(32).toString('hex')
@@ -127,6 +128,12 @@ const register = async ({ name, email, password }, meta = {}) => {
   if (exists) throw { status: 409, message: 'Email already registered' }
 
   const user = await User.create({ name, email, password })
+  try {
+    await billing.ensureDefaultSubscription(user.id)
+  } catch (err) {
+    await user.destroy()
+    throw err
+  }
   await assignDefaultRole(user)
   await issueEmailVerification(user).catch((err) => {
     // Don't block registration on email failure; the user can resend later.
@@ -399,6 +406,12 @@ const install = async ({ name, email, password }, meta = {}) => {
   await seedMasterData()
 
   const user = await User.create({ name, email, password, role: 'admin' })
+  try {
+    await billing.ensureDefaultSubscription(user.id)
+  } catch (err) {
+    await user.destroy()
+    throw err
+  }
   const superAdmin = await Role.findOne({ where: { slug: 'super-admin' } })
   if (superAdmin) await user.setRoles([superAdmin])
   await issueEmailVerification(user).catch((err) => {
