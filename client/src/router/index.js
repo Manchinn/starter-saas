@@ -80,9 +80,16 @@ router.beforeEach(async (to, from, next) => {
 
   const defaultHome = auth.isAdmin ? '/dashboard' : '/erp/dashboard'
 
-  if (isGuest && auth.isAuthenticated) return next(defaultHome)
+  if (isGuest && auth.isAuthenticated) {
+    return next(auth.locked ? '/billing' : defaultHome)
+  }
   if (requiresAuth && !auth.isAuthenticated) return next('/login')
   if (requiresAdmin && !auth.isAdmin) return next('/erp/dashboard')
+
+  // Billing-only mode: locked tenants may only reach self-service billing pages.
+  if (requiresAuth && auth.isAuthenticated && auth.locked && !to.path.startsWith('/billing')) {
+    return next('/billing')
+  }
 
   next()
 })

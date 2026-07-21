@@ -24,12 +24,18 @@ Git history remains the complete implementation-level record.
   organization's HR employee list, create/edit/offboard with explicit org scope,
   and navigate from Organizations to `/hrms/employees?organizationId=…` while
   non-admins remain locked to their own organization.
+- Billing-only access mode for inactive subscriptions: tenants whose plan is
+  canceled, expired, past_due, or suspended can still sign in, but are confined
+  to `/billing` (minimal shell) until they re-subscribe; platform admins remain
+  exempt. Server gate allows `/api/billing/*` and `/api/auth/*` only.
 
 ### Changed
 
 - New organizations receive the default subscription automatically; manual
   paid-plan changes remain administrator-only until a request/approval and
   payment-provider flow is introduced.
+- Tenant self-service plan selection via `POST /billing/subscribe` and the
+  `/billing/plans` page so locked orgs can restore access without admin help.
 
 ### Security
 

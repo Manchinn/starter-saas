@@ -104,6 +104,9 @@ const resolveSession = async (userId) => {
 
   const userJson = user.toJSON()
   userJson.organization = organization
+  // Billing-only flag: inactive subscription confines the tenant to billing pages
+  // (platform admins are always exempt).
+  userJson.locked = user.role === 'admin' ? false : await billing.isOrgLocked(orgId)
 
   return { user: userJson, permissions }
 }

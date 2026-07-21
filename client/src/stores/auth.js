@@ -30,6 +30,7 @@ export const useAuthStore = defineStore('auth', () => {
   const permissions = ref([])
   const accessToken  = ref(readToken('accessToken'))
   const refreshToken = ref(readToken('refreshToken'))
+  const locked      = ref(false) // billing-only mode (inactive subscription)
 
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
   const isAdmin         = computed(() => user.value?.role === 'admin')
@@ -58,6 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value         = null
     roles.value        = []
     permissions.value  = []
+    locked.value       = false
     removeToken('accessToken')
     removeToken('refreshToken')
     disconnectSocket()
@@ -70,10 +72,16 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken.value = refresh
   }
 
+  // Enter billing-only mode mid-session when the API reports SUBSCRIPTION_INACTIVE.
+  function markLocked() {
+    locked.value = true
+  }
+
   function applySession(data) {
     user.value        = data.user
     roles.value       = data.user?.roles ?? []
     permissions.value = data.permissions ?? []
+    locked.value      = !!data.user?.locked
   }
 
   async function fetchMe() {
@@ -132,14 +140,15 @@ export const useAuthStore = defineStore('auth', () => {
     user.value        = prev.user
     roles.value       = prev.user?.roles ?? []
     permissions.value = prev.permissions ?? []
+    locked.value      = false
   }
 
   return {
-    user, roles, permissions, accessToken,
+    user, roles, permissions, accessToken, locked,
     isAuthenticated, isAdmin, impersonating,
     hasPermission, hasRole,
     fetchMe, login, register, install, logout, changePassword,
     loginAs, returnToAdmin,
-    clearSession, syncTokensFromRefresh,
+    clearSession, syncTokensFromRefresh, markLocked,
   }
 })

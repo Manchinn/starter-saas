@@ -111,3 +111,37 @@ describe('plan catalog', () => {
     expect(plan.update).toHaveBeenCalledWith({ name: 'Pro Plus', price: 99 })
   })
 })
+
+describe('access gate', () => {
+  test('isLockedOut: only active/trialing are allowed; suspended always locks', () => {
+    expect(service.isLockedOut(null)).toBe(false)
+    expect(service.isLockedOut({ status: 'active' })).toBe(false)
+    expect(service.isLockedOut({ status: 'trialing' })).toBe(false)
+    expect(service.isLockedOut({ status: 'active', suspended: true })).toBe(true)
+    expect(service.isLockedOut({ status: 'canceled' })).toBe(true)
+    expect(service.isLockedOut({ status: 'past_due' })).toBe(true)
+    expect(service.isLockedOut({ status: 'expired' })).toBe(true)
+  })
+
+  test('isUserLocked exempts system admins without hitting the DB', async () => {
+    Subscription.findOne.mockReset()
+    await expect(service.isUserLocked({ role: 'admin', id: 'a1' })).resolves.toBe(false)
+    expect(Subscription.findOne).not.toHaveBeenCalled()
+  })
+
+  test('isUserLocked is true when the org is locked out', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'canceled' })
+    await expect(service.isUserLocked({ role: 'user', id: 'org-locked' })).resolves.toBe(true)
+  })
+
+  test('isUserLocked is false for an active subscription', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'active' })
+    await expect(service.isUserLocked({ role: 'user', id: 'org-ok' })).resolves.toBe(false)
+  })
+
+  test('isUserLocked uses organizationId when present (staff member)', async () => {
+    Subscription.findOne.mockResolvedValue({ status: 'past_due' })
+    await expect(service.isUserLocked({ role: 'user', id: 'staff-1', organizationId: 'org-1' })).resolves.toBe(true)
+    expect(Subscription.findOne).toHaveBeenCalledWith({ where: { organizationId: 'org-1' } })
+  })
+})

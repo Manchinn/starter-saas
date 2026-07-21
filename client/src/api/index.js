@@ -27,6 +27,12 @@ function removeTokens() {
   })
 }
 
+function forceLogout() {
+  removeTokens()
+  try { useAuthStore().clearSession() } catch {}
+  if (!window.location.pathname.startsWith('/login')) window.location.href = '/login'
+}
+
 // Attach access token to every request
 api.interceptors.request.use((config) => {
   const token = getToken('accessToken')
@@ -43,6 +49,14 @@ api.interceptors.response.use(
   async (err) => {
     const original = err.config
     const data = err.response?.data
+
+    // Inactive subscription → billing-only mode (do not log out).
+    if (err.response?.status === 403 && data?.code === 'SUBSCRIPTION_INACTIVE') {
+      try { useAuthStore().markLocked() } catch {}
+      const p = window.location.pathname
+      if (!p.startsWith('/billing') && !p.startsWith('/login')) window.location.href = '/billing'
+      return Promise.reject(err)
+    }
 
     if (err.response?.status === 401 && data?.code === 'TOKEN_EXPIRED' && !original._retry) {
       if (isRefreshing) {
@@ -80,11 +94,7 @@ api.interceptors.response.use(
         // Only force-logout on an explicit 401 from the refresh endpoint (invalid/expired
         // refresh token). Network errors or 5xx responses should NOT clear the session —
         // the access token may still become valid once the server recovers.
-        if (refreshErr.response?.status === 401) {
-          removeTokens()
-          try { useAuthStore().clearSession() } catch {}
-          window.location.href = '/login'
-        }
+        if (refreshErr.response?.status === 401) forceLogout()
 
         return Promise.reject(refreshErr)
       } finally {

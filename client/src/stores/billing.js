@@ -32,6 +32,11 @@ export const useBillingStore = defineStore('billing', () => {
     plans.value = data.data.plans || []
     return plans.value
   }
+  async function subscribe(planId) {
+    const { data } = await api.post('/billing/subscribe', { planId })
+    subscription.value = data.data.subscription
+    return data.data
+  }
   async function cancel(immediate = false) {
     const { data } = await api.post('/billing/cancel', { immediate })
     subscription.value = data.data.subscription
@@ -59,7 +64,7 @@ export const useBillingStore = defineStore('billing', () => {
 
   return {
     subscription, plan, usage, invoices, plans, adminPlans, subscriptions, loading, canManage,
-    fetchSubscription, fetchInvoices, fetchPlans, cancel,
+    fetchSubscription, fetchInvoices, fetchPlans, subscribe, cancel,
     fetchAdminPlans, createPlan, updatePlan, deletePlan,
     fetchSubscriptions, setSubscription,
   }

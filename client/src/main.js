@@ -27,8 +27,9 @@ if (auth.accessToken) {
   }
 }
 
+// Skip ERP settings for locked (billing-only) tenants — blocked in that mode.
 const settings = useSettingsStore()
-if (auth.accessToken) await settings.load()
+if (auth.accessToken && !auth.locked) await settings.load()
 
 app.use(router)
 app.directive('can', vCan)

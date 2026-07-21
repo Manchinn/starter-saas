@@ -18,6 +18,13 @@ module.exports = {
   async myInvoices(req, res) {
     try { return ok(res, { invoices: await billing.listInvoices(organizationIdOf(req.user)) }) } catch { return serverError(res) }
   },
+  async subscribe(req, res) {
+    if (!isBillingOwner(req.user)) return fail(res, 'Only the organization owner can change the plan', 403)
+    try {
+      const subscription = await billing.subscribe(organizationIdOf(req.user), req.body.planId)
+      return ok(res, { subscription }, 'Subscription updated')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
   async cancel(req, res) {
     if (!isBillingOwner(req.user)) return fail(res, 'Only the organization owner can cancel the plan', 403)
     try {

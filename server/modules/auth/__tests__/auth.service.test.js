@@ -23,7 +23,10 @@ jest.mock('../../../models', () => ({
 }))
 jest.mock('../../../core/mailer', () => ({ sendEmailVerification: jest.fn(), sendPasswordReset: jest.fn() }))
 jest.mock('../../../core/logger', () => ({ forLabel: () => ({ warn: jest.fn() }) }))
-jest.mock('../../billing/billing.service', () => ({ ensureDefaultSubscription: jest.fn() }))
+jest.mock('../../billing/billing.service', () => ({
+  ensureDefaultSubscription: jest.fn(),
+  isOrgLocked: jest.fn(),
+}))
 
 const jwt = require('jsonwebtoken')
 const config = require('../../../config/config')
@@ -54,6 +57,7 @@ const makeUser = (over = {}) => ({
 
 beforeEach(() => {
   billing.ensureDefaultSubscription.mockResolvedValue()
+  billing.isOrgLocked.mockResolvedValue(false)
   jwt.sign.mockReturnValue('signed-token')
   jwt.decode.mockReturnValue({ exp: Math.floor(Date.now() / 1000) + 3600 })
   jwt.verify.mockReturnValue({ id: 'u1' })

@@ -342,7 +342,8 @@ async function handleLogin() {
     } else {
       localStorage.removeItem('rememberedEmail')
     }
-    router.push(auth.user?.defaultPage || '/dashboard')
+    // Locked tenants go straight to billing-only mode instead of the app home.
+    router.push(auth.locked ? '/billing' : (auth.user?.defaultPage || '/dashboard'))
   } catch (err) {
     const hadFieldErrors = setFromError(err)
     if (!hadFieldErrors) {

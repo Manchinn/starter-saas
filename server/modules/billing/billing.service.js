@@ -2,16 +2,26 @@ const { Op } = require('sequelize')
 const { Plan, Subscription, SubscriptionInvoice, UsageCounter, User, Invoice } = require('../../models')
 const config = require('../../config/config')
 
-const activeStatuses = new Set(['active', 'trialing'])
+const ACTIVE_STATUSES = ['active', 'trialing']
+const activeStatuses = new Set(ACTIVE_STATUSES)
 const planFields = new Set(['slug', 'name', 'description', 'price', 'currency', 'interval', 'trialDays', 'features', 'limits', 'isActive', 'isPublic', 'order'])
-const cache = new Map()
+const planCache = new Map()
+const accessCache = new Map()
 const seatLocks = new Map()
 const cacheTtlMs = 60 * 1000
 
 const monthKey = (date = new Date()) =>
   `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
 const periodForMetric = (metric) => metric.endsWith('.monthly') ? monthKey() : 'lifetime'
-const invalidate = (organizationId) => organizationId ? cache.delete(organizationId) : cache.clear()
+const invalidate = (organizationId) => {
+  if (organizationId) {
+    planCache.delete(organizationId)
+    accessCache.delete(organizationId)
+  } else {
+    planCache.clear()
+    accessCache.clear()
+  }
+}
 const addInterval = (date, interval) => {
   const result = new Date(date)
   if (interval === 'year') result.setUTCFullYear(result.getUTCFullYear() + 1)
@@ -20,7 +30,34 @@ const addInterval = (date, interval) => {
 }
 const isActive = (subscription) => {
   if (!subscription || !activeStatuses.has(subscription.status)) return false
+  if (subscription.suspended) return false
   return !subscription.currentPeriodEnd || new Date(subscription.currentPeriodEnd) >= new Date()
+}
+
+// Hard lockout decision for billing-only mode. No subscription row is NOT locked
+// (pre-billing orgs still fall back to the default plan). A row locks when it is
+// suspended or not in active/trialing (canceled, expired, past_due).
+const isLockedOut = (sub) => {
+  if (!sub) return false
+  if (sub.suspended) return true
+  return !ACTIVE_STATUSES.includes(sub.status)
+}
+
+async function isOrgLocked(organizationId) {
+  if (!organizationId) return false
+  const cached = accessCache.get(organizationId)
+  if (cached && cached.expires > Date.now()) return cached.locked
+  const sub = await Subscription.findOne({ where: { organizationId } })
+  const locked = isLockedOut(sub)
+  accessCache.set(organizationId, { locked, expires: Date.now() + cacheTtlMs })
+  return locked
+}
+
+// Platform admins are always exempt so a misconfigured subscription cannot lock
+// them out of the admin panel.
+async function isUserLocked(user) {
+  if (!user || user.role === 'admin') return false
+  return isOrgLocked(user.organizationId || user.id)
 }
 const isUnlimited = (limit) => limit === undefined || limit === null || Number(limit) < 0
 const pickPlanFields = (data) => Object.fromEntries(Object.entries(data).filter(([key]) => planFields.has(key)))
@@ -51,11 +88,11 @@ const getSubscription = (organizationId) => Subscription.findOne({
 })
 
 async function getEffectivePlan(organizationId) {
-  const cached = cache.get(organizationId)
+  const cached = planCache.get(organizationId)
   if (cached?.expiresAt > Date.now()) return cached.plan
   const subscription = await getSubscription(organizationId)
   const plan = isActive(subscription) ? subscription.plan : await getDefaultPlan()
-  cache.set(organizationId, { plan, expiresAt: Date.now() + cacheTtlMs })
+  planCache.set(organizationId, { plan, expiresAt: Date.now() + cacheTtlMs })
   return plan
 }
 
@@ -224,6 +261,7 @@ async function adminSetSubscription(organizationId, { planId, status } = {}) {
 
 module.exports = {
   getDefaultPlan, getSubscription, getEffectivePlan, isActive,
+  isLockedOut, isOrgLocked, isUserLocked,
   checkLimit, hasFeature, increment, assertSeatAvailable, getUsage, periodForMetric,
   subscribe, ensureDefaultSubscription, cancel,
   listPlans, listPublicPlans, getPlan, createPlan, updatePlan, deletePlan,

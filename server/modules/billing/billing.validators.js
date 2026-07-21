@@ -23,4 +23,7 @@ const subscriptionRules = [
   body('planId').optional().isUUID().withMessage('Plan ID must be a UUID'),
   body('status').optional().isIn(['trialing', 'active', 'past_due', 'canceled', 'expired']).withMessage('Invalid subscription status'),
 ]
-module.exports = { planRules, planUpdateRules, subscriptionRules }
+const subscribeRules = [
+  body('planId').isUUID().withMessage('Plan ID must be a UUID'),
+]
+module.exports = { planRules, planUpdateRules, subscriptionRules, subscribeRules }
