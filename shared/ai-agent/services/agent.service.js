@@ -66,7 +66,7 @@ const buildBaseMessages = async (settings, conversationId) => {
 
 // ── Main entry ────────────────────────────────────────────────────────────────
 
-const chat = async ({ user, conversationId, content, lang }) => {
+const chat = async ({ user, permissionUser = user, conversationId, content, lang }) => {
   if (!content || !content.trim()) throw { status: 400, message: 'Message is required' }
 
   const settings = await settingsSvc.getRaw(user.id)
@@ -89,7 +89,7 @@ const chat = async ({ user, conversationId, content, lang }) => {
 
   const actions = []
   let reply = ''
-  const permissions = await resolvePermissions(user)
+  const permissions = await resolvePermissions(permissionUser)
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const assistant = await provider.chat({

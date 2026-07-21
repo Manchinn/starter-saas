@@ -18,6 +18,11 @@ Git history remains the complete implementation-level record.
 - Added API rate limits, bounded pagination parameters, and per-tool RBAC for
   AI actions using the existing ERP permission slugs.
 
+### Fixed
+
+- Restored AI Assistant access after RBAC hardening by resolving permissions
+  from the authenticated user while retaining the tenant-scoped tool context.
+
 ## [2026-07-21]
 
 ### Added

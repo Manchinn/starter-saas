@@ -9,6 +9,7 @@ module.exports = {
     try {
       const result = await agent.chat({
         user: ctxUser(req),
+        permissionUser: req.user,
         conversationId: req.body.conversationId || null,
         content: req.body.content,
         lang: req.body.lang,

@@ -28,6 +28,15 @@ beforeEach(() => {
 })
 
 describe('agent.chat — tool loop', () => {
+  test('resolves permissions from the authenticated user, not the tenant-scoped tool context', async () => {
+    provider.chat.mockResolvedValueOnce({ role: 'assistant', content: 'hi', tool_calls: [] })
+    const authenticatedUser = { id: 'u1', getRoles: jest.fn() }
+
+    await agent.chat({ user: USER, permissionUser: authenticatedUser, content: 'hi' })
+
+    expect(resolvePermissions).toHaveBeenCalledWith(authenticatedUser)
+  })
+
   test('executes a server tool (create_product) and feeds the result back to the model', async () => {
     productSvc.create.mockResolvedValue({ id: 'p1', name: 'Widget', sku: 'PRD-1' })
 
