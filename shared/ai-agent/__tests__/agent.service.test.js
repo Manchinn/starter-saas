@@ -4,6 +4,7 @@ jest.mock('../../../server/models', () => ({
 }))
 jest.mock('../services/settings.service')
 jest.mock('../services/provider.service')
+jest.mock('../../../server/middleware/permission', () => ({ resolvePermissions: jest.fn() }))
 // ERP services the tools lazily require — mock at the resolved module path.
 jest.mock('../../erp/products/services/product.service', () => ({ create: jest.fn(), list: jest.fn() }))
 jest.mock('../../erp/customers/services/customer.service', () => ({ create: jest.fn(), list: jest.fn() }))
@@ -11,6 +12,7 @@ jest.mock('../../erp/customers/services/customer.service', () => ({ create: jest
 const { AiConversation, AiMessage } = require('../../../server/models')
 const settingsSvc = require('../services/settings.service')
 const provider = require('../services/provider.service')
+const { resolvePermissions } = require('../../../server/middleware/permission')
 const productSvc = require('../../erp/products/services/product.service')
 const agent = require('../services/agent.service')
 
@@ -19,6 +21,7 @@ const USER = { id: 'u1', organizationId: 'o1' }
 beforeEach(() => {
   jest.clearAllMocks()
   settingsSvc.getRaw.mockResolvedValue({ enabled: true, systemPrompt: 'sys', provider: 'ollama' })
+  resolvePermissions.mockResolvedValue(new Set(['*']))
   AiMessage.findAll.mockResolvedValue([])
   AiConversation.create.mockResolvedValue({ id: 'c1', title: 'New chat', save: jest.fn() })
   AiMessage.create.mockImplementation(async (row) => ({ id: 'm-' + row.role, ...row }))

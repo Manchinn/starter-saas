@@ -88,3 +88,15 @@ describe('system.dbStatus', () => {
     config.db.dialect = 'sqlite' // restore for other tests
   })
 })
+
+describe('system.serializeEnv', () => {
+  test('strips newlines and ignores invalid keys so values cannot inject .env entries', () => {
+    const result = service.serializeEnv({
+      DB_HOST: 'database\nMALICIOUS=true',
+      'BAD\nKEY': 'value',
+      DB_PASSWORD: 'space # quote "',
+    })
+    expect(result).toBe('DB_HOST=databaseMALICIOUS=true\nDB_PASSWORD="space # quote \\""\n')
+    expect(result).not.toContain('\r')
+  })
+})

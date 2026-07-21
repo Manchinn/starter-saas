@@ -48,6 +48,7 @@ const tools = [
   {
     name: 'create_product',
     kind: 'server',
+    permissions: ['erp.products.edit'],
     description: 'Create a new product / item in the catalogue.',
     parameters: {
       type: 'object',
@@ -87,6 +88,7 @@ const tools = [
   {
     name: 'list_products',
     kind: 'server',
+    permissions: ['erp.products.list'],
     description: 'List or search products. Use when the user asks what products exist or to find a product.',
     parameters: {
       type: 'object',
@@ -113,6 +115,7 @@ const tools = [
   {
     name: 'get_product',
     kind: 'server',
+    permissions: ['erp.products.list'],
     description: 'Look up a single product\'s full details by name, SKU, or category.',
     parameters: {
       type: 'object',
@@ -139,6 +142,7 @@ const tools = [
   {
     name: 'update_product',
     kind: 'server',
+    permissions: ['erp.products.edit'],
     description: 'Update an existing product. Identify it with `search`; only the fields you pass are changed.',
     parameters: {
       type: 'object',
@@ -176,6 +180,7 @@ const tools = [
   {
     name: 'delete_product',
     kind: 'server',
+    permissions: ['erp.products.delete'],
     description: 'Delete a product. Identify it with `search`. Fails if the product still has stock on hand.',
     parameters: {
       type: 'object',

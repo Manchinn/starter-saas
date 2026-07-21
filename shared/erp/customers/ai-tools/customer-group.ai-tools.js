@@ -26,6 +26,7 @@ const tools = [
   {
     name: 'create_customer_group',
     kind: 'server',
+    permissions: ['erp.customer-groups.edit'],
     description: 'Create a new customer group. The code is auto-generated.',
     parameters: {
       type: 'object',
@@ -53,6 +54,7 @@ const tools = [
   {
     name: 'list_customer_groups',
     kind: 'server',
+    permissions: ['erp.customer-groups.list'],
     description: 'List or search customer groups.',
     parameters: {
       type: 'object',

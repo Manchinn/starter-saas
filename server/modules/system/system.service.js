@@ -107,13 +107,22 @@ function readEnv() {
   return map
 }
 
-function writeEnv(map) {
+function serializeEnv(map) {
   const lines = Object.entries(map).map(([k, v]) => {
-    const needsQuote = v && /[\s#"']/.test(v)
-    const value = needsQuote ? `"${v.replace(/"/g, '\\"')}"` : (v ?? '')
-    return `${k}=${value}`
+    const rawKey = String(k)
+    if (/[\r\n]/.test(rawKey)) return null
+    const key = rawKey
+    const rawValue = String(v ?? '').replace(/[\r\n]/g, '')
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) return null
+    const needsQuote = rawValue && /[\s#"']/.test(rawValue)
+    const value = needsQuote ? `"${rawValue.replace(/"/g, '\\"')}"` : rawValue
+    return `${key}=${value}`
   })
-  fs.writeFileSync(ENV_PATH, lines.join('\n') + '\n', 'utf8')
+  return lines.filter(Boolean).join('\n') + '\n'
+}
+
+function writeEnv(map) {
+  fs.writeFileSync(ENV_PATH, serializeEnv(map), 'utf8')
 }
 
 /**
@@ -272,5 +281,5 @@ function redisStatus() {
 
 module.exports = {
   testConnection, configureDb, dbStatus, SUPPORTED_DIALECTS,
-  testRedis, configureRedis, redisStatus,
+  testRedis, configureRedis, redisStatus, serializeEnv,
 }

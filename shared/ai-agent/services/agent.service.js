@@ -8,6 +8,7 @@ const { AiConversation, AiMessage } = require('../../../server/models')
 const settingsSvc = require('./settings.service')
 const provider = require('./provider.service')
 const toolsRegistry = require('./tools')
+const { resolvePermissions } = require('../../../server/middleware/permission')
 
 const MAX_ITERATIONS = 5
 const HISTORY_LIMIT = 20   // prior turns fed back to the model
@@ -88,12 +89,13 @@ const chat = async ({ user, conversationId, content, lang }) => {
 
   const actions = []
   let reply = ''
+  const permissions = await resolvePermissions(user)
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const assistant = await provider.chat({
       settings,
       messages,
-      tools: toolsRegistry.schemas(),
+      tools: toolsRegistry.schemas({ permissions }),
     })
 
     const toolCalls = assistant.tool_calls || []
@@ -117,7 +119,7 @@ const chat = async ({ user, conversationId, content, lang }) => {
     }
 
     for (const tc of toolCalls) {
-      const { content: toolContent, action } = await toolsRegistry.execute(tc.name, tc.arguments, { user })
+      const { content: toolContent, action } = await toolsRegistry.execute(tc.name, tc.arguments, { user, permissions })
       if (action) actions.push(action)
       messages.push({ role: 'tool', tool_call_id: tc.id, content: toolContent })
     }

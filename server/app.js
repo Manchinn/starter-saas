@@ -13,6 +13,7 @@ const cache = require('./config/redis')
 const realtime = require('./core/realtime')
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
+const { apiRateLimit, writeRateLimit, sanitizePagination } = require('./middleware/security')
 
 const app = express()
 
@@ -49,7 +50,13 @@ app.use(express.urlencoded({ extended: true }))
 app.use(requestLogger)
 
 // Public static — org logos and similar customer-facing assets.
-app.use('/uploads/logos', express.static(path.join(__dirname, '..', 'uploads', 'logos')))
+app.use('/uploads/logos', express.static(path.join(__dirname, '..', 'uploads', 'logos'), {
+  setHeaders: (res) => {
+    res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.setHeader('Content-Disposition', 'inline')
+  },
+}))
 
 // Health check endpoints
 app.get('/api/health', async (req, res) => {
@@ -102,6 +109,10 @@ app.get('/api/ready', async (req, res) => {
 app.get('/api/live', (req, res) => {
   res.json({ status: 'alive' })
 })
+
+// Apply bounded request handling before dynamically loaded API modules. Health
+// endpoints stay available for orchestration even during traffic spikes.
+app.use('/api', apiRateLimit, writeRateLimit, sanitizePagination)
 
 async function bootstrap() {
   // Sync database

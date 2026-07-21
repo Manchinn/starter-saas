@@ -91,6 +91,25 @@ describe('provider — LM Studio base URL normalization', () => {
   })
 })
 
+describe('provider — base URL SSRF guard', () => {
+  test('allows local LM Studio and MaxPlus OpenAI-compatible URLs', () => {
+    expect(provider.validateBaseUrl('http://localhost:1234/v1')).toBe('http://localhost:1234/v1')
+    expect(provider.validateBaseUrl('https://api.maxplus-ai.cc/pool-a/v1')).toBe('https://api.maxplus-ai.cc/pool-a/v1')
+  })
+
+  test.each([
+    'file:///etc/passwd',
+    'http://169.254.169.254/latest/meta-data/',
+    'http://metadata.google.internal/computeMetadata/v1/',
+    'http://192.168.1.1/',
+    'http://[fd00:ec2::254]/latest/meta-data/',
+  ])('rejects unsafe URL %s before fetch', async (baseUrl) => {
+    global.fetch = jest.fn()
+    await expect(provider.listModels({ provider: 'lmstudio', baseUrl })).rejects.toMatchObject({ status: 400 })
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+})
+
 describe('provider.listModels', () => {
   test('Ollama maps /api/tags names', async () => {
     global.fetch = jest.fn().mockResolvedValue(jsonRes({ models: [{ name: 'llama3.1' }, { name: 'qwen2.5' }] }))

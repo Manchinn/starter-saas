@@ -106,6 +106,12 @@ describe('organization.uploadLogo — validation guards', () => {
     await expect(service.uploadLogo('o1', { dataBase64: 'abc', contentType: 'application/pdf' }))
       .rejects.toEqual({ status: 400, message: 'Unsupported logo type "application/pdf"' })
   })
+
+  test('rejects SVG uploads to prevent stored script execution', async () => {
+    User.findByPk.mockResolvedValue({ id: 'o1' })
+    await expect(service.uploadLogo('o1', { dataBase64: 'PHN2Zz4=', contentType: 'image/svg+xml' }))
+      .rejects.toEqual({ status: 400, message: 'Unsupported logo type "image/svg+xml"' })
+  })
 })
 
 describe('organization.removeLogo', () => {
