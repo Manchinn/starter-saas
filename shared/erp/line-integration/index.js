@@ -13,5 +13,5 @@ export const routes = [{
 }]
 
 export const navChildren = [
-  { label: 'lineIntegration.settings', to: '/erp/settings/line', icon: ChatBubbleLeftRightIcon, permission: 'erp.line-integration.manage' },
+  { label: 'nav.lineIntegration', to: '/erp/settings/line', icon: ChatBubbleLeftRightIcon, permission: 'erp.line-integration.manage' },
 ]

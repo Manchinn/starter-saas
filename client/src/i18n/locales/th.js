@@ -146,5 +146,6 @@ export default {
     auditLog:          'บันทึกการตรวจสอบ',
     currencies:        'สกุลเงิน',
     taxPeriods:        'งวดภาษี',
+    lineIntegration:   'การเชื่อมต่อ LINE',
   },
 }

@@ -146,5 +146,6 @@ export default {
     auditLog:          'Audit Log',
     currencies:        'Currencies',
     taxPeriods:        'Tax Periods',
+    lineIntegration:   'LINE Integration',
   },
 }

@@ -1,1 +1,32 @@
-export default { lineIntegration: { settings: 'LINE Integration', title: 'LINE Channel Connection', save: 'Save LINE connection', channelSecret: 'Channel secret', channelAccessToken: 'Channel access token', webhook: 'Webhook URL', liff: 'LIFF ordering' } }
+export default {
+  erp: {
+    lineIntegration: {
+      title:              'LINE Integration',
+      subtitle:           'Connect Messaging API, LIFF ordering, and outbound customer notify for this organization.',
+      connectionSection:  'Channel connection',
+      connectionDesc:     'Credentials stay encrypted at rest. Leave secret/token blank to keep the current values.',
+      webhookLabel:       'Webhook URL',
+      webhookHint:        'Set this URL in the LINE Developers Console for Messaging API events.',
+      messagingChannelId: 'Messaging API channel ID',
+      botUserId:          'Bot user ID',
+      liffId:             'LIFF ID',
+      liffChannelId:      'LINE Login channel ID',
+      defaultStoreId:     'Default store ID',
+      defaultStoreHint:   'Active store used for LIFF catalog and order stock.',
+      channelSecret:      'Channel secret',
+      channelSecretHint:  'Required on first save. Leave blank to keep the saved secret.',
+      channelAccessToken: 'Channel access token',
+      channelAccessTokenHint: 'Required on first save. Leave blank to keep the saved token.',
+      enableLiff:         'Enable LIFF ordering',
+      enableLiffHint:     'When off, LIFF catalog/order endpoints reject requests for this org.',
+      save:               'Save connection',
+      saved:              'LINE connection saved.',
+      saveFailed:         'Failed to save LINE connection.',
+      loadFailed:         'Failed to load LINE connection.',
+      statusConfigured:   'Connection configured',
+      statusMissing:      'Not configured yet',
+      hasSecret:          'Secret on file',
+      hasToken:           'Token on file',
+    },
+  },
+}

@@ -25,7 +25,8 @@ function buildMessages() {
   const messages = { en: { ...baseEn }, th: { ...baseTh } }
 
   const merge = (path, mod) => {
-    const m = path.match(/\/i18n\/([a-z]{2})\.js$/i)
+    // Vite may give POSIX or Windows separators depending on OS/plugin version.
+    const m = path.replace(/\\/g, '/').match(/\/i18n\/([a-z]{2})\.js$/i)
     if (!m) return
     const locale = m[1]
     if (!messages[locale]) messages[locale] = {}

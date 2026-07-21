@@ -1,1 +1,32 @@
-export default { lineIntegration: { settings: 'การเชื่อมต่อ LINE', title: 'เชื่อมต่อ LINE Channel', save: 'บันทึกการเชื่อมต่อ LINE', channelSecret: 'Channel secret', channelAccessToken: 'Channel access token', webhook: 'Webhook URL', liff: 'สั่งซื้อผ่าน LIFF' } }
+export default {
+  erp: {
+    lineIntegration: {
+      title:              'การเชื่อมต่อ LINE',
+      subtitle:           'เชื่อมต่อ Messaging API, สั่งซื้อผ่าน LIFF และการแจ้งเตือนลูกค้าสำหรับองค์กรนี้',
+      connectionSection:  'การเชื่อมต่อ Channel',
+      connectionDesc:     'ข้อมูลลับถูกเข้ารหัสเมื่อเก็บ เว้น Channel secret/token ว่างเพื่อใช้ค่าเดิม',
+      webhookLabel:       'Webhook URL',
+      webhookHint:        'ตั้งค่า URL นี้ใน LINE Developers Console สำหรับเหตุการณ์ Messaging API',
+      messagingChannelId: 'Messaging API channel ID',
+      botUserId:          'Bot user ID',
+      liffId:             'LIFF ID',
+      liffChannelId:      'LINE Login channel ID',
+      defaultStoreId:     'Default store ID',
+      defaultStoreHint:   'คลังที่ใช้งานสำหรับแคตตาล็อก LIFF และสต็อกคำสั่งซื้อ',
+      channelSecret:      'Channel secret',
+      channelSecretHint:  'จำเป็นตอนบันทึกครั้งแรก เว้นว่างเพื่อใช้ค่าที่บันทึกไว้',
+      channelAccessToken: 'Channel access token',
+      channelAccessTokenHint: 'จำเป็นตอนบันทึกครั้งแรก เว้นว่างเพื่อใช้โทเค็นที่บันทึกไว้',
+      enableLiff:         'เปิดสั่งซื้อผ่าน LIFF',
+      enableLiffHint:     'เมื่อปิด ปลายทางแคตตาล็อก/คำสั่งซื้อ LIFF จะปฏิเสธคำขอขององค์กรนี้',
+      save:               'บันทึกการเชื่อมต่อ',
+      saved:              'บันทึกการเชื่อมต่อ LINE แล้ว',
+      saveFailed:         'บันทึกการเชื่อมต่อ LINE ไม่สำเร็จ',
+      loadFailed:         'โหลดการเชื่อมต่อ LINE ไม่สำเร็จ',
+      statusConfigured:   'ตั้งค่าการเชื่อมต่อแล้ว',
+      statusMissing:      'ยังไม่ได้ตั้งค่า',
+      hasSecret:          'มี secret แล้ว',
+      hasToken:           'มี token แล้ว',
+    },
+  },
+}

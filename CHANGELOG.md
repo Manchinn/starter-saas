@@ -24,6 +24,9 @@ Git history remains the complete implementation-level record.
   (crypto, webhook, LIFF auth/catalog/order, messaging); `server/modules/line`
   เหลือ HTTP + `register` ติดตั้ง LINE เป็น adapter ของ Customer notify
   — issue #3
+- หน้า `/erp/settings/line` ใช้ `AppLayout` + `FormCard`/`FormField` ให้สอดคล้อง
+  หน้า ERP settings อื่น; sidebar ใช้ `nav.lineIntegration`; i18n อยู่ใต้
+  `erp.lineIntegration` และ client i18n path matching รองรับ Windows path
 
 ### Docs
 
