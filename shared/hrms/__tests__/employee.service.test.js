@@ -9,6 +9,8 @@ jest.mock('../../../server/models', () => ({
   Employee:   { findAndCountAll: jest.fn(), findByPk: jest.fn(), findOne: jest.fn(), create: jest.fn() },
   User:       { findByPk: jest.fn() },
   Department: {},
+  Role:       { findAll: jest.fn() },
+  Permission: {},
 }))
 
 jest.mock('../../erp/settings/services/sequence.service', () => ({
@@ -17,12 +19,18 @@ jest.mock('../../erp/settings/services/sequence.service', () => ({
 
 jest.mock('../../../server/modules/organizations/organization.service', () => ({
   create: jest.fn(),
+  assignRoles: jest.fn(),
 }), { virtual: true })
 
+jest.mock('../../../server/middleware/permission', () => ({
+  resolvePermissions: jest.fn(),
+}))
+
 const { Op } = require('sequelize')
-const { Employee, User } = require('../../../server/models')
+const { Employee, User, Role } = require('../../../server/models')
 const seqService = require('../../erp/settings/services/sequence.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
+const { resolvePermissions } = require('../../../server/middleware/permission')
 const service = require('../services/employee.service')
 
 describe('employee.list', () => {
@@ -90,8 +98,9 @@ describe('employee.create — credential modes', () => {
       email: 'a@b.com',
       password: 'pw',
       role: 'user',
+      roleIds: [],
       organizationId: 'o',
-    })
+    }, undefined)
     expect(Employee.create.mock.calls[0][0].userId).toBe('new-user-id')
   })
 
@@ -110,11 +119,31 @@ describe('employee.create — credential modes', () => {
   })
 
   test('existing-user mode rejects if user already linked to another employee', async () => {
-    User.findByPk.mockResolvedValue({ id: 'u' })
+    User.findByPk.mockResolvedValue({ id: 'u', organizationId: 'o' })
     Employee.findOne.mockResolvedValue({ id: 'other-emp' })
     await expect(service.create({
       organizationId: 'o', firstName: 'A', lastName: 'B', userId: 'u',
     })).rejects.toEqual({ status: 409, message: 'This user account is already linked to another employee' })
+  })
+
+  test('existing-user mode rejects an account from another organization', async () => {
+    User.findByPk.mockResolvedValue({ id: 'u', organizationId: 'other-org' })
+    await expect(service.create({ organizationId: 'o', firstName: 'A', lastName: 'B', userId: 'u' }))
+      .rejects.toEqual({ status: 403, message: 'Selected user account belongs to a different organization' })
+  })
+
+  test('assigns selected global roles to an existing linked account', async () => {
+    User.findByPk.mockResolvedValue({ id: 'u', organizationId: 'o' })
+    Employee.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'e1', userId: 'u' })
+    Employee.create.mockResolvedValue({ id: 'e1', setDepartments: jest.fn() })
+
+    await service.create({
+      organizationId: 'o', firstName: 'A', lastName: 'B', userId: 'u', roleIds: ['r1'], actor: { role: 'admin' },
+    })
+
+    expect(organizationService.assignRoles).toHaveBeenCalledWith('u', ['r1'], { role: 'admin' })
   })
 
   test('no userId and credentialMode "existing" → emp gets userId: null', async () => {
@@ -170,7 +199,7 @@ describe('employee.update', () => {
     Employee.findOne
       .mockResolvedValueOnce(emp)                       // initial lookup
       .mockResolvedValueOnce({ id: 'e-other' })         // duplicate-link check
-    User.findByPk.mockResolvedValue({ id: 'new' })
+    User.findByPk.mockResolvedValue({ id: 'new', organizationId: 'o' })
     await expect(service.update('e1', { userId: 'new' }, 'o', 'u'))
       .rejects.toEqual({ status: 409, message: 'This user already has an employee record' })
   })
@@ -231,6 +260,29 @@ describe('employee.update', () => {
       .mockResolvedValueOnce({ id: 'e1' })
     await service.update('e1', { firstName: 'A' }, 'o', 'u')
     expect(emp.setDepartments).not.toHaveBeenCalled()
+  })
+
+  test('updates roles on the linked account', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn().mockResolvedValue(), setDepartments: jest.fn() }
+    Employee.findOne
+      .mockResolvedValueOnce(emp)
+      .mockResolvedValueOnce({ id: 'e1' })
+    await service.update('e1', { roleIds: ['r1'] }, 'o', 'u-admin', { role: 'admin' })
+    expect(organizationService.assignRoles).toHaveBeenCalledWith('u1', ['r1'], { role: 'admin' })
+  })
+})
+
+describe('employee.listAssignableRoles', () => {
+  test('only returns roles whose permissions are a subset of the actor permissions', async () => {
+    Role.findAll.mockResolvedValue([
+      { id: 'viewer', name: 'Viewer', permissions: [{ slug: 'hrms.employees.list' }] },
+      { id: 'manager', name: 'Manager', permissions: [{ slug: 'hrms.employees.edit' }] },
+    ])
+    resolvePermissions.mockResolvedValue(new Set(['hrms.employees.list']))
+
+    const out = await service.listAssignableRoles({ role: 'user' })
+
+    expect(out).toEqual([{ id: 'viewer', name: 'Viewer', permissions: [{ slug: 'hrms.employees.list' }] }])
   })
 })
 

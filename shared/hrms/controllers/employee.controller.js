@@ -2,6 +2,14 @@ const { ok, created, fail, serverError } = require('../../../server/core/respons
 const service = require('../services/employee.service')
 
 module.exports = {
+  async roleOptions(req, res) {
+    try {
+      return ok(res, { roles: await service.listAssignableRoles(req.user) })
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
   async list(req, res) {
     try {
       const { page, limit, search, status, activeFrom, activeTo } = req.query
@@ -30,7 +38,7 @@ module.exports = {
       const organizationId = (req.user.role === 'admin' && req.body.organizationId)
         ? req.body.organizationId
         : defaultOrgId
-      const emp = await service.create({ ...req.body, createdByUserId: req.user?.id, organizationId })
+      const emp = await service.create({ ...req.body, createdByUserId: req.user?.id, organizationId, actor: req.user })
       return created(res, { employee: emp }, 'Employee created')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -43,7 +51,7 @@ module.exports = {
       const organizationId = (req.user.role === 'admin' && req.body.organizationId)
         ? req.body.organizationId
         : defaultOrgId
-      const emp = await service.update(req.params.id, req.body, organizationId, req.user?.id)
+      const emp = await service.update(req.params.id, req.body, organizationId, req.user?.id, req.user)
       return ok(res, { employee: emp }, 'Employee updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
