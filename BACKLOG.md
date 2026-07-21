@@ -18,6 +18,8 @@ are actionable product work; `CHANGELOG.md` records shipped behavior.
 
 ### Staff Management
 
-Continue with an organization-admin drill-down into employee management while
-preserving the existing organization-scoped employee, department, user-account,
-and central RBAC models.
+Organization-admin employee drill-down is implemented: platform admins can open
+an organization and manage that org's HR employees (`/hrms/employees?organizationId=…`)
+while keeping organization-scoped employee, department, user-account, and central
+RBAC models. Remaining HRMS product work can extend access-history detail and
+read-only employee shells as needed.

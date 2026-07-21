@@ -3,11 +3,25 @@
     <div class="space-y-5">
 
       <div class="flex items-center justify-between gap-4">
-        <div>
-          <h1 class="text-xl font-semibold text-[#1C2434]">{{ t('erp.employees.title') }}</h1>
-          <p class="text-sm text-[#637381] mt-0.5">{{ total }} employee{{ total !== 1 ? 's' : '' }}</p>
+        <div class="flex items-start gap-3 min-w-0">
+          <button
+            v-if="organizationId"
+            type="button"
+            class="btn-secondary px-2.5 py-2 mt-0.5"
+            @click="$router.back()"
+          >
+            <ArrowLeftIcon class="w-4 h-4" />
+          </button>
+          <div class="min-w-0">
+            <h1 class="text-xl font-semibold text-[#1C2434]">
+              {{ organizationId ? t('erp.employees.titleOrg') : t('erp.employees.title') }}
+            </h1>
+            <p class="text-sm text-[#637381] mt-0.5">
+              {{ organizationId ? t('erp.employees.descOrg') : `${total} employee${total !== 1 ? 's' : ''}` }}
+            </p>
+          </div>
         </div>
-        <RouterLink to="/hrms/employees/create"
+        <RouterLink :to="withOrgQuery('/hrms/employees/create')"
           class="btn-primary">
           <PlusIcon class="w-4 h-4" />
           {{ t('erp.employees.new') }}
@@ -150,10 +164,10 @@
 
 <script setup>
 import { h, ref, computed, reactive, watch, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  PlusIcon, PencilIcon, TrashIcon, IdentificationIcon,
+  PlusIcon, PencilIcon, TrashIcon, IdentificationIcon, ArrowLeftIcon,
   AdjustmentsHorizontalIcon, XMarkIcon,
 } from '@heroicons/vue/24/outline'
 import { createColumnHelper } from '@tanstack/vue-table'
@@ -164,6 +178,21 @@ import api from '@/api'
 import { fmtDate } from '@/utils/fmt'
 
 const { t } = useI18n()
+const route = useRoute()
+const organizationId = computed(() => route.query.organizationId || '')
+
+function withOrgQuery(path) {
+  if (!organizationId.value) return path
+  const sep = path.includes('?') ? '&' : '?'
+  return `${path}${sep}organizationId=${encodeURIComponent(organizationId.value)}`
+}
+
+function orgParams(extra = {}) {
+  return {
+    ...extra,
+    ...(organizationId.value ? { organizationId: organizationId.value } : {}),
+  }
+}
 
 const statusOptions = computed(() => [
   { id: 'active',     name: t('erp.employees.active')     },
@@ -191,7 +220,7 @@ const deptLabel = computed(() => departments.value.find(d => d.id === filterDept
 
 async function fetchDepartments() {
   try {
-    const { data } = await api.get('/hrms/departments', { params: { limit: 100 } })
+    const { data } = await api.get('/hrms/departments', { params: orgParams({ limit: 100 }) })
     departments.value = data.data.departments
   } catch (err) { console.error(err.message) }
 }
@@ -200,13 +229,13 @@ async function load() {
   loading.value = true
   try {
     const { data } = await api.get('/hrms/employees', {
-      params: {
+      params: orgParams({
         page: page.value, limit, search: search.value,
         status: filterStatus.value || undefined,
         departmentId: filterDeptId.value || undefined,
         activeFrom: filterActiveFrom.value || undefined,
         activeTo: filterActiveTo.value || undefined,
-      },
+      }),
     })
     employees.value = data.data.employees
     total.value     = data.data.total
@@ -217,6 +246,12 @@ function onFilterChange() { page.value = 1; load() }
 function clearFilters() { filterStatus.value = ''; filterDeptId.value = ''; filterActiveFrom.value = ''; filterActiveTo.value = ''; page.value = 1; load() }
 
 watch([page, search], load)
+watch(organizationId, () => {
+  page.value = 1
+  filterDeptId.value = ''
+  fetchDepartments()
+  load()
+})
 onMounted(() => { fetchDepartments(); load() })
 
 function statusClass(s) {
@@ -231,7 +266,9 @@ function confirmDelete(emp) { deleteModal.emp = emp; deleteModal.error = ''; del
 async function doDelete() {
   deleteModal.saving = true; deleteModal.error = ''
   try {
-    await api.delete(`/hrms/employees/${deleteModal.emp.id}`)
+    await api.delete(`/hrms/employees/${deleteModal.emp.id}`, {
+      params: orgParams(),
+    })
     deleteModal.open = false
     load()
   } catch (err) {
@@ -317,7 +354,7 @@ const columns = [
     meta: { thClass: 'w-20', tdClass: '' },
     cell: info => h('div', { class: 'flex items-center justify-end gap-1' }, [
       h(RouterLink, {
-        to: `/hrms/employees/${info.row.original.id}/edit`,
+        to: withOrgQuery(`/hrms/employees/${info.row.original.id}/edit`),
         class: 'p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors',
         title: 'Edit',
       }, () => h(PencilIcon, { class: 'w-4 h-4' })),

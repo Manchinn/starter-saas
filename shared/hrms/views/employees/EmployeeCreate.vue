@@ -2,14 +2,14 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.employees.new')" back-to="/hrms/employees"
+      <PageHeader :title="t('erp.employees.new')" :back-to="employeesListPath"
         :breadcrumb="[
-          { label: t('erp.employees.title'), to: '/hrms/employees' },
+          { label: t('erp.employees.title'), to: employeesListPath },
           { label: t('common.create') },
         ]">
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/hrms/employees"
+            :cancel-to="employeesListPath"
             :cancel-label="t('common.cancel')"
             :saving="saving"
             :saving-label="t('erp.common.creating')"
@@ -160,7 +160,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { IdentificationIcon, KeyIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
@@ -177,6 +177,20 @@ import { useAutoCode } from '@/composables/useAutoCode'
 import { parseApiError } from '@/utils/apiError'
 
 const { t } = useI18n()
+const route = useRoute()
+const organizationId = computed(() => route.query.organizationId || '')
+const employeesListPath = computed(() => (
+  organizationId.value
+    ? `/hrms/employees?organizationId=${encodeURIComponent(organizationId.value)}`
+    : '/hrms/employees'
+))
+
+function orgParams(extra = {}) {
+  return {
+    ...extra,
+    ...(organizationId.value ? { organizationId: organizationId.value } : {}),
+  }
+}
 
 const EMP_STATUS_OPTIONS = computed(() => [
   { id: 'active',     name: t('erp.employees.active') },
@@ -214,7 +228,7 @@ const form = ref({
 onMounted(async () => {
   try {
     const [deptRes, rolesRes] = await Promise.all([
-      api.get('/hrms/departments', { params: { limit: 1000 } }),
+      api.get('/hrms/departments', { params: orgParams({ limit: 1000 }) }),
       api.get('/hrms/employees/role-options'),
     ])
     departments.value = deptRes.data.data.departments
@@ -240,11 +254,12 @@ async function save() {
   try {
     const payload = {
       ...form.value,
-      credentialMode: createAccount.value ? 'new' : 'existing'
+      credentialMode: createAccount.value ? 'new' : 'existing',
+      ...(organizationId.value ? { organizationId: organizationId.value } : {}),
     }
     if (autoCode.enabled.value) { payload.autoCode = true; payload.employeeCode = null }
     await api.post('/hrms/employees', payload)
-    router.push('/hrms/employees')
+    router.push(employeesListPath.value)
   } catch (err) {
     const had = setFromError(err)
     if (!had) error.value = parseApiError(err, 'Failed to create employee')

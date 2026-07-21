@@ -2,6 +2,8 @@ export default {
   erp: {
     employees: {
       title:            'Employees',
+      titleOrg:         'Organization Employees',
+      descOrg:          'Manage HR employee records for this organization',
       new:              'New Employee',
       edit:             'Edit Employee',
       create:           'Create Employee',

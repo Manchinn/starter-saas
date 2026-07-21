@@ -76,6 +76,17 @@ describe('employee.list', () => {
     expect(or).toHaveLength(4)
     expect(or.map(c => Object.keys(c)[0]).sort()).toEqual(['employeeCode', 'firstName', 'lastName', 'position'])
   })
+
+  test('departmentId filters through the departments join and uses distinct counts', async () => {
+    Employee.findAndCountAll.mockResolvedValue({ count: 1, rows: [{ id: 'e1' }] })
+    await service.list({ organizationId: 'o', departmentId: 'd1' })
+    const args = Employee.findAndCountAll.mock.calls[0][0]
+    const deptInclude = args.include.find((item) => item.as === 'departments')
+    expect(deptInclude.where).toEqual({ id: 'd1' })
+    expect(deptInclude.required).toBe(true)
+    expect(args.distinct).toBe(true)
+    expect(args.col).toBe('id')
+  })
 })
 
 describe('employee.getById', () => {

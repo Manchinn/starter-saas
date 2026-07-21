@@ -36,7 +36,7 @@
               <th class="th">{{ $t('org.colStatus') }}</th>
               <th class="th">{{ $t('org.colJoined') }}</th>
               <th class="th">{{ $t('org.colLastLogin') }}</th>
-              <th class="th w-28"></th>
+              <th class="th w-36"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
@@ -112,8 +112,11 @@
                   <RouterLink v-can="'organizations.edit'" :to="`/admin/organizations/${u.id}/edit`" class="p-1.5 text-[#9BA7B0] hover:text-primary-500 hover:bg-primary-50 transition-colors" :title="$t('common.edit')">
                     <PencilIcon class="w-4 h-4" />
                   </RouterLink>
-                  <RouterLink :to="`/admin/staff?organizationId=${u.id}`" class="p-1.5 text-[#9BA7B0] hover:text-violet-600 hover:bg-violet-50 transition-colors">
+                  <RouterLink :to="`/admin/staff?organizationId=${u.id}`" class="p-1.5 text-[#9BA7B0] hover:text-violet-600 hover:bg-violet-50 transition-colors" :title="$t('org.viewStaff')">
                     <UserGroupIcon class="w-4 h-4" />
+                  </RouterLink>
+                  <RouterLink :to="`/hrms/employees?organizationId=${u.id}`" class="p-1.5 text-[#9BA7B0] hover:text-sky-600 hover:bg-sky-50 transition-colors" :title="$t('org.viewEmployees')">
+                    <IdentificationIcon class="w-4 h-4" />
                   </RouterLink>
                   <button @click="seedSequences(u)" :disabled="seedingId === u.id" class="p-1.5 text-[#9BA7B0] hover:text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-40">
                     <CpuChipIcon class="w-4 h-4" />
@@ -234,17 +237,33 @@
               </div>
             </div>
 
-            <div class="px-6 py-4 border-t border-[#E2E8F0] flex gap-2">
+            <div class="px-6 py-4 border-t border-[#E2E8F0] flex flex-wrap gap-2">
               <button @click="loginAs(viewOrganization)" :disabled="loggingInAsId === viewOrganization.id"
                 class="btn-secondary flex items-center gap-1.5 disabled:opacity-40">
                 <ArrowRightEndOnRectangleIcon class="w-4 h-4" />
                 {{ $t('org.loginAs') }}
               </button>
               <RouterLink
+                :to="`/admin/staff?organizationId=${viewOrganization.id}`"
+                @click="viewOrganization = null"
+                class="btn-secondary flex items-center gap-1.5"
+              >
+                <UserGroupIcon class="w-4 h-4" />
+                {{ $t('org.viewStaff') }}
+              </RouterLink>
+              <RouterLink
+                :to="`/hrms/employees?organizationId=${viewOrganization.id}`"
+                @click="viewOrganization = null"
+                class="btn-secondary flex items-center gap-1.5"
+              >
+                <IdentificationIcon class="w-4 h-4" />
+                {{ $t('org.viewEmployees') }}
+              </RouterLink>
+              <RouterLink
                 v-can="'organizations.edit'"
                 :to="`/admin/organizations/${viewOrganization.id}/edit`"
                 @click="viewOrganization = null"
-                class="btn-primary flex-1 text-center"
+                class="btn-primary flex-1 text-center min-w-[8rem]"
               >{{ $t('org.edit') }}</RouterLink>
               <button @click="viewOrganization = null" class="btn-secondary">{{ $t('common.close') }}</button>
             </div>
@@ -263,7 +282,7 @@ import { useI18n } from 'vue-i18n'
 import {
   PlusIcon, MagnifyingGlassIcon, EyeIcon, PencilIcon, TrashIcon,
   ChevronLeftIcon, ChevronRightIcon, BuildingOffice2Icon, CpuChipIcon, UserGroupIcon, XMarkIcon,
-  ArrowRightEndOnRectangleIcon,
+  ArrowRightEndOnRectangleIcon, IdentificationIcon,
 } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import api from '@/api'

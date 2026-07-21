@@ -49,7 +49,7 @@ function assertUserBelongsToOrganization(user, organizationId) {
   }
 }
 
-const list = async ({ organizationId, page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '' }) => {
+const list = async ({ organizationId, page = 1, limit = 20, search = '', status = '', departmentId = '', activeFrom = '', activeTo = '' }) => {
   if (!organizationId) throw { status: 400, message: 'Organization ID is required' }
   const offset = (page - 1) * limit
   const where  = { organizationId, dataFlag: { [Op.ne]: 2 } }
@@ -65,15 +65,26 @@ const list = async ({ organizationId, page = 1, limit = 20, search = '', status 
     ]
   }
 
+  const departmentInclude = {
+    model: Department,
+    as: 'departments',
+    through: { attributes: [] },
+  }
+  if (departmentId) {
+    departmentInclude.where = { id: departmentId }
+    departmentInclude.required = true
+  }
+
   const { count, rows } = await Employee.findAndCountAll({
     where,
     include: [
       USER_INCLUDE,
-      { model: Department, as: 'departments', through: { attributes: [] } },
+      departmentInclude,
     ],
     limit,
     offset,
     order: [['createdAt', 'DESC']],
+    ...(departmentId ? { distinct: true, col: 'id' } : {}),
   })
   return { total: count, page, limit, employees: rows }
 }

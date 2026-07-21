@@ -2,14 +2,14 @@
   <AppLayout>
     <div class="space-y-6">
 
-      <PageHeader :title="t('erp.employees.edit')" back-to="/hrms/employees"
+      <PageHeader :title="t('erp.employees.edit')" :back-to="employeesListPath"
         :breadcrumb="[
-          { label: t('erp.employees.title'), to: '/hrms/employees' },
+          { label: t('erp.employees.title'), to: employeesListPath },
           { label: t('erp.employees.edit') },
         ]">
         <template #actions>
           <HeaderSaveActions
-            cancel-to="/hrms/employees"
+            :cancel-to="employeesListPath"
             :cancel-label="t('common.cancel')"
             :saving="saving"
             :saving-label="t('erp.common.saving')"
@@ -214,6 +214,18 @@ const { t } = useI18n()
 const router  = useRouter()
 const route   = useRoute()
 const id      = route.params.id
+const organizationId = computed(() => route.query.organizationId || '')
+const employeesListPath = computed(() => (
+  organizationId.value
+    ? `/hrms/employees?organizationId=${encodeURIComponent(organizationId.value)}`
+    : '/hrms/employees'
+))
+function orgParams(extra = {}) {
+  return {
+    ...extra,
+    ...(organizationId.value ? { organizationId: organizationId.value } : {}),
+  }
+}
 const loading = ref(true)
 const saving  = ref(false)
 const users   = ref([])
@@ -255,12 +267,16 @@ const selectedUser = computed(() => users.value.find(u => u.id === form.value.us
 async function load() {
   loading.value = true
   try {
+    const staffRequest = organizationId.value
+      ? api.get('/organizations/all-staff', { params: { organizationId: organizationId.value, limit: 500 } })
+      : api.get('/organizations/staff', { params: { limit: 500 } })
+
     const [empRes, staffRes, deptRes, rolesRes, historyRes] = await Promise.all([
-      api.get(`/hrms/employees/${id}`),
-      api.get('/organizations/staff', { params: { limit: 500 } }),
-      api.get('/hrms/departments', { params: { limit: 1000 } }),
+      api.get(`/hrms/employees/${id}`, { params: orgParams() }),
+      staffRequest,
+      api.get('/hrms/departments', { params: orgParams({ limit: 1000 }) }),
       api.get('/hrms/employees/role-options'),
-      api.get(`/hrms/employees/${id}/access-history`, { params: { limit: 20 } }),
+      api.get(`/hrms/employees/${id}/access-history`, { params: orgParams({ limit: 20 }) }),
     ])
     users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
@@ -307,7 +323,10 @@ async function offboardEmployee() {
   success.value = ''
   offboarding.value = true
   try {
-    await api.post(`/hrms/employees/${id}/offboard`, { activeTo: new Date().toISOString().slice(0, 10) })
+    await api.post(`/hrms/employees/${id}/offboard`, {
+      activeTo: new Date().toISOString().slice(0, 10),
+      ...(organizationId.value ? { organizationId: organizationId.value } : {}),
+    })
     success.value = t('erp.employees.offboardSuccess')
     await load()
   } catch (err) {
@@ -325,8 +344,11 @@ async function save() {
 
   saving.value = true
   try {
-    await api.put(`/hrms/employees/${id}`, { ...form.value })
-    router.push('/hrms/employees')
+    await api.put(`/hrms/employees/${id}`, {
+      ...form.value,
+      ...(organizationId.value ? { organizationId: organizationId.value } : {}),
+    })
+    router.push(employeesListPath.value)
   } catch (err) {
     const had = setFromError(err)
     if (!had) error.value = parseApiError(err, 'Failed to save')

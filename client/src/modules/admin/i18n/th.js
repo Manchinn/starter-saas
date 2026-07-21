@@ -56,6 +56,8 @@ export default {
     saveFailed:     'บันทึกไม่สำเร็จ',
     loginAs:        'เข้าสู่ระบบในฐานะ',
     loginAsFailed:  'ไม่สามารถสลับเซสชันได้',
+    viewStaff:      'บัญชีพนักงานระบบ',
+    viewEmployees:  'พนักงาน HR',
 
     // ── Company profile (used on customer-facing documents) ──
     companyProfile:        'ข้อมูลบริษัท',

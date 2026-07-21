@@ -56,6 +56,8 @@ export default {
     saveFailed:     'Save failed',
     loginAs:        'Login As',
     loginAsFailed:  'Failed to switch session',
+    viewStaff:      'Staff accounts',
+    viewEmployees:  'HR employees',
 
     // ── Company profile (used on customer-facing documents) ──
     companyProfile:        'Company Profile',
