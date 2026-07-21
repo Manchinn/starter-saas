@@ -18,6 +18,11 @@ Git history remains the complete implementation-level record.
   จะ throw แล้ว rollback ทั้ง transaction (เดิมข้ามเงียบ) — ดู issue #1
   ([`b95488f`](https://github.com/Manchinn/starter-saas/commit/b95488f))
 
+### Docs
+
+- บันทึกผล architecture review ชิ้นแรก: คำศัพท์ Stock ใน `CONTEXT.md`,
+  ADR-0001 (Stock ledger write path), และสถานะใน `docs/FORK.md`
+
 ## [2026-07-22]
 
 Fork `main` rebased onto upstream `artapon/starter-saas` (`4784e41`) and

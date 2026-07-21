@@ -44,8 +44,20 @@ still exist for archaeology. They are **not** the product direction of
    webhook HMAC, LIFF order creation, notifications (see
    `shared/erp/line-integration`, `server/modules/line`, and `CHANGELOG.md`
    entry `2026-07-22`).
-3. **New product slices** decided explicitly on this base (not implied by
+3. **Architecture deepen on this base** — internal refactors that improve
+   depth/testability without reviving legacy fork product paths. First locked
+   slice: **Stock ledger** `postDelta` (issue #1, ADR-0001, commit `b95488f`).
+   Count and transfer remain outside the ledger until a later decision.
+4. **New product slices** decided explicitly on this base (not implied by
    pre-rebase memory or old backlog items).
+
+## Architecture review status
+
+| Candidate | Status | Record |
+|-----------|--------|--------|
+| Stock ledger (shared write path for product/store/movement) | **Done** on `main` | issue #1, ADR-0001, `CONTEXT.md` (Stock terms), `b95488f` |
+| Stock count / transfer via ledger | Deferred | ADR-0001 |
+| Other deepen candidates | Not yet grilled | Re-run `/improve-codebase-architecture` after compact/fork if needed |
 
 ## Memory note
 
