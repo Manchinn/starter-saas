@@ -14,6 +14,7 @@ export default {
     requestPlan: 'ขอแผน',
     requested: 'ขอแล้ว',
     requestFailed: 'ไม่สามารถส่งคำขอได้ กรุณาลองใหม่',
+    usageOverLimit: 'ใช้งานเกินขีดจำกัด',
     requestPendingFor: 'คุณได้ขอแผน {plan} — รอผู้ดูแลอนุมัติ',
     saveFailed: 'ไม่สามารถบันทึกการสมัครได้ กรุณาลองอีกครั้ง',
     newPlan: 'เพิ่มแผน', editPlan: 'แก้ไขแผน', savePlan: 'บันทึกแผน', deletePlan: 'ลบแผน', confirmDelete: 'ลบแผน "{name}" หรือไม่',

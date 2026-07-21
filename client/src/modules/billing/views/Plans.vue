@@ -60,11 +60,12 @@
           <button
             type="button"
             class="btn-primary mt-6 w-full"
-            :disabled="busyId === p.id || isCurrent(p) || !canChoose || requestedPlanId === p.id"
+            :disabled="busyId === p.id || isCurrent(p) || !canChoose || requestedPlanId === p.id || (!isCurrent(p) && planExceeded(p))"
             @click="choose(p)"
           >
             <span v-if="isCurrent(p)">{{ t('billing.currentPlan') }}</span>
             <span v-else-if="requestedPlanId === p.id">{{ t('billing.requested') }}</span>
+            <span v-else-if="planExceeded(p)">{{ t('billing.usageOverLimit') }}</span>
             <span v-else>{{ t('billing.requestPlan') }}</span>
           </button>
         </div>
@@ -119,6 +120,19 @@ function isCurrent(p) {
   return store.subscription?.planId === p.id && ['active', 'trialing'].includes(store.subscription?.status)
 }
 
+// Current usage by metric (from subscription usage summary).
+const usedByMetric = computed(() => Object.fromEntries((store.usage || []).map((u) => [u.metric, u.used])))
+// A plan can't be selected if current usage already exceeds one of its limits.
+function planExceeded(p) {
+  const limits = p.limits || {}
+  return Object.keys(limits).some((m) => {
+    const lim = limits[m]
+    if (lim === -1 || lim == null) return false
+    const used = usedByMetric.value[m]
+    return used != null && used > Number(lim)
+  })
+}
+
 function featureList(p) {
   const features = p.features
   if (!features || typeof features !== 'object') return []
@@ -128,7 +142,7 @@ function featureList(p) {
 }
 
 async function choose(p) {
-  if (!canChoose.value) return
+  if (!canChoose.value || planExceeded(p)) return
   error.value = ''
   busyId.value = p.id
   try {

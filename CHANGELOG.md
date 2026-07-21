@@ -38,6 +38,10 @@ Git history remains the complete implementation-level record.
   provider, paid invoice when applicable) and clears billing-only lockout.
   Tenant `/billing` polls while a request is pending so approval lifts access
   without a manual reload.
+- Usage-over-limit plan guards: plan change is blocked when current org usage
+  already exceeds the target plan’s limits (`USAGE_OVER_LIMIT`). Enforced on
+  tenant request, admin approve, and admin set-subscription; the plans grid
+  disables over-limit cards client-side.
 
 ### Changed
 

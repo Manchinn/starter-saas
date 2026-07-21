@@ -184,6 +184,14 @@ describe('adminSetSubscription', () => {
     await service.adminSetSubscription('o', { suspended: true, currentPeriodEnd: future })
     expect(sub.update).toHaveBeenCalledWith(expect.objectContaining({ suspended: true, currentPeriodEnd: future }))
   })
+
+  test('blocks an admin downgrade that current usage exceeds', async () => {
+    Subscription.findOne.mockResolvedValue({ planId: 'pro', update: jest.fn().mockResolvedValue() })
+    Plan.findByPk.mockResolvedValue({ id: 'free', name: 'Free', isActive: true, limits: { seats: 2 } })
+    User.count.mockResolvedValue(5)
+    await expect(service.adminSetSubscription('o', { planId: 'free' }))
+      .rejects.toMatchObject({ status: 400, code: 'USAGE_OVER_LIMIT' })
+  })
 })
 
 describe('subscribe clears suspension', () => {
@@ -223,6 +231,14 @@ describe('plan-change requests', () => {
   test('requestPlanChange rejects an inactive plan', async () => {
     Plan.findByPk.mockResolvedValue({ id: 'p3', isActive: false })
     await expect(service.requestPlanChange('org1', 'p3')).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('requestPlanChange is blocked when usage exceeds the target plan limits', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p4', name: 'Free', isActive: true, limits: { seats: 2 } })
+    User.count.mockResolvedValue(5) // 5 seats in use > limit of 2
+    await expect(service.requestPlanChange('org1', 'p4'))
+      .rejects.toMatchObject({ status: 400, code: 'USAGE_OVER_LIMIT' })
+    expect(PlanChangeRequest.create).not.toHaveBeenCalled()
   })
 
   test('approve activates the plan (subscribe) and marks the request approved', async () => {

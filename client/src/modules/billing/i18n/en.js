@@ -14,6 +14,7 @@ export default {
     requestPlan: 'Request plan',
     requested: 'Requested',
     requestFailed: 'Could not submit the request. Please try again.',
+    usageOverLimit: 'Usage over limit',
     requestPendingFor: 'You requested the {plan} plan — pending admin approval.',
     saveFailed: 'Could not save the subscription. Please try again.',
     newPlan: 'New plan', editPlan: 'Edit plan', savePlan: 'Save plan', deletePlan: 'Delete plan', confirmDelete: 'Delete plan "{name}"?',
