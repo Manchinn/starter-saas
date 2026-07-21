@@ -79,6 +79,7 @@ export default {
         icon: Cog6ToothIcon,
         children: [
           ...(m('settings').navChildren || []),
+          ...(m('line-integration').navChildren || []),
         ],
       },
     ],

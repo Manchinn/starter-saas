@@ -48,6 +48,9 @@ module.exports = {
     ttl:       parseInt(process.env.REDIS_TTL, 10) || 3600,
   },
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  line: {
+    credentialEncryptionKey: process.env.LINE_CREDENTIAL_ENCRYPTION_KEY || '',
+  },
   appName: process.env.APP_NAME || 'Starter SaaS',
   smtp: {
     host: process.env.SMTP_HOST || '',

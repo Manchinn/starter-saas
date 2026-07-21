@@ -1,0 +1,1 @@
+export default { lineIntegration: { settings: 'การเชื่อมต่อ LINE', title: 'เชื่อมต่อ LINE Channel', save: 'บันทึกการเชื่อมต่อ LINE', channelSecret: 'Channel secret', channelAccessToken: 'Channel access token', webhook: 'Webhook URL', liff: 'สั่งซื้อผ่าน LIFF' } }

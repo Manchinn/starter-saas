@@ -67,6 +67,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis123}
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      LINE_CREDENTIAL_ENCRYPTION_KEY: ${LINE_CREDENTIAL_ENCRYPTION_KEY}
       CLIENT_URL: ${CLIENT_URL:-http://localhost:8080}
     volumes:
       - ./server/data:/app/data

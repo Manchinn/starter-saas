@@ -1,0 +1,1 @@
+export default { lineIntegration: { settings: 'LINE Integration', title: 'LINE Channel Connection', save: 'Save LINE connection', channelSecret: 'Channel secret', channelAccessToken: 'Channel access token', webhook: 'Webhook URL', liff: 'LIFF ordering' } }

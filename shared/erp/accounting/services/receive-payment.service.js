@@ -157,7 +157,14 @@ const confirm = async (id, userId) => {
     await rp.update({ status: previousStatus })
     throw err
   }
-  return getById(id)
+  const confirmed = await getById(id)
+  const { notifyCustomer } = require('../../line-integration/services/line-notification.service')
+  await notifyCustomer({
+    organizationId: confirmed.organizationId,
+    customerId: confirmed.customerId,
+    text: `Payment ${confirmed.refNo} has been received.`,
+  })
+  return confirmed
 }
 
 // Cancel works in two modes:

@@ -37,7 +37,14 @@ app.use((req, res, next) => {
 app.use(cors({ origin: config.clientUrl, credentials: true }))
 // Logos are uploaded as base64; the JSON body cap needs to be larger than a
 // typical PNG/JPEG (the upload service still rejects > 2 MB per file).
-app.use(express.json({ limit: '5mb' }))
+app.use(express.json({
+  limit: '5mb',
+  // LINE signs the exact request bytes. Keep them only for the webhook so the
+  // handler can validate the signature before it reads any event payload.
+  verify: (req, res, buffer) => {
+    if (req.path === '/api/line/webhook') req.rawBody = Buffer.from(buffer)
+  },
+}))
 app.use(express.urlencoded({ extended: true }))
 app.use(requestLogger)
 

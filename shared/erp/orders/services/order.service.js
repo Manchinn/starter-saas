@@ -200,16 +200,20 @@ const updateStatus = async (id, status, userId, organizationId) => {
           const product = await Product.findByPk(productId, { transaction: t })
           if (product) {
             const before = parseFloat(product.stock)
-            const after  = before - qty
-            await product.update({ stock: after }, { transaction: t })
+            const [productUpdated] = await Product.update(
+              { stock: sequelize.literal(`stock - ${Number(qty)}`) },
+              { where: { id: productId, stock: { [Op.gte]: qty } }, transaction: t }
+            )
+            if (!productUpdated) throw { status: 400, message: `Insufficient stock for ${product.name}` }
+            const refreshedProduct = await Product.findByPk(productId, { transaction: t })
+            const after = parseFloat(refreshedProduct.stock)
 
             if (item.storeId) {
-              const [storeStock] = await StoreStock.findOrCreate({
-                where: { productId, storeId: item.storeId },
-                defaults: { stock: 0 },
-                transaction: t,
-              })
-              await storeStock.update({ stock: storeStock.stock - qty }, { transaction: t })
+              const [storeUpdated] = await StoreStock.update(
+                { stock: sequelize.literal(`stock - ${Number(qty)}`) },
+                { where: { productId, storeId: item.storeId, stock: { [Op.gte]: qty } }, transaction: t }
+              )
+              if (!storeUpdated) throw { status: 400, message: `Insufficient stock in the selected store for ${product.name}` }
             }
 
             await StockMovement.create({
@@ -290,7 +294,22 @@ const updateStatus = async (id, status, userId, organizationId) => {
     summary: { from: oldStatus, to: status, orderNumber: order.orderNumber, total: order.total },
   })
 
-  return getById(id)
+  const updated = await getById(id)
+  // Notify only after the ERP transaction and audit log have completed.
+  const { notifyCustomer } = require('../../line-integration/services/line-notification.service')
+  await notifyCustomer({
+    organizationId: updated.organizationId,
+    customerId: updated.customerId,
+    text: `Order ${updated.orderNumber} status: ${updated.status}.`,
+  })
+  return updated
+}
+
+const listForCustomer = async ({ customerId, organizationId }) => {
+  return Order.findAll({
+    where: { customerId, organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } },
+    order: [['createdAt', 'DESC']],
+  })
 }
 
 const update = async (id, payload, userId, organizationId) => {
@@ -594,4 +613,4 @@ const createInvoice = async (id, userId, organizationId) => {
   return { id: invoice.id }
 }
 
-module.exports = { list, getById, create, update, updateStatus, remove, listItems, getItemById, updateItem, deleteItem, createDeliveryOrder, createInvoice }
+module.exports = { list, listForCustomer, getById, create, update, updateStatus, remove, listItems, getItemById, updateItem, deleteItem, createDeliveryOrder, createInvoice }
