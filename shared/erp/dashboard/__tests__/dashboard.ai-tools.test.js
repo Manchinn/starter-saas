@@ -37,6 +37,12 @@ describe('dashboard ai-tools — registry', () => {
       expect(t.parameters).toEqual({ type: 'object', properties: {} })
     }
   })
+
+  test('dashboard summaries require the same permission as GET /dashboard/stats', () => {
+    for (const t of tools) {
+      expect(t.permissions).toEqual(['erp.products.list'])
+    }
+  })
 })
 
 // Reporting tools are read-only: they return data for the model to narrate

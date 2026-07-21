@@ -99,4 +99,24 @@ describe('system.serializeEnv', () => {
     expect(result).toBe('DB_HOST=databaseMALICIOUS=true\nDB_PASSWORD="space # quote \\""\n')
     expect(result).not.toContain('\r')
   })
+
+  test('strips CRLF injection from values so a second key is never emitted', () => {
+    const result = service.serializeEnv({
+      SMTP_USER: 'u\r\nSMTP_PASS=pwned',
+    })
+    const lines = result.split('\n').filter(Boolean)
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toBe('SMTP_USER=uSMTP_PASS=pwned')
+    expect(lines.some((l) => l.trim() === 'SMTP_PASS=pwned')).toBe(false)
+  })
+
+  test('drops keys that are not valid env identifiers (no standalone injected lines)', () => {
+    const result = service.serializeEnv({
+      'A\nB': 'x',
+      '1BAD': 'nope',
+      VALID_KEY: 'ok',
+    })
+    const lines = result.split('\n').filter(Boolean)
+    expect(lines).toEqual(['VALID_KEY=ok'])
+  })
 })

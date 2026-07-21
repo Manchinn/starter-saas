@@ -18,10 +18,14 @@ const dashboardSvc = () => require('../dashboard.service')
 // otherwise fall back to the user id (single-user / internal calls).
 const orgOf = (user) => user.organizationId || user.id
 
+// Mirror dashboard.routes.js: GET /stats requires erp.products.list.
+const DASHBOARD_READ = ['erp.products.list']
+
 const tools = [
   {
     name: 'executive_summary',
     kind: 'server',
+    permissions: DASHBOARD_READ,
     description: 'Get business KPI data — finance (sales MTD, AR/AP, VAT), sales pipeline, inventory health, pending operations, and attention items. Use when the user asks how the business is doing or wants an executive briefing. Returns raw figures; summarize them for the executive in plain language. Does not open any page.',
     parameters: { type: 'object', properties: {} },
     async handler(_args, { user }) {
@@ -33,6 +37,7 @@ const tools = [
   {
     name: 'financial_summary',
     kind: 'server',
+    permissions: DASHBOARD_READ,
     description: 'Get financial KPI data only: sales month-to-date, outstanding AR (with overdue count), outstanding AP, net AR−AP position, and current-period VAT. Returns raw figures; summarize them for the user. Does not open any page.',
     parameters: { type: 'object', properties: {} },
     async handler(_args, { user }) {
@@ -44,6 +49,7 @@ const tools = [
   {
     name: 'inventory_summary',
     kind: 'server',
+    permissions: DASHBOARD_READ,
     description: 'Get inventory KPI data: active vs total products, stock on hand, out-of-stock count, and how many items are at/below their reorder point. Returns raw figures; summarize them for the user. Does not open any page.',
     parameters: { type: 'object', properties: {} },
     async handler(_args, { user }) {

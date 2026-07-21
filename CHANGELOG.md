@@ -41,6 +41,14 @@ Git history remains the complete implementation-level record.
   and local LM Studio support.
 - Added API rate limits, bounded pagination parameters, and per-tool RBAC for
   AI actions using the existing ERP permission slugs.
+- Auth flow rate limits: `/refresh`, token routes (`reset-password`,
+  `verify-email`), and `/login-as` are throttled; shared auth limiters live in
+  `server/middleware/security.js` with the global API budgets.
+- Pagination sanitize drops invalid `page`/`limit`, caps out-of-range values,
+  and uses the last repeated query param; global API/write budgets are tunable
+  via `RATE_LIMIT_API_MAX` / `RATE_LIMIT_WRITE_MAX`.
+- Dashboard AI summary tools (`executive_summary`, `financial_summary`,
+  `inventory_summary`) require `erp.products.list`, matching GET `/dashboard/stats`.
 
 ### Fixed
 
