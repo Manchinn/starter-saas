@@ -154,7 +154,7 @@
                   </p>
                 </div>
                 <button
-                  v-if="selectedUser?.isActive && form.status !== 'terminated'"
+                  v-if="selectedUser?.isActive"
                   v-can="'hrms.employees.edit'"
                   type="button"
                   :disabled="offboarding"

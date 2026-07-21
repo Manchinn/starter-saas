@@ -29,8 +29,13 @@ jest.mock('../../../server/middleware/permission', () => ({
   resolvePermissions: jest.fn(),
 }))
 
+jest.mock('../../../server/core/realtime', () => ({
+  disconnectUser: jest.fn(),
+}))
+
 jest.mock('../../erp/audit/audit.service', () => ({
   log: jest.fn(),
+  logStrict: jest.fn(),
   list: jest.fn(),
 }))
 
@@ -39,6 +44,7 @@ const { sequelize, Employee, User, UserRole, RefreshToken, Role } = require('../
 const seqService = require('../../erp/settings/services/sequence.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
 const { resolvePermissions } = require('../../../server/middleware/permission')
+const realtime = require('../../../server/core/realtime')
 const auditService = require('../../erp/audit/audit.service')
 const service = require('../services/employee.service')
 
@@ -148,6 +154,7 @@ describe('employee.create — credential modes', () => {
 
   test('assigns selected global roles to an existing linked account', async () => {
     User.findByPk.mockResolvedValue({ id: 'u', organizationId: 'o' })
+    Role.findAll.mockResolvedValue([{ id: 'r1', permissions: [] }])
     Employee.findOne
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce({ id: 'e1', userId: 'u' })
@@ -282,15 +289,39 @@ describe('employee.update', () => {
       .mockResolvedValueOnce(emp)
       .mockResolvedValueOnce({ id: 'e1' })
     UserRole.findAll.mockResolvedValue([{ roleId: 'old-role' }])
+    Role.findAll.mockResolvedValue([{ id: 'r1', permissions: [] }])
     await service.update('e1', { roleIds: ['r1'] }, 'o', 'u-admin', { role: 'admin' })
-    expect(organizationService.assignRoles).toHaveBeenCalledWith('u1', ['r1'], { role: 'admin' })
-    expect(auditService.log).toHaveBeenCalledWith(expect.objectContaining({
+    expect(organizationService.assignRoles).toHaveBeenCalledWith('u1', ['r1'], { role: 'admin' }, { transaction: { id: 'tx' } })
+    expect(auditService.logStrict).toHaveBeenCalledWith(expect.objectContaining({
       action: 'hrms.employee.access.roles_changed',
       entityType: 'Employee',
       entityId: 'e1',
       organizationId: 'o',
       summary: { targetUserId: 'u1', previousRoleIds: ['old-role'], roleIds: ['r1'] },
-    }))
+    }), { transaction: { id: 'tx' } })
+  })
+
+  test('rejects a direct terminated status while the linked login is active', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn() }
+    Employee.findOne.mockResolvedValue(emp)
+    User.findByPk.mockResolvedValue({ id: 'u1', organizationId: 'o', isActive: true })
+
+    await expect(service.update('e1', { status: 'terminated' }, 'o', 'manager-1', { id: 'manager-1' }))
+      .rejects.toEqual({ status: 400, message: 'Use offboarding to terminate an employee with a linked login account' })
+
+    expect(emp.update).not.toHaveBeenCalled()
+  })
+
+  test('rejects nonexistent role IDs even for platform administrators', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn().mockResolvedValue() }
+    Employee.findOne.mockResolvedValue(emp)
+    Role.findAll.mockResolvedValue([])
+
+    await expect(service.update('e1', { roleIds: ['missing-role'] }, 'o', 'admin-1', { id: 'admin-1', role: 'admin' }))
+      .rejects.toEqual({ status: 400, message: 'One or more roles do not exist' })
+
+    expect(organizationService.assignRoles).not.toHaveBeenCalled()
+    expect(auditService.logStrict).not.toHaveBeenCalled()
   })
 })
 
@@ -355,14 +386,31 @@ describe('employee.offboard', () => {
       { status: 'terminated', activeTo: '2026-07-21', modifiedBy: 'manager-1' },
       { transaction: { id: 'tx' } },
     )
-    expect(auditService.log).toHaveBeenCalledWith(expect.objectContaining({
+    expect(auditService.logStrict).toHaveBeenCalledWith(expect.objectContaining({
       action: 'hrms.employee.access.offboarded',
       entityType: 'Employee',
       entityId: 'e1',
       organizationId: 'o1',
       summary: expect.objectContaining({ targetUserId: 'u1', revokedRoleIds: ['r1', 'r2'], revokedSessions: 3 }),
-    }))
+    }), { transaction: { id: 'tx' } })
+    expect(realtime.disconnectUser).toHaveBeenCalledWith('u1')
     expect(result).toEqual({ employeeId: 'e1', userId: 'u1', revokedRoles: 2, revokedSessions: 3 })
+  })
+
+  test('does not disconnect realtime sessions when the transactional audit write fails', async () => {
+    const emp = { id: 'e1', userId: 'u1', update: jest.fn().mockResolvedValue() }
+    const user = { id: 'u1', organizationId: 'o1', update: jest.fn().mockResolvedValue() }
+    Employee.findOne.mockResolvedValue(emp)
+    User.findByPk.mockResolvedValue(user)
+    UserRole.findAll.mockResolvedValue([])
+    UserRole.destroy.mockResolvedValue(0)
+    RefreshToken.update.mockResolvedValue([1])
+    auditService.logStrict.mockRejectedValueOnce(new Error('audit unavailable'))
+
+    await expect(service.offboard('e1', 'o1', 'manager-1', { id: 'manager-1', organizationId: 'o1' }))
+      .rejects.toThrow('audit unavailable')
+
+    expect(realtime.disconnectUser).not.toHaveBeenCalled()
   })
 
   test('rejects offboarding an employee without a linked login account', async () => {
@@ -371,7 +419,7 @@ describe('employee.offboard', () => {
     await expect(service.offboard('e1', 'o1', 'manager-1', { id: 'manager-1' }))
       .rejects.toEqual({ status: 400, message: 'Employee has no linked login account' })
 
-    expect(auditService.log).not.toHaveBeenCalled()
+    expect(auditService.logStrict).not.toHaveBeenCalled()
   })
 
   test('prevents managers from offboarding their own account', async () => {

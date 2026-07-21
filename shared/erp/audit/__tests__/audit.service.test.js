@@ -111,6 +111,26 @@ describe('audit.log — never throws', () => {
   })
 })
 
+describe('audit.logStrict — transactional writes', () => {
+  test('writes inside the supplied transaction and propagates failures', async () => {
+    const transaction = { id: 'tx-1' }
+    AuditLog.create.mockRejectedValueOnce(new Error('db down'))
+
+    await expect(service.logStrict({
+      user: { id: 'u', organizationId: 'o', email: 'e@x.com' },
+      action: 'hrms.employee.access.offboarded',
+      entityType: 'Employee',
+      entityId: 'e1',
+    }, { transaction })).rejects.toThrow('db down')
+
+    expect(AuditLog.create).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'u',
+      organizationId: 'o',
+      action: 'hrms.employee.access.offboarded',
+    }), { transaction })
+  })
+})
+
 describe('audit.list', () => {
   beforeEach(() => {
     AuditLog.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })

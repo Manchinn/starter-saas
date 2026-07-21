@@ -4,6 +4,7 @@ const seqService  = require('../../erp/settings/services/sequence.service')
 const auditService = require('../../erp/audit/audit.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
 const { resolvePermissions } = require('../../../server/middleware/permission')
+const realtime = require('../../../server/core/realtime')
 
 const USER_ATTRS = ['id', 'name', 'email', 'isActive', 'role', 'lastLoginAt']
 const USER_INCLUDE = {
@@ -14,13 +15,14 @@ const USER_INCLUDE = {
 }
 const ROLE_INCLUDE = [{ model: Permission, as: 'permissions', attributes: ['slug'], through: { attributes: [] } }]
 
-async function assertAssignableRoles(roleIds = [], actor) {
-  if (!roleIds.length || !actor || actor.role === 'admin') return
-  const [roles, actorPermissions] = await Promise.all([
-    Role.findAll({ where: { id: roleIds }, include: ROLE_INCLUDE }),
-    resolvePermissions(actor),
-  ])
+async function assertAssignableRoles(roleIds = [], actor, transaction) {
+  if (!roleIds.length) return
+  const query = { where: { id: roleIds }, include: ROLE_INCLUDE }
+  if (transaction) query.transaction = transaction
+  const roles = await Role.findAll(query)
   if (roles.length !== roleIds.length) throw { status: 400, message: 'One or more roles do not exist' }
+  if (!actor || actor.role === 'admin') return
+  const actorPermissions = await resolvePermissions(actor)
   for (const role of roles) {
     if ((role.permissions || []).some((permission) => !actorPermissions.has(permission.slug))) {
       throw { status: 403, message: `You cannot assign the "${role.name}" role because it grants permissions you do not have.` }
@@ -163,6 +165,11 @@ const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
   const emp = await Employee.findOne({ where: { id, organizationId } })
   if (!emp) throw { status: 404, message: 'Employee not found' }
 
+  const resultingUserId = userId !== undefined ? userId || null : emp.userId
+  if (status === 'terminated' && resultingUserId) {
+    throw { status: 400, message: 'Use offboarding to terminate an employee with a linked login account' }
+  }
+
   if (userId && userId !== emp.userId) {
     const userExists = await User.findByPk(userId)
     if (!userExists) throw { status: 404, message: 'Selected user not found' }
@@ -191,28 +198,31 @@ const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
   }
   if (roleIds !== undefined) {
     const normalizedRoleIds = Array.isArray(roleIds) ? [...new Set(roleIds)] : []
-    const linkedUserId = userId !== undefined ? userId || null : emp.userId
+    const linkedUserId = resultingUserId
     if (linkedUserId) {
-      await assertAssignableRoles(normalizedRoleIds, actor)
-      const previousRoleLinks = await UserRole.findAll({
-        where: { userId: linkedUserId },
-        attributes: ['roleId'],
-      }) || []
-      const previousRoleIds = previousRoleLinks.map((link) => link.roleId)
-      await organizationService.assignRoles(linkedUserId, normalizedRoleIds, actor)
-      const before = [...previousRoleIds].sort()
-      const after = [...normalizedRoleIds].sort()
-      if (JSON.stringify(before) !== JSON.stringify(after)) {
-        await auditService.log({
-          user: actor,
-          userId: modifiedByUserId,
-          action: 'hrms.employee.access.roles_changed',
-          entityType: 'Employee',
-          entityId: id,
-          organizationId,
-          summary: { targetUserId: linkedUserId, previousRoleIds, roleIds: normalizedRoleIds },
-        })
-      }
+      await sequelize.transaction(async (transaction) => {
+        await assertAssignableRoles(normalizedRoleIds, actor, transaction)
+        const previousRoleLinks = await UserRole.findAll({
+          where: { userId: linkedUserId },
+          attributes: ['roleId'],
+          transaction,
+        }) || []
+        const previousRoleIds = previousRoleLinks.map((link) => link.roleId)
+        await organizationService.assignRoles(linkedUserId, normalizedRoleIds, actor, { transaction })
+        const before = [...previousRoleIds].sort()
+        const after = [...normalizedRoleIds].sort()
+        if (JSON.stringify(before) !== JSON.stringify(after)) {
+          await auditService.logStrict({
+            user: actor,
+            userId: modifiedByUserId,
+            action: 'hrms.employee.access.roles_changed',
+            entityType: 'Employee',
+            entityId: id,
+            organizationId,
+            summary: { targetUserId: linkedUserId, previousRoleIds, roleIds: normalizedRoleIds },
+          }, { transaction })
+        }
+      })
     } else if (normalizedRoleIds.length) {
       throw { status: 400, message: 'Assign a login account before assigning roles' }
     }
@@ -228,7 +238,6 @@ const remove = async (id, organizationId) => {
 }
 
 const offboard = async (id, organizationId, modifiedByUserId, actor, activeTo) => {
-  let auditSummary
   let result
 
   await sequelize.transaction(async (transaction) => {
@@ -260,24 +269,25 @@ const offboard = async (id, organizationId, modifiedByUserId, actor, activeTo) =
       modifiedBy: modifiedByUserId || null,
     }, { transaction })
 
-    auditSummary = {
+    const auditSummary = {
       targetUserId: user.id,
       revokedRoleIds,
       revokedRoles,
       revokedSessions,
     }
     result = { employeeId: emp.id, userId: user.id, revokedRoles, revokedSessions }
+    await auditService.logStrict({
+      user: actor,
+      userId: modifiedByUserId,
+      action: 'hrms.employee.access.offboarded',
+      entityType: 'Employee',
+      entityId: id,
+      organizationId,
+      summary: auditSummary,
+    }, { transaction })
   })
 
-  await auditService.log({
-    user: actor,
-    userId: modifiedByUserId,
-    action: 'hrms.employee.access.offboarded',
-    entityType: 'Employee',
-    entityId: id,
-    organizationId,
-    summary: auditSummary,
-  })
+  realtime.disconnectUser(result.userId)
 
   return result
 }
