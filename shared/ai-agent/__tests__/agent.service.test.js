@@ -4,6 +4,7 @@ jest.mock('../../../server/models', () => ({
 }))
 jest.mock('../services/settings.service')
 jest.mock('../services/provider.service')
+jest.mock('../../../server/middleware/permission', () => ({ resolvePermissions: jest.fn() }))
 // ERP services the tools lazily require — mock at the resolved module path.
 jest.mock('../../erp/products/services/product.service', () => ({ create: jest.fn(), list: jest.fn() }))
 jest.mock('../../erp/customers/services/customer.service', () => ({ create: jest.fn(), list: jest.fn() }))
@@ -11,6 +12,7 @@ jest.mock('../../erp/customers/services/customer.service', () => ({ create: jest
 const { AiConversation, AiMessage } = require('../../../server/models')
 const settingsSvc = require('../services/settings.service')
 const provider = require('../services/provider.service')
+const { resolvePermissions } = require('../../../server/middleware/permission')
 const productSvc = require('../../erp/products/services/product.service')
 const agent = require('../services/agent.service')
 
@@ -19,12 +21,22 @@ const USER = { id: 'u1', organizationId: 'o1' }
 beforeEach(() => {
   jest.clearAllMocks()
   settingsSvc.getRaw.mockResolvedValue({ enabled: true, systemPrompt: 'sys', provider: 'ollama' })
+  resolvePermissions.mockResolvedValue(new Set(['*']))
   AiMessage.findAll.mockResolvedValue([])
   AiConversation.create.mockResolvedValue({ id: 'c1', title: 'New chat', save: jest.fn() })
   AiMessage.create.mockImplementation(async (row) => ({ id: 'm-' + row.role, ...row }))
 })
 
 describe('agent.chat — tool loop', () => {
+  test('resolves permissions from the authenticated user, not the tenant-scoped tool context', async () => {
+    provider.chat.mockResolvedValueOnce({ role: 'assistant', content: 'hi', tool_calls: [] })
+    const authenticatedUser = { id: 'u1', getRoles: jest.fn() }
+
+    await agent.chat({ user: USER, permissionUser: authenticatedUser, content: 'hi' })
+
+    expect(resolvePermissions).toHaveBeenCalledWith(authenticatedUser)
+  })
+
   test('executes a server tool (create_product) and feeds the result back to the model', async () => {
     productSvc.create.mockResolvedValue({ id: 'p1', name: 'Widget', sku: 'PRD-1' })
 

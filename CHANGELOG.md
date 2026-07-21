@@ -7,7 +7,21 @@ Git history remains the complete implementation-level record.
 
 ## [Unreleased]
 
-No unreleased product changes yet.
+### Security
+
+- Hardened organization logo uploads and static delivery by rejecting SVGs and
+  serving logos with restrictive browser security headers.
+- Prevented newline injection when the install wizard writes `server/.env`.
+- Restricted AI provider base URLs to safe HTTP(S) targets, including guards
+  for cloud metadata and private/link-local addresses while retaining MaxPlus
+  and local LM Studio support.
+- Added API rate limits, bounded pagination parameters, and per-tool RBAC for
+  AI actions using the existing ERP permission slugs.
+
+### Fixed
+
+- Restored AI Assistant access after RBAC hardening by resolving permissions
+  from the authenticated user while retaining the tenant-scoped tool context.
 
 ## [2026-07-21]
 

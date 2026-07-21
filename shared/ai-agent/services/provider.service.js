@@ -10,10 +10,40 @@
  * a friendly { status, message } so callers can surface them without a 500.
  */
 const log = require('../../../server/core/logger').forLabel('ai-agent')
+const net = require('net')
 
 const TIMEOUT_MS = 120000
 
 const trimSlash = (u) => (u || '').replace(/\/+$/, '')
+
+const metadataHosts = new Set(['metadata.google.internal', 'metadata.google', 'instance-data'])
+
+function isBlockedIp(hostname) {
+  if (!net.isIP(hostname)) return false
+  if (hostname === '::1' || hostname.startsWith('127.')) return false
+  if (hostname.includes(':')) {
+    const normalized = hostname.toLowerCase()
+    return normalized.startsWith('fe80:') || normalized.startsWith('fc') || normalized.startsWith('fd')
+  }
+  const [a, b] = hostname.split('.').map(Number)
+  return a === 0 || a === 10 || a === 169 && b === 254 || a === 172 && b >= 16 && b <= 31
+    || a === 192 && b === 168 || a === 100 && b >= 64 && b <= 127 || a === 198 && (b === 18 || b === 19)
+}
+
+function validateBaseUrl(value) {
+  let parsed
+  try { parsed = new URL(value) } catch {
+    throw { status: 400, message: 'LLM base URL must be a valid HTTP(S) URL.' }
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+    throw { status: 400, message: 'LLM base URL must be an HTTP(S) URL without credentials.' }
+  }
+  const hostname = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, '')
+  if (metadataHosts.has(hostname) || hostname.endsWith('.internal') || isBlockedIp(hostname)) {
+    throw { status: 400, message: 'LLM base URL must not target a private network or cloud metadata service.' }
+  }
+  return trimSlash(parsed.toString())
+}
 
 // LM Studio's OpenAI-compatible server is always rooted at `/v1`. Users often
 // paste just `http://localhost:1234` (or copy a non-OpenAI path) — without the
@@ -55,7 +85,7 @@ async function httpJson(url, options = {}) {
 // where each tool_call is { id, name, arguments(object) }.
 async function chat({ settings, messages, tools }) {
   if (settings.provider === 'ollama') {
-    const base = trimSlash(settings.baseUrl)
+    const base = validateBaseUrl(settings.baseUrl)
     const data = await httpJson(`${base}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -71,7 +101,7 @@ async function chat({ settings, messages, tools }) {
   }
 
   // LM Studio (OpenAI-compatible)
-  const base = openaiBase(settings.baseUrl)
+  const base = openaiBase(validateBaseUrl(settings.baseUrl))
   const headers = { 'Content-Type': 'application/json' }
   if (settings.apiKey) headers.Authorization = `Bearer ${settings.apiKey}`
   const data = await httpJson(`${base}/chat/completions`, {
@@ -143,13 +173,13 @@ function safeParse(s) {
 // ── List models (connection test) ────────────────────────────────────────────
 async function listModels({ provider, baseUrl, apiKey }) {
   if (provider === 'ollama') {
-    const data = await httpJson(`${trimSlash(baseUrl)}/api/tags`, { method: 'GET' })
+    const data = await httpJson(`${validateBaseUrl(baseUrl)}/api/tags`, { method: 'GET' })
     return (data?.models || []).map((m) => m.name).filter(Boolean)
   }
   const headers = {}
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`
-  const data = await httpJson(`${openaiBase(baseUrl)}/models`, { method: 'GET', headers })
+  const data = await httpJson(`${openaiBase(validateBaseUrl(baseUrl))}/models`, { method: 'GET', headers })
   return (data?.data || []).map((m) => m.id).filter(Boolean)
 }
 
-module.exports = { chat, listModels }
+module.exports = { chat, listModels, validateBaseUrl }

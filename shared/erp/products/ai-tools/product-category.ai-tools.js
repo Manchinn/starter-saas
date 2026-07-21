@@ -25,6 +25,7 @@ const tools = [
   {
     name: 'create_product_category',
     kind: 'server',
+    permissions: ['erp.products.edit'],
     description: 'Create a new product category. The code is auto-generated.',
     parameters: {
       type: 'object',
@@ -55,6 +56,7 @@ const tools = [
   {
     name: 'list_product_categories',
     kind: 'server',
+    permissions: ['erp.products.list'],
     description: 'List or search product categories.',
     parameters: {
       type: 'object',

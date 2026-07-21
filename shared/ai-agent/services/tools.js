@@ -1,7 +1,7 @@
 /**
  * Tool registry for the AI agent.
  *
- * Each tool: { name, description, kind, parameters, handler }
+ * Each tool: { name, description, kind, permissions, parameters, handler }
  *   kind 'server' — runs on the backend (mutates/reads data), result fed to the model
  *   kind 'client' — produces a client action (e.g. SPA navigation) for the browser
  *
@@ -76,8 +76,12 @@ const tools = [
 
 const byName = new Map(tools.map((t) => [t.name, t]))
 
-// OpenAI-style tool schema array sent to the LLM.
-const schemas = () => tools.map((t) => ({
+const isAllowed = (tool, permissions) => !tool.permissions?.length
+  || permissions?.has('*') || tool.permissions.some((permission) => permissions?.has(permission))
+
+// Only advertise tools the caller may use. Execute repeats this check because
+// a model may still call a tool from stale conversation context.
+const schemas = (ctx = {}) => tools.filter((t) => isAllowed(t, ctx.permissions)).map((t) => ({
   type: 'function',
   function: { name: t.name, description: t.description, parameters: t.parameters },
 }))
@@ -88,6 +92,9 @@ const schemas = () => tools.map((t) => ({
 const execute = async (name, args, ctx) => {
   const tool = byName.get(name)
   if (!tool) return { content: `Error: no such tool "${name}".` }
+  if (!isAllowed(tool, ctx.permissions)) {
+    return { content: `Error: you do not have permission to use ${name}.` }
+  }
   try {
     const { result, action } = await tool.handler(args || {}, ctx)
     const content = typeof result === 'string' ? result : JSON.stringify(result)
@@ -97,4 +104,4 @@ const execute = async (name, args, ctx) => {
   }
 }
 
-module.exports = { tools, schemas, execute, NAV_TARGETS }
+module.exports = { tools, schemas, execute, NAV_TARGETS, isAllowed }

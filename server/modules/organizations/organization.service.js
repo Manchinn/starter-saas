@@ -53,7 +53,6 @@ const LOGO_ALLOWED_MIME = {
   'image/jpg':  '.jpg',
   'image/gif':  '.gif',
   'image/webp': '.webp',
-  'image/svg+xml': '.svg',
 }
 const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) }
 

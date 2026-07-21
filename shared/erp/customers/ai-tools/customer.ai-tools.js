@@ -51,6 +51,7 @@ const tools = [
   {
     name: 'create_customer',
     kind: 'server',
+    permissions: ['erp.customers.edit'],
     description: 'Create a new customer. The code is auto-generated.',
     parameters: {
       type: 'object',
@@ -89,6 +90,7 @@ const tools = [
   {
     name: 'list_customers',
     kind: 'server',
+    permissions: ['erp.customers.list'],
     description: 'List or search customers. Use when the user asks what customers exist or to find customers.',
     parameters: {
       type: 'object',
@@ -115,6 +117,7 @@ const tools = [
   {
     name: 'get_customer',
     kind: 'server',
+    permissions: ['erp.customers.list'],
     description: 'Look up a single customer\'s full details by name, code, email, or company.',
     parameters: {
       type: 'object',
@@ -140,6 +143,7 @@ const tools = [
   {
     name: 'update_customer',
     kind: 'server',
+    permissions: ['erp.customers.edit'],
     description: 'Update an existing customer. Identify it with `search`; only the fields you pass are changed.',
     parameters: {
       type: 'object',
@@ -178,6 +182,7 @@ const tools = [
   {
     name: 'delete_customer',
     kind: 'server',
+    permissions: ['erp.customers.delete'],
     description: 'Delete a customer. Identify it with `search`. This cannot be undone.',
     parameters: {
       type: 'object',
