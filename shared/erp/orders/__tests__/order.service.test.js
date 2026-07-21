@@ -15,8 +15,6 @@ jest.mock('../../../../server/models', () => ({
   SaleItem:        {},
   SalePackage:     {},
   Store:           {},
-  StoreStock:      { findOrCreate: jest.fn() },
-  StockMovement:   {},
   User:            {},
   Invoice:         { findOne: jest.fn() },
   DeliveryOrder:   { findOne: jest.fn() },
@@ -28,6 +26,7 @@ jest.mock('../../audit/audit.service', () => ({ log: jest.fn() }))
 jest.mock('../../settings/services/currency.service', () => ({ getRateOn: jest.fn(() => 1) }), { virtual: true })
 jest.mock('../../settings/services/sequence.service', () => ({ getNext: jest.fn(() => 'DO-1') }), { virtual: true })
 jest.mock('../../stock/stock-count/stock-count.service', () => ({ checkStoreLock: jest.fn() }), { virtual: true })
+jest.mock('../../stock/stock-ledger/stock-ledger.service', () => ({ postDelta: jest.fn() }), { virtual: true })
 jest.mock('../../invoices/invoice.service', () => ({ create: jest.fn() }), { virtual: true })
 
 const { Op } = require('sequelize')

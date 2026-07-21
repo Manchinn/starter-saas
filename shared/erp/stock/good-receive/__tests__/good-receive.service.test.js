@@ -24,6 +24,7 @@ jest.mock('../../../../../server/config/database', () => ({ transaction: jest.fn
 jest.mock('../../../audit/audit.service', () => ({ log: jest.fn() }))
 jest.mock('../../../settings/services/sequence.service', () => ({ getNext: jest.fn(() => 'GR-1') }), { virtual: true })
 jest.mock('../../stock-count/stock-count.service', () => ({ checkStoreLock: jest.fn() }), { virtual: true })
+jest.mock('../../stock-ledger/stock-ledger.service', () => ({ postDelta: jest.fn() }), { virtual: true })
 jest.mock('../../../accounting/services/vendor-bill.service', () => ({ create: jest.fn() }), { virtual: true })
 
 const { Op } = require('sequelize')

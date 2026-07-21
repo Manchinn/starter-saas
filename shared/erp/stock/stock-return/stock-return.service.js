@@ -1,4 +1,4 @@
-const { StockReturn, StockReturnItem, Product, Store, StoreStock, StockMovement, Customer, Vendor } = require('../../../../server/models')
+const { StockReturn, StockReturnItem, Product, Store, Customer, Vendor } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { getNext } = require('../../settings/services/sequence.service')
@@ -161,35 +161,23 @@ const confirm = async (id) => {
   const { checkStoreLock } = require('../stock-count/stock-count.service')
   if (sr.storeId) await checkStoreLock(sr.storeId)
 
+  const stockLedger = require('../stock-ledger/stock-ledger.service')
   const t = await sequelize.transaction()
   try {
     for (const item of sr.items) {
       const qty = parseFloat(item.qty)
-      const product = await Product.findByPk(item.productId, { transaction: t })
-      const before = parseFloat(product.stock)
-      const after  = before + delta * qty
-
-      await product.update({ stock: after }, { transaction: t })
-
-      const [storeStock] = await StoreStock.findOrCreate({
-        where: { productId: item.productId, storeId: sr.storeId },
-        defaults: { stock: 0 },
+      await stockLedger.postDelta({
+        productId: item.productId,
+        storeId: sr.storeId || null,
+        qty: delta * qty,
+        type: movementType,
+        refType: 'StockReturn',
+        refId: sr.id,
+        refNo: sr.refNo,
+        notes: item.reason || sr.notes,
+        organizationId: sr.organizationId ?? null,
         transaction: t,
       })
-      await storeStock.update({ stock: parseFloat(storeStock.stock) + delta * qty }, { transaction: t })
-
-      await StockMovement.create({
-        productId:   item.productId,
-        storeId:     sr.storeId,
-        type:        movementType,
-        qty:         delta * qty,
-        stockBefore: before,
-        stockAfter:  after,
-        refType:     'StockReturn',
-        refId:       sr.id,
-        refNo:       sr.refNo,
-        notes:       item.reason || sr.notes,
-      }, { transaction: t })
     }
 
     await sr.update({ status: 'confirmed' }, { transaction: t })

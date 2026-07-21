@@ -1,4 +1,4 @@
-const { StockIssue, StockIssueItem, Product, Store, StoreStock, StockMovement } = require('../../../../server/models')
+const { StockIssue, StockIssueItem, Product, Store, StoreStock } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { getNext } = require('../../settings/services/sequence.service')
@@ -117,6 +117,7 @@ const confirm = async (id) => {
   const { checkStoreLock } = require('../stock-count/stock-count.service')
   await checkStoreLock(issue.storeId)
 
+  const stockLedger = require('../stock-ledger/stock-ledger.service')
   const t = await sequelize.transaction()
   try {
     for (const item of issue.items) {
@@ -135,24 +136,18 @@ const confirm = async (id) => {
         }
       }
 
-      const before = parseFloat(product.stock)
-      const after  = before - parseFloat(item.qty)
-
-      await product.update({ stock: after }, { transaction: t })
-      await storeStock.update({ stock: storeStock.stock - parseFloat(item.qty) }, { transaction: t })
-
-      await StockMovement.create({
-        productId:   item.productId,
-        storeId:     issue.storeId,
-        type:        'issue',
-        qty:         -parseFloat(item.qty),
-        stockBefore: before,
-        stockAfter:  after,
-        refType:     'StockIssue',
-        refId:       issue.id,
-        refNo:       issue.refNo,
-        notes:       item.notes || issue.notes,
-      }, { transaction: t })
+      await stockLedger.postDelta({
+        productId: item.productId,
+        storeId: issue.storeId,
+        qty: -parseFloat(item.qty),
+        type: 'issue',
+        refType: 'StockIssue',
+        refId: issue.id,
+        refNo: issue.refNo,
+        notes: item.notes || issue.notes,
+        organizationId: issue.organizationId ?? null,
+        transaction: t,
+      })
     }
 
     await issue.update({ status: 'confirmed' }, { transaction: t })

@@ -7,6 +7,16 @@ Git history remains the complete implementation-level record.
 
 ## [Unreleased]
 
+### Changed
+
+- Stock confirm paths (adjust, issue, return, goods receive, sales order
+  confirm/cancel) now write product / store / movement balances through a
+  shared **Stock ledger** `postDelta` (`shared/erp/stock/stock-ledger/`).
+  Count and transfer are unchanged. Callers still own locks, negative checks,
+  package lines, and legacy `Item.stock`. **Behaviour change:** missing product
+  on the order stock path now throws and rolls back the transaction (was
+  soft-skip). See GitHub issue #1.
+
 ## [2026-07-22]
 
 Fork `main` rebased onto upstream `artapon/starter-saas` (`4784e41`) and

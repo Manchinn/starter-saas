@@ -1,4 +1,4 @@
-const { StockAdjust, StockAdjustItem, Product, Store, StoreStock, StockMovement } = require('../../../../server/models')
+const { StockAdjust, StockAdjustItem, Product, Store } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { getNext } = require('../../settings/services/sequence.service')
@@ -107,36 +107,22 @@ const confirm = async (id) => {
   const { checkStoreLock } = require('../stock-count/stock-count.service')
   await checkStoreLock(adj.storeId)
 
+  const stockLedger = require('../stock-ledger/stock-ledger.service')
   const t = await sequelize.transaction()
   try {
     for (const item of adj.items) {
-      const product = await Product.findByPk(item.productId, { transaction: t })
-      const before = product.stock
-      const after = before + item.qty
-
-      // Update total product stock
-      await product.update({ stock: after }, { transaction: t })
-
-      // Update per-store stock
-      const [storeStock] = await StoreStock.findOrCreate({
-        where: { productId: item.productId, storeId: adj.storeId },
-        defaults: { stock: 0 },
-        transaction: t,
-      })
-      await storeStock.update({ stock: storeStock.stock + item.qty }, { transaction: t })
-
-      await StockMovement.create({
+      await stockLedger.postDelta({
         productId: item.productId,
         storeId: adj.storeId,
-        type: 'adjust',
         qty: item.qty,
-        stockBefore: before,
-        stockAfter: after,
+        type: 'adjust',
         refType: 'StockAdjust',
         refId: adj.id,
         refNo: adj.refNo,
         notes: item.notes || adj.notes,
-      }, { transaction: t })
+        organizationId: adj.organizationId ?? null,
+        transaction: t,
+      })
     }
     await adj.update({ status: 'confirmed' }, { transaction: t })
     await t.commit()

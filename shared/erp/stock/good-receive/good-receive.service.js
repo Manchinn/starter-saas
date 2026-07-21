@@ -1,4 +1,4 @@
-const { GoodReceive, GoodReceiveItem, Product, Store, StoreStock, StockMovement, UOM, UOMConversion } = require('../../../../server/models')
+const { GoodReceive, GoodReceiveItem, Product, Store, UOM, UOMConversion } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const sequelize = require('../../../../server/config/database')
 const { toFixed } = require('../../../../server/utils/fmt')
@@ -150,6 +150,7 @@ const confirm = async (id) => {
   const { checkStoreLock } = require('../stock-count/stock-count.service')
   await checkStoreLock(gr.storeId)
 
+  const stockLedger = require('../stock-ledger/stock-ledger.service')
   const t = await sequelize.transaction()
   try {
     for (const item of gr.items) {
@@ -157,31 +158,18 @@ const confirm = async (id) => {
       const receiveQty = parseFloat(item.stockQty) > 0
         ? parseFloat(item.stockQty)
         : parseFloat(item.qty) + parseFloat(item.freeQty || 0)
-      const product = await Product.findByPk(item.productId, { transaction: t })
-      const before = product.stock
-      const after  = before + receiveQty
-
-      await product.update({ stock: after }, { transaction: t })
-
-      const [storeStock] = await StoreStock.findOrCreate({
-        where: { productId: item.productId, storeId: gr.storeId },
-        defaults: { stock: 0 },
+      await stockLedger.postDelta({
+        productId: item.productId,
+        storeId: gr.storeId,
+        qty: receiveQty,
+        type: 'receive',
+        refType: 'GoodReceive',
+        refId: gr.id,
+        refNo: gr.refNo,
+        notes: item.comments || gr.notes,
+        organizationId: gr.organizationId ?? null,
         transaction: t,
       })
-      await storeStock.update({ stock: storeStock.stock + receiveQty }, { transaction: t })
-
-      await StockMovement.create({
-        productId:   item.productId,
-        storeId:     gr.storeId,
-        type:        'receive',
-        qty:         receiveQty,
-        stockBefore: before,
-        stockAfter:  after,
-        refType:     'GoodReceive',
-        refId:       gr.id,
-        refNo:       gr.refNo,
-        notes:       item.comments || gr.notes,
-      }, { transaction: t })
     }
     await gr.update({ status: 'confirmed' }, { transaction: t })
     await t.commit()

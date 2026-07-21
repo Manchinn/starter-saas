@@ -12,8 +12,6 @@ jest.mock('../../../../../server/models', () => ({
   StockReturnItem: { destroy: jest.fn(), create: jest.fn() },
   Product:         { findByPk: jest.fn() },
   Store:           { findByPk: jest.fn() },
-  StoreStock:      { findOrCreate: jest.fn() },
-  StockMovement:   { create: jest.fn() },
   Customer:        { findByPk: jest.fn() },
   Vendor:          { findByPk: jest.fn() },
 }))
@@ -22,11 +20,13 @@ jest.mock('../../../../../server/config/database', () => ({ transaction: jest.fn
 
 jest.mock('../../../settings/services/sequence.service', () => ({ getNext: jest.fn(() => 'RTN-1') }), { virtual: true })
 jest.mock('../../stock-count/stock-count.service', () => ({ checkStoreLock: jest.fn() }), { virtual: true })
+jest.mock('../../stock-ledger/stock-ledger.service', () => ({ postDelta: jest.fn() }), { virtual: true })
 
 const { Op } = require('sequelize')
-const { StockReturn, StockReturnItem, Product, Store, StoreStock, StockMovement, Customer, Vendor } = require('../../../../../server/models')
+const { StockReturn, StockReturnItem, Product, Store, Customer, Vendor } = require('../../../../../server/models')
 const sequelize = require('../../../../../server/config/database')
 const { checkStoreLock } = require('../../stock-count/stock-count.service')
+const stockLedger = require('../../stock-ledger/stock-ledger.service')
 const service = require('../stock-return.service')
 
 beforeEach(() => {
@@ -193,37 +193,47 @@ describe('stock-return.confirm', () => {
     expect(checkStoreLock).not.toHaveBeenCalled()
   })
 
-  test('customer_return ADDS stock: +qty movement, store-lock checked', async () => {
+  test('customer_return ADDS stock via postDelta (+qty), store-lock checked', async () => {
     StockReturn.findByPk.mockResolvedValue({
       id: 'r1', status: 'draft', type: 'customer_return', storeId: 's1', refNo: 'RTN-1',
-      items: [{ productId: 'p1', qty: '3' }],
+      organizationId: 'org-1',
+      items: [{ productId: 'p1', qty: '3', reason: 'defect' }],
       update: jest.fn().mockResolvedValue(),
     })
     checkStoreLock.mockResolvedValue()
-    Product.findByPk.mockResolvedValue({ stock: '10', update: jest.fn().mockResolvedValue() })
-    StoreStock.findOrCreate.mockResolvedValue([{ stock: '5', update: jest.fn().mockResolvedValue() }])
+    stockLedger.postDelta.mockResolvedValue({ stockBefore: 10, stockAfter: 13 })
     await service.confirm('r1')
     expect(checkStoreLock).toHaveBeenCalledWith('s1')
-    expect(StockMovement.create).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'customer_return', qty: 3, stockBefore: 10, stockAfter: 13 }),
-      expect.any(Object),
-    )
+    expect(stockLedger.postDelta).toHaveBeenCalledWith(expect.objectContaining({
+      productId: 'p1',
+      storeId: 's1',
+      qty: 3,
+      type: 'customer_return',
+      refType: 'StockReturn',
+      refId: 'r1',
+      refNo: 'RTN-1',
+      notes: 'defect',
+      organizationId: 'org-1',
+    }))
   })
 
-  test('vendor_return REMOVES stock: −qty movement', async () => {
+  test('vendor_return REMOVES stock via postDelta (−qty)', async () => {
     StockReturn.findByPk.mockResolvedValue({
       id: 'r1', status: 'draft', type: 'vendor_return', storeId: 's1', refNo: 'RTN-1',
+      organizationId: null,
       items: [{ productId: 'p1', qty: '3' }],
       update: jest.fn().mockResolvedValue(),
     })
     checkStoreLock.mockResolvedValue()
-    Product.findByPk.mockResolvedValue({ stock: '10', update: jest.fn().mockResolvedValue() })
-    StoreStock.findOrCreate.mockResolvedValue([{ stock: '5', update: jest.fn().mockResolvedValue() }])
+    stockLedger.postDelta.mockResolvedValue({ stockBefore: 10, stockAfter: 7 })
     await service.confirm('r1')
-    expect(StockMovement.create).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'vendor_return', qty: -3, stockBefore: 10, stockAfter: 7 }),
-      expect.any(Object),
-    )
+    expect(stockLedger.postDelta).toHaveBeenCalledWith(expect.objectContaining({
+      productId: 'p1',
+      storeId: 's1',
+      qty: -3,
+      type: 'vendor_return',
+      organizationId: null,
+    }))
   })
 })
 

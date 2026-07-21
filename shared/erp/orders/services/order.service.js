@@ -1,4 +1,4 @@
-const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, SalePackage, Store, StoreStock, StockMovement, User, sequelize } = require('../../../../server/models')
+const { Order, SalesOrderItem, Customer, Product, Item, SaleItem, SalePackage, Store, User, sequelize } = require('../../../../server/models')
 const { Op } = require('sequelize')
 const { toFixed } = require('../../../../server/utils/fmt')
 const { findByPkScoped } = require('../../../../server/core/tenant')
@@ -186,6 +186,7 @@ const updateStatus = async (id, status, userId, organizationId) => {
     return base * (Number(parent?.quantity) || 1)
   }
 
+  const stockLedger = require('../../stock/stock-ledger/stock-ledger.service')
   await sequelize.transaction(async (t) => {
     // Cut stock when moving to confirmed
     if (status === 'confirmed' && ['draft', 'cancelled'].includes(oldStatus)) {
@@ -197,34 +198,19 @@ const updateStatus = async (id, status, userId, organizationId) => {
         const qty = effectiveQty(item)
         const productId = resolveProductId(item)
         if (productId) {
-          const product = await Product.findByPk(productId, { transaction: t })
-          if (product) {
-            const before = parseFloat(product.stock)
-            const after  = before - qty
-            await product.update({ stock: after }, { transaction: t })
-
-            if (item.storeId) {
-              const [storeStock] = await StoreStock.findOrCreate({
-                where: { productId, storeId: item.storeId },
-                defaults: { stock: 0 },
-                transaction: t,
-              })
-              await storeStock.update({ stock: storeStock.stock - qty }, { transaction: t })
-            }
-
-            await StockMovement.create({
-              productId,
-              storeId:     item.storeId || null,
-              type:        'sale',
-              qty:         -qty,
-              stockBefore: before,
-              stockAfter:  after,
-              refType:     'SalesOrder',
-              refId:       order.id,
-              refNo:       order.orderNumber,
-              notes:       `Sales Order ${order.orderNumber}`,
-            }, { transaction: t })
-          }
+          // E1: missing product throws (behaviour change vs former soft-skip)
+          await stockLedger.postDelta({
+            productId,
+            storeId: item.storeId || null,
+            qty: -qty,
+            type: 'sale',
+            refType: 'SalesOrder',
+            refId: order.id,
+            refNo: order.orderNumber,
+            notes: `Sales Order ${order.orderNumber}`,
+            organizationId: organizationId ?? order.organizationId ?? null,
+            transaction: t,
+          })
         }
         if (item.itemId) {
           const masterItem = await Item.findByPk(item.itemId, { transaction: t })
@@ -243,34 +229,19 @@ const updateStatus = async (id, status, userId, organizationId) => {
         const qty = effectiveQty(item)
         const productId = resolveProductId(item)
         if (productId) {
-          const product = await Product.findByPk(productId, { transaction: t })
-          if (product) {
-            const before = parseFloat(product.stock)
-            const after  = before + qty
-            await product.update({ stock: after }, { transaction: t })
-
-            if (item.storeId) {
-              const [storeStock] = await StoreStock.findOrCreate({
-                where: { productId, storeId: item.storeId },
-                defaults: { stock: 0 },
-                transaction: t,
-              })
-              await storeStock.update({ stock: storeStock.stock + qty }, { transaction: t })
-            }
-
-            await StockMovement.create({
-              productId,
-              storeId:     item.storeId || null,
-              type:        'sale_cancel',
-              qty,
-              stockBefore: before,
-              stockAfter:  after,
-              refType:     'SalesOrder',
-              refId:       order.id,
-              refNo:       order.orderNumber,
-              notes:       `Cancelled Sales Order ${order.orderNumber}`,
-            }, { transaction: t })
-          }
+          // E1: missing product throws (behaviour change vs former soft-skip)
+          await stockLedger.postDelta({
+            productId,
+            storeId: item.storeId || null,
+            qty,
+            type: 'sale_cancel',
+            refType: 'SalesOrder',
+            refId: order.id,
+            refNo: order.orderNumber,
+            notes: `Cancelled Sales Order ${order.orderNumber}`,
+            organizationId: organizationId ?? order.organizationId ?? null,
+            transaction: t,
+          })
         }
         if (item.itemId) {
           const masterItem = await Item.findByPk(item.itemId, { transaction: t })
