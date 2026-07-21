@@ -42,6 +42,8 @@ Git history remains the complete implementation-level record.
   already exceeds the target plan’s limits (`USAGE_OVER_LIMIT`). Enforced on
   tenant request, admin approve, and admin set-subscription; the plans grid
   disables over-limit cards client-side.
+- Admin dashboard panels for the latest subscriptions and plan-change requests
+  (newest 20 each), with row navigation to subscription detail.
 
 ### Changed
 
