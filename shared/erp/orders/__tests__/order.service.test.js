@@ -28,11 +28,13 @@ jest.mock('../../settings/services/sequence.service', () => ({ getNext: jest.fn(
 jest.mock('../../stock/stock-count/stock-count.service', () => ({ checkStoreLock: jest.fn() }), { virtual: true })
 jest.mock('../../stock/stock-ledger/stock-ledger.service', () => ({ postDelta: jest.fn() }), { virtual: true })
 jest.mock('../../invoices/invoice.service', () => ({ create: jest.fn() }), { virtual: true })
+jest.mock('../../notifications/customer-notify', () => ({ notifyCustomer: jest.fn() }))
 
 const { Op } = require('sequelize')
-const { Order, SalesOrderItem, Invoice, DeliveryOrder } = require('../../../../server/models')
+const { Order, SalesOrderItem, Invoice, DeliveryOrder, sequelize } = require('../../../../server/models')
 const audit = require('../../audit/audit.service')
 const invoiceSvc = require('../../invoices/invoice.service')
+const { notifyCustomer } = require('../../notifications/customer-notify')
 const service = require('../services/order.service')
 
 describe('order.list', () => {
@@ -82,12 +84,95 @@ describe('order.updateStatus — gate + audit', () => {
     DeliveryOrder.findOne.mockResolvedValue(null)
     await service.updateStatus('o1', 'confirmed', 'u')
     expect(audit.log).not.toHaveBeenCalled()
+    expect(notifyCustomer).not.toHaveBeenCalled()
   })
 
   test('throws 404 when missing', async () => {
     Order.findByPk.mockResolvedValue(null)
     await expect(service.updateStatus('missing', 'confirmed', 'u'))
       .rejects.toEqual({ status: 404, message: 'Order not found' })
+  })
+
+  test('after status change, calls Customer notify with preserved text (no LINE require)', async () => {
+    // updateStatus uses findByPkScoped → Order.findByPk when orgId is null (internal).
+    const order = {
+      id: 'o1',
+      status: 'draft',
+      orderNumber: 'ORD-9',
+      organizationId: 'org-1',
+      customerId: 'cust-1',
+      total: 10,
+      items: [],
+      update: jest.fn().mockResolvedValue(),
+    }
+    const after = {
+      id: 'o1',
+      status: 'confirmed',
+      orderNumber: 'ORD-9',
+      organizationId: 'org-1',
+      customerId: 'cust-1',
+      toJSON() {
+        return {
+          id: 'o1',
+          status: 'confirmed',
+          orderNumber: 'ORD-9',
+          organizationId: 'org-1',
+          customerId: 'cust-1',
+        }
+      },
+    }
+    Order.findByPk
+      .mockResolvedValueOnce(order)
+      .mockResolvedValueOnce(after)
+    Invoice.findOne.mockResolvedValue(null)
+    DeliveryOrder.findOne.mockResolvedValue(null)
+    sequelize.transaction.mockImplementation(async (fn) => fn({}))
+
+    await service.updateStatus('o1', 'confirmed', 'u')
+
+    expect(notifyCustomer).toHaveBeenCalledWith({
+      organizationId: 'org-1',
+      customerId: 'cust-1',
+      text: 'Order ORD-9 status: confirmed.',
+    })
+  })
+
+  test('Customer notify failure does not reject updateStatus', async () => {
+    const order = {
+      id: 'o1',
+      status: 'draft',
+      orderNumber: 'ORD-9',
+      organizationId: 'org-1',
+      customerId: 'cust-1',
+      total: 10,
+      items: [],
+      update: jest.fn().mockResolvedValue(),
+    }
+    const after = {
+      id: 'o1',
+      status: 'confirmed',
+      orderNumber: 'ORD-9',
+      organizationId: 'org-1',
+      customerId: 'cust-1',
+      toJSON() {
+        return {
+          id: 'o1',
+          status: 'confirmed',
+          orderNumber: 'ORD-9',
+          organizationId: 'org-1',
+          customerId: 'cust-1',
+        }
+      },
+    }
+    Order.findByPk
+      .mockResolvedValueOnce(order)
+      .mockResolvedValueOnce(after)
+    Invoice.findOne.mockResolvedValue(null)
+    DeliveryOrder.findOne.mockResolvedValue(null)
+    sequelize.transaction.mockImplementation(async (fn) => fn({}))
+    notifyCustomer.mockRejectedValue(new Error('channel down'))
+
+    await expect(service.updateStatus('o1', 'confirmed', 'u')).resolves.toBeTruthy()
   })
 })
 

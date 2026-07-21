@@ -158,14 +158,15 @@ const confirm = async (id, userId) => {
     throw err
   }
   const confirmed = await getById(id)
+  // Customer notify after ERP confirm work. Default no-op until a channel adapter registers.
   try {
-    const { notifyCustomer } = require('../../line-integration/services/line-notification.service')
+    const { notifyCustomer } = require('../../notifications/customer-notify')
     await notifyCustomer({
       organizationId: confirmed.organizationId,
       customerId: confirmed.customerId,
       text: `Payment ${confirmed.refNo} has been received.`,
     })
-  } catch (_) { /* LINE is best-effort */ }
+  } catch (_) { /* Customer notify is best-effort */ }
   return confirmed
 }
 

@@ -1,5 +1,5 @@
 const { LineConnection } = require('../../../../server/models')
-const { encrypt } = require('../../../../server/modules/line/line.crypto')
+const { encrypt } = require('./line.crypto')
 
 const redact = (connection) => connection && {
   id: connection.id,

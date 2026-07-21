@@ -57,3 +57,21 @@ _Avoid_: conflating Item stock with Product stock
 
 **Organization**:
 Tenant boundary. Stock movements carry `organizationId` (explicit null allowed where the caller has no org).
+
+## LINE (customer messaging + LIFF)
+
+**LINE connection**:
+Per-organization Messaging API + LIFF credentials and default store for ordering. Secrets stay encrypted; redacted views never expose them.
+_Avoid_: LINE config, bot settings (when meaning the org connection record)
+
+**LINE user mapping**:
+Link from a LINE user id to one Customer within an organization (via a LINE connection).
+_Avoid_: LINE account, social login as synonym for this mapping
+
+**LIFF order**:
+Customer-placed Sales order through LINE LIFF for the connection’s organization and default store; commercial fields are resolved server-side, not trusted from the client. The LINE module orchestrates create → confirm (and compensates a failed confirm); Sales order does not know about LIFF.
+_Avoid_: chat order, bot order (unless a separate bot flow exists)
+
+**Customer notify**:
+Outbound best-effort message to a Customer by organization + customer id and plain text. Delivery channel is outside the Sales/Accounting transaction; absence of a channel is a no-op.
+_Avoid_: LINE notify as the ERP-facing name, push notification (generic mobile), email notify

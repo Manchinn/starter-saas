@@ -57,7 +57,8 @@ still exist for archaeology. They are **not** the product direction of
 |-----------|--------|--------|
 | Stock ledger (shared write path for product/store/movement) | **Done** on `main` | issue #1, ADR-0001, `CONTEXT.md` (Stock terms), `b95488f` |
 | Stock count / transfer via ledger | Deferred | ADR-0001 |
-| Other deepen candidates | Not yet grilled | Re-run `/improve-codebase-architecture` after compact/fork if needed |
+| LINE module + Customer notify port | **Done** on `main` | issues #2–#3, ADR-0002, `CONTEXT.md` (LINE terms) |
+| Other deepen candidates | Not yet grilled | architecture-review report; pick next after LINE implement or skip |
 
 ## Memory note
 

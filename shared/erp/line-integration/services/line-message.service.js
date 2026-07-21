@@ -1,5 +1,5 @@
 const { LineBotClient } = require('@line/bot-sdk')
-const { decrypt } = require('../../../../server/modules/line/line.crypto')
+const { decrypt } = require('./line.crypto')
 
 // @line/bot-sdk v11+ — factory builds Messaging API delegates.
 // `new LineBotClient({ channelAccessToken })` leaves pushMessage non-functional.

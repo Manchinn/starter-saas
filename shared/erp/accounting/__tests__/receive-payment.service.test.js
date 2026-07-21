@@ -14,10 +14,12 @@ jest.mock('../services/auto-journal.service', () => ({
 }))
 jest.mock('../../settings/services/currency.service', () => ({ getRateOn: jest.fn(() => 1) }), { virtual: true })
 jest.mock('../../settings/services/sequence.service', () => ({ getNext: jest.fn(() => 'RCP-1') }), { virtual: true })
+jest.mock('../../notifications/customer-notify', () => ({ notifyCustomer: jest.fn() }))
 
 const { ReceivePayment, Invoice, Customer } = require('../../../../server/models')
 const taxPeriod = require('../services/tax-period.service')
 const autoJournal = require('../services/auto-journal.service')
+const { notifyCustomer } = require('../../notifications/customer-notify')
 const service = require('../services/receive-payment.service')
 
 describe('receive-payment.create', () => {
@@ -108,8 +110,8 @@ describe('receive-payment.confirm', () => {
     const inv = { id: 'inv1', total: 100, amountPaid: 0, status: 'sent', update: jest.fn().mockResolvedValue() }
     ReceivePayment.findByPk
       .mockResolvedValueOnce(rp)
-      .mockResolvedValueOnce({ id: 'rp', status: 'confirmed' })
-      .mockResolvedValueOnce({ id: 'rp', status: 'confirmed' })
+      .mockResolvedValueOnce({ id: 'rp', status: 'confirmed', organizationId: 'o', customerId: 'c', refNo: 'RCP-1' })
+      .mockResolvedValueOnce({ id: 'rp', status: 'confirmed', organizationId: 'o', customerId: 'c', refNo: 'RCP-1' })
     taxPeriod.assertOpen.mockResolvedValue()
     Invoice.findByPk.mockResolvedValue(inv)
     autoJournal.postReceivePayment.mockResolvedValue()
@@ -119,6 +121,30 @@ describe('receive-payment.confirm', () => {
     expect(patch.amountPaid).toBe(100)
     expect(patch.status).toBe('paid')
     expect(autoJournal.postReceivePayment).toHaveBeenCalled()
+    expect(notifyCustomer).toHaveBeenCalledWith({
+      organizationId: 'o',
+      customerId: 'c',
+      text: 'Payment RCP-1 has been received.',
+    })
+  })
+
+  test('Customer notify failure does not reject confirm', async () => {
+    const rp = {
+      id: 'rp', status: 'draft', date: '2025-01-01', organizationId: 'o',
+      lines: [{ invoiceId: 'inv1', amount: 100 }],
+      update: jest.fn().mockResolvedValue(),
+    }
+    const inv = { id: 'inv1', total: 100, amountPaid: 0, status: 'sent', update: jest.fn().mockResolvedValue() }
+    ReceivePayment.findByPk
+      .mockResolvedValueOnce(rp)
+      .mockResolvedValueOnce({ id: 'rp', status: 'confirmed', organizationId: 'o', customerId: 'c', refNo: 'RCP-1' })
+      .mockResolvedValueOnce({ id: 'rp', status: 'confirmed', organizationId: 'o', customerId: 'c', refNo: 'RCP-1' })
+    taxPeriod.assertOpen.mockResolvedValue()
+    Invoice.findByPk.mockResolvedValue(inv)
+    autoJournal.postReceivePayment.mockResolvedValue()
+    notifyCustomer.mockRejectedValue(new Error('channel down'))
+
+    await expect(service.confirm('rp', 'u')).resolves.toBeTruthy()
   })
 })
 

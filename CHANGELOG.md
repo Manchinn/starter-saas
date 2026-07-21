@@ -17,11 +17,20 @@ Git history remains the complete implementation-level record.
   **เปลี่ยนพฤติกรรม:** ถ้า product หายบนเส้นทางตัดสต็อกของออเดอร์
   จะ throw แล้ว rollback ทั้ง transaction (เดิมข้ามเงียบ) — ดู issue #1
   ([`b95488f`](https://github.com/Manchinn/starter-saas/commit/b95488f))
+- **Customer notify port** ที่ `shared/erp/notifications/customer-notify.js`:
+  ออเดอร์ขาย / รับชำระ เรียก `notifyCustomer` เท่านั้น (default no-op)
+  ไม่ผูก `line-notification` โดยตรง — issue #2
+- **LINE deepen (ADR-0002):** domain อยู่ใต้ `shared/erp/line-integration`
+  (crypto, webhook, LIFF auth/catalog/order, messaging); `server/modules/line`
+  เหลือ HTTP + `register` ติดตั้ง LINE เป็น adapter ของ Customer notify
+  — issue #3
 
 ### Docs
 
 - บันทึกผล architecture review ชิ้นแรก: คำศัพท์ Stock ใน `CONTEXT.md`,
   ADR-0001 (Stock ledger write path), และสถานะใน `docs/FORK.md`
+- ADR-0002 + คำศัพท์ LINE / Customer notify ใน `CONTEXT.md`;
+  อัปเดตสถานะ implement ใน `docs/FORK.md`
 
 ## [2026-07-22]
 

@@ -262,15 +262,16 @@ const updateStatus = async (id, status, userId, organizationId) => {
   })
 
   const updated = await getById(id)
-  // Notify only after the ERP transaction and audit log have completed.
+  // Customer notify only after the ERP transaction and audit log have completed.
+  // Default is no-op; LINE (or another channel) installs an adapter at boot.
   try {
-    const { notifyCustomer } = require('../../line-integration/services/line-notification.service')
+    const { notifyCustomer } = require('../../notifications/customer-notify')
     await notifyCustomer({
       organizationId: updated.organizationId,
       customerId: updated.customerId,
       text: `Order ${updated.orderNumber} status: ${updated.status}.`,
     })
-  } catch (_) { /* LINE is best-effort */ }
+  } catch (_) { /* Customer notify is best-effort */ }
   return updated
 }
 
