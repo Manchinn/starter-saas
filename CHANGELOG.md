@@ -44,6 +44,8 @@ Git history remains the complete implementation-level record.
   disables over-limit cards client-side.
 - Admin dashboard panels for the latest subscriptions and plan-change requests
   (newest 20 each), with row navigation to subscription detail.
+- DataTable `rowClickable` / `row-click`: HRMS employee list rows open edit
+  (org-scoped query preserved); inner links/buttons are ignored.
 
 ### Changed
 

@@ -31,6 +31,7 @@
       <div class="bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
         <DataTable :columns="columns" :data="employees" :loading="loading" :total="total"
           v-model:page="page" v-model:global-filter="search" :page-size="limit"
+          row-clickable @row-click="e => $router.push(withOrgQuery(`/hrms/employees/${e.id}/edit`))"
           searchable :search-placeholder="t('erp.employees.searchPh')">
 
           <template #toolbar>
