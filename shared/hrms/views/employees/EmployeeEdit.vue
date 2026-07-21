@@ -292,6 +292,7 @@ onMounted(load)
 
 function accessActionLabel(action) {
   if (action === 'hrms.employee.access.offboarded') return t('erp.employees.accountOffboarded')
+  if (action === 'hrms.employee.access.account_linked') return t('erp.employees.accountLinked')
   if (action === 'hrms.employee.access.roles_changed') return t('erp.employees.rolesChanged')
   return action
 }

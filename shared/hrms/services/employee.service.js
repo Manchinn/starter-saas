@@ -101,7 +101,7 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
   if (!lastName?.trim())  throw { status: 400, message: 'Last name is required' }
 
   let resolvedUserId = userId || null
-  const normalizedRoleIds = Array.isArray(roleIds) ? roleIds : []
+  const normalizedRoleIds = Array.isArray(roleIds) ? [...new Set(roleIds)] : []
   await assertAssignableRoles(normalizedRoleIds, actor)
 
   if (credentialMode === 'new') {
@@ -134,29 +134,49 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
     code = employeeCode.trim()
   }
 
-  const emp = await Employee.create({
-    employeeCode: code,
-    firstName:  firstName.trim(),
-    lastName:   lastName.trim(),
-    position:   position?.trim()   || null,
-    phone:      phone?.trim()      || null,
-    startDate:  startDate          || null,
-    status,
-    activeFrom: activeFrom || null,
-    activeTo:   activeTo   || null,
-    userId:         resolvedUserId,
-    organizationId: organizationId,
-    createdBy:      createdByUserId || null,
+  let employeeId
+  await sequelize.transaction(async (transaction) => {
+    const emp = await Employee.create({
+      employeeCode: code,
+      firstName:  firstName.trim(),
+      lastName:   lastName.trim(),
+      position:   position?.trim()   || null,
+      phone:      phone?.trim()      || null,
+      startDate:  startDate          || null,
+      status,
+      activeFrom: activeFrom || null,
+      activeTo:   activeTo   || null,
+      userId:         resolvedUserId,
+      organizationId: organizationId,
+      createdBy:      createdByUserId || null,
+    }, { transaction })
+    employeeId = emp.id
+
+    if (departmentIds && departmentIds.length) {
+      await emp.setDepartments(departmentIds, { transaction })
+    }
+    if (resolvedUserId && credentialMode !== 'new' && normalizedRoleIds.length) {
+      await organizationService.assignRoles(resolvedUserId, normalizedRoleIds, actor, { transaction })
+    }
+    if (resolvedUserId) {
+      const linkedRoleIds = (await UserRole.findAll({
+        where: { userId: resolvedUserId },
+        attributes: ['roleId'],
+        transaction,
+      }) || []).map((link) => link.roleId)
+      await auditService.logStrict({
+        user: actor,
+        userId: createdByUserId,
+        action: 'hrms.employee.access.account_linked',
+        entityType: 'Employee',
+        entityId: emp.id,
+        organizationId,
+        summary: { targetUserId: resolvedUserId, roleIds: linkedRoleIds, credentialMode },
+      }, { transaction })
+    }
   })
 
-  if (departmentIds && departmentIds.length) {
-    await emp.setDepartments(departmentIds)
-  }
-  if (resolvedUserId && credentialMode !== 'new' && normalizedRoleIds.length) {
-    await organizationService.assignRoles(resolvedUserId, normalizedRoleIds, actor)
-  }
-
-  return getById(emp.id)
+  return getById(employeeId)
 }
 
 const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
@@ -167,8 +187,14 @@ const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
     if (!emp) throw { status: 404, message: 'Employee not found' }
 
     const resultingUserId = userId !== undefined ? userId || null : emp.userId
+    const normalizedRoleIds = roleIds === undefined
+      ? undefined
+      : (Array.isArray(roleIds) ? [...new Set(roleIds)] : [])
     if (status === 'terminated' && (emp.userId || resultingUserId)) {
       throw { status: 400, message: 'Use offboarding to terminate an employee with a linked login account' }
+    }
+    if (emp.userId && userId !== undefined && resultingUserId !== emp.userId) {
+      throw { status: 400, message: 'Use offboarding before changing a linked login account' }
     }
 
     if (userId && userId !== emp.userId) {
@@ -197,8 +223,23 @@ const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
     if (departmentIds !== undefined) {
       await emp.setDepartments(departmentIds || [], { transaction })
     }
+    if (!emp.userId && resultingUserId) {
+      const linkedRoleIds = (await UserRole.findAll({
+        where: { userId: resultingUserId },
+        attributes: ['roleId'],
+        transaction,
+      }) || []).map((link) => link.roleId)
+      await auditService.logStrict({
+        user: actor,
+        userId: modifiedByUserId,
+        action: 'hrms.employee.access.account_linked',
+        entityType: 'Employee',
+        entityId: id,
+        organizationId,
+        summary: { targetUserId: resultingUserId, roleIds: linkedRoleIds },
+      }, { transaction })
+    }
     if (roleIds !== undefined) {
-      const normalizedRoleIds = Array.isArray(roleIds) ? [...new Set(roleIds)] : []
       const linkedUserId = resultingUserId
       if (linkedUserId) {
         await assertAssignableRoles(normalizedRoleIds, actor, transaction)

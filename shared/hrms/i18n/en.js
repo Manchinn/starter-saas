@@ -29,6 +29,7 @@ export default {
       noAccessHistory:  'No access changes recorded',
       noLinkedAccount:  'No linked login account',
       rolesChanged:     'Roles changed',
+      accountLinked:    'Login account linked',
       accountOffboarded:'Account offboarded',
       offboard:         'Offboard employee',
       offboarding:      'Offboarding...',

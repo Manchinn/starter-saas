@@ -29,6 +29,7 @@ export default {
       noAccessHistory:  'ยังไม่มีการเปลี่ยนแปลงสิทธิ์',
       noLinkedAccount:  'ยังไม่ได้เชื่อมบัญชีเข้าสู่ระบบ',
       rolesChanged:     'เปลี่ยนบทบาทผู้ใช้',
+      accountLinked:    'ผูกบัญชีเข้าใช้งาน',
       accountOffboarded:'ยกเลิกสิทธิ์บัญชี',
       offboard:         'Offboard พนักงาน',
       offboarding:      'กำลัง Offboard...',
