@@ -14,6 +14,9 @@ Git history remains the complete implementation-level record.
   billing dashboards for users and administrators.
 - Plan-aware staff-seat and monthly-invoice quota enforcement, including a
   permission-protected administration API for catalog and subscription changes.
+- HRMS Staff Management: employee login accounts can be created or linked with
+  centrally managed roles; role assignment is constrained by the manager's own
+  permissions, and employee/department APIs now enforce their module permissions.
 
 ### Changed
 

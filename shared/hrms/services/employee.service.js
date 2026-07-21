@@ -1,9 +1,50 @@
-const { Employee, User, Department } = require('../../../server/models')
+const { Employee, User, Department, Role, Permission } = require('../../../server/models')
 const { Op } = require('sequelize')
 const seqService  = require('../../erp/settings/services/sequence.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
+const { resolvePermissions } = require('../../../server/middleware/permission')
 
 const USER_ATTRS = ['id', 'name', 'email', 'isActive', 'role', 'lastLoginAt']
+const USER_INCLUDE = {
+  model: User,
+  as: 'user',
+  attributes: USER_ATTRS,
+  include: [{ model: Role, as: 'roles', attributes: ['id', 'name', 'slug', 'color'], through: { attributes: [] } }],
+}
+const ROLE_INCLUDE = [{ model: Permission, as: 'permissions', attributes: ['slug'], through: { attributes: [] } }]
+
+async function assertAssignableRoles(roleIds = [], actor) {
+  if (!roleIds.length || !actor || actor.role === 'admin') return
+  const [roles, actorPermissions] = await Promise.all([
+    Role.findAll({ where: { id: roleIds }, include: ROLE_INCLUDE }),
+    resolvePermissions(actor),
+  ])
+  if (roles.length !== roleIds.length) throw { status: 400, message: 'One or more roles do not exist' }
+  for (const role of roles) {
+    if ((role.permissions || []).some((permission) => !actorPermissions.has(permission.slug))) {
+      throw { status: 403, message: `You cannot assign the "${role.name}" role because it grants permissions you do not have.` }
+    }
+  }
+}
+
+async function listAssignableRoles(actor) {
+  const roles = await Role.findAll({
+    attributes: ['id', 'name', 'slug', 'color'],
+    include: ROLE_INCLUDE,
+    order: [['name', 'ASC']],
+  })
+  if (!actor || actor.role === 'admin') return roles.map((role) => role.toJSON ? role.toJSON() : role)
+  const actorPermissions = await resolvePermissions(actor)
+  return roles
+    .filter((role) => (role.permissions || []).every((permission) => actorPermissions.has(permission.slug)))
+    .map((role) => role.toJSON ? role.toJSON() : role)
+}
+
+function assertUserBelongsToOrganization(user, organizationId) {
+  if (user.organizationId !== organizationId) {
+    throw { status: 403, message: 'Selected user account belongs to a different organization' }
+  }
+}
 
 const list = async ({ organizationId, page = 1, limit = 20, search = '', status = '', activeFrom = '', activeTo = '' }) => {
   if (!organizationId) throw { status: 400, message: 'Organization ID is required' }
@@ -24,7 +65,7 @@ const list = async ({ organizationId, page = 1, limit = 20, search = '', status 
   const { count, rows } = await Employee.findAndCountAll({
     where,
     include: [
-      { model: User, as: 'user', attributes: USER_ATTRS },
+      USER_INCLUDE,
       { model: Department, as: 'departments', through: { attributes: [] } },
     ],
     limit,
@@ -41,7 +82,7 @@ const getById = async (id, organizationId) => {
   const emp = await Employee.findOne({
     where,
     include: [
-      { model: User, as: 'user', attributes: USER_ATTRS },
+      USER_INCLUDE,
       { model: Department, as: 'departments', through: { attributes: [] } },
     ],
   })
@@ -51,12 +92,14 @@ const getById = async (id, organizationId) => {
 
 const create = async ({ firstName, lastName, position, phone, startDate, status = 'active',
   activeFrom, activeTo,
-  employeeCode, autoCode, userId, email, password, credentialMode = 'existing', createdByUserId, organizationId, departmentIds }) => {
+  employeeCode, autoCode, userId, email, password, credentialMode = 'existing', createdByUserId, organizationId, departmentIds, roleIds = [], actor }) => {
   if (!organizationId) throw { status: 400, message: 'Organization ID is required' }
   if (!firstName?.trim()) throw { status: 400, message: 'First name is required' }
   if (!lastName?.trim())  throw { status: 400, message: 'Last name is required' }
 
   let resolvedUserId = userId || null
+  const normalizedRoleIds = Array.isArray(roleIds) ? roleIds : []
+  await assertAssignableRoles(normalizedRoleIds, actor)
 
   if (credentialMode === 'new') {
     // Create a brand-new User account
@@ -67,12 +110,14 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
       email: email.trim(),
       password,
       role: 'user',
+      roleIds: normalizedRoleIds,
       organizationId: organizationId, // Link staff user to the organization
-    })
+    }, actor)
     resolvedUserId = newUser.id
   } else if (resolvedUserId) {
     const userExists = await User.findByPk(resolvedUserId)
     if (!userExists) throw { status: 404, message: 'Selected user account not found' }
+    assertUserBelongsToOrganization(userExists, organizationId)
     
     // Check if the user is already linked
     const already = await Employee.findOne({ where: { userId: resolvedUserId } })
@@ -104,20 +149,23 @@ const create = async ({ firstName, lastName, position, phone, startDate, status 
   if (departmentIds && departmentIds.length) {
     await emp.setDepartments(departmentIds)
   }
+  if (resolvedUserId && credentialMode !== 'new' && normalizedRoleIds.length) {
+    await organizationService.assignRoles(resolvedUserId, normalizedRoleIds, actor)
+  }
 
   return getById(emp.id)
 }
 
-const update = async (id, payload, organizationId, modifiedByUserId) => {
+const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
   const { firstName, lastName, position, phone, startDate, status,
-    activeFrom, activeTo,
-    employeeCode, userId, organizationId: newOrgId, departmentIds } = payload
+    activeFrom, activeTo, employeeCode, userId, organizationId: newOrgId, departmentIds, roleIds } = payload
   const emp = await Employee.findOne({ where: { id, organizationId } })
   if (!emp) throw { status: 404, message: 'Employee not found' }
 
   if (userId && userId !== emp.userId) {
     const userExists = await User.findByPk(userId)
     if (!userExists) throw { status: 404, message: 'Selected user not found' }
+    assertUserBelongsToOrganization(userExists, organizationId)
     const already = await Employee.findOne({ where: { userId, id: { [Op.ne]: id } } })
     if (already) throw { status: 409, message: 'This user already has an employee record' }
   }
@@ -140,6 +188,16 @@ const update = async (id, payload, organizationId, modifiedByUserId) => {
   if (departmentIds !== undefined) {
     await emp.setDepartments(departmentIds || [])
   }
+  if (roleIds !== undefined) {
+    const normalizedRoleIds = Array.isArray(roleIds) ? roleIds : []
+    const linkedUserId = userId !== undefined ? userId || null : emp.userId
+    if (linkedUserId) {
+      await assertAssignableRoles(normalizedRoleIds, actor)
+      await organizationService.assignRoles(linkedUserId, normalizedRoleIds, actor)
+    } else if (normalizedRoleIds.length) {
+      throw { status: 400, message: 'Assign a login account before assigning roles' }
+    }
+  }
 
   return getById(id)
 }
@@ -150,4 +208,4 @@ const remove = async (id, organizationId) => {
   await emp.destroy()
 }
 
-module.exports = { list, getById, create, update, remove }
+module.exports = { list, getById, create, update, remove, listAssignableRoles }

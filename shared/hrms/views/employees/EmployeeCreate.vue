@@ -113,6 +113,24 @@
               This employee record will not have a login account associated with it.
             </div>
 
+            <div v-if="createAccount" class="pt-4 border-t border-[#E2E8F0]">
+              <div class="flex items-center justify-between mb-2">
+                <FieldLabel :text="t('erp.employees.roleAssignments')" />
+                <span class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-widest">
+                  {{ form.roleIds.length }} {{ t('erp.employees.selected') }}
+                </span>
+              </div>
+              <p class="text-xs text-[#637381] mb-2">{{ t('erp.employees.roleHint') }}</p>
+              <div class="grid grid-cols-1 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/80 max-h-48 overflow-y-auto">
+                <label v-for="role in roles" :key="role.id" class="flex items-center gap-2 px-2 py-1.5 hover:bg-white cursor-pointer transition-colors">
+                  <input type="checkbox" v-model="form.roleIds" :value="role.id" class="text-primary-500 focus:ring-primary-500" />
+                  <span class="w-2 h-2 flex-shrink-0" :style="{ backgroundColor: role.color }" />
+                  <span class="text-xs font-medium text-[#374151] truncate" :title="role.name">{{ role.name }}</span>
+                </label>
+              </div>
+              <p v-if="!roles.length" class="text-xs text-[#9BA7B0] mt-2 italic">{{ t('erp.employees.noAssignableRoles') }}</p>
+            </div>
+
             <!-- Department Assignments -->
             <div class="pt-4 border-t border-[#E2E8F0]">
               <FieldLabel :text="t('erp.employees.deptAssignments')" />
@@ -168,8 +186,8 @@ const EMP_STATUS_OPTIONS = computed(() => [
 
 const router        = useRouter()
 const autoCode      = useAutoCode('EMP')
-const users         = ref([])
 const departments   = ref([])
+const roles         = ref([])
 const error         = ref('')
 const saving        = ref(false)
 const createAccount = ref(false)
@@ -182,6 +200,7 @@ const form = ref({
   lastName:      '',
   position:      '',
   departmentIds: [],
+  roleIds:       [],
   phone:         '',
   startDate:     '',
   status:        'active',
@@ -194,12 +213,12 @@ const form = ref({
 
 onMounted(async () => {
   try {
-    const [staffRes, deptRes] = await Promise.all([
-      api.get('/organizations/staff', { params: { limit: 500 } }),
+    const [deptRes, rolesRes] = await Promise.all([
       api.get('/hrms/departments', { params: { limit: 1000 } }),
+      api.get('/hrms/employees/role-options'),
     ])
-    users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
+    roles.value       = rolesRes.data.data.roles
   } catch (err) {
     console.error('Failed to load initial data:', err)
   }

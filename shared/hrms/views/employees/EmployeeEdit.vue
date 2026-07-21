@@ -123,6 +123,24 @@
                   No departments configured.
                 </p>
               </div>
+
+              <div v-if="form.userId" class="pt-5 mt-5 border-t border-[#E2E8F0]">
+                <div class="flex items-center justify-between mb-2">
+                  <FieldLabel :text="t('erp.employees.roleAssignments')" />
+                  <span class="text-[10px] font-bold text-[#9BA7B0] uppercase tracking-widest">
+                    {{ form.roleIds.length }} {{ t('erp.employees.selected') }}
+                  </span>
+                </div>
+                <p class="text-xs text-[#637381] mb-2">{{ t('erp.employees.roleHint') }}</p>
+                <div class="grid grid-cols-1 gap-2 p-3 border border-[#E2E8F0] bg-[#F7F9FC]/50 max-h-56 overflow-y-auto shadow-inner">
+                  <label v-for="role in roles" :key="role.id" class="flex items-center gap-2.5 px-3 py-2 hover:bg-white hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-[#E2E8F0] group">
+                    <input type="checkbox" v-model="form.roleIds" :value="role.id" class="text-primary-500 focus:ring-primary-500" />
+                    <span class="w-2 h-2 flex-shrink-0" :style="{ backgroundColor: role.color }" />
+                    <span class="text-xs font-medium text-[#637381] group-hover:text-primary-500 transition-colors truncate" :title="role.name">{{ role.name }}</span>
+                  </label>
+                </div>
+                <p v-if="!roles.length" class="text-xs text-[#9BA7B0] mt-2 italic">{{ t('erp.employees.noAssignableRoles') }}</p>
+              </div>
             </FormCard>
           </div>
 
@@ -161,6 +179,7 @@ const loading = ref(true)
 const saving  = ref(false)
 const users   = ref([])
 const departments = ref([])
+const roles   = ref([])
 const error   = ref('')
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
@@ -180,6 +199,7 @@ const form = ref({
   lastName:      '',
   position:      '',
   departmentIds: [],
+  roleIds:       [],
   phone:         '',
   startDate:     '',
   status:        'active',
@@ -192,13 +212,15 @@ const selectedUser = computed(() => users.value.find(u => u.id === form.value.us
 
 onMounted(async () => {
   try {
-    const [empRes, staffRes, deptRes] = await Promise.all([
+    const [empRes, staffRes, deptRes, rolesRes] = await Promise.all([
       api.get(`/hrms/employees/${id}`),
       api.get('/organizations/staff', { params: { limit: 500 } }),
       api.get('/hrms/departments', { params: { limit: 1000 } }),
+      api.get('/hrms/employees/role-options'),
     ])
     users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
+    roles.value       = rolesRes.data.data.roles
     const emp = empRes.data.data.employee
     form.value = {
       employeeCode:  emp.employeeCode || '',
@@ -206,6 +228,7 @@ onMounted(async () => {
       lastName:      emp.lastName,
       position:      emp.position    || '',
       departmentIds: emp.departments?.map(d => d.id) || [],
+      roleIds:       emp.user?.roles?.map(role => role.id) || [],
       phone:         emp.phone       || '',
       startDate:     emp.startDate   || '',
       status:        emp.status,
