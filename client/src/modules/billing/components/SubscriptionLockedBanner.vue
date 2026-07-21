@@ -6,7 +6,7 @@
       <p class="text-sm font-semibold text-amber-900">{{ t('billing.lockedTitle') }}</p>
       <p class="text-sm text-amber-800 mt-0.5">{{ t('billing.lockedDesc') }}</p>
     </div>
-    <RouterLink v-if="showAction" to="/billing/plans"
+    <RouterLink v-if="showAction" to="/billing"
       class="btn-primary flex-shrink-0 whitespace-nowrap">
       {{ t('billing.choosePlan') }}
     </RouterLink>

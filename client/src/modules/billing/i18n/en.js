@@ -10,6 +10,8 @@ export default {
     lockedDesc: 'Access to the app is paused until you choose an active plan. Billing is the only section available right now.',
     choosePlan: 'Choose a plan',
     choosePlanDesc: 'Select a plan to restore or change your subscription.',
+    renewsOn: 'Renews on',
+    endsOn: 'Ends on',
     subscribeFailed: 'Could not update the subscription. Please try again.',
     requestPlan: 'Request plan',
     requested: 'Requested',

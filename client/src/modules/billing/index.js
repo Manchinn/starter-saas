@@ -6,7 +6,8 @@ export default {
   order: 91,
   routes: [
     { path: '/billing', name: 'billing', component: () => import('./views/Billing.vue'), meta: { requiresAuth: true, title: 'billing.title' } },
-    { path: '/billing/plans', name: 'billing-plans', component: () => import('./views/Plans.vue'), meta: { requiresAuth: true, title: 'billing.plans' } },
+    // Old plan-picker URL — plans now live on /billing.
+    { path: '/billing/plans', redirect: '/billing' },
     { path: '/admin/billing/plans', name: 'admin-billing-plans', component: () => import('./views/admin/PlanList.vue'), meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.plans' } },
     { path: '/admin/billing/subscriptions', name: 'admin-billing-subscriptions', component: () => import('./views/admin/Subscriptions.vue'), meta: { requiresAuth: true, requiresAdmin: true, title: 'billing.subscriptions' } },
     {

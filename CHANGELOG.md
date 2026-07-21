@@ -48,9 +48,11 @@ Git history remains the complete implementation-level record.
 - New organizations receive the default subscription automatically; manual
   paid-plan changes remain administrator-only until a request/approval and
   payment-provider flow is introduced.
-- Tenant self-service plan selection via plan-change requests and the
-  `/billing/plans` page so locked orgs can request restoration (activation
-  still requires admin approval).
+- Tenant self-service plan selection via plan-change requests on the single
+  `/billing` page (current plan, usage, plan grid, invoices). `/billing/plans`
+  redirects there; focus/visibility refresh replaces interval polling so
+  admin approval lifts lockout without a full-page blink.
+- Locked-tenant banner “Choose a plan” links to `/billing`.
 
 ### Security
 
