@@ -3,11 +3,12 @@ jest.mock('../../../models', () => ({
   Subscription: { findOne: jest.fn(), create: jest.fn(), count: jest.fn(), findAll: jest.fn() },
   UsageCounter: { findOne: jest.fn(), findOrCreate: jest.fn() },
   SubscriptionInvoice: { create: jest.fn(), findAll: jest.fn() },
+  PlanChangeRequest: { findByPk: jest.fn(), findOne: jest.fn(), create: jest.fn(), findAll: jest.fn() },
   User: { count: jest.fn() },
   Invoice: { count: jest.fn() },
 }))
 
-const { Plan, Subscription, UsageCounter, User, Invoice } = require('../../../models')
+const { Plan, Subscription, UsageCounter, PlanChangeRequest, User, Invoice } = require('../../../models')
 const service = require('../billing.service')
 
 const future = new Date(Date.now() + 30 * 86400000)
@@ -194,5 +195,67 @@ describe('subscribe clears suspension', () => {
       .mockResolvedValueOnce({ status: 'active', plan: pro })
     await service.subscribe('org-1', 'pro')
     expect(existing.update).toHaveBeenCalledWith(expect.objectContaining({ suspended: false, status: 'active' }))
+  })
+})
+
+describe('plan-change requests', () => {
+  test('requestPlanChange creates a pending request when none is open', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p1', slug: 'pro', isActive: true })
+    PlanChangeRequest.findOne.mockResolvedValue(null)
+    PlanChangeRequest.create.mockResolvedValue({ id: 'r1' })
+    PlanChangeRequest.findByPk.mockResolvedValue({ id: 'r1', status: 'pending' })
+    await service.requestPlanChange('org1', 'p1', { note: 'please' })
+    expect(PlanChangeRequest.create).toHaveBeenCalledWith(
+      expect.objectContaining({ organizationId: 'org1', planId: 'p1', status: 'pending', note: 'please' }),
+    )
+  })
+
+  test('requestPlanChange reuses the existing open request', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p2', slug: 'ent', isActive: true })
+    const existing = { id: 'r9', update: jest.fn().mockResolvedValue() }
+    PlanChangeRequest.findOne.mockResolvedValue(existing)
+    PlanChangeRequest.findByPk.mockResolvedValue({ id: 'r9' })
+    await service.requestPlanChange('org1', 'p2', { note: 'switch' })
+    expect(existing.update).toHaveBeenCalledWith({ planId: 'p2', note: 'switch' })
+    expect(PlanChangeRequest.create).not.toHaveBeenCalled()
+  })
+
+  test('requestPlanChange rejects an inactive plan', async () => {
+    Plan.findByPk.mockResolvedValue({ id: 'p3', isActive: false })
+    await expect(service.requestPlanChange('org1', 'p3')).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('approve activates the plan (subscribe) and marks the request approved', async () => {
+    const req = {
+      id: 'r1', status: 'pending', organizationId: 'org1', planId: 'p1',
+      update: jest.fn().mockResolvedValue(),
+    }
+    PlanChangeRequest.findByPk.mockResolvedValue(req)
+    Plan.findByPk.mockResolvedValue({
+      id: 'p1', slug: 'free', price: 0, currency: 'USD', interval: 'month', trialDays: 0, isActive: true,
+    })
+    Subscription.findOne.mockResolvedValue(null)
+    Subscription.create.mockResolvedValue({})
+    await service.approvePlanChangeRequest('r1', 'admin1')
+    expect(Subscription.create).toHaveBeenCalledWith(
+      expect.objectContaining({ organizationId: 'org1', planId: 'p1' }),
+    )
+    expect(req.update).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'approved', decidedBy: 'admin1' }),
+    )
+  })
+
+  test('approve refuses a non-pending request', async () => {
+    PlanChangeRequest.findByPk.mockResolvedValue({ id: 'r1', status: 'approved' })
+    await expect(service.approvePlanChangeRequest('r1', 'admin1')).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('reject marks the request rejected with a note', async () => {
+    const req = { id: 'r2', status: 'pending', update: jest.fn().mockResolvedValue() }
+    PlanChangeRequest.findByPk.mockResolvedValue(req)
+    await service.rejectPlanChangeRequest('r2', 'admin1', { note: 'nope' })
+    expect(req.update).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'rejected', decisionNote: 'nope', decidedBy: 'admin1' }),
+    )
   })
 })

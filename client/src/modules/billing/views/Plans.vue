@@ -3,6 +3,14 @@
     <div class="space-y-6">
       <SubscriptionLockedBanner :show-action="false" />
 
+      <div
+        v-if="store.request"
+        class="flex items-center gap-3 px-5 py-3 bg-blue-50 border border-blue-200 text-sm text-blue-800"
+      >
+        <ClockIcon class="w-5 h-5 flex-shrink-0 text-blue-500" />
+        {{ t('billing.requestPendingFor', { plan: store.request.plan?.name }) }}
+      </div>
+
       <div class="flex items-center gap-3">
         <RouterLink to="/billing" class="text-[#9BA7B0] hover:text-[#637381] transition">
           <ArrowLeftIcon class="w-5 h-5" />
@@ -52,10 +60,12 @@
           <button
             type="button"
             class="btn-primary mt-6 w-full"
-            :disabled="busyId === p.id || isCurrent(p) || !canChoose"
+            :disabled="busyId === p.id || isCurrent(p) || !canChoose || requestedPlanId === p.id"
             @click="choose(p)"
           >
-            {{ isCurrent(p) ? t('billing.currentPlan') : t('billing.choosePlan') }}
+            <span v-if="isCurrent(p)">{{ t('billing.currentPlan') }}</span>
+            <span v-else-if="requestedPlanId === p.id">{{ t('billing.requested') }}</span>
+            <span v-else>{{ t('billing.requestPlan') }}</span>
           </button>
         </div>
       </div>
@@ -73,9 +83,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
+import { ArrowLeftIcon, CheckIcon, ExclamationCircleIcon, ClockIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import BillingOnlyLayout from '@/layouts/BillingOnlyLayout.vue'
 import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'
@@ -83,7 +92,6 @@ import { useBillingStore } from '@/stores/billing'
 import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
-const router = useRouter()
 const store = useBillingStore()
 const auth = useAuthStore()
 const loading = ref(true)
@@ -91,9 +99,10 @@ const busyId = ref(null)
 const error = ref('')
 
 const layout = computed(() => (auth.locked ? BillingOnlyLayout : AppLayout))
-// Org owners manage plans (canManage). Locked staff see the catalog but only
-// the owner can re-subscribe via POST /billing/subscribe.
+// Org owners request plans (canManage). Locked staff see the catalog but only
+// the owner can submit via POST /billing/request.
 const canChoose = computed(() => store.canManage)
+const requestedPlanId = computed(() => store.request?.planId)
 
 onMounted(async () => {
   try {
@@ -123,15 +132,9 @@ async function choose(p) {
   error.value = ''
   busyId.value = p.id
   try {
-    await store.subscribe(p.id)
-    await store.fetchSubscription()
-    // Locked tenant re-subscribed — refresh session to clear billing-only mode.
-    if (auth.locked) {
-      await auth.fetchMe()
-      if (!auth.locked) router.push(auth.user?.defaultPage || '/dashboard')
-    }
+    await store.requestPlanChange(p.id)
   } catch (err) {
-    error.value = err.response?.data?.message || t('billing.subscribeFailed')
+    error.value = err.response?.data?.message || t('billing.requestFailed')
   } finally {
     busyId.value = null
   }

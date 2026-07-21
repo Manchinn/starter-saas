@@ -3,6 +3,14 @@
     <main class="space-y-5">
       <SubscriptionLockedBanner />
 
+      <div
+        v-if="store.request"
+        class="flex items-center gap-3 px-5 py-3 bg-blue-50 border border-blue-200 text-sm text-blue-800"
+      >
+        <ClockIcon class="w-5 h-5 flex-shrink-0 text-blue-500" />
+        {{ t('billing.requestPendingFor', { plan: store.request.plan?.name }) }}
+      </div>
+
       <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <h1 class="page-title">{{ t('billing.title') }}</h1>
@@ -95,8 +103,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ClockIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import BillingOnlyLayout from '@/layouts/BillingOnlyLayout.vue'
 import SubscriptionLockedBanner from '../components/SubscriptionLockedBanner.vue'
@@ -109,7 +118,31 @@ const auth = useAuthStore()
 
 const layout = computed(() => (auth.locked ? BillingOnlyLayout : AppLayout))
 
-onMounted(() => Promise.all([store.fetchSubscription(), store.fetchInvoices()]))
+// While a request is pending, poll so the page reflects the admin's decision
+// (approval activates the new plan and clears the request) without a manual
+// reload. Refreshing the session also lifts billing-only mode once approved.
+let pollTimer = null
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+}
+function startPolling() {
+  stopPolling()
+  if (store.request) pollTimer = setInterval(poll, 8000)
+}
+async function poll() {
+  const hadRequest = !!store.request
+  await store.fetchSubscription()
+  if (hadRequest && !store.request) {
+    stopPolling()
+    await Promise.all([store.fetchInvoices(), auth.fetchMe()])
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([store.fetchSubscription(), store.fetchInvoices()])
+  startPolling()
+})
+onUnmounted(stopPolling)
 
 const price = (amount, currency) =>
   Number(amount || 0) === 0 ? t('billing.free') : `${Number(amount).toLocaleString()} ${currency || ''}`.trim()

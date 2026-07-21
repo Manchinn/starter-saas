@@ -1,5 +1,7 @@
 const { Op } = require('sequelize')
-const { Plan, Subscription, SubscriptionInvoice, UsageCounter, User, Invoice } = require('../../models')
+const {
+  Plan, Subscription, SubscriptionInvoice, UsageCounter, PlanChangeRequest, User, Invoice,
+} = require('../../models')
 const config = require('../../config/config')
 
 const ACTIVE_STATUSES = ['active', 'trialing']
@@ -293,6 +295,74 @@ async function setSuspended(organizationId, suspended) {
   return getSubscription(organizationId)
 }
 
+// ── Plan-change requests (tenant requests → admin approves) ──────────────────
+// Tenants can't self-activate a plan; they file a request that an admin approves
+// (which activates the subscription immediately via subscribe) or rejects.
+const PENDING = 'pending'
+const PLAN_ATTRS = ['id', 'slug', 'name', 'price', 'currency', 'interval']
+
+const getPlanChangeRequest = (id) => PlanChangeRequest.findByPk(id, {
+  include: [
+    { model: Plan, as: 'plan', attributes: PLAN_ATTRS },
+    { model: User, as: 'organization', attributes: ['id', 'name', 'email'] },
+  ],
+})
+
+const getPendingRequest = (organizationId) => PlanChangeRequest.findOne({
+  where: { organizationId, status: PENDING },
+  include: [{ model: Plan, as: 'plan', attributes: PLAN_ATTRS }],
+})
+
+// File (or update) the org's single open request.
+async function requestPlanChange(organizationId, planId, { note = null } = {}) {
+  const plan = await Plan.findByPk(planId)
+  if (!plan || !plan.isActive) throw { status: 400, message: 'Plan not found or inactive' }
+  const existing = await PlanChangeRequest.findOne({
+    where: { organizationId, status: PENDING },
+  })
+  if (existing) {
+    await existing.update({ planId, note })
+    return getPlanChangeRequest(existing.id)
+  }
+  const req = await PlanChangeRequest.create({
+    organizationId, planId, note, status: PENDING,
+  })
+  return getPlanChangeRequest(req.id)
+}
+
+const listPlanChangeRequests = ({ status } = {}) => PlanChangeRequest.findAll({
+  where: status ? { status } : {},
+  include: [
+    { model: Plan, as: 'plan', attributes: PLAN_ATTRS },
+    { model: User, as: 'organization', attributes: ['id', 'name', 'email'] },
+  ],
+  order: [['createdAt', 'DESC']],
+})
+
+async function approvePlanChangeRequest(id, adminUserId) {
+  const req = await PlanChangeRequest.findByPk(id)
+  if (!req) throw { status: 404, message: 'Request not found' }
+  if (req.status !== PENDING) throw { status: 400, message: 'Request is not pending' }
+  // Activate immediately — records a paid invoice for paid plans and clears
+  // any billing-only lockout (subscribe invalidates cache + suspended flag).
+  await subscribe(req.organizationId, req.planId)
+  await req.update({ status: 'approved', decidedBy: adminUserId || null, decidedAt: new Date() })
+  return getPlanChangeRequest(id)
+}
+
+async function rejectPlanChangeRequest(id, adminUserId, { note = null } = {}) {
+  const req = await PlanChangeRequest.findByPk(id)
+  if (!req) throw { status: 404, message: 'Request not found' }
+  if (req.status !== PENDING) throw { status: 400, message: 'Request is not pending' }
+  await req.update({
+    status: 'rejected',
+    decidedBy: adminUserId || null,
+    decidedAt: new Date(),
+    decisionNote: note,
+  })
+  return getPlanChangeRequest(id)
+}
+
 module.exports = {
   getDefaultPlan, getSubscription, getEffectivePlan, isActive,
   isLockedOut, isOrgLocked, isUserLocked,
@@ -300,5 +370,7 @@ module.exports = {
   subscribe, ensureDefaultSubscription, cancel,
   listPlans, listPublicPlans, getPlan, createPlan, updatePlan, deletePlan,
   listInvoices, listSubscriptions, getSubscriptionDetail, adminSetSubscription, setSuspended,
+  requestPlanChange, getPendingRequest, listPlanChangeRequests,
+  approvePlanChangeRequest, rejectPlanChangeRequest,
   withSeatLock, _invalidate: invalidate,
 }

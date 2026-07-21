@@ -32,14 +32,21 @@ Git history remains the complete implementation-level record.
   payment history, Suspend/Resume, immediate Cancel, and Edit overrides
   (`suspended` flag, period dates). `subscribe` clears suspension so restored
   plans take effect.
+- Tenant plan-request workflow: owners submit `POST /billing/request` instead of
+  self-activating a plan; admins list, approve, or reject under Plan requests
+  (and inline on subscription detail). Approval calls `subscribe` (manual
+  provider, paid invoice when applicable) and clears billing-only lockout.
+  Tenant `/billing` polls while a request is pending so approval lifts access
+  without a manual reload.
 
 ### Changed
 
 - New organizations receive the default subscription automatically; manual
   paid-plan changes remain administrator-only until a request/approval and
   payment-provider flow is introduced.
-- Tenant self-service plan selection via `POST /billing/subscribe` and the
-  `/billing/plans` page so locked orgs can restore access without admin help.
+- Tenant self-service plan selection via plan-change requests and the
+  `/billing/plans` page so locked orgs can request restoration (activation
+  still requires admin approval).
 
 ### Security
 

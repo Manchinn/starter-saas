@@ -11,22 +11,29 @@ module.exports = {
   async mySubscription(req, res) {
     try {
       const organizationId = organizationIdOf(req.user)
-      const [subscription, plan, usage] = await Promise.all([
+      const [subscription, plan, usage, request] = await Promise.all([
         billing.getSubscription(organizationId),
         billing.getEffectivePlan(organizationId),
         billing.getUsage(organizationId),
+        billing.getPendingRequest(organizationId),
       ])
-      return ok(res, { subscription, plan, usage, canManage: isBillingOwner(req.user) })
+      return ok(res, { subscription, plan, usage, request, canManage: isBillingOwner(req.user) })
     } catch { return serverError(res) }
   },
   async myInvoices(req, res) {
     try { return ok(res, { invoices: await billing.listInvoices(organizationIdOf(req.user)) }) } catch { return serverError(res) }
   },
-  async subscribe(req, res) {
-    if (!isBillingOwner(req.user)) return fail(res, 'Only the organization owner can change the plan', 403)
+  // Tenant plan request — replaces direct self-service activation. The request
+  // stays pending until an admin approves it.
+  async requestPlanChange(req, res) {
+    if (!isBillingOwner(req.user)) return fail(res, 'Only the organization owner can request a plan change', 403)
     try {
-      const subscription = await billing.subscribe(organizationIdOf(req.user), req.body.planId)
-      return ok(res, { subscription }, 'Subscription updated')
+      const request = await billing.requestPlanChange(
+        organizationIdOf(req.user),
+        req.body.planId,
+        { note: req.body.note },
+      )
+      return ok(res, { request }, 'Plan request submitted')
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },
   async cancel(req, res) {
@@ -57,12 +64,13 @@ module.exports = {
   async adminGetSubscription(req, res) {
     try {
       const organizationId = req.params.organizationId
-      const [subscription, invoices] = await Promise.all([
+      const [subscription, invoices, request] = await Promise.all([
         billing.getSubscriptionDetail(organizationId),
         billing.listInvoices(organizationId),
+        billing.getPendingRequest(organizationId),
       ])
       if (!subscription) return fail(res, 'Subscription not found', 404)
-      return ok(res, { subscription, invoices })
+      return ok(res, { subscription, invoices, request })
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },
   async adminSetSubscription(req, res) {
@@ -89,6 +97,23 @@ module.exports = {
         atPeriodEnd: req.body?.immediate !== true,
       })
       return ok(res, { subscription }, 'Subscription canceled')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async adminListPlanRequests(req, res) {
+    try {
+      return ok(res, { requests: await billing.listPlanChangeRequests({ status: req.query.status }) })
+    } catch { return serverError(res) }
+  },
+  async adminApprovePlanRequest(req, res) {
+    try {
+      const request = await billing.approvePlanChangeRequest(req.params.id, req.user.id)
+      return ok(res, { request }, 'Plan request approved')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async adminRejectPlanRequest(req, res) {
+    try {
+      const request = await billing.rejectPlanChangeRequest(req.params.id, req.user.id, { note: req.body.note })
+      return ok(res, { request }, 'Plan request rejected')
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },
 }

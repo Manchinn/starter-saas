@@ -10,6 +10,8 @@ export const useBillingStore = defineStore('billing', () => {
   const plans = ref([])
   const adminPlans = ref([])
   const subscriptions = ref([])
+  const adminPlanRequests = ref([])
+  const request = ref(null)
   const loading = ref(false)
   const canManage = ref(false)
 
@@ -20,6 +22,7 @@ export const useBillingStore = defineStore('billing', () => {
       subscription.value = data.data.subscription
       plan.value = data.data.plan
       usage.value = data.data.usage || []
+      request.value = data.data.request || null
       canManage.value = !!data.data.canManage
     } finally { loading.value = false }
   }
@@ -32,10 +35,11 @@ export const useBillingStore = defineStore('billing', () => {
     plans.value = data.data.plans || []
     return plans.value
   }
-  async function subscribe(planId) {
-    const { data } = await api.post('/billing/subscribe', { planId })
-    subscription.value = data.data.subscription
-    return data.data
+  // Tenants request a plan change; an admin approves it to activate.
+  async function requestPlanChange(planId, note) {
+    const { data } = await api.post('/billing/request', { planId, note })
+    request.value = data.data.request
+    return request.value
   }
   async function cancel(immediate = false) {
     const { data } = await api.post('/billing/cancel', { immediate })
@@ -74,11 +78,26 @@ export const useBillingStore = defineStore('billing', () => {
     const { data } = await api.post(`/billing/admin/subscriptions/${organizationId}/cancel`, { immediate })
     return data.data.subscription
   }
+  async function fetchAdminPlanRequests(status) {
+    const { data } = await api.get('/billing/admin/plan-requests', { params: status ? { status } : {} })
+    adminPlanRequests.value = data.data.requests || []
+    return adminPlanRequests.value
+  }
+  async function approvePlanRequest(id) {
+    const { data } = await api.post(`/billing/admin/plan-requests/${id}/approve`)
+    return data.data.request
+  }
+  async function rejectPlanRequest(id, note) {
+    const { data } = await api.post(`/billing/admin/plan-requests/${id}/reject`, { note })
+    return data.data.request
+  }
 
   return {
-    subscription, plan, usage, invoices, plans, adminPlans, subscriptions, loading, canManage,
-    fetchSubscription, fetchInvoices, fetchPlans, subscribe, cancel,
+    subscription, plan, usage, invoices, plans, adminPlans, subscriptions,
+    adminPlanRequests, request, loading, canManage,
+    fetchSubscription, fetchInvoices, fetchPlans, requestPlanChange, cancel,
     fetchAdminPlans, createPlan, updatePlan, deletePlan,
     fetchSubscriptions, getAdminSubscription, setSubscription, suspendSubscription, cancelSubscription,
+    fetchAdminPlanRequests, approvePlanRequest, rejectPlanRequest,
   }
 })

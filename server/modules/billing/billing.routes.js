@@ -10,7 +10,8 @@ router.use(authenticate)
 router.get('/plans', controller.listPlans)
 router.get('/subscription', controller.mySubscription)
 router.get('/invoices', controller.myInvoices)
-router.post('/subscribe', subscribeRules, validate, controller.subscribe)
+// Tenant files a plan-change request; admin approve activates the plan.
+router.post('/request', subscribeRules, validate, controller.requestPlanChange)
 router.post('/cancel', controller.cancel)
 router.get('/admin/plans', requirePermission('billing.manage'), controller.adminListPlans)
 router.post('/admin/plans', requirePermission('billing.manage'), planRules, validate, controller.adminCreatePlan)
@@ -22,4 +23,7 @@ router.get('/admin/subscriptions/:organizationId', requirePermission('billing.ma
 router.put('/admin/subscriptions/:organizationId', requirePermission('billing.manage'), subscriptionRules, validate, controller.adminSetSubscription)
 router.post('/admin/subscriptions/:organizationId/suspend', requirePermission('billing.manage'), controller.adminSuspendSubscription)
 router.post('/admin/subscriptions/:organizationId/cancel', requirePermission('billing.manage'), controller.adminCancelSubscription)
+router.get('/admin/plan-requests', requirePermission('billing.manage'), controller.adminListPlanRequests)
+router.post('/admin/plan-requests/:id/approve', requirePermission('billing.manage'), controller.adminApprovePlanRequest)
+router.post('/admin/plan-requests/:id/reject', requirePermission('billing.manage'), controller.adminRejectPlanRequest)
 module.exports = router
