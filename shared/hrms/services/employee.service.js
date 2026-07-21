@@ -1,6 +1,7 @@
-const { Employee, User, Department, Role, Permission } = require('../../../server/models')
+const { sequelize, Employee, User, UserRole, RefreshToken, Department, Role, Permission } = require('../../../server/models')
 const { Op } = require('sequelize')
 const seqService  = require('../../erp/settings/services/sequence.service')
+const auditService = require('../../erp/audit/audit.service')
 const organizationService = require('../../../server/modules/organizations/organization.service')
 const { resolvePermissions } = require('../../../server/middleware/permission')
 
@@ -189,11 +190,29 @@ const update = async (id, payload, organizationId, modifiedByUserId, actor) => {
     await emp.setDepartments(departmentIds || [])
   }
   if (roleIds !== undefined) {
-    const normalizedRoleIds = Array.isArray(roleIds) ? roleIds : []
+    const normalizedRoleIds = Array.isArray(roleIds) ? [...new Set(roleIds)] : []
     const linkedUserId = userId !== undefined ? userId || null : emp.userId
     if (linkedUserId) {
       await assertAssignableRoles(normalizedRoleIds, actor)
+      const previousRoleLinks = await UserRole.findAll({
+        where: { userId: linkedUserId },
+        attributes: ['roleId'],
+      }) || []
+      const previousRoleIds = previousRoleLinks.map((link) => link.roleId)
       await organizationService.assignRoles(linkedUserId, normalizedRoleIds, actor)
+      const before = [...previousRoleIds].sort()
+      const after = [...normalizedRoleIds].sort()
+      if (JSON.stringify(before) !== JSON.stringify(after)) {
+        await auditService.log({
+          user: actor,
+          userId: modifiedByUserId,
+          action: 'hrms.employee.access.roles_changed',
+          entityType: 'Employee',
+          entityId: id,
+          organizationId,
+          summary: { targetUserId: linkedUserId, previousRoleIds, roleIds: normalizedRoleIds },
+        })
+      }
     } else if (normalizedRoleIds.length) {
       throw { status: 400, message: 'Assign a login account before assigning roles' }
     }
@@ -208,4 +227,73 @@ const remove = async (id, organizationId) => {
   await emp.destroy()
 }
 
-module.exports = { list, getById, create, update, remove, listAssignableRoles }
+const offboard = async (id, organizationId, modifiedByUserId, actor, activeTo) => {
+  let auditSummary
+  let result
+
+  await sequelize.transaction(async (transaction) => {
+    const emp = await Employee.findOne({ where: { id, organizationId }, transaction })
+    if (!emp) throw { status: 404, message: 'Employee not found' }
+    if (!emp.userId) throw { status: 400, message: 'Employee has no linked login account' }
+    if (actor?.id === emp.userId) throw { status: 400, message: 'You cannot offboard your own account' }
+
+    const user = await User.findByPk(emp.userId, { transaction })
+    if (!user) throw { status: 404, message: 'Linked user account not found' }
+    assertUserBelongsToOrganization(user, organizationId)
+
+    const roleLinks = await UserRole.findAll({
+      where: { userId: user.id },
+      attributes: ['roleId'],
+      transaction,
+    })
+    const revokedRoleIds = roleLinks.map((link) => link.roleId)
+
+    await user.update({ isActive: false }, { transaction })
+    const revokedRoles = await UserRole.destroy({ where: { userId: user.id }, transaction })
+    const [revokedSessions] = await RefreshToken.update(
+      { isRevoked: true },
+      { where: { userId: user.id, isRevoked: false }, transaction },
+    )
+    await emp.update({
+      status: 'terminated',
+      activeTo: activeTo || new Date().toISOString().slice(0, 10),
+      modifiedBy: modifiedByUserId || null,
+    }, { transaction })
+
+    auditSummary = {
+      targetUserId: user.id,
+      revokedRoleIds,
+      revokedRoles,
+      revokedSessions,
+    }
+    result = { employeeId: emp.id, userId: user.id, revokedRoles, revokedSessions }
+  })
+
+  await auditService.log({
+    user: actor,
+    userId: modifiedByUserId,
+    action: 'hrms.employee.access.offboarded',
+    entityType: 'Employee',
+    entityId: id,
+    organizationId,
+    summary: auditSummary,
+  })
+
+  return result
+}
+
+const listAccessHistory = async (id, organizationId, { page = 1, limit = 20 } = {}) => {
+  const emp = await Employee.findOne({ where: { id, organizationId }, attributes: ['id'] })
+  if (!emp) throw { status: 404, message: 'Employee not found' }
+
+  return auditService.list({
+    page,
+    limit,
+    entityType: 'Employee',
+    entityId: id,
+    action: 'hrms.employee.access.',
+    organizationId,
+  })
+}
+
+module.exports = { list, getById, create, update, remove, offboard, listAccessHistory, listAssignableRoles }

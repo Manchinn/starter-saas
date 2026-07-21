@@ -58,6 +58,38 @@ module.exports = {
     }
   },
 
+  async offboard(req, res) {
+    try {
+      const defaultOrgId = req.user.organizationId || req.user.id
+      const organizationId = (req.user.role === 'admin' && req.body.organizationId)
+        ? req.body.organizationId
+        : defaultOrgId
+      const result = await service.offboard(
+        req.params.id,
+        organizationId,
+        req.user.id,
+        req.user,
+        req.body.activeTo,
+      )
+      return ok(res, result, 'Employee offboarded')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
+  async accessHistory(req, res) {
+    try {
+      const organizationId = req.user.organizationId || req.user.id
+      const result = await service.listAccessHistory(req.params.id, organizationId, {
+        page: +req.query.page || 1,
+        limit: +req.query.limit || 20,
+      })
+      return ok(res, result)
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
   async remove(req, res) {
     try {
       const organizationId = req.user.organizationId || req.user.id

@@ -24,7 +24,7 @@
       <template v-else>
 
         <!-- Two-column layout -->
-        <div class="grid grid-cols-2 gap-6 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
           <!-- Left: Employee Information -->
           <FormCard :title="t('erp.employees.employeeInfo')" :icon="IdentificationIcon" icon-color="primary">
@@ -142,10 +142,49 @@
                 <p v-if="!roles.length" class="text-xs text-[#9BA7B0] mt-2 italic">{{ t('erp.employees.noAssignableRoles') }}</p>
               </div>
             </FormCard>
+
+            <FormCard :title="t('erp.employees.accessManagement')" :icon="ShieldCheckIcon" icon-color="red">
+              <div class="flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-[#1C2434] truncate">
+                    {{ selectedUser?.email || t('erp.employees.noLinkedAccount') }}
+                  </p>
+                  <p v-if="selectedUser" class="mt-1 text-xs text-[#637381]">
+                    {{ selectedUser.isActive ? t('erp.employees.active') : t('erp.employees.inactive') }}
+                  </p>
+                </div>
+                <button
+                  v-if="selectedUser?.isActive && form.status !== 'terminated'"
+                  v-can="'hrms.employees.edit'"
+                  type="button"
+                  :disabled="offboarding"
+                  class="inline-flex h-9 flex-shrink-0 items-center gap-2 border border-red-300 px-3 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  @click="offboardEmployee"
+                >
+                  <UserMinusIcon class="h-4 w-4" />
+                  {{ offboarding ? t('erp.employees.offboarding') : t('erp.employees.offboard') }}
+                </button>
+              </div>
+
+              <div class="mt-5 border-t border-[#E2E8F0] pt-4">
+                <p class="mb-3 text-xs font-bold uppercase text-[#637381]">{{ t('erp.employees.accessHistory') }}</p>
+                <div v-if="accessLogs.length" class="space-y-3">
+                  <div v-for="log in accessLogs" :key="log.id" class="border-l-2 border-[#D8E0EA] pl-3">
+                    <div class="flex items-start justify-between gap-3">
+                      <p class="text-xs font-semibold text-[#1C2434]">{{ accessActionLabel(log.action) }}</p>
+                      <time class="flex-shrink-0 text-[11px] text-[#9BA7B0]">{{ formatTimestamp(log.createdAt) }}</time>
+                    </div>
+                    <p class="mt-1 truncate text-[11px] text-[#637381]">{{ log.userEmail || '-' }}</p>
+                  </div>
+                </div>
+                <p v-else class="text-xs text-[#9BA7B0]">{{ t('erp.employees.noAccessHistory') }}</p>
+              </div>
+            </FormCard>
           </div>
 
         </div>
 
+        <p v-if="success" class="border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{{ success }}</p>
         <ErrorBanner :message="error" />
 
       </template>
@@ -157,7 +196,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
-import { IdentificationIcon, UserCircleIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
+import { IdentificationIcon, UserCircleIcon, InformationCircleIcon, ShieldCheckIcon, UserMinusIcon } from '@heroicons/vue/24/outline'
 import AppLayout from '@/layouts/AppLayout.vue'
 import DateInput from '@/components/DateInput.vue'
 import SearchSelect from '@/components/SearchSelect.vue'
@@ -180,7 +219,10 @@ const saving  = ref(false)
 const users   = ref([])
 const departments = ref([])
 const roles   = ref([])
+const accessLogs = ref([])
 const error   = ref('')
+const success = ref('')
+const offboarding = ref(false)
 const { fieldErrors, setFromError, setField, reset: resetErrors } = useFieldErrors()
 
 const EMP_STATUS_OPTIONS = computed(() => [
@@ -210,17 +252,20 @@ const form = ref({
 
 const selectedUser = computed(() => users.value.find(u => u.id === form.value.userId) || null)
 
-onMounted(async () => {
+async function load() {
+  loading.value = true
   try {
-    const [empRes, staffRes, deptRes, rolesRes] = await Promise.all([
+    const [empRes, staffRes, deptRes, rolesRes, historyRes] = await Promise.all([
       api.get(`/hrms/employees/${id}`),
       api.get('/organizations/staff', { params: { limit: 500 } }),
       api.get('/hrms/departments', { params: { limit: 1000 } }),
       api.get('/hrms/employees/role-options'),
+      api.get(`/hrms/employees/${id}/access-history`, { params: { limit: 20 } }),
     ])
     users.value       = staffRes.data.data.staff
     departments.value = deptRes.data.data.departments
     roles.value       = rolesRes.data.data.roles
+    accessLogs.value  = historyRes.data.data.logs
     const emp = empRes.data.data.employee
     form.value = {
       employeeCode:  emp.employeeCode || '',
@@ -241,7 +286,35 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
+
+function accessActionLabel(action) {
+  if (action === 'hrms.employee.access.offboarded') return t('erp.employees.accountOffboarded')
+  if (action === 'hrms.employee.access.roles_changed') return t('erp.employees.rolesChanged')
+  return action
+}
+
+function formatTimestamp(value) {
+  return value ? new Date(value).toLocaleString() : '-'
+}
+
+async function offboardEmployee() {
+  if (!confirm(t('erp.employees.offboardConfirm'))) return
+  error.value = ''
+  success.value = ''
+  offboarding.value = true
+  try {
+    await api.post(`/hrms/employees/${id}/offboard`, { activeTo: new Date().toISOString().slice(0, 10) })
+    success.value = t('erp.employees.offboardSuccess')
+    await load()
+  } catch (err) {
+    error.value = parseApiError(err, 'Failed to offboard employee')
+  } finally {
+    offboarding.value = false
+  }
+}
 
 async function save() {
   error.value = ''
