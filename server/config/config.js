@@ -73,6 +73,10 @@ module.exports = {
     ttl:       parseInt(process.env.REDIS_TTL, 10) || 3600,
   },
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  // AES-256-GCM key (base64 32 bytes) used to encrypt LINE channel secrets/tokens at rest.
+  line: {
+    credentialEncryptionKey: process.env.LINE_CREDENTIAL_ENCRYPTION_KEY || '',
+  },
   appName: process.env.APP_NAME || 'Starter SaaS',
   // A live getter (not a snapshot) so SMTP settings edited at runtime via the
   // Settings → Email Setting tab — which rewrites .env and process.env — are

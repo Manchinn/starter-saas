@@ -68,6 +68,7 @@ const LARGE_BODY_ROUTES = [
   /^\/api\/erp\/attachments(?:\/|$)/,    // base64 file attachments (≤ 15 MB)
   /^\/api\/organizations\/[^/]+\/logo$/, // base64 org logo upload
   /^\/api\/billing\/webhook\//,          // gateway webhook — needs the raw body for signature checks
+  /^\/api\/line\/webhook$/,              // LINE Messaging API — raw body for signature checks
 ]
 app.use((req, res, next) => {
   if (LARGE_BODY_ROUTES.some((re) => re.test(req.path))) return next()

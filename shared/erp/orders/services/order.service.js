@@ -290,7 +290,24 @@ const updateStatus = async (id, status, userId, organizationId) => {
     summary: { from: oldStatus, to: status, orderNumber: order.orderNumber, total: order.total },
   })
 
-  return getById(id)
+  const updated = await getById(id)
+  // Notify only after the ERP transaction and audit log have completed.
+  try {
+    const { notifyCustomer } = require('../../line-integration/services/line-notification.service')
+    await notifyCustomer({
+      organizationId: updated.organizationId,
+      customerId: updated.customerId,
+      text: `Order ${updated.orderNumber} status: ${updated.status}.`,
+    })
+  } catch (_) { /* LINE is best-effort */ }
+  return updated
+}
+
+const listForCustomer = async ({ customerId, organizationId }) => {
+  return Order.findAll({
+    where: { customerId, organizationId: organizationId || null, dataFlag: { [Op.ne]: 2 } },
+    order: [['createdAt', 'DESC']],
+  })
 }
 
 const update = async (id, payload, userId, organizationId) => {
@@ -594,4 +611,4 @@ const createInvoice = async (id, userId, organizationId) => {
   return { id: invoice.id }
 }
 
-module.exports = { list, getById, create, update, updateStatus, remove, listItems, getItemById, updateItem, deleteItem, createDeliveryOrder, createInvoice }
+module.exports = { list, listForCustomer, getById, create, update, updateStatus, remove, listItems, getItemById, updateItem, deleteItem, createDeliveryOrder, createInvoice }

@@ -10,6 +10,7 @@ const DEFAULT_PERMISSIONS = [
   { name: 'Manage Roles', slug: 'roles.manage', group: 'roles', description: 'Create/edit/delete roles' },
   { name: 'List Permissions', slug: 'permissions.list', group: 'permissions', description: 'View permissions' },
   { name: 'Manage Permissions', slug: 'permissions.manage', group: 'permissions', description: 'Create/edit/delete permissions' },
+  { name: 'Manage LINE Integration', slug: 'erp.line-integration.manage', group: 'erp', description: 'Configure LINE LIFF and Messaging API' },
 ]
 
 const moduleLoader = require('../../../core/module.loader')
