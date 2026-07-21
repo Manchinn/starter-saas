@@ -9,13 +9,14 @@ Git history remains the complete implementation-level record.
 
 ### Changed
 
-- Stock confirm paths (adjust, issue, return, goods receive, sales order
-  confirm/cancel) now write product / store / movement balances through a
-  shared **Stock ledger** `postDelta` (`shared/erp/stock/stock-ledger/`).
-  Count and transfer are unchanged. Callers still own locks, negative checks,
-  package lines, and legacy `Item.stock`. **Behaviour change:** missing product
-  on the order stock path now throws and rolls back the transaction (was
-  soft-skip). See GitHub issue #1.
+- เส้นทางยืนยันสต็อก (ปรับสต็อก / เบิก / คืน / รับสินค้า / ยืนยัน-ยกเลิกออเดอร์ขาย)
+  เขียนยอดสินค้า / ยอดคลัง / รายการเคลื่อนไหว ผ่าน **Stock ledger** `postDelta`
+  ร่วมกันที่ `shared/erp/stock/stock-ledger/` แล้ว
+  นับสต็อก (count) และโอนย้าย (transfer) ยังไม่เปลี่ยน ผู้เรียกยังรับผิดชอบ
+  ล็อกคลัง ตรวจติดลบ แถวแพ็กเกจ และ `Item.stock` เดิม
+  **เปลี่ยนพฤติกรรม:** ถ้า product หายบนเส้นทางตัดสต็อกของออเดอร์
+  จะ throw แล้ว rollback ทั้ง transaction (เดิมข้ามเงียบ) — ดู issue #1
+  ([`b95488f`](https://github.com/Manchinn/starter-saas/commit/b95488f))
 
 ## [2026-07-22]
 
