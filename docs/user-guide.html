@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="คู่มือใช้งาน ERP สำหรับงานประจำวันและผู้ดูแลองค์กร">
+    <title>คู่มือใช้งาน ERP — starter-saas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"IBM Plex Sans Thai"', '"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              ink: { 50: '#f7f6f3', 100: '#eceae4', 800: '#1c1917', 900: '#0c0a09' },
+              accent: { DEFAULT: '#0f766e', soft: '#ccfbf1', dark: '#115e59' },
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      html { scroll-behavior: smooth; }
+      body { font-feature-settings: "kern" 1; }
+      main section[id] { scroll-margin-top: 6rem; }
+      .skip-link { transform: translateY(-150%); }
+      .skip-link:focus { transform: translateY(0); }
+      :focus-visible { outline: 3px solid #0f766e; outline-offset: 3px; }
+      .prose-th { line-height: 1.75; }
+      details > summary { list-style: none; }
+      details > summary::-webkit-details-marker { display: none; }
+      details[open] .chev { transform: rotate(180deg); }
+      .chev { transition: transform 0.15s ease; }
+      .toc-link.active { color: #0f766e; font-weight: 600; border-color: #0f766e; }
+      .step-number { font-variant-numeric: tabular-nums; }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        .chev { transition: none; }
+      }
+      @media print {
+        aside, .screen-only { display: none !important; }
+        details > :not(summary) { display: block !important; }
+        details { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body class="bg-ink-50 text-ink-900 font-sans antialiased">
+    <a href="#main-content" class="skip-link fixed left-4 top-4 z-50 bg-ink-900 px-4 py-2 text-sm font-medium text-white">ข้ามไปยังเนื้อหาหลัก</a>
+    <header class="sticky top-0 z-40 border-b border-ink-100 bg-white/90 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div>
+          <p class="text-[11px] uppercase tracking-[0.16em] text-stone-500">Operations and organization admin guide</p>
+          <h1 class="text-lg font-semibold sm:text-xl">starter-saas · คู่มือใช้งาน ERP</h1>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <span class="rounded-full bg-ink-100 px-2.5 py-1 text-stone-700">ภาษาไทย · ผู้ใช้งานและผู้ดูแล</span>
+          <span class="rounded-full bg-accent-soft px-2.5 py-1 text-accent-dark">อ้างอิงระบบ ณ 2026-07-22</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
+      <div class="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
+        <aside class="hidden lg:block">
+          <nav class="sticky top-24 space-y-6 text-sm" aria-label="สารบัญคู่มือ">
+            <div>
+              <p class="mb-2 text-[11px] uppercase tracking-wider text-stone-500">สารบัญ</p>
+              <ul class="space-y-1 border-l border-stone-200">
+                <li><a href="#start" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-3 text-stone-600 hover:text-accent">เริ่มต้น</a></li>
+                <li><a href="#sales" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-3 text-stone-600 hover:text-accent">ขายและส่งสินค้า</a></li>
+                <li><a href="#stock" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-3 text-stone-600 hover:text-accent">คลังสินค้า</a></li>
+                <li><a href="#purchasing" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-3 text-stone-600 hover:text-accent">จัดซื้อ</a></li>
+                <li><a href="#billing" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-3 text-stone-600 hover:text-accent">เรียกเก็บเงิน</a></li>
+                <li><a href="#line" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-3 text-stone-600 hover:text-accent">LINE และ LIFF</a></li>
+                <li><a href="#admin" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-3 text-stone-600 hover:text-accent">ภาคผู้ดูแล</a></li>
+                <li><a href="#admin-access" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-6 text-xs text-stone-500 hover:text-accent">สิทธิ์และบทบาท</a></li>
+                <li><a href="#admin-erp-settings" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-6 text-xs text-stone-500 hover:text-accent">ตั้งค่า ERP</a></li>
+                <li><a href="#admin-controls" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-6 text-xs text-stone-500 hover:text-accent">บัญชีและอนุมัติ</a></li>
+                <li><a href="#admin-line" class="toc-link -ml-px block border-l-2 border-transparent py-1 pl-6 text-xs text-stone-500 hover:text-accent">LINE และ LIFF</a></li>
+              </ul>
+            </div>
+            <div class="border border-ink-100 bg-white p-3 text-xs text-stone-600">
+              <p class="font-medium text-stone-800">กติกาที่ต้องจำ</p>
+              <ul class="mt-2 space-y-2 leading-relaxed">
+                <li><span class="font-medium text-amber-800">ร่าง:</span> แก้ไขและลบได้ตามสิทธิ์</li>
+                <li><span class="font-medium text-accent-dark">ยืนยัน:</span> เป็นจุดที่รายการมีผลจริง</li>
+                <li><span class="font-medium text-stone-800">สถานะ:</span> กำหนดเอกสารถัดไปที่สร้างได้</li>
+              </ul>
+            </div>
+          </nav>
+        </aside>
+
+        <main id="main-content" class="min-w-0 space-y-8">
+          <section id="start" class="border border-ink-100 bg-white p-6 shadow-sm sm:p-8">
+            <p class="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">Part 1 · ผู้ใช้งานประจำวัน</p>
+            <h2 class="text-2xl font-semibold">เริ่มใช้งานอย่างเป็นลำดับ</h2>
+            <p class="prose-th mt-3 max-w-3xl text-stone-700">
+              คู่มือนี้อธิบายงานประจำวันของ ERP ตั้งแต่ขาย รับเข้า ควบคุมสต็อก จัดซื้อ จนถึงรับชำระเงิน
+              เมนูที่เห็นและปุ่มที่กดได้ขึ้นอยู่กับสิทธิ์ที่องค์กรกำหนดไว้ จึงให้ทำรายการผ่านเมนูที่ได้รับสิทธิ์เท่านั้น
+            </p>
+
+            <div class="mt-6 border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+              <strong>ก่อนกดยืนยัน:</strong> ตรวจคลังสินค้า รายการสินค้า จำนวน ราคา ลูกค้า/ผู้ขาย และวันที่เอกสารให้ครบ
+              เพราะเอกสารที่ยืนยันแล้วอาจตัดหรือเพิ่มสต็อก และบางประเภทจะลงบัญชีตามการทำงานของระบบ
+            </div>
+
+            <div class="mt-6 grid gap-3 text-sm sm:grid-cols-2">
+              <div class="border border-ink-100 bg-ink-50 p-4">
+                <p class="mb-1 font-medium">ข้อมูลที่ควรพร้อมก่อนเริ่ม</p>
+                <ul class="list-disc space-y-1 pl-5 text-stone-700">
+                  <li>ลูกค้าและผู้ขายที่ใช้งาน</li>
+                  <li>สินค้า หมวดหมู่ หน่วยนับ และรายการราคา</li>
+                  <li>คลังสินค้าสำหรับรับ จ่าย หรือโอน</li>
+                  <li>ข้อมูลภาษีและงวดภาษีที่เปิดอยู่สำหรับใบแจ้งหนี้</li>
+                </ul>
+              </div>
+              <div class="border border-ink-100 bg-ink-50 p-4">
+                <p class="mb-1 font-medium">รูปแบบการทำงานร่วมกัน</p>
+                <ul class="list-disc space-y-1 pl-5 text-stone-700">
+                  <li>บันทึกเป็น <strong>ร่าง</strong> เมื่อต้องตรวจทานหรือรออนุมัติ</li>
+                  <li>กด <strong>ยืนยัน</strong> เมื่อข้อมูลและเอกสารต้นทางถูกต้อง</li>
+                  <li>ดูเลขที่เอกสารและสถานะก่อนสร้างเอกสารถัดไป</li>
+                  <li>ใช้หน้ารายการเพื่อค้นหา ตรวจยอด และติดตามสถานะ</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mt-6 border-t border-ink-100 pt-5 lg:hidden">
+              <p class="mb-2 text-[11px] uppercase tracking-wider text-stone-500">ไปที่หัวข้อ</p>
+              <div class="flex flex-wrap gap-2 text-xs">
+                <a href="#sales" class="rounded-full bg-accent-soft px-3 py-1.5 text-accent-dark">การขาย</a>
+                <a href="#stock" class="rounded-full bg-ink-100 px-3 py-1.5">คลังสินค้า</a>
+                <a href="#purchasing" class="rounded-full bg-ink-100 px-3 py-1.5">จัดซื้อ</a>
+                <a href="#billing" class="rounded-full bg-ink-100 px-3 py-1.5">รับชำระเงิน</a>
+                <a href="#line" class="rounded-full bg-ink-100 px-3 py-1.5">LINE</a>
+                <a href="#admin" class="rounded-full bg-ink-100 px-3 py-1.5">ผู้ดูแล</a>
+              </div>
+            </div>
+          </section>
+
+          <section id="sales" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">01 · การขาย</p>
+              <h2 class="mt-1 text-xl font-semibold">ใบเสนอราคา ถึงใบส่งสินค้าและใบแจ้งหนี้</h2>
+              <p class="mt-2 text-sm text-stone-600">เมนูหลัก: การขาย › ใบเสนอราคา, ใบสั่งขาย, ใบส่งสินค้า</p>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">ขั้นตอนหลัก</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">สร้างและยืนยันใบสั่งขาย</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <ol class="grid gap-3 text-sm text-stone-700 sm:grid-cols-2">
+                  <li class="border-l-2 border-accent pl-3"><span class="step-number font-semibold text-accent-dark">1.</span> หากใช้ใบเสนอราคา ให้ตรวจราคาและรายการก่อนเปลี่ยนเป็นการขาย</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="step-number font-semibold text-accent-dark">2.</span> สร้างใบสั่งขาย เลือกลูกค้า และระบุคลังให้กับทุกรายการสินค้า</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="step-number font-semibold text-accent-dark">3.</span> ตรวจจำนวน สต็อก และข้อมูลจัดส่ง จากนั้นบันทึกเป็นร่างเพื่อทบทวน</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="step-number font-semibold text-accent-dark">4.</span> ยืนยันเมื่อพร้อมดำเนินการ ระบบจะตัดสต็อกของรายการตามคลังที่ระบุ</li>
+                </ol>
+                <div class="mt-5 border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+                  <strong>ข้อควรระวัง:</strong> ใบสั่งขายแก้ไขหรือลบได้เฉพาะสถานะร่าง หากยกเลิกใบสั่งขายที่ยืนยันแล้ว หรืออยู่ระหว่างจัดส่ง/ส่งมอบ ระบบจะคืนสต็อกตามรายการเดิม
+                </div>
+              </div>
+            </details>
+
+            <details class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">เอกสารต่อเนื่อง</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">ส่งสินค้าและออกใบแจ้งหนี้</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <div class="grid gap-4 text-sm md:grid-cols-2">
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">ใบส่งสินค้า</p>
+                    <ol class="mt-2 list-decimal space-y-1 pl-5 text-stone-700">
+                      <li>สร้างจากใบสั่งขายที่ยืนยันแล้วหรืออยู่ระหว่างจัดส่ง/ส่งมอบ</li>
+                      <li>แก้ไขและลบได้เฉพาะร่าง</li>
+                      <li>ยืนยัน แล้วเปลี่ยนสถานะเป็นจัดส่ง และส่งมอบตามการทำงานจริง</li>
+                      <li>ยกเลิกได้ก่อนส่งมอบ</li>
+                    </ol>
+                  </div>
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">ใบแจ้งหนี้</p>
+                    <ol class="mt-2 list-decimal space-y-1 pl-5 text-stone-700">
+                      <li>สร้างจากใบสั่งขายที่ยืนยันแล้ว หรือใบส่งสินค้าที่จัดส่ง/ส่งมอบแล้ว</li>
+                      <li>ตรวจงวดภาษี วันที่ ลูกค้า และยอดก่อนส่ง</li>
+                      <li>ส่งใบแจ้งหนี้เพื่อให้สถานะเป็น <strong>ส่งแล้ว</strong></li>
+                      <li>ใช้เอกสารสถานะส่งแล้วสำหรับรับชำระเงิน</li>
+                    </ol>
+                  </div>
+                </div>
+                <p class="mt-4 text-sm text-stone-600">ระบบสร้างเอกสารต่อเนื่องที่ยังใช้งานอยู่ได้เพียงหนึ่งฉบับต่อใบสั่งขายหรือใบส่งสินค้า จึงควรค้นหาเอกสารเดิมก่อนสร้างใหม่</p>
+              </div>
+            </details>
+          </section>
+
+          <section id="stock" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">02 · คลังสินค้า</p>
+              <h2 class="mt-1 text-xl font-semibold">ควบคุมยอดตามคลังอย่างตรวจสอบได้</h2>
+              <p class="mt-2 text-sm text-stone-600">เมนูหลัก: คลังสินค้า › รับสินค้า, ปรับสต็อก, นับสต็อก, โอนสต็อก, คืนสต็อก, เบิกสต็อก, ยอดคงเหลือ, ความเคลื่อนไหวสต็อก</p>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">เอกสารสต็อก</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">รับ เบิก คืน ปรับ และโอนสต็อก</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <div class="grid gap-3 text-sm sm:grid-cols-2">
+                  <div class="border border-ink-100 p-4">
+                    <p class="font-medium">รับสินค้า</p>
+                    <p class="mt-1 text-stone-700">สร้างเอกสารรับเข้า เลือกคลังและสินค้า ตรวจจำนวน แล้วกดยืนยันเพื่อเพิ่มสต็อก สามารถสร้างร่างรับสินค้าจากใบสั่งซื้อที่ยืนยันแล้วหรือรับแล้วได้</p>
+                  </div>
+                  <div class="border border-ink-100 p-4">
+                    <p class="font-medium">เบิกและคืนสต็อก</p>
+                    <p class="mt-1 text-stone-700">ใช้เบิกสินค้าออกหรือบันทึกคืนสินค้าเข้าคลัง ตรวจคลังต้นทาง/ปลายทางและจำนวนก่อนยืนยัน ระบบตรวจยอดคงเหลือเมื่อตัดออก</p>
+                  </div>
+                  <div class="border border-ink-100 p-4">
+                    <p class="font-medium">ปรับสต็อก</p>
+                    <p class="mt-1 text-stone-700">ใช้แก้ยอดให้ตรงกับข้อเท็จจริง พร้อมเหตุผลที่ตรวจสอบย้อนหลังได้ ไม่ใช้แทนการรับหรือเบิกตามกระบวนการปกติ</p>
+                  </div>
+                  <div class="border border-ink-100 p-4">
+                    <p class="font-medium">โอนสต็อก</p>
+                    <p class="mt-1 text-stone-700">ระบุคลังต้นทางและปลายทางให้ถูกต้อง ยืนยันได้เมื่อคลังต้นทางมีจำนวนเพียงพอ</p>
+                  </div>
+                </div>
+                <div class="mt-5 border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+                  <strong>กติกาเดียวกัน:</strong> เอกสารรับ ปรับ โอน คืน และเบิก เริ่มจากร่าง เมื่อยืนยันแล้วจะบันทึกความเคลื่อนไหวสต็อก และเอกสารที่ยืนยันแล้วแก้ไขหรือลบไม่ได้
+                </div>
+              </div>
+            </details>
+
+            <details class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">ตรวจนับและติดตาม</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">นับสต็อก ยอดคงเหลือ และความเคลื่อนไหว</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <ol class="space-y-3 text-sm text-stone-700">
+                  <li><span class="font-semibold text-accent-dark">1. เปิดเอกสารนับ:</span> เลือกคลังและบันทึกยอดที่นับจริงในสถานะร่าง</li>
+                  <li><span class="font-semibold text-accent-dark">2. ล็อกคลังเมื่อเริ่มนับ:</span> หากเอกสารร่างล็อกคลัง ระบบจะไม่อนุญาตให้ยืนยันรายการเคลื่อนไหวสต็อกอื่นในคลังนั้นจนกว่าการนับจะเสร็จ</li>
+                  <li><span class="font-semibold text-accent-dark">3. ยืนยันผลนับ:</span> ตรวจจำนวนทั้งหมดก่อนยืนยัน ระบบปรับยอดตามผลนับและปลดล็อกคลัง</li>
+                  <li><span class="font-semibold text-accent-dark">4. ตรวจย้อนหลัง:</span> ใช้ยอดคงเหลือดูยอดปัจจุบัน และใช้ความเคลื่อนไหวสต็อกเพื่อตรวจเอกสารที่ทำให้ยอดเปลี่ยน</li>
+                </ol>
+              </div>
+            </details>
+          </section>
+
+          <section id="purchasing" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">03 · จัดซื้อ</p>
+              <h2 class="mt-1 text-xl font-semibold">ขอซื้อ สั่งซื้อ และรับเข้า</h2>
+              <p class="mt-2 text-sm text-stone-600">เมนูหลัก: จัดซื้อ › ใบขอซื้อ, ใบสั่งซื้อ และ รับสินค้า</p>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">ขั้นตอนจัดซื้อ</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">จากความต้องการจนของเข้าคลัง</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <div class="grid gap-4 text-sm md:grid-cols-3">
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">1. ใบขอซื้อ</p>
+                    <p class="mt-2 text-stone-700">สร้างร่าง ระบุสินค้า จำนวน และผู้ขายเมื่อทราบ ส่งอนุมัติเมื่อข้อมูลครบ ใบขอซื้อที่อนุมัติแล้วจึงสร้างใบสั่งซื้อได้</p>
+                  </div>
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">2. ใบสั่งซื้อ</p>
+                    <p class="mt-2 text-stone-700">ตรวจผู้ขาย ราคา จำนวน และเงื่อนไข ยืนยันตามลำดับอนุมัติขององค์กร แล้วติดตามสถานะจนรับสินค้า</p>
+                  </div>
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">3. รับสินค้า</p>
+                    <p class="mt-2 text-stone-700">สร้างร่างรับสินค้าจากใบสั่งซื้อที่ยืนยันแล้ว ตรวจของจริงกับเอกสาร และยืนยันเพื่อเพิ่มสต็อกในคลังที่เลือก</p>
+                  </div>
+                </div>
+                <p class="mt-4 text-sm text-stone-600">ใบขอซื้อและใบสั่งซื้อแก้ไขหรือลบได้เฉพาะร่าง ใบสั่งซื้อที่รับครบแล้วไม่สามารถยกเลิกได้</p>
+              </div>
+            </details>
+          </section>
+
+          <section id="billing" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">04 · การเรียกเก็บเงิน</p>
+              <h2 class="mt-1 text-xl font-semibold">ส่งใบแจ้งหนี้ รับชำระ และออกใบเสร็จ</h2>
+              <p class="mt-2 text-sm text-stone-600">เมนูหลัก: การเรียกเก็บเงิน › ใบแจ้งหนี้, รับชำระเงิน, ใบเสร็จรับเงิน</p>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">ลูกหนี้</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">ติดตามยอดจนปิดชำระ</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <ol class="grid gap-3 text-sm text-stone-700 sm:grid-cols-2">
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">1.</span> สร้างใบแจ้งหนี้เป็นร่าง แล้วตรวจงวดภาษี ลูกค้า และยอด</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">2.</span> ส่งใบแจ้งหนี้ เพื่อให้เป็นสถานะส่งแล้วและพร้อมรับชำระ</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">3.</span> สร้างรับชำระเงิน เลือกลูกค้าหนึ่งราย และเลือกใบแจ้งหนี้สถานะส่งแล้วที่ต้องการตัดยอด</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">4.</span> ระบุยอดจัดสรรไม่เกินยอดค้างของแต่ละใบ แล้วกดยืนยันเพื่อบันทึกการรับชำระและปิดใบที่ชำระครบ</li>
+                </ol>
+                <div class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                  <div class="border border-ink-100 bg-ink-50 p-4"><strong>ใบแจ้งหนี้:</strong> แก้ไขหรือลบได้เฉพาะร่าง การส่งและยกเลิกมีผลต่อรายการบัญชีของเอกสาร</div>
+                  <div class="border border-ink-100 bg-ink-50 p-4"><strong>รับชำระเงิน:</strong> ยกเลิกรายการยืนยันแล้วเพื่อย้อนการจัดสรรและรายการบัญชีได้ แต่ลบได้เฉพาะร่าง</div>
+                </div>
+                <p class="mt-4 text-sm text-stone-600">ใบเสร็จรับเงินเป็นเอกสารแยกสำหรับใบแจ้งหนี้ที่เชื่อมโยงอยู่ ให้ยืนยันหลังตรวจยอดรับจริงและเอกสารอ้างอิงครบถ้วน</p>
+              </div>
+            </details>
+          </section>
+
+          <section id="line" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">05 · LINE</p>
+              <h2 class="mt-1 text-xl font-semibold">รับคำสั่งซื้อจาก LIFF และติดตามการแจ้งเตือน</h2>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">สำหรับผู้ปฏิบัติงาน</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">สิ่งที่เกิดขึ้นเมื่อมีคำสั่งซื้อผ่าน LINE</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <ul class="list-disc space-y-2 pl-5 text-sm text-stone-700">
+                  <li>LIFF จะแสดงเฉพาะสินค้าที่เปิดใช้งานและมีสต็อกในคลังเริ่มต้นขององค์กร</li>
+                  <li>เมื่อชำระคำสั่งซื้อผ่าน LIFF สำเร็จ ระบบสร้างและยืนยันใบสั่งขายให้ จึงควรตรวจรายการจากเมนูใบสั่งขายตามกระบวนการขายปกติ</li>
+                  <li>ระบบตรวจราคา จำนวน และสต็อกบนเซิร์ฟเวอร์ก่อนยืนยัน ไม่ใช้ราคาหรือคลังที่ส่งมาจากหน้าลูกค้าโดยตรง</li>
+                  <li>หากลูกค้ามีการผูกบัญชี LINE แล้ว ระบบอาจส่งการแจ้งเตือนเมื่อสถานะใบสั่งขายเปลี่ยน หรือเมื่อยืนยันรับชำระเงิน</li>
+                </ul>
+                <div class="mt-5 border border-ink-100 bg-ink-50 px-4 py-3 text-sm text-stone-700">
+                  การส่งข้อความเป็นการแจ้งเตือนประกอบเท่านั้น หากส่งไม่สำเร็จ เอกสาร ERP ที่ยืนยันแล้วจะไม่ถูกย้อนกลับ ให้ตรวจสถานะเอกสารใน ERP เป็นแหล่งข้อมูลหลัก
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <section id="admin" class="border border-ink-100 bg-white p-6 shadow-sm sm:p-8">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">Part 2 · ผู้ดูแลองค์กร</p>
+            <h2 class="mt-2 text-2xl font-semibold">กำหนดสิทธิ์และการตั้งค่าก่อนใช้งานจริง</h2>
+            <p class="prose-th mt-3 max-w-3xl text-stone-700">
+              ภาคนี้สำหรับผู้ที่ดูแลการทำงานขององค์กรในระบบ ให้เปลี่ยนค่าทีละเรื่อง ตรวจผลกับผู้ใช้ที่เกี่ยวข้อง และบันทึกเหตุผลก่อนนำไปใช้กับเอกสารจริง
+              การสร้างหรือแก้ไของค์กร บทบาทรวม สิทธิ์รวม โมดูล และค่า platform เป็นงานของผู้ดูแลแพลตฟอร์ม ไม่ใช่งานตั้งค่า ERP รายวัน
+            </p>
+            <div class="mt-5 border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+              <strong>ก่อนเปลี่ยนค่า:</strong> ตรวจผลกระทบต่อผู้ใช้ เอกสารที่กำลังทำ และงวดที่ยังเปิดอยู่ก่อนเสมอ ห้ามเปลี่ยนค่าเพื่อแก้เอกสารที่ยืนยันหรือปิดงวดไปแล้ว
+            </div>
+          </section>
+
+          <section id="admin-access" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">A1 · สิทธิ์</p>
+              <h2 class="mt-1 text-xl font-semibold">พนักงาน บทบาท และสิทธิ์ HRMS</h2>
+              <p class="mt-2 text-sm text-stone-600">เมนูหลัก: HRMS › พนักงาน, แผนก, บทบาท และ สิทธิ์ · เส้นทางองค์กรใช้ HRMS roles ผูกกับพนักงาน ไม่ใช่เมนู Admin ของแพลตฟอร์ม</p>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">กำหนดตามหน้าที่งาน</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">ให้สิทธิ์เท่าที่จำเป็น แล้วตรวจผลจริง</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <ol class="grid gap-3 text-sm text-stone-700 sm:grid-cols-2">
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">1.</span> ตรวจข้อมูลพนักงาน แผนก และหน้าที่งานให้ตรงกับโครงสร้างที่ใช้งาน</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">2.</span> สร้างหรือแก้บทบาท HRMS ให้มีเฉพาะ permission ของงานนั้น จากนั้นผูกบทบาทกับพนักงาน ไม่ใช้บทบาทสิทธิ์กว้างเพื่อแก้ปัญหาชั่วคราว</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">3.</span> ตรวจเมนู รายการ และปุ่มสำคัญด้วยบัญชีที่ผูกพนักงานและบทบาทนั้น หรือให้ผู้ใช้เข้าสู่ระบบใหม่แล้วยืนยันผล</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">4.</span> บันทึกว่าใครได้บทบาทใด และทบทวนทันทีเมื่อย้ายงาน หมดหน้าที่ หรือลาออก</li>
+                </ol>
+                <div class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">สิทธิ์ระดับองค์กร</p>
+                    <p class="mt-2 text-stone-700">ผู้ใช้ทั่วไปได้ permission จากบทบาทแพลตฟอร์ม (ถ้ามี) รวมกับบทบาท HRMS ของพนักงานที่ผูกบัญชี เมนู HRMS ใช้สิทธิ์เช่น <code>hrms.employees.list</code>, <code>hrms.employees.edit</code>, <code>hrms.roles.list</code>, <code>hrms.roles.manage</code></p>
+                  </div>
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">แยกจากผู้ดูแลแพลตฟอร์ม</p>
+                    <p class="mt-2 text-stone-700">เมนู Admin เช่น องค์กร บทบาทรวม สิทธิ์รวม และโมดูล เป็นงานแพลตฟอร์ม ผู้ใช้ระบบที่เป็น admin จะผ่านการตรวจสิทธิ์ทุกอย่าง อย่าใช้เส้นทางนี้แทนการจัดสิทธิ์พนักงานรายวัน</p>
+                  </div>
+                </div>
+                <div class="mt-5 border border-ink-100 bg-ink-50 px-4 py-3 text-sm text-stone-700">
+                  การบันทึกชุด permission ของบทบาท HRMS จะแทนที่ชุดเดิมของบทบาทนั้นทั้งชุด จึงต้องตรวจผลกระทบต่อพนักงานทุกคนที่ใช้บทบาทเดียวกันก่อนบันทึก หากไม่มีเมนู HRMS หรือจัดการบทบาทไม่ได้ ให้ขอ permission ที่ตรงหน้าที่จากผู้ดูแลแพลตฟอร์ม
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <section id="admin-erp-settings" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">A2 · ตั้งค่า ERP</p>
+              <h2 class="mt-1 text-xl font-semibold">ตั้งค่า ERP ข้อมูลหลัก และเลขลำดับ</h2>
+              <p class="mt-2 text-sm text-stone-600">เมนูหลัก: ตั้งค่า › ทั่วไป, สกุลเงิน, เลขลำดับ, ข้อมูลหลัก และ Audit Log</p>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">ค่าที่ใช้ประกอบเอกสาร</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">จัดลำดับตรวจจากข้อมูลหลักไปยังเลขเอกสาร</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <div class="grid gap-3 text-sm sm:grid-cols-2">
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">ตั้งค่าทั่วไปและสกุลเงิน</p>
+                    <p class="mt-2 text-stone-700">ตรวจรูปแบบวันที่/ปฏิทิน (ค.ศ. หรือ พ.ศ.) การแสดงสัญลักษณ์สกุลเงิน ค่าเริ่มต้นภาษี และการเปิดใช้หัก ณ ที่จ่ายก่อนเริ่มรอบงาน ค่าทั่วไปและการแสดงผลสกุลเงินผูกกับบัญชีผู้ใช้ จึงให้ผู้เกี่ยวข้องตรวจว่าบัญชีตนแสดงผลถูกต้อง รายการสกุลเงินและอัตราแลกเปลี่ยนอยู่ที่เมนูสกุลเงินแยกต่างหาก และสกุลเงินฐานลบไม่ได้</p>
+                  </div>
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">ข้อมูลหลัก</p>
+                    <p class="mt-2 text-stone-700">เพิ่มหรือแก้หมวด/ค่าข้อมูลหลักหลังตรวจผลต่อฟอร์มและรายงานแล้ว หมวดที่ระบบสงวนไว้ (System) ลบไม่ได้ อย่าลบหมวดหรือค่าที่เอกสารอ้างอิงอยู่เพื่อหลีกเลี่ยงข้อมูลอ้างอิงเสียหาย</p>
+                  </div>
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">เลขลำดับเอกสาร</p>
+                    <p class="mt-2 text-stone-700">กำหนดรูปแบบด้วย token วันที่และตัวเลข ใช้ตัวอย่างเลขถัดไปเพื่อตรวจก่อนบันทึก เลือกรอบรีเซ็ต (รายวัน รายเดือน รายปี หรือไม่รีเซ็ต) ให้สอดคล้องกับการใช้งาน เลขลำดับในตัวของระบบลบไม่ได้ และการเปลี่ยนรูปแบบหรือ reset มีผลกับเอกสารใหม่เท่านั้น เอกสารเดิมยังเก็บเลขเดิม</p>
+                  </div>
+                  <div class="border border-ink-100 bg-ink-50 p-4">
+                    <p class="font-medium">ตรวจย้อนหลัง</p>
+                    <p class="mt-2 text-stone-700">ใช้ Audit Log ตรวจการเปลี่ยนแปลงที่มีผลต่อการทำงานก่อนและหลังแก้ค่า เพื่อยืนยันผู้ดำเนินการ เวลา และค่าอ้างอิงที่เกี่ยวข้อง</p>
+                  </div>
+                </div>
+                <div class="mt-5 border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+                  <strong>ข้อควรระวัง:</strong> เลขลำดับและค่าทั่วไปถูกเก็บตามผู้ใช้ ไม่ใช่ลำดับหรือค่ากลางของทั้งองค์กร การแก้รูปแบบ รีเซ็ต หรือค่าแสดงผลจึงต้องประสานผู้ใช้ที่ออกเอกสารและตรวจเลข/ค่าถัดไปก่อนเสมอ
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <section id="admin-controls" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">A3 · การควบคุม</p>
+              <h2 class="mt-1 text-xl font-semibold">ปีบัญชี งวดภาษี และเกณฑ์อนุมัติ</h2>
+              <p class="mt-2 text-sm text-stone-600">เมนูหลัก: บัญชี › ปีบัญชี, งวดภาษี และ ตั้งค่า › เกณฑ์การอนุมัติ</p>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">ปิดงวดและอนุมัติ</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">ควบคุมวันที่เอกสารและวงเงินก่อนใช้งาน</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <ol class="space-y-3 text-sm text-stone-700">
+                  <li><span class="font-semibold text-accent-dark">1. เปิดปีบัญชีและงวดภาษี:</span> สร้างปีบัญชีและงวดภาษีให้ครอบคลุมวันที่ที่จะบันทึกรายการ ระบุชื่อและช่วงวันที่ให้ถูกต้อง และตรวจว่างวดที่ต้องใช้งานยังเปิดอยู่</li>
+                  <li><span class="font-semibold text-accent-dark">2. ตรวจรายงาน VAT:</span> ทบทวนเอกสารและรายการบัญชีที่เกี่ยวข้องก่อนสั่งปิดงวดภาษี</li>
+                  <li><span class="font-semibold text-accent-dark">3. ปิดงวด:</span> งวดภาษีที่ปิดแล้วไม่แก้ไขหรือลบได้ แต่เปิดกลับได้เมื่อจำเป็น ปีบัญชีที่ปิดแล้วไม่แก้ไขหรือลบได้ และไม่มีเส้นทางเปิดปีบัญชีกลับ วันที่ที่อยู่ในงวดภาษีหรือปีบัญชีที่ปิดจะถูกบล็อกไม่ให้บันทึกหรือแก้ไขเอกสารบัญชีที่เกี่ยวข้อง</li>
+                  <li><span class="font-semibold text-accent-dark">4. ตั้งเกณฑ์อนุมัติ:</span> ระบุประเภทเอกสาร ยอดขั้นต่ำ และ permission ผู้อนุมัติ (<code>erp.purchasing.approve</code> หรือ <code>erp.bills.approve</code>) แล้วทดสอบกับยอดต่ำกว่าและสูงกว่าเกณฑ์ก่อนแจ้งผู้ใช้งาน</li>
+                </ol>
+                <div class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                  <div class="border border-ink-100 bg-ink-50 p-4"><strong>ขอบเขตเกณฑ์:</strong> ใช้กับการยืนยันใบสั่งซื้อ และการเปลี่ยนสถานะใบรับวางบิลเป็นอนุมัติเท่านั้น ไม่ใช่ workflow อนุมัติหลายขั้นหรือคิวอนุมัติ</div>
+                  <div class="border border-ink-100 bg-ink-50 p-4"><strong>ผลบังคับใช้:</strong> ระบบเลือกเกณฑ์สูงสุดที่ไม่เกินยอดเอกสารในจังหวะดำเนินการ การแก้เกณฑ์ไม่ย้อนเปลี่ยนเอกสารที่ยืนยันหรืออนุมัติแล้ว</div>
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <section id="admin-line" class="space-y-4">
+            <div class="px-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">A4 · LINE</p>
+              <h2 class="mt-1 text-xl font-semibold">เชื่อมต่อ LINE และเปิดใช้ LIFF อย่างปลอดภัย</h2>
+              <p class="mt-2 text-sm text-stone-600">เมนูหลัก: ตั้งค่า › LINE Integration · ต้องมีสิทธิ์ <code>erp.line-integration.manage</code></p>
+            </div>
+
+            <details open class="group overflow-hidden border border-ink-100 bg-white shadow-sm">
+              <summary class="flex cursor-pointer items-start justify-between gap-3 px-5 py-4 hover:bg-ink-50/60 sm:px-6">
+                <span class="block min-w-0">
+                  <span class="block text-xs font-semibold text-stone-400">หนึ่ง connection ต่อองค์กร</span>
+                  <span class="mt-1 block text-base font-semibold sm:text-lg">บันทึกค่า ตรวจคลัง และลงทะเบียน webhook</span>
+                </span>
+                <span class="chev mt-1 shrink-0 text-stone-400" aria-hidden="true">▼</span>
+              </summary>
+              <div class="border-t border-ink-100 px-5 pb-6 pt-5 sm:px-6">
+                <ol class="grid gap-3 text-sm text-stone-700 sm:grid-cols-2">
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">1.</span> เตรียม Messaging API channel ID, Bot user ID, LIFF ID, LINE Login channel ID, channel secret และ channel access token จาก LINE Developers Console</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">2.</span> เลือกคลังเริ่มต้นที่เป็น active และอยู่ในองค์กรเดียวกัน เพราะระบบใช้คลังนี้แสดงยอดและตัดสต็อกของคำสั่งซื้อ LIFF</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">3.</span> บันทึกค่าและเปิดใช้ LIFF ordering เมื่อต้องการรับคำสั่งซื้อ จากนั้นใช้ URL webhook ที่หน้าตั้งค่าแสดงไปลงทะเบียนใน LINE Developers Console</li>
+                  <li class="border-l-2 border-accent pl-3"><span class="font-semibold text-accent-dark">4.</span> ตรวจว่า URL เป็น public HTTPS ที่ LINE เรียกถึง และตรวจคำสั่งซื้อผ่าน ERP หลังเปิดใช้จริง</li>
+                </ol>
+                <div class="mt-5 border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+                  <strong>ปกป้องข้อมูลลับ:</strong> ก่อนบันทึก credential เซิร์ฟเวอร์ต้องตั้ง <code>LINE_CREDENTIAL_ENCRYPTION_KEY</code> เป็นคีย์ base64 ความยาว 32 ไบต์ ห้ามวาง channel secret หรือ access token ในตั๋วงาน ภาพหน้าจอ หรือคู่มือนี้ เมื่อแก้ค่าภายหลังให้เว้นช่อง secret/token ว่างหากไม่ต้องการเปลี่ยนค่าเดิม
+                </div>
+                <div class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                  <div class="border border-ink-100 bg-ink-50 p-4"><strong>Configured ≠ ทดสอบ live:</strong> สถานะนี้ยืนยันเพียงว่ามีค่าครบและ credential ถูกเข้ารหัสเก็บ ไม่ได้เรียก LINE เพื่อตรวจ channel, webhook หรือ LIFF</div>
+                  <div class="border border-ink-100 bg-ink-50 p-4"><strong>ขอบเขต UI ปัจจุบัน:</strong> มีโหลดและบันทึก connection เท่านั้น ยังไม่มีปุ่มส่งข้อความทดสอบ ยกเลิก connection หรือล้าง/หมุน credential</div>
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <section class="border-t border-ink-100 px-1 pt-2 text-sm text-stone-600">
+            <p class="font-medium text-stone-800">ขอบเขตการขอสิทธิ์</p>
+            <p class="mt-2">หากไม่เห็นเมนูองค์กรหรือทำรายการ ERP/HRMS ไม่ได้ ให้ขอ permission ของฟังก์ชันนั้น (เช่น <code>erp.settings.manage</code>, <code>hrms.roles.manage</code>, <code>erp.line-integration.manage</code>) จากผู้ที่ดูแลสิทธิ์ในองค์กรหรือผู้ดูแลแพลตฟอร์ม อย่าพยายามเข้าผ่าน URL โดยตรง</p>
+            <p class="mt-2">งานระดับแพลตฟอร์ม เช่น สร้าง/แก้ไของค์กร บทบาทรวม สิทธิ์รวม โมดูลระบบ หรือผู้ใช้ admin ต้องส่งต่อผู้ดูแลแพลตฟอร์มเท่านั้น</p>
+          </section>
+
+          <footer class="border-t border-ink-100 px-1 pt-6 text-xs text-stone-500">
+            คู่มือนี้อธิบายพฤติกรรมงานที่ระบบรองรับในปัจจุบัน โปรดใช้สถานะเอกสารและสิทธิ์ขององค์กรเป็นข้อมูลอ้างอิงเมื่อปฏิบัติงานจริง
+          </footer>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const links = [...document.querySelectorAll('.toc-link')]
+      const sections = links
+        .map((link) => document.querySelector(link.getAttribute('href')))
+        .filter(Boolean)
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting)
+        if (!visible.length) return
+        const activeId = visible[0].target.id
+        links.forEach((link) => link.classList.toggle('active', link.getAttribute('href') === `#${activeId}`))
+      }, { rootMargin: '-22% 0px -68% 0px', threshold: 0 })
+
+      sections.forEach((section) => observer.observe(section))
+
+      if (window.location.hash) {
+        const target = document.querySelector(window.location.hash)
+        const details = target?.closest('details')
+        if (details) details.open = true
+      }
+    </script>
+  </body>
+</html>
