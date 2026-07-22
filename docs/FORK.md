@@ -1,16 +1,22 @@
 # Fork status (Manchinn/starter-saas)
 
 **Last updated:** 2026-07-22
+**Fork release line:** `1.2.0-line.1` (see `CHANGELOG.md`; package versions match)
 
 ## What `main` is
 
 ```
-main  =  artapon/starter-saas (upstream)  +  LINE LIFF order port
+main  =  artapon/starter-saas (upstream v1.2.0)  +  LINE LIFF order port
+         +  architecture deepen (Stock ledger, Customer notify, LINE module)
 ```
 
-As of commit `a19d32f` (and the three LINE commits behind it), local/fork
-`main` is rebased onto upstream `4784e41` (`release/v1.2.0` merge) with only
-the LINE integration re-applied and documented.
+`main` is rebased onto upstream `4784e41` (`release/v1.2.0` / tag `v1.2.0`)
+with the LINE integration re-applied, then Stock ledger `postDelta` (issue #1),
+Customer notify + LINE deepen (issues #2–#3), settings UI parity, and org-admin
+user-guide Part 2. Upstream `main` is fully merged through `v1.2.0`; further
+upstream work may still sit only on `upstream/develop` until they cut a release.
+Prefer waiting for upstream `main` (or an explicit selective cherry-pick) over
+tracking `develop` by default.
 
 | Remote   | URL                                      | Role                                      |
 |----------|------------------------------------------|-------------------------------------------|
@@ -43,11 +49,12 @@ still exist for archaeology. They are **not** the product direction of
 2. **LINE stack** — organization channel settings, credential encryption,
    webhook HMAC, LIFF order creation, notifications (see
    `shared/erp/line-integration`, `server/modules/line`, and `CHANGELOG.md`
-   entry `2026-07-22`).
+   entries `2026-07-22` and `1.2.0-line.1`).
 3. **Architecture deepen on this base** — internal refactors that improve
-   depth/testability without reviving legacy fork product paths. First locked
-   slice: **Stock ledger** `postDelta` (issue #1, ADR-0001, commit `b95488f`).
-   Count and transfer remain outside the ledger until a later decision.
+   depth/testability without reviving legacy fork product paths. Locked so far:
+   **Stock ledger** `postDelta` (issue #1, ADR-0001) and **LINE module +
+   Customer notify** (issues #2–#3, ADR-0002). Count and transfer remain outside
+   the ledger until a later decision.
 4. **New product slices** decided explicitly on this base (not implied by
    pre-rebase memory or old backlog items).
 
@@ -58,7 +65,7 @@ still exist for archaeology. They are **not** the product direction of
 | Stock ledger (shared write path for product/store/movement) | **Done** on `main` | issue #1, ADR-0001, `CONTEXT.md` (Stock terms), `b95488f` |
 | Stock count / transfer via ledger | Deferred | ADR-0001 |
 | LINE module + Customer notify port | **Done** on `main` | issues #2–#3, ADR-0002, `CONTEXT.md` (LINE terms) |
-| Other deepen candidates | Not yet grilled | architecture-review report; pick next after LINE implement or skip |
+| Other deepen candidates | Not yet grilled | pick next explicitly (no open issues) |
 
 ## Memory note
 

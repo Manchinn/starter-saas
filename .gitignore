@@ -13,4 +13,5 @@ data/
 tmp/
 test-results/
 semgrep-report.json
+.zcode/
 

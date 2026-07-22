@@ -8,7 +8,7 @@ A multi-tenant ERP/SaaS starter built as an npm-workspaces monorepo: an Express 
 
 **`main` = upstream base + LINE LIFF order port only.**
 
-This repository tracks [artapon/starter-saas](https://github.com/artapon/starter-saas) and keeps a single first-party delta: LINE Messaging API + LIFF ordering (see `CHANGELOG.md` → `2026-07-22`). Pre-rebase legacy fork work is **not** continued on this tree (old HRMS fork-only path, offboarding/drill-down layers, deferred billing payment workflow from the previous backlog, etc.). Details and remote layout: **[docs/FORK.md](docs/FORK.md)**.
+This repository tracks [artapon/starter-saas](https://github.com/artapon/starter-saas) (`v1.2.0` base) and keeps a first-party delta: LINE Messaging API + LIFF ordering, plus architecture deepen on this tree (Stock ledger, Customer notify). Current fork release line: **`1.2.0-line.1`** (see `CHANGELOG.md`). Pre-rebase legacy fork work is **not** continued on this tree (old HRMS fork-only path, offboarding/drill-down layers, deferred billing payment workflow from the previous backlog, etc.). Details and remote layout: **[docs/FORK.md](docs/FORK.md)**.
 
 ## Tech stack
 

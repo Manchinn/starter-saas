@@ -7,6 +7,13 @@ Git history remains the complete implementation-level record.
 
 ## [Unreleased]
 
+## [1.2.0-line.1] - 2026-07-22
+
+Fork marker for `main` after upstream `v1.2.0` (`4784e41`) plus the LINE port
+and architecture deepen on this tree. Package versions are set to
+`1.2.0-line.1` so they match this release line (they previously stayed at
+`1.0.1` from an older root layout).
+
 ### Changed
 
 - เส้นทางยืนยันสต็อก (ปรับสต็อก / เบิก / คืน / รับสินค้า / ยืนยัน-ยกเลิกออเดอร์ขาย)
@@ -34,6 +41,12 @@ Git history remains the complete implementation-level record.
   ADR-0001 (Stock ledger write path), และสถานะใน `docs/FORK.md`
 - ADR-0002 + คำศัพท์ LINE / Customer notify ใน `CONTEXT.md`;
   อัปเดตสถานะ implement ใน `docs/FORK.md`
+- คู่มือผู้ใช้: ภาค 2 ผู้ดูแลองค์กร (ภาษาไทย) ใน `docs/user-guide.html`
+
+### Ops / hygiene
+
+- Align root / server / client `package.json` version to `1.2.0-line.1`
+- Ignore local `.zcode/` agent workspace state
 
 ## [2026-07-22]
 
