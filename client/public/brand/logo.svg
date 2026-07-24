@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" role="img" aria-labelledby="title">
+  <title id="title">SaaS</title>
+  <defs>
+    <linearGradient id="a" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#6c7cff"/>
+      <stop offset="1" stop-color="#3641f5"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" fill="url(#a)"/>
+  <path d="M34.5 7.5 12 34h17.5L27 56.5 52 27H34.5z" fill="#fff"/>
+  <text x="82" y="43" fill="#1c2434" font-family="Outfit, Arial, sans-serif" font-size="35" font-weight="700">SaaS</text>
+</svg>

@@ -3,15 +3,11 @@
 
     <!-- ── Top bar ───────────────────────────────────────────────────────────── -->
     <header class="flex items-center justify-between px-8 py-5 flex-shrink-0">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 flex items-center justify-center flex-shrink-0"
-          style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
-          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <span class="text-[15px] font-bold text-[#1C2434]">Starter SaaS</span>
-      </div>
+      <BrandMark
+        gap-class="gap-2.5"
+        mark-class="w-8 h-8"
+        name-class="text-[15px] font-bold text-[#1C2434]"
+      />
       <RouterLink to="/login"
         class="text-[13px] font-medium text-[#637381] hover:text-primary-600 transition-colors">
         {{ t('auth.signInLink') }} →
@@ -132,7 +128,7 @@
                   <FormField wrapperClass="col-span-1" name="dbPort" v-model="db.port"
                     :label="t('auth.dbPort')" type="number" :placeholder="String(defaultPort)" />
                   <FormField wrapperClass="col-span-1" name="dbName" v-model="db.database"
-                    :label="t('auth.dbName')" placeholder="starter_saas" />
+                    :label="t('auth.dbName')" placeholder="saas" />
                   <FormField wrapperClass="col-span-2" name="dbUsername" v-model="db.username"
                     :label="t('auth.dbUsername')" autocomplete="off" />
                   <FormField wrapperClass="col-span-2" name="dbPassword" v-model="db.password"
@@ -272,6 +268,7 @@ import { useFieldErrors } from '@/composables/useFieldErrors'
 import ErrorBanner from '@/components/form/ErrorBanner.vue'
 import AppButton  from '@/components/AppButton.vue'
 import FormField  from '@/components/form/FormField.vue'
+import BrandMark from '@/components/BrandMark.vue'
 
 const auth   = useAuthStore()
 const router = useRouter()
@@ -318,7 +315,7 @@ const db = ref({
   storage:  DEFAULT_SQLITE_PATH,
   host:     'localhost',
   port:     '',
-  database: 'starter_saas',
+  database: 'saas',
   username: '',
   password: '',
 })

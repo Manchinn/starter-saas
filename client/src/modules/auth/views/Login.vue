@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="min-h-screen flex">
 
     <!-- ── Left branding panel ──────────────────────────────────────────────── -->
@@ -29,17 +29,11 @@
       <div class="relative z-10 flex flex-col h-full px-12 py-10">
 
         <!-- Logo -->
-        <div class="flex items-center gap-3 flex-shrink-0">
-          <div class="w-9 h-9-[10px] flex items-center justify-center flex-shrink-0"
-            style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);
-                   box-shadow: 0 0 0 1px rgba(70,95,255,0.4), 0 4px 16px rgba(70,95,255,0.35);">
-            <svg class="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="text-[17px] font-bold text-white tracking-[-0.3px]">Starter SaaS</span>
-        </div>
+        <BrandMark
+          class="flex-shrink-0"
+          mark-class="w-9 h-9 shadow-[0_0_0_1px_rgba(70,95,255,0.4),0_4px_16px_rgba(70,95,255,0.35)]"
+          name-class="text-[17px] font-bold text-white tracking-[-0.3px]"
+        />
 
         <!-- Center content -->
         <div class="flex-1 flex flex-col justify-center py-10">
@@ -99,16 +93,12 @@
       <!-- Top bar -->
       <div class="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0">
         <!-- Mobile logo (hidden on large) -->
-        <div class="flex items-center gap-2.5 lg:hidden">
-          <div class="w-8 h-8-[9px] flex items-center justify-center flex-shrink-0"
-            style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="text-[15px] font-bold text-[#1C2434]">Starter SaaS</span>
-        </div>
+        <BrandMark
+          class="lg:hidden"
+          gap-class="gap-2.5"
+          mark-class="w-8 h-8"
+          name-class="text-[15px] font-bold text-[#1C2434]"
+        />
         <div class="hidden lg:block" />
         <p class="text-[13px] text-[#64748B]">
           {{ t('auth.noAccount') }}
@@ -282,7 +272,7 @@
 
       <!-- Bottom bar -->
       <div class="flex-shrink-0 px-8 py-4 flex items-center justify-between border-t border-[#F1F5F9]">
-        <p class="text-[11px] text-[#CBD5E1]">© {{ new Date().getFullYear() }} Starter SaaS</p>
+        <p class="text-[11px] text-[#CBD5E1]">© {{ new Date().getFullYear() }} {{ brand.name }}</p>
         <div class="flex items-center gap-3 text-[11px] text-[#CBD5E1]">
           <a href="#" class="hover:text-[#64748B] transition-colors">Privacy</a>
           <span>·</span>
@@ -301,6 +291,8 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import FieldError from '@/components/form/FieldError.vue'
+import BrandMark from '@/components/BrandMark.vue'
+import { brand } from '@/config/brand'
 
 const auth   = useAuthStore()
 const router = useRouter()

@@ -1,15 +1,12 @@
-﻿<template>
+<template>
   <div class="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-6 py-12">
     <div class="w-full max-w-[420px]">
-      <div class="flex items-center gap-2.5 mb-8">
-        <div class="w-8 h-8-[9px] flex items-center justify-center flex-shrink-0"
-          style="background: linear-gradient(135deg, #465fff 0%, #3641f5 100%);">
-          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <span class="text-[15px] font-bold text-[#1C2434]">Starter SaaS</span>
-      </div>
+      <BrandMark
+        class="mb-8"
+        gap-class="gap-2.5"
+        mark-class="w-8 h-8"
+        name-class="text-[15px] font-bold text-[#1C2434]"
+      />
 
       <div class="bg-white border border-[#E2E8F0] shadow-sm p-8">
         <h1 class="text-[22px] font-bold text-[#0F172A] tracking-[-0.5px] mb-1.5">{{ t('auth.resetTitle') }}</h1>
@@ -78,6 +75,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import BrandMark from '@/components/BrandMark.vue'
 import api from '@/api'
 import { useFieldErrors } from '@/composables/useFieldErrors'
 import FieldError from '@/components/form/FieldError.vue'

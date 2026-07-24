@@ -1,4 +1,4 @@
-# Starter SaaS (ERP)
+# SaaS (ERP)
 
 Multi-tenant ERP on the fork base (`upstream` + LINE LIFF). Domain language for agents and humans working this tree. Implementation detail does not belong here — see `docs/adr/` for decisions and the code for behaviour.
 

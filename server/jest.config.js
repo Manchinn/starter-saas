@@ -18,7 +18,7 @@ module.exports = {
   reporters: [
     'default',
     ['jest-html-reporter', {
-      pageTitle: 'starter-saas — unit test report',
+      pageTitle: 'saas — unit test report',
       outputPath: '<rootDir>/test-results/unit-tests.html',
       includeFailureMsg: true,
       includeSuiteFailure: true,

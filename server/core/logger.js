@@ -59,7 +59,7 @@ const transports = [
 
 const logger = winston.createLogger({
   level,
-  defaultMeta: { service: 'starter-saas' },
+  defaultMeta: { service: 'saas' },
   transports,
   exitOnError: false,
 })

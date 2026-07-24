@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import { vCan } from '@/directives/can'
 import DateInput from '@/components/DateInput.vue'
+import { brand } from '@/config/brand'
 import './assets/main.css'
 
 const app = createApp(App)
@@ -28,6 +29,9 @@ const settings = useSettingsStore()
 if (auth.isAuthenticated && !auth.locked) await settings.load()
 
 app.use(router)
+router.afterEach((to) => {
+  document.title = to.meta?.title ? `${to.meta.title} · ${brand.name}` : brand.name
+})
 app.directive('can', vCan)
 app.component('DateInput', DateInput)
 app.mount('#app')

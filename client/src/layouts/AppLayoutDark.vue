@@ -25,15 +25,11 @@
 
       <!-- Logo -->
       <div class="h-[64px] flex items-center px-6 flex-shrink-0 border-b border-white/[0.07] gap-3">
-        <div class="flex items-center gap-3 flex-1 min-w-0">
-          <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-md">
-            <svg class="w-[15px] h-[15px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="text-[15px] font-bold text-white tracking-tight truncate">Starter SaaS</span>
-        </div>
+        <BrandMark
+          class="flex-1 min-w-0"
+          mark-class="w-8 h-8 shadow-md flex-shrink-0"
+          name-class="text-[15px] font-bold text-white tracking-tight truncate"
+        />
         <button
           type="button"
           class="md:hidden p-2 -mr-2 text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
@@ -331,6 +327,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import { useAppLayout } from '@/composables/useAppLayout'
 import AlertBell from '@/components/AlertBell.vue'
+import BrandMark from '@/components/BrandMark.vue'
 import AiChatPanel from '@/components/AiChatPanel.vue'
 
 const {

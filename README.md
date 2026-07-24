@@ -1,8 +1,8 @@
-# Starter SaaS
+# SaaS
 
 A multi-tenant ERP/SaaS starter built as an npm-workspaces monorepo: an Express + Sequelize REST API and a Vue 3 single-page app, sharing a modular (HMVC) ERP layer. It ships with a guided install wizard, JWT auth, per-organization data isolation, realtime in-app alerts, a full set of ERP modules (sales, purchasing, inventory, accounting, HRMS), and an AI assistant that connects to a local LLM.
 
-![Starter SaaS — ERP dashboard with the realtime notification bell open](screenshot.png)
+![SaaS — ERP dashboard with the realtime notification bell open](screenshot.png)
 
 ## This fork (`Manchinn/starter-saas`)
 
@@ -321,7 +321,7 @@ After install you'll be signed in and redirected to the dashboard.
 
 ## Configuration
 
-The server reads configuration from environment variables (a `server/.env` file is loaded via dotenv). Common variables:
+The server reads configuration from a `server/.env` file via dotenv. Copy [`server/.env.example`](server/.env.example) to `server/.env` before configuring a deployment. Common variables:
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -338,10 +338,14 @@ The server reads configuration from environment variables (a `server/.env` file 
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | — | Relational DB connection |
 | `JWT_SECRET` / `JWT_REFRESH_SECRET` | random in dev | Token signing secrets (required in production) |
 | `REDIS_ENABLED` | `false` | Enable Redis cache (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`) |
+| `REDIS_KEY_PREFIX` | `starter:` | Cache namespace; set `saas:` for a new branded deployment that shares Redis |
 | `CLIENT_URL` | `http://localhost:5173` | Allowed CORS origin |
+| `APP_NAME` | `SaaS` | Product name used in email subjects, mailer footer, and settings test mail |
 | `SMTP_*` | — | Outgoing mail for email verification / password reset |
 
 Most of these can also be set through the install wizard, which writes them and restarts the API when needed.
+
+The client display name is built from `VITE_APP_NAME` (default: `SaaS`). Set it in `client/.env` before running a production build; see [`client/.env.example`](client/.env.example). The server-side `APP_NAME` remains the source for mail subjects and mailer footers.
 
 ### HTTPS
 

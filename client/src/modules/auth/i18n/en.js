@@ -12,7 +12,7 @@ export default {
     registerSubtitle: 'Create your account',
     installSubtitle:  'Set up your workspace',
 
-    brandBadge:       'Production-ready starter kit',
+    brandBadge:       'Production-ready SaaS platform',
     forgotPassword:   'Forgot password?',
     secureNote:       'Your data is encrypted and protected',
     feature1:         'Multi-tenant architecture ready to scale',
@@ -25,7 +25,7 @@ export default {
     stat2Label:       'Uptime SLA',
     stat3Value:       'MIT',
     stat3Label:       'Open Source',
-    testimonialText:  'This starter kit saved us months of setup work. The architecture is clean, modular, and production-ready — we shipped in record time.',
+    testimonialText:  'SaaS gave us a clean, modular, production-ready foundation — we shipped in record time.',
     testimonialName:  'Sarah Chen',
     testimonialRole:  'CTO, Nexus Technologies',
 

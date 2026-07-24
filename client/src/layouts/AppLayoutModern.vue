@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="flex flex-col h-screen bg-[#F1F5F9]">
 
     <!-- ── Topbar ─────────────────────────────────────────────────────────── -->
@@ -15,14 +15,12 @@
       </button>
 
       <!-- Logo -->
-      <div class="flex items-center gap-2 md:mr-4 flex-shrink-0">
-        <div class="w-6 h-6 bg-white/20 flex items-center justify-center flex-shrink-0">
-          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <span class="text-white text-[15px] font-bold tracking-tight">Starter SaaS</span>
-      </div>
+      <BrandMark
+        class="md:mr-4 flex-shrink-0"
+        gap-class="gap-2"
+        mark-class="w-6 h-6 flex-shrink-0"
+        name-class="text-white text-[15px] font-bold tracking-tight"
+      />
 
       <!-- Horizontal nav (md+) — overflow visible so teleported dropdowns aren't clipped -->
       <nav class="hidden md:flex items-center gap-1 flex-1 overflow-x-auto" style="overflow-y:visible">
@@ -236,12 +234,11 @@
         >
           <!-- Header -->
           <div class="h-[64px] flex items-center px-5 border-b border-white/[0.07] flex-shrink-0 gap-3">
-            <div class="w-7 h-7 bg-white/20 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <span class="text-white text-[15px] font-bold tracking-tight flex-1">Starter SaaS</span>
+            <BrandMark
+              class="flex-1 min-w-0"
+              mark-class="w-7 h-7 flex-shrink-0"
+              name-class="text-white text-[15px] font-bold tracking-tight truncate"
+            />
             <button
               type="button"
               class="p-2 -mr-1 text-[#DEE4EE] hover:bg-white/[0.10] transition-colors"
@@ -455,6 +452,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import { useAppLayout } from '@/composables/useAppLayout'
 import AlertBell from '@/components/AlertBell.vue'
+import BrandMark from '@/components/BrandMark.vue'
 import AiChatPanel from '@/components/AiChatPanel.vue'
 
 const {

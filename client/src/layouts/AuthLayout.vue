@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="min-h-screen flex bg-white">
 
     <!-- ── Brand panel ─────────────────────────────────────────────────────── -->
@@ -18,15 +18,10 @@
       <div class="relative z-10 flex flex-col h-full p-8 xl:p-10">
 
         <!-- Logo -->
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-            <svg class="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="text-[17px] font-bold text-white tracking-tight">Starter SaaS</span>
-        </div>
+        <BrandMark
+          mark-class="w-9 h-9 shadow-lg flex-shrink-0"
+          name-class="text-[17px] font-bold text-white tracking-tight"
+        />
 
         <div class="flex-1" />
 
@@ -35,7 +30,7 @@
           <div class="space-y-3">
             <div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/15 border border-primary-400/20">
               <span class="w-1.5 h-1.5 bg-primary-400 animate-pulse"></span>
-              <span class="text-xs font-medium text-primary-300">Production-ready starter kit</span>
+              <span class="text-xs font-medium text-primary-300">{{ t('auth.brandBadge') }}</span>
             </div>
             <h1 class="text-[32px] xl:text-[36px] font-bold text-white leading-tight tracking-tight">
               {{ t('auth.brandTagline') }}
@@ -82,15 +77,12 @@
       <div class="w-full max-w-[400px]">
 
         <!-- Mobile logo -->
-        <div class="flex items-center gap-2.5 lg:hidden mb-6 sm:mb-8">
-          <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-md">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="text-[17px] font-bold text-[#1C2434] tracking-tight">Starter SaaS</span>
-        </div>
+        <BrandMark
+          class="lg:hidden mb-6 sm:mb-8"
+          gap-class="gap-2.5"
+          mark-class="w-9 h-9 shadow-md flex-shrink-0"
+          name-class="text-[17px] font-bold text-[#1C2434] tracking-tight"
+        />
 
         <!-- Form card -->
         <div class="bg-white border border-[#E2E8F0] shadow-card-lg p-6 sm:p-8">
@@ -109,6 +101,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import BrandMark from '@/components/BrandMark.vue'
 
 defineProps({ subtitle: { type: String, default: '' } })
 

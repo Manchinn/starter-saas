@@ -77,7 +77,7 @@ module.exports = {
   line: {
     credentialEncryptionKey: process.env.LINE_CREDENTIAL_ENCRYPTION_KEY || '',
   },
-  appName: process.env.APP_NAME || 'Starter SaaS',
+  appName: process.env.APP_NAME || 'SaaS',
   // A live getter (not a snapshot) so SMTP settings edited at runtime via the
   // Settings → Email Setting tab — which rewrites .env and process.env — are
   // reflected immediately by the mailer without a server restart.

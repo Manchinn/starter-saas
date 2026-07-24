@@ -12,7 +12,7 @@ export default {
     registerSubtitle: 'สร้างบัญชีของคุณ',
     installSubtitle:  'ตั้งค่าพื้นที่ทำงานของคุณ',
 
-    brandBadge:       'ชุดเริ่มต้นพร้อมใช้งานจริง',
+    brandBadge:       'แพลตฟอร์ม SaaS พร้อมใช้งานจริง',
     forgotPassword:   'ลืมรหัสผ่าน?',
     secureNote:       'ข้อมูลของคุณได้รับการเข้ารหัสและปกป้อง',
     feature1:         'สถาปัตยกรรมหลายผู้เช่า พร้อมขยาย',
@@ -25,7 +25,7 @@ export default {
     stat2Label:       'ความพร้อมใช้งาน',
     stat3Value:       'MIT',
     stat3Label:       'โอเพนซอร์ส',
-    testimonialText:  'ชุดเริ่มต้นนี้ช่วยประหยัดเวลาเซ็ตอัพได้หลายเดือน สถาปัตยกรรมสะอาด โมดูลาร์ และพร้อมใช้งาน — เราส่งมอบได้ในเวลาที่รวดเร็ว',
+    testimonialText:  'SaaS ช่วยให้เรามีรากฐานที่สะอาด โมดูลาร์ และพร้อมใช้งานจริง — จึงส่งมอบได้อย่างรวดเร็ว',
     testimonialName:  'สราห์ เฉิน',
     testimonialRole:  'CTO, Nexus Technologies',
 
