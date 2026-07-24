@@ -38,6 +38,18 @@ const { getContent } = require('./demo-data.content')
 async function seedDemo(userId, orgId, lang = 'en') {
   const C = getContent(lang)
 
+  // The imperative demo seed uses fixed codes. Refuse a repeat seed before it
+  // consumes sequence values or writes a partial transaction.
+  const existingDemoPricing = await Pricing.findOne({
+    where: { code: 'PRC-R001', organizationId: orgId },
+  })
+  if (existingDemoPricing) {
+    throw {
+      status: 409,
+      message: 'Demo data already exists for this organization. Reset ERP data or remove conflicting records before seeding.',
+    }
+  }
+
   // Generate sequence codes before opening the main transaction — getNext uses
   // its own transaction, and SQLite only allows one writer at a time.
   const cgpKeys = ['retail', 'wholesale', 'vip', 'government']

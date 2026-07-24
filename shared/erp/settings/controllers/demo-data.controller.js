@@ -12,7 +12,10 @@ module.exports = {
       return ok(res, result, result.message)
     } catch (err) {
       logger.error('seed error', { error: err.message, stack: err.stack })
-      return fail(res, err.message || 'Failed to seed demo data', 400)
+      if (err.name === 'SequelizeUniqueConstraintError') {
+        return fail(res, 'Demo data conflicts with existing records. Reset ERP data or remove conflicting records before seeding.', 409)
+      }
+      return fail(res, err.message || 'Failed to seed demo data', err.status || 400)
     }
   },
 
