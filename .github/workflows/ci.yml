@@ -3,6 +3,9 @@ name: CI - Test & Build
 # Runs on every push and pull request to main.
 # - test:  122 suites / 1522 unit tests (jest, mocks models — no DB needed)
 # - build: Vite production bundle (client SPA)
+#
+# Uses npm install (not ci) because the lockfile is generated on Windows
+# and lacks Linux-native optional dependencies (@rollup/rollup-linux-x64-gnu).
 
 on:
   push:
@@ -26,13 +29,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Install dependencies
-        # npm install (not ci) — cross-platform optional deps (rollup native
-        # modules) install correctly. npm ci would fail because the lockfile
-        # was generated on Windows and lacks @rollup/rollup-linux-x64-gnu.
-        run: npm install
+        # npm ci can't install platform-native optional deps for Linux
+        # when lockfile was generated on Windows. Remove lockfile so npm
+        # re-resolves optional deps for the runner platform.
+        run: |
+          rm -f package-lock.json
+          npm install
 
       - name: Run unit tests
         run: npx jest --config server/jest.config.js
@@ -54,10 +58,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          rm -f package-lock.json
+          npm install
 
       - name: Build client (Vite)
         run: npm run build
