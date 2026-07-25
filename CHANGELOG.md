@@ -67,6 +67,12 @@ Git history remains the complete implementation-level record.
 - **CI/CD pipeline**: `.github/workflows/ci.yml` — test (122 suites / 1522 tests)
   และ client build (Vite) บน GitHub Actions ทุก push และ pull request ไป main
   ใช้ Node 22 LTS, ubuntu-latest ([`bfd4bd2`](https://github.com/Manchinn/starter-saas/commit/bfd4bd2))
+- **Redis service** ใน `compose.yaml` (redis:7-alpine, RDB + AOF persistence)
+  + `REDIS_ENABLED=true` — cache, rate limiting และ Socket.IO broadcast
+  แชร์ผ่าน Redis; rate limiting ใช้ `rate-limit-redis` store,
+  Socket.IO ใช้ `@socket.io/redis-adapter`, nginx sticky session
+  (`ip_hash` upstream) สำหรับ `/socket.io/` พร้อม profile `scale`
+  สำหรับ start API replica เพิ่ม (api-2)
 
 ### Docs
 

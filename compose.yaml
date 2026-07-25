@@ -120,6 +120,21 @@ services:
     networks:
       - internal
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # RDB snapshots (900s/1key, 300s/10keys, 60s/10000keys) + AOF for durability.
+    command: redis-server --appendonly yes --save 900 1 --save 300 10 --save 60 10000
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
   api:
     build:
       context: .
@@ -136,9 +151,13 @@ services:
       DB_BOOTSTRAP_ON_START: "false"
       HTTPS_ENABLED: "false"
       HTTPS_REDIRECT: "false"
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
       LOG_DIR: /app/logs
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - uploads_data:/app/uploads
@@ -149,6 +168,39 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+    networks:
+      - internal
+
+  # Second API replica for scaling verification (profile: scale).
+  # Shares Redis (rate-limit, cache, Socket.IO) and PostgreSQL.
+  api-2:
+    profiles: ["scale"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_DIALECT: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_BOOTSTRAP_ON_START: "false"
+      HTTPS_ENABLED: "false"
+      HTTPS_REDIRECT: "false"
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      LOG_DIR: /app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+      - logs_data:/app/logs
     networks:
       - internal
 
@@ -180,3 +232,4 @@ volumes:
   postgres_data:
   uploads_data:
   logs_data:
+  redis_data:

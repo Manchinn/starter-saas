@@ -177,6 +177,13 @@ async function wrap(key, ttlSeconds, producer) {
 
 function isRedis() { return useRedis }
 
+/**
+ * Return the raw ioredis client when Redis is active, or null otherwise.
+ * Consumers (rate-limit store, Socket.IO adapter) need the real client to
+ * issue Redis commands directly. Always null-check before using.
+ */
+function getClient() { return client }
+
 module.exports = {
   init,
   reconfigure,
@@ -187,5 +194,6 @@ module.exports = {
   flush,
   wrap,
   isRedis,
+  getClient,
   buildRedisClient,
 }

@@ -1,6 +1,8 @@
 const { Server } = require('socket.io')
+const { createAdapter } = require('@socket.io/redis-adapter')
 const jwt = require('jsonwebtoken')
 const config = require('../config/config')
+const cache = require('../config/redis')
 const log = require('./logger').forLabel('realtime')
 
 let io = null
@@ -22,6 +24,15 @@ const init = (server) => {
     cors: { origin: config.clientUrl, credentials: true },
   })
   for (let i = 1; i < servers.length; i++) io.attach(servers[i])
+
+  // Redis adapter so broadcasts reach clients connected to any API replica.
+  // Needs separate pub/sub connections (ioredis best practice).
+  const redisClient = cache.getClient()
+  if (redisClient) {
+    const subClient = redisClient.duplicate()
+    io.adapter(createAdapter(redisClient, subClient))
+    log.info('Socket.IO Redis adapter enabled')
+  }
 
   io.use(async (socket, next) => {
     try {

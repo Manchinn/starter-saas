@@ -1,4 +1,6 @@
 const rateLimit = require('express-rate-limit')
+const { RedisStore } = require('rate-limit-redis')
+const cache = require('../config/redis')
 
 /**
  * Shared rate limiters so every router throttles consistently. Mount the
@@ -8,13 +10,34 @@ const rateLimit = require('express-rate-limit')
  *   apiLimiter   — blanket read/write ceiling for a router (router.use).
  *   writeLimiter — tighter cap for mutating endpoints (POST/PUT/PATCH/DELETE).
  *
+ * When Redis is enabled, all limiters share a Redis-backed store so rate-limit
+ * state survives container restarts and is shared across API replicas.
+ * Otherwise they use the default in-memory store (express-rate-limit built-in).
+ *
  * The auth-specific limiters below are tuned per flow (login/register/email/
  * etc.) and consumed by server/modules/auth/auth.routes.js.
  */
 const MIN_15 = 15 * 60 * 1000
 const HOUR_1 = 60 * 60 * 1000
 
-const limiter = (opts) => rateLimit({ standardHeaders: true, legacyHeaders: false, ...opts })
+// Each limiter must have its own RedisStore instance — express-rate-limit v8
+// rejects shared stores. When Redis is disabled (or unavailable) the factory
+// returns undefined, and express-rate-limit falls back to its built-in MemoryStore.
+function createRedisStore() {
+  const redisClient = cache.getClient()
+  if (!redisClient) return undefined
+  return new RedisStore({
+    sendCommand: (...args) => redisClient.call(...args),
+    prefix: 'rl:',
+  })
+}
+
+const limiter = (opts) => rateLimit({
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRedisStore(),
+  ...opts,
+})
 
 // ── Global (mounted once on /api in app.js) ───────────────────────────────────
 // These blanket every route — current and future — so no router can ship without
