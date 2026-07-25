@@ -7,6 +7,60 @@ Git history remains the complete implementation-level record.
 
 ## [Unreleased]
 
+### Added
+
+- **PostgreSQL + Docker deployment stack**: `compose.yaml` (db / api / web พร้อม
+  one-shot profile `provision`, `transfer`, `uploads`), `Dockerfile.api`,
+  `Dockerfile.web`, `nginx.conf` และ `.env.production.example`
+  Web publish เฉพาะ loopback (`127.0.0.1:${WEB_PORT}`) — PostgreSQL และ API
+  ไม่ publish ออกสู่ host; Nginx เสิร์ฟ SPA และ proxy `/api/`, `/uploads/`,
+  `/socket.io/` แบบ same-origin
+  ([`1557f93`](https://github.com/Manchinn/starter-saas/commit/1557f93))
+- เครื่องมือย้ายระบบใต้ `server/tools/`: `db:provision`, `db:transfer`,
+  `db:validate`, `uploads:restore`, `uploads:validate`
+  Transfer เป็น non-destructive (ปฏิเสธถ้าตารางปลายทางไม่ว่าง), เรียงตาม
+  foreign-key dependency, ปฏิเสธ dependency cycle และตรวจผลด้วย row count /
+  primary key / migration record / FK validation
+  Uploads restore ปฏิเสธ volume ปลายทางที่ไม่ว่าง แล้วเทียบ SHA-256 inventory
+  ต้นทาง-ปลายทางก่อนตั้ง ownership ให้ API runtime user
+
+### Changed
+
+- แบรนด์ที่ผู้ใช้เห็นตอน runtime เป็น **SaaS** ผ่าน `APP_NAME` / `VITE_APP_NAME`
+  พร้อม `BrandMark.vue` เป็น component กลาง — repository/package identity,
+  เอกสารย้อนหลัง, คำศัพท์ Redis และ LINE ไม่เปลี่ยน
+  ([`6885ab6`](https://github.com/Manchinn/starter-saas/commit/6885ab6))
+- API **ไม่แก้ schema ตอน boot** เมื่อ `DB_BOOTSTRAP_ON_START=false` (ค่าเริ่มต้น
+  เดิมยังคงพฤติกรรมเก่า) การ sync / migrate / index / seed ย้ายไปที่
+  `server/core/database-bootstrap.js` และรันเป็น one-shot job แยก
+- Migration tracker (`SchemaMigrations`) quote table/column ตาม dialect แล้ว
+  จึงใช้ได้ทั้ง SQLite และ PostgreSQL ที่ fold identifier เป็นตัวพิมพ์เล็ก
+
+### Fixed
+
+- `POST /api/erp/settings/demo-data/seed` ที่ชนข้อมูลเดิมคืน **409 Conflict**
+  พร้อมข้อความบอกวิธีแก้ แทน Sequelize `"Validation error"` แบบกว้าง ๆ
+  ([`515c6f2`](https://github.com/Manchinn/starter-saas/commit/515c6f2))
+
+### Ops / hygiene
+
+- Cutover เครื่องนี้จาก SQLite runtime มาเป็น Docker Compose + PostgreSQL 16
+  แบบ local-only ที่ `http://127.0.0.1:8080` (ย้าย 792 แถว / 94 ตาราง,
+  transfer validator และ uploads validator ผ่าน, เก็บ SQLite และ `uploads/`
+  ชุดเดิมไว้เป็น rollback artifact)
+  ยัง**ไม่**รวม public hostname, TLS, external reverse proxy, multi-replica
+  (Redis ยังปิด — cache / rate limit / Socket.IO state เป็น process-local)
+  และ off-host scheduled backup
+- `.gitignore` ignore `.env.*` ทั้งหมด ยกเว้น `.env.production.example`
+  เพื่อกันไฟล์ secret ของ host หลุดเข้า Git; `.dockerignore` กัน `server/.env`,
+  `data/`, `uploads/`, logs และ `.git` ออกจาก build context
+
+### Docs
+
+- `docs/postgresql-docker-deployment.md`: สถาปัตยกรรม, การตั้งค่าแบบ local-only,
+  ข้อกำหนดตอนเปิด TLS/public ภายหลัง, ขั้นตอน provision / transfer / validate /
+  restore uploads, rollback boundary, backup และข้อจำกัดด้าน scaling
+
 ## [1.2.0-line.1] - 2026-07-22
 
 Fork marker for `main` after upstream `v1.2.0` (`4784e41`) plus the LINE port
