@@ -38,6 +38,10 @@ Git history remains the complete implementation-level record.
 
 ### Fixed
 
+- AI Assistant chat ตอบกลับไม่ได้ (`POST /api/ai-agent/chat` คืน **504** โดยไม่มี
+  log ฝั่งแอป) — Nginx ใช้ `proxy_read_timeout` ดีฟอลต์ 60 วินาทีบน `location
+  /api/` ซึ่งตัดคำขอก่อน agent tool loop (สูงสุด 5 provider round-trip ละ 120s)
+  จะตอบเสร็จ ตั้งเป็น `660s` ทั้ง read และ send
 - `POST /api/erp/settings/demo-data/seed` ที่ชนข้อมูลเดิมคืน **409 Conflict**
   พร้อมข้อความบอกวิธีแก้ แทน Sequelize `"Validation error"` แบบกว้าง ๆ
   ([`515c6f2`](https://github.com/Manchinn/starter-saas/commit/515c6f2))
