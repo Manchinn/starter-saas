@@ -47,7 +47,9 @@ function buildSequelize(dbCfg) {
     dialectOptions: dialect === 'mssql'
       ? { options: { encrypt: false, trustServerCertificate: true } }
       : {},
-    pool: { max: 10, min: 0, idle: 10000 },
+    // Fail fast instead of leaving requests queued for Sequelize's 60s default
+    // when all pool connections are occupied.
+    pool: { max: 10, min: 0, acquire: 10000, idle: 10000 },
   })
 }
 
