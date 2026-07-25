@@ -58,6 +58,11 @@ Git history remains the complete implementation-level record.
 - `.gitignore` ignore `.env.*` ทั้งหมด ยกเว้น `.env.production.example`
   เพื่อกันไฟล์ secret ของ host หลุดเข้า Git; `.dockerignore` กัน `server/.env`,
   `data/`, `uploads/`, logs และ `.git` ออกจาก build context
+- ลดขนาด Docker image `api` จาก **921 MB → 542 MB** (-41%):
+  `Dockerfile.api` ติดตั้งเฉพาะ server production dependencies (`npm ci
+  --workspace=server`) และ `chown` เฉพาะ writable directories แทนทั้ง `/app`
+  ทำให้ node_modules ใน image ลดจาก 247 MB → 169 MB และ runtime memory
+  idle ลดจาก 82 MB → 54 MB
 
 ### Docs
 
