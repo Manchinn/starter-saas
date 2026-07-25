@@ -45,6 +45,12 @@ Git history remains the complete implementation-level record.
 - `POST /api/erp/settings/demo-data/seed` ที่ชนข้อมูลเดิมคืน **409 Conflict**
   พร้อมข้อความบอกวิธีแก้ แทน Sequelize `"Validation error"` แบบกว้าง ๆ
   ([`515c6f2`](https://github.com/Manchinn/starter-saas/commit/515c6f2))
+- **Rate-limit counters ชนกัน**: หลังจากเปิด Redis-backed rate limiting,
+  ทุก limiter ใช้ Redis key `starter:rl:<ip>` ร่วมกันโดยไม่ได้ตั้งใจ —
+  global API limiter (max 1500) ดัน counter ของ login limiter (max 10)
+  ทำให้ user โดนบล็อกตั้งแต่ login ครั้งแรก แก้โดยแยก prefix ต่อ limiter
+  (`rl:api:`, `rl:login:`, `rl:register:` ฯลฯ)
+  ([`a75133d`](https://github.com/Manchinn/starter-saas/commit/a75133d))
 
 ### Ops / hygiene
 
