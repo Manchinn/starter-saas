@@ -23,19 +23,18 @@ const HOUR_1 = 60 * 60 * 1000
 // Each limiter must have its own RedisStore instance — express-rate-limit v8
 // rejects shared stores. When Redis is disabled (or unavailable) the factory
 // returns undefined, and express-rate-limit falls back to its built-in MemoryStore.
-function createRedisStore() {
+function createRedisStore(subPrefix) {
   const redisClient = cache.getClient()
   if (!redisClient) return undefined
   return new RedisStore({
     sendCommand: (...args) => redisClient.call(...args),
-    prefix: 'rl:',
+    prefix: `rl:${subPrefix}:`,
   })
 }
 
 const limiter = (opts) => rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore(),
   ...opts,
 })
 
@@ -49,6 +48,7 @@ const WRITE_MAX = parseInt(process.env.RATE_LIMIT_WRITE_MAX, 10) || 300
 const isReadMethod = (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS'
 
 const globalApiLimiter = limiter({
+  store: createRedisStore('api'),
   windowMs: MIN_15,
   max: READ_MAX,
   message: { success: false, message: 'Too many requests — please slow down and try again shortly.' },
@@ -57,6 +57,7 @@ const globalApiLimiter = limiter({
 // Applies only to mutating methods so reads don't consume the (tighter) write
 // budget; GET/HEAD/OPTIONS are skipped and fall through to globalApiLimiter.
 const globalWriteLimiter = limiter({
+  store: createRedisStore('write'),
   windowMs: MIN_15,
   max: WRITE_MAX,
   skip: isReadMethod,
@@ -65,12 +66,14 @@ const globalWriteLimiter = limiter({
 
 // ── Generic (opt-in, per-router) ───────────────────────────────────────────────
 const apiLimiter = limiter({
+  store: createRedisStore('router'),
   windowMs: MIN_15,
   max: 100,
   message: { success: false, message: 'Too many requests — please try again shortly.' },
 })
 
 const writeLimiter = limiter({
+  store: createRedisStore('router-write'),
   windowMs: MIN_15,
   max: 30,
   message: { success: false, message: 'Too many write requests — please try again shortly.' },
@@ -80,18 +83,21 @@ const writeLimiter = limiter({
 // Loose enough not to bother real users; tight enough to slow credential
 // stuffing and email-spam abuse.
 const loginLimiter = limiter({
+  store: createRedisStore('login'),
   windowMs: MIN_15,
   max: 10,
   message: { success: false, message: 'Too many attempts — please try again in 15 minutes.' },
 })
 
 const registerLimiter = limiter({
+  store: createRedisStore('register'),
   windowMs: HOUR_1,
   max: 5,
   message: { success: false, message: 'Too many registration attempts — please try again in an hour.' },
 })
 
 const emailLimiter = limiter({
+  store: createRedisStore('email'),
   windowMs: HOUR_1,
   max: 5,
   message: { success: false, message: 'Too many email requests — please try again later.' },
@@ -101,6 +107,7 @@ const emailLimiter = limiter({
 // this is loose — it only exists to cap a client hammering /refresh or probing
 // stolen cookies, not to throttle normal use.
 const refreshLimiter = limiter({
+  store: createRedisStore('refresh'),
   windowMs: MIN_15,
   max: 60,
   message: { success: false, message: 'Too many token refreshes — please try again shortly.' },
@@ -109,6 +116,7 @@ const refreshLimiter = limiter({
 // Token-bearing routes (reset/verify) — the tokens are random and high-entropy,
 // but rate-limit anyway to deny brute-force guessing as defence in depth.
 const tokenLimiter = limiter({
+  store: createRedisStore('token'),
   windowMs: MIN_15,
   max: 20,
   message: { success: false, message: 'Too many attempts — please try again in 15 minutes.' },
@@ -116,6 +124,7 @@ const tokenLimiter = limiter({
 
 // Impersonation switch/return — privileged admin actions; keep them modest.
 const impersonationLimiter = limiter({
+  store: createRedisStore('impersonate'),
   windowMs: MIN_15,
   max: 30,
   message: { success: false, message: 'Too many session switches — please try again shortly.' },
