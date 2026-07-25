@@ -52,9 +52,10 @@ Git history remains the complete implementation-level record.
   แบบ local-only ที่ `http://127.0.0.1:8080` (ย้าย 792 แถว / 94 ตาราง,
   transfer validator และ uploads validator ผ่าน, เก็บ SQLite และ `uploads/`
   ชุดเดิมไว้เป็น rollback artifact)
-  ยัง**ไม่**รวม public hostname, TLS, external reverse proxy, multi-replica
-  (Redis ยังปิด — cache / rate limit / Socket.IO state เป็น process-local)
-  และ off-host scheduled backup
+  เปิด public ผ่าน **Cloudflare Tunnel** → `https://app.cslogbook.me`
+  (TLS auto, ไม่เปิด port, QUIC tunnel พร้อม HSTS/CORS/WAF)
+  ยัง**ไม่**รวม multi-replica (Redis ยังปิด — cache / rate limit /
+  Socket.IO state เป็น process-local) และ off-host scheduled backup
 - `.gitignore` ignore `.env.*` ทั้งหมด ยกเว้น `.env.production.example`
   เพื่อกันไฟล์ secret ของ host หลุดเข้า Git; `.dockerignore` กัน `server/.env`,
   `data/`, `uploads/`, logs และ `.git` ออกจาก build context
