@@ -70,6 +70,12 @@ Git history remains the complete implementation-level record.
 - `docs/postgresql-docker-deployment.md`: สถาปัตยกรรม, การตั้งค่าแบบ local-only,
   ข้อกำหนดตอนเปิด TLS/public ภายหลัง, ขั้นตอน provision / transfer / validate /
   restore uploads, rollback boundary, backup และข้อจำกัดด้าน scaling
+- `docs/postgresql-docker-deployment.md`: เพิ่มส่วน **Cloudflare Tunnel** —
+  สถาปัตยกรรม QUIC tunnel, วิธี setup cloudflared, .env.production values,
+  Windows Service สำหรับ 24/7 persistence, nginx timeout notes,
+  และขั้นตอนย้ายไป VPS
+- `docs/FORK.md`: เพิ่มตาราง Deployment status — stack ปัจจุบัน, public access,
+  open issues
 
 ## [1.2.0-line.1] - 2026-07-22
 
