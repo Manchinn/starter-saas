@@ -54,6 +54,10 @@ module.exports = {
     password: process.env.DB_PASSWORD || '',
     logging:  process.env.NODE_ENV === 'development' ? console.log : false,
   },
+  // Local development keeps the historical boot-time schema preparation. In a
+  // container deployment, a one-shot provision job owns this work and API
+  // replicas set DB_BOOTSTRAP_ON_START=false.
+  dbBootstrapOnStart: process.env.DB_BOOTSTRAP_ON_START !== 'false',
   jwt: {
     secret: resolveSecret('JWT_SECRET', process.env.JWT_SECRET),
     expiresIn: process.env.JWT_EXPIRES_IN || '15m',

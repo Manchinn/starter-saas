@@ -12,6 +12,11 @@
     "migrate:up": "node tools/migrate.js up",
     "migrate:down": "node tools/migrate.js down",
     "migrate:status": "node tools/migrate.js status",
+    "db:provision": "node tools/provision.js",
+    "db:transfer": "node tools/transfer-sqlite-to-postgres.js",
+    "db:validate": "node tools/validate-postgres-transfer.js",
+    "uploads:restore": "node tools/restore-uploads.js",
+    "uploads:validate": "node tools/validate-uploads.js",
     "test": "jest"
   },
   "dependencies": {

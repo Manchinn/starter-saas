@@ -184,27 +184,42 @@ async function ensureTrackingTable(sequelize) {
 }
 
 async function appliedNames(sequelize) {
-  const [rows] = await sequelize.query(`SELECT name FROM ${TRACKING_TABLE}`)
+  const [rows] = await sequelize.query(`SELECT ${quotedTrackingColumn(sequelize, 'name')} FROM ${quotedTrackingTable(sequelize)}`)
   return new Set(rows.map((r) => r.name))
+}
+
+// QueryInterface follows the active dialect's identifier rules. PostgreSQL
+// requires this because Sequelize creates the mixed-case tracker names quoted.
+function quotedTrackingTable(sequelize) {
+  return sequelize.getQueryInterface().queryGenerator.quoteTable(TRACKING_TABLE)
+}
+
+function quotedTrackingColumn(sequelize, column) {
+  return sequelize.getQueryInterface().queryGenerator.quoteIdentifier(column)
 }
 
 // Most-recently-applied first (for rollback ordering).
 async function appliedNamesDesc(sequelize) {
+  const name = quotedTrackingColumn(sequelize, 'name')
+  const appliedAt = quotedTrackingColumn(sequelize, 'appliedAt')
   const [rows] = await sequelize.query(
-    `SELECT name FROM ${TRACKING_TABLE} ORDER BY appliedAt DESC, name DESC`
+    `SELECT ${name} FROM ${quotedTrackingTable(sequelize)} ORDER BY ${appliedAt} DESC, ${name} DESC`
   )
   return rows.map((r) => r.name)
 }
 
 async function recordApplied(sequelize, name) {
+  const nameColumn = quotedTrackingColumn(sequelize, 'name')
+  const appliedAt = quotedTrackingColumn(sequelize, 'appliedAt')
   await sequelize.query(
-    `INSERT INTO ${TRACKING_TABLE} (name, appliedAt) VALUES (?, ?)`,
+    `INSERT INTO ${quotedTrackingTable(sequelize)} (${nameColumn}, ${appliedAt}) VALUES (?, ?)`,
     { replacements: [name, new Date().toISOString()] }
   )
 }
 
 async function recordReverted(sequelize, name) {
-  await sequelize.query(`DELETE FROM ${TRACKING_TABLE} WHERE name = ?`, { replacements: [name] })
+  const nameColumn = quotedTrackingColumn(sequelize, 'name')
+  await sequelize.query(`DELETE FROM ${quotedTrackingTable(sequelize)} WHERE ${nameColumn} = ?`, { replacements: [name] })
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
@@ -298,4 +313,4 @@ async function status(sequelize) {
   return collectMigrationFiles().map(({ name }) => ({ name, applied: applied.has(name) }))
 }
 
-module.exports = { up, down, status, collectMigrationFiles }
+module.exports = { up, down, status, collectMigrationFiles, quotedTrackingTable, quotedTrackingColumn }

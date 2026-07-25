@@ -1,0 +1,182 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  db-provision:
+    profiles: ["provision"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    environment:
+      NODE_ENV: production
+      DB_DIALECT: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_BOOTSTRAP_ON_START: "false"
+    command: ["node", "server/tools/provision.js"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - internal
+
+  db-transfer:
+    profiles: ["transfer"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    environment:
+      NODE_ENV: production
+      DB_DIALECT: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_BOOTSTRAP_ON_START: "false"
+    command: ["node", "server/tools/transfer-sqlite-to-postgres.js", "--source", "/migration/database.sqlite"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ${SQLITE_SOURCE_DIR:-./migration}:/migration:ro
+    restart: "no"
+    networks:
+      - internal
+
+  db-validate:
+    profiles: ["transfer"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    environment:
+      NODE_ENV: production
+      DB_DIALECT: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_BOOTSTRAP_ON_START: "false"
+    command: ["node", "server/tools/validate-postgres-transfer.js", "--source", "/migration/database.sqlite"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ${SQLITE_SOURCE_DIR:-./migration}:/migration:ro
+    restart: "no"
+    networks:
+      - internal
+
+  uploads-restore:
+    profiles: ["uploads"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: ["node", "server/tools/restore-uploads.js", "--source", "/migration/uploads"]
+    volumes:
+      - ${UPLOADS_SOURCE_DIR:-./migration}:/migration:ro
+      - uploads_data:/app/uploads
+    user: root
+    restart: "no"
+    networks:
+      - internal
+
+  uploads-validate:
+    profiles: ["uploads"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    environment:
+      NODE_ENV: production
+      DB_DIALECT: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_BOOTSTRAP_ON_START: "false"
+    command: ["node", "server/tools/validate-uploads.js"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads:ro
+    restart: "no"
+    networks:
+      - internal
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_DIALECT: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_BOOTSTRAP_ON_START: "false"
+      HTTPS_ENABLED: "false"
+      HTTPS_REDIRECT: "false"
+      LOG_DIR: /app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+      - logs_data:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - internal
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        VITE_APP_NAME: ${VITE_APP_NAME:-SaaS}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  uploads_data:
+  logs_data:

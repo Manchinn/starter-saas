@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+client/dist
+server/.env
+.env
+.env.*
+!.env.production.example
+data
+server/data
+uploads
+logs
+server/logs
+test-results
+coverage
+.git
+.zcode
