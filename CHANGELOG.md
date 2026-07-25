@@ -64,6 +64,9 @@ Git history remains the complete implementation-level record.
   --workspace=server`) และ `chown` เฉพาะ writable directories แทนทั้ง `/app`
   ทำให้ node_modules ใน image ลดจาก 247 MB → 169 MB และ runtime memory
   idle ลดจาก 82 MB → 54 MB
+- **CI/CD pipeline**: `.github/workflows/ci.yml` — test (122 suites / 1522 tests)
+  และ client build (Vite) บน GitHub Actions ทุก push และ pull request ไป main
+  ใช้ Node 22 LTS, ubuntu-latest ([`bfd4bd2`](https://github.com/Manchinn/starter-saas/commit/bfd4bd2))
 
 ### Docs
 
