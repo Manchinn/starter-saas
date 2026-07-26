@@ -47,9 +47,10 @@ still exist for archaeology. They are **not** the product direction of
 1. **Upstream product** — stay close to `artapon/starter-saas`; prefer selective
    follow of upstream over large private divergences.
 2. **LINE stack** — organization channel settings, credential encryption,
-   webhook HMAC, LIFF order creation, notifications (see
-   `shared/erp/line-integration`, `server/modules/line`, and `CHANGELOG.md`
-   entries `2026-07-22` and `1.2.0-line.1`).
+   webhook HMAC, LIFF order creation, rich menu management (CRUD + image + link +
+   alias), notifications (see `shared/erp/line-integration`,
+   `server/modules/line`, and `CHANGELOG.md` entries `2026-07-22` and
+   `1.2.0-line.1`).
 3. **Architecture deepen on this base** — internal refactors that improve
    depth/testability without reviving legacy fork product paths. Locked so far:
    **Stock ledger** `postDelta` (issue #1, ADR-0001) and **LINE module +
@@ -65,6 +66,7 @@ still exist for archaeology. They are **not** the product direction of
 | Stock ledger (shared write path for product/store/movement) | **Done** on `main` | issue #1, ADR-0001, `CONTEXT.md` (Stock terms), `b95488f` |
 | Stock count / transfer via ledger | Deferred | ADR-0001 |
 | LINE module + Customer notify port | **Done** on `main` | issues #2–#3, ADR-0002, `CONTEXT.md` (LINE terms) |
+| LINE Rich Menu API passthrough | **Done** on `main` | issue #9, ADR-0003, `CONTEXT.md` (Rich menu terms) |
 | Other deepen candidates | Not yet grilled | pick next explicitly (no open issues) |
 
 ## Deployment status

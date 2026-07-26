@@ -26,6 +26,19 @@ Git history remains the complete implementation-level record.
 - **Monitoring stack (Slice 1)**: Uptime Kuma health dashboard, alert-relay →
   LINE Notify forwarding, Loki + Grafana log aggregation via `winston-loki`
   transport (`profile: monitoring`), docs/monitoring-setup.md (issue #7)
+- **LINE Rich Menu API passthrough**: CRUD (list, create, get, delete, validate),
+  image upload/download (JPEG/PNG via `setRichMenuImage`/`getRichMenuImage`),
+  default menu (set, get, cancel), per-user link (link, get, unlink),
+  และ rich menu alias (create, list, get, update, delete) สำหรับ `richmenuswitch`
+  multi-level navigation — ทั้งหมดเป็น thin wrapper เหนือ `@line/bot-sdk`
+  ฝั่ง backend; ไม่มี local persistence (LINE API คือ source of truth) และยัง
+  ไม่มี admin UI ([issue #9](#), ADR-0003)
+- **LINE Rich Menu batch/bulk operations**: bulk link/unlink สำหรับ 1–500 users
+  ต่อ call (`POST /admin/rich-menus/bulk/link|unlink`); batch menu-level
+  operations สำหรับ 1–1000 ops ต่อ batch (`POST /admin/rich-menus/batch`,
+  `POST /admin/rich-menus/batch/validate`,
+  `GET /admin/rich-menus/batch/:requestId/progress`) — `requestId` อ่านจาก
+  `x-line-request-id` response header ผ่าน `richMenuBatchWithHttpInfo` (ADR-0004)
 
 ### Changed
 

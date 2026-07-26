@@ -75,3 +75,11 @@ _Avoid_: chat order, bot order (unless a separate bot flow exists)
 **Customer notify**:
 Outbound best-effort message to a Customer by organization + customer id and plain text. Delivery channel is outside the Sales/Accounting transaction; absence of a channel is a no-op.
 _Avoid_: LINE notify as the ERP-facing name, push notification (generic mobile), email notify
+
+**Rich menu**:
+The persistent tappable menu strip at the bottom of a LINE chat, managed through the Messaging API. The service is a passthrough — no local persistence; LINE is the source of truth. Each menu has areas (tap regions with actions), an image (JPEG/PNG), and optional aliases for `richmenuswitch` multi-level navigation.
+_Avoid_: LINE menu, chat menu, bot menu (unless referring to the same LINE platform feature)
+
+**Rich menu alias**:
+A lowercase alphanumeric short name (max 32 chars) that points to a rich menu ID. Used by `richmenuswitch` actions to navigate between menus; aliases can be remapped at any time without changing the rich menu itself.
+_Avoid_: aliasId, menu alias ID (when meaning the platform's `richMenuAliasId`)
