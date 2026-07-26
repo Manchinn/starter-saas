@@ -1,6 +1,6 @@
 # Fork status (Manchinn/starter-saas)
 
-**Last updated:** 2026-07-25
+**Last updated:** 2026-07-27
 **Fork release line:** `1.2.0-line.1` (see `CHANGELOG.md`; package versions match)
 
 ## What `main` is
@@ -48,7 +48,7 @@ still exist for archaeology. They are **not** the product direction of
    follow of upstream over large private divergences.
 2. **LINE stack** — organization channel settings, credential encryption,
    webhook HMAC, LIFF order creation, rich menu management (CRUD + image + link +
-   alias), notifications (see `shared/erp/line-integration`,
+   alias + batch/bulk), notifications (see `shared/erp/line-integration`,
    `server/modules/line`, and `CHANGELOG.md` entries `2026-07-22` and
    `1.2.0-line.1`).
 3. **Architecture deepen on this base** — internal refactors that improve
@@ -67,6 +67,7 @@ still exist for archaeology. They are **not** the product direction of
 | Stock count / transfer via ledger | Deferred | ADR-0001 |
 | LINE module + Customer notify port | **Done** on `main` | issues #2–#3, ADR-0002, `CONTEXT.md` (LINE terms) |
 | LINE Rich Menu API passthrough | **Done** on `main` | issue #9, ADR-0003, `CONTEXT.md` (Rich menu terms) |
+| LINE Rich Menu batch/bulk operations | **Done** on `main` | issue #9, ADR-0004, `CONTEXT.md` (Rich menu batch terms) |
 | Other deepen candidates | Not yet grilled | pick next explicitly (no open issues) |
 
 ## Deployment status
@@ -76,10 +77,10 @@ still exist for archaeology. They are **not** the product direction of
 | **Stack** | Docker Compose (`compose.yaml`): PostgreSQL 16 + Express API + Nginx |
 | **Public access** | Cloudflare Tunnel → `https://app.cslogbook.me` (TLS auto, QUIC tunnel, HSTS, WAF) |
 | **No open ports** | API and DB are internal Docker-network only; only web publishes to `127.0.0.1:8080` |
-| **Redis** | Disabled — cache, rate limit, Socket.IO are process-local |
+| **Redis** | Enabled — shared cache, rate limiting, Socket.IO scaling (issue #8) |
 | **Backup** | Not yet automated (open issue #5) |
-| **CI/CD** | Not yet (open issue #6) |
-| **Monitoring** | Not yet (open issue #7) |
+| **CI/CD** | Done — GitHub Actions test + build on push/PR to main (issue #6) |
+| **Monitoring** | Done — Uptime Kuma + Loki + Grafana + LINE Notify alerting (issue #7) |
 | **API image** | 542 MB (down from 921 MB, -41%) |
 
 See `docs/postgresql-docker-deployment.md` for the full deployment guide and Cloudflare Tunnel setup.

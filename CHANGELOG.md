@@ -70,6 +70,13 @@ Git history remains the complete implementation-level record.
   ทำให้ user โดนบล็อกตั้งแต่ login ครั้งแรก แก้โดยแยก prefix ต่อ limiter
   (`rl:api:`, `rl:login:`, `rl:register:` ฯลฯ)
   ([`a75133d`](https://github.com/Manchinn/starter-saas/commit/a75133d))
+- **LINE webhook verification คืน 404 `Unknown LINE destination`**:
+  `line_connections.botUserId` เก็บค่าผิด — webhook lookup ใช้ฟิลด์ `destination`
+  ที่ LINE ส่งมา ซึ่งเป็น **bot user id** (`U` + 32 ตัวอักษร) ไม่ใช่ **basic id**
+  (`@xxx`) ที่เห็นในแอป LINE จึงหา connection ไม่เจอทุกครั้ง
+  แก้ค่าใน DB ให้ตรงกับที่ LINE ส่ง และเพิ่ม `logger.warn` บน path นี้
+  (log `destination` ที่หาไม่เจอ) เพื่อให้ diagnose ครั้งหน้าได้จาก log
+  โดยไม่ต้องใส่ debug logging ชั่วคราว
 
 ### Ops / hygiene
 
@@ -101,6 +108,14 @@ Git history remains the complete implementation-level record.
 - **Uptime Kuma public access**: เพิ่ม `monitor.cslogbook.me` ingress rule ใน
   `~/.cloudflared/config.yml` → tunnel ตรงเข้า `127.0.0.1:3001` โดยไม่ต้องผ่าน
   nginx; DNS CNAME `monitor` → `4ef941d7.cfargotunnel.com`
+- บันทึกกับดัก deploy 2 ข้อที่เจอตอน debug LINE webhook (ทั้งคู่เป็น
+  environment ไม่ใช่ bug ในโค้ด):
+  **(1)** `docker compose build api` ใช้ layer cache เดิมจนโค้ดใหม่ไม่เข้า
+  container — ยืนยันการแก้โค้ดด้วย `--no-cache` เมื่อ log ที่คาดว่าจะเห็นไม่ขึ้น
+  **(2)** nginx cache DNS ของ upstream ตอน start ถ้า `api` ถูก recreate แล้ว IP
+  ในเน็ตเวิร์ก Docker เปลี่ยน nginx จะยิงไป IP เดิมและได้ `111: Connection
+  refused` (อาการที่ผู้ใช้เห็นคือ login ไม่ผ่าน) — `docker compose restart web`
+  ให้ resolve ใหม่
 
 ### Docs
 

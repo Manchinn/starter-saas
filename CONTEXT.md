@@ -83,3 +83,15 @@ _Avoid_: LINE menu, chat menu, bot menu (unless referring to the same LINE platf
 **Rich menu alias**:
 A lowercase alphanumeric short name (max 32 chars) that points to a rich menu ID. Used by `richmenuswitch` actions to navigate between menus; aliases can be remapped at any time without changing the rich menu itself.
 _Avoid_: aliasId, menu alias ID (when meaning the platform's `richMenuAliasId`)
+
+**Rich menu bulk**:
+One synchronous call that links or unlinks a single rich menu across a list of LINE user ids (1–500 per call). Completes (or fails) within the request.
+_Avoid_: batch (bulk is user-level and synchronous; batch is menu-level and asynchronous)
+
+**Rich menu batch**:
+An asynchronous, menu-level job of up to 1000 operations (`link`, `unlink`, `unlinkAll`) submitted to LINE, which returns a request id to poll for progress. `unlinkAll` cannot be mixed with other operation types in one batch.
+_Avoid_: bulk, mass link (when meaning the asynchronous menu-level job)
+
+**Batch request id**:
+The identifier LINE returns for a submitted rich menu batch, read from the `x-line-request-id` response header, and the only handle for polling that batch's progress.
+_Avoid_: requestId as a generic HTTP correlation id, job id
