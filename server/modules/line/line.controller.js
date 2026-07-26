@@ -4,6 +4,7 @@ const lineService = require('../../../shared/erp/line-integration/services/line.
 const catalogService = require('../../../shared/erp/line-integration/services/line-catalog.service')
 const richMenuService = require('../../../shared/erp/line-integration/services/line-rich-menu.service')
 const orders = require('../../../shared/erp/orders/services/order.service')
+const logger = require('../../core/logger')
 
 const organizationIdFor = (req) => req.user.organizationId || req.user.id
 
@@ -53,115 +54,117 @@ module.exports = {
       return ok(res, { orders: customerOrders })
     } catch (err) { return fail(res, err.message, err.status || 400) }
   },
-	async webhook(req, res) {
-	    try {
-	      await lineService.handleWebhook(req)
-	      return res.status(200).send('OK')
-	    } catch (err) {
-	      return res.status(err.status || 400).send(err.message || 'Webhook failed')
-	    }
-	  },
+  async webhook(req, res) {
+    try {
+      await lineService.handleWebhook(req)
+      return res.status(200).send('OK')
+    } catch (err) {
+      // LINE retries on non-2xx; log the reason so verification failures are diagnosable.
+      logger.warn('LINE webhook rejected', { status: err.status || 400, message: err.message })
+      return res.status(err.status || 400).send(err.message || 'Webhook failed')
+    }
+  },
 
-	  // ---- Rich menu ----
-	  async listRichMenus(req, res) {
-	    try {
-	      return ok(res, { richMenus: await richMenuService.listRichMenus(organizationIdFor(req)) })
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async getRichMenu(req, res) {
-	    try {
-	      return ok(res, { richMenu: await richMenuService.getRichMenu(organizationIdFor(req), req.params.richMenuId) })
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async createRichMenu(req, res) {
-	    try {
-	      const result = await richMenuService.createRichMenu(organizationIdFor(req), req.body)
-	      return created(res, result, 'Rich menu created')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async validateRichMenu(req, res) {
-	    try {
-	      return ok(res, await richMenuService.validateRichMenuObject(organizationIdFor(req), req.body))
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async deleteRichMenu(req, res) {
-	    try {
-	      return ok(res, await richMenuService.deleteRichMenu(organizationIdFor(req), req.params.richMenuId), 'Rich menu deleted')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async uploadRichMenuImage(req, res) {
-	    try {
-	      const { imageBase64, contentType } = req.body
-	      if (!imageBase64) return fail(res, 'imageBase64 is required')
-	      return ok(res, await richMenuService.uploadRichMenuImage(
-	        organizationIdFor(req), req.params.richMenuId, imageBase64, contentType || 'image/png',
-	      ), 'Image uploaded')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async downloadRichMenuImage(req, res) {
-	    try {
-	      const result = await richMenuService.downloadRichMenuImage(organizationIdFor(req), req.params.richMenuId)
-	      return ok(res, result)
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async setDefaultRichMenu(req, res) {
-	    try {
-	      return ok(res, await richMenuService.setDefaultRichMenu(organizationIdFor(req), req.params.richMenuId), 'Default rich menu set')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async getDefaultRichMenu(req, res) {
-	    try {
-	      return ok(res, await richMenuService.getDefaultRichMenu(organizationIdFor(req)))
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async cancelDefaultRichMenu(req, res) {
-	    try {
-	      return ok(res, await richMenuService.cancelDefaultRichMenu(organizationIdFor(req)), 'Default rich menu cancelled')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async linkRichMenuToUser(req, res) {
-	    try {
-	      return ok(res, await richMenuService.linkRichMenuToUser(
-	        organizationIdFor(req), req.params.userId, req.params.richMenuId,
-	      ), 'Rich menu linked to user')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async getRichMenuOfUser(req, res) {
-	    try {
-	      return ok(res, await richMenuService.getRichMenuOfUser(organizationIdFor(req), req.params.userId))
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async unlinkRichMenuFromUser(req, res) {
-	    try {
-	      return ok(res, await richMenuService.unlinkRichMenuFromUser(
-	        organizationIdFor(req), req.params.userId,
-	      ), 'Rich menu unlinked from user')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async createRichMenuAlias(req, res) {
-	    try {
-	      const { aliasId, richMenuId } = req.body
-	      if (!aliasId || !richMenuId) return fail(res, 'aliasId and richMenuId are required')
-	      return created(res, await richMenuService.createRichMenuAlias(organizationIdFor(req), aliasId, richMenuId), 'Alias created')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async listRichMenuAliases(req, res) {
-	    try {
-	      return ok(res, { aliases: await richMenuService.listRichMenuAliases(organizationIdFor(req)) })
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async getRichMenuAlias(req, res) {
-	    try {
-	      return ok(res, await richMenuService.getRichMenuAlias(organizationIdFor(req), req.params.aliasId))
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
-	  async updateRichMenuAlias(req, res) {
-	    try {
-	      return ok(res, await richMenuService.updateRichMenuAlias(
-	        organizationIdFor(req), req.params.aliasId, req.body.richMenuId,
-	      ), 'Alias updated')
-	    } catch (err) { return fail(res, err.message, err.status || 400) }
-	  },
+  // ---- Rich menu ----
+  async listRichMenus(req, res) {
+    try {
+      return ok(res, { richMenus: await richMenuService.listRichMenus(organizationIdFor(req)) })
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async getRichMenu(req, res) {
+    try {
+      return ok(res, { richMenu: await richMenuService.getRichMenu(organizationIdFor(req), req.params.richMenuId) })
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async createRichMenu(req, res) {
+    try {
+      const result = await richMenuService.createRichMenu(organizationIdFor(req), req.body)
+      return created(res, result, 'Rich menu created')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async validateRichMenu(req, res) {
+    try {
+      return ok(res, await richMenuService.validateRichMenuObject(organizationIdFor(req), req.body))
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async deleteRichMenu(req, res) {
+    try {
+      return ok(res, await richMenuService.deleteRichMenu(organizationIdFor(req), req.params.richMenuId), 'Rich menu deleted')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async uploadRichMenuImage(req, res) {
+    try {
+      const { imageBase64, contentType } = req.body
+      if (!imageBase64) return fail(res, 'imageBase64 is required')
+      return ok(res, await richMenuService.uploadRichMenuImage(
+        organizationIdFor(req), req.params.richMenuId, imageBase64, contentType || 'image/png',
+      ), 'Image uploaded')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async downloadRichMenuImage(req, res) {
+    try {
+      const result = await richMenuService.downloadRichMenuImage(organizationIdFor(req), req.params.richMenuId)
+      return ok(res, result)
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async setDefaultRichMenu(req, res) {
+    try {
+      return ok(res, await richMenuService.setDefaultRichMenu(organizationIdFor(req), req.params.richMenuId), 'Default rich menu set')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async getDefaultRichMenu(req, res) {
+    try {
+      return ok(res, await richMenuService.getDefaultRichMenu(organizationIdFor(req)))
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async cancelDefaultRichMenu(req, res) {
+    try {
+      return ok(res, await richMenuService.cancelDefaultRichMenu(organizationIdFor(req)), 'Default rich menu cancelled')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async linkRichMenuToUser(req, res) {
+    try {
+      return ok(res, await richMenuService.linkRichMenuToUser(
+        organizationIdFor(req), req.params.userId, req.params.richMenuId,
+      ), 'Rich menu linked to user')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async getRichMenuOfUser(req, res) {
+    try {
+      return ok(res, await richMenuService.getRichMenuOfUser(organizationIdFor(req), req.params.userId))
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async unlinkRichMenuFromUser(req, res) {
+    try {
+      return ok(res, await richMenuService.unlinkRichMenuFromUser(
+        organizationIdFor(req), req.params.userId,
+      ), 'Rich menu unlinked from user')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async createRichMenuAlias(req, res) {
+    try {
+      const { aliasId, richMenuId } = req.body
+      if (!aliasId || !richMenuId) return fail(res, 'aliasId and richMenuId are required')
+      return created(res, await richMenuService.createRichMenuAlias(organizationIdFor(req), aliasId, richMenuId), 'Alias created')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async listRichMenuAliases(req, res) {
+    try {
+      return ok(res, { aliases: await richMenuService.listRichMenuAliases(organizationIdFor(req)) })
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async getRichMenuAlias(req, res) {
+    try {
+      return ok(res, await richMenuService.getRichMenuAlias(organizationIdFor(req), req.params.aliasId))
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
+  async updateRichMenuAlias(req, res) {
+    try {
+      return ok(res, await richMenuService.updateRichMenuAlias(
+        organizationIdFor(req), req.params.aliasId, req.body.richMenuId,
+      ), 'Alias updated')
+    } catch (err) { return fail(res, err.message, err.status || 400) }
+  },
   async deleteRichMenuAlias(req, res) {
     try {
       return ok(res, await richMenuService.deleteRichMenuAlias(organizationIdFor(req), req.params.aliasId), 'Alias deleted')

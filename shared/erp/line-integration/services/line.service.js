@@ -5,6 +5,7 @@ const { ensureCustomer } = require('./line-user.service')
 const { pushText } = require('./line-message.service')
 const orders = require('../../orders/services/order.service')
 const productService = require('../../products/services/product.service')
+const logger = require('../../../../server/core/logger')
 
 async function handleWebhook(req) {
   // express.raw leaves a Buffer on req.body; parse after we have the bytes for signature checks.
@@ -12,7 +13,12 @@ async function handleWebhook(req) {
   let body = {}
   try { body = JSON.parse(rawBody.toString('utf8') || '{}') } catch { throw { status: 400, message: 'Invalid LINE webhook payload' } }
   const connection = await LineConnection.findOne({ where: { botUserId: body.destination, isActive: true } })
-  if (!connection) throw { status: 404, message: 'Unknown LINE destination' }
+  if (!connection) {
+    // `destination` is the bot user id (U + 32 hex), not the basic id (@xxx).
+    // A mismatch here means the stored botUserId is wrong for this channel.
+    logger.warn('LINE webhook destination has no active connection', { destination: body.destination })
+    throw { status: 404, message: 'Unknown LINE destination' }
+  }
   const signature = req.get('x-line-signature')
   if (!signature || !rawBody.length || !validateSignature(rawBody.toString('utf8'), decrypt(connection.channelSecretEncrypted), signature)) {
     throw { status: 401, message: 'Invalid LINE signature' }
