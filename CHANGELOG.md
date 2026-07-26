@@ -82,6 +82,9 @@ Git history remains the complete implementation-level record.
   Socket.IO ใช้ `@socket.io/redis-adapter`, nginx sticky session
   (`ip_hash` upstream) สำหรับ `/socket.io/` พร้อม profile `scale`
   สำหรับ start API replica เพิ่ม (api-2)
+- **Uptime Kuma public access**: เพิ่ม `monitor.cslogbook.me` ingress rule ใน
+  `~/.cloudflared/config.yml` → tunnel ตรงเข้า `127.0.0.1:3001` โดยไม่ต้องผ่าน
+  nginx; DNS CNAME `monitor` → `4ef941d7.cfargotunnel.com`
 
 ### Docs
 
