@@ -57,6 +57,26 @@ const transports = [
   }),
 ]
 
+// Loki transport — ships structured JSON logs to Loki for aggregation.
+// Opt-in via LOKI_ENABLED=true; graceful fallback if Loki is unreachable.
+if (process.env.LOKI_ENABLED === 'true') {
+  const LokiTransport = require('winston-loki')
+  const lokiHost = process.env.LOKI_HOST || 'loki'
+  const lokiPort = parseInt(process.env.LOKI_PORT || '3100', 10)
+
+  transports.push(new LokiTransport({
+    host: `http://${lokiHost}:${lokiPort}`,
+    labels: { service: 'saas', env: isProduction ? 'production' : 'development' },
+    json: true,
+    batching: true,
+    interval: 5,          // batch every 5 s
+    onConnectionError(err) {
+      // Loki is opt-in — never crash the app when it's unreachable.
+      console.warn(`[loki] connection error: ${err.message}`)
+    },
+  }))
+}
+
 const logger = winston.createLogger({
   level,
   defaultMeta: { service: 'saas' },

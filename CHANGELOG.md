@@ -23,6 +23,9 @@ Git history remains the complete implementation-level record.
   primary key / migration record / FK validation
   Uploads restore ปฏิเสธ volume ปลายทางที่ไม่ว่าง แล้วเทียบ SHA-256 inventory
   ต้นทาง-ปลายทางก่อนตั้ง ownership ให้ API runtime user
+- **Monitoring stack (Slice 1)**: Uptime Kuma health dashboard, alert-relay →
+  LINE Notify forwarding, Loki + Grafana log aggregation via `winston-loki`
+  transport (`profile: monitoring`), docs/monitoring-setup.md (issue #7)
 
 ### Changed
 

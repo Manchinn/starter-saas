@@ -1,0 +1,57 @@
+# ── Loki configuration ─────────────────────────────────────────────────────────
+# Single-instance log aggregation for Starter SaaS.
+# Auth: disabled (internal Docker network only).
+# Storage: filesystem (Docker volume).
+# Retention: 28 days (672 hours).
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+ingester:
+  chunk_idle_period: 30m
+  max_chunk_age: 1h
+  chunk_target_size: 1536000
+  chunk_retain_period: 30s
+
+schema_config:
+  configs:
+    - from: 2025-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  retention_period: 672h
+  max_entries_limit_per_query: 5000
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+
+compactor:
+  working_directory: /loki/compactor
+  shared_store: filesystem
+
+# Store index files in /loki too so they survive container restarts.
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /loki/tsdb-index
+    cache_location: /loki/tsdb-cache
+  filesystem:
+    directory: /loki/chunks

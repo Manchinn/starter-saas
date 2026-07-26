@@ -224,6 +224,66 @@ services:
     networks:
       - internal
 
+  # ── Monitoring stack ──────────────────────────────────────────────────────
+
+  # Alert relay — forwards Uptime Kuma webhooks to LINE Notify.
+  # Standalone container: zero API/NPM deps, survives API crashes.
+  alert-relay:
+    build:
+      context: .
+      dockerfile: Dockerfile.alert-relay
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    environment:
+      LINE_NOTIFY_TOKEN: ${LINE_NOTIFY_TOKEN}
+    networks:
+      - internal
+
+  # Uptime Kuma — health-check dashboard. Access via 127.0.0.1:3001.
+  # Manual setup: add monitor → http://api:3000/api/health (60 s interval),
+  # add notification → Webhook → http://alert-relay:3003/notify.
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    volumes:
+      - uptime_kuma_data:/app/data
+    ports:
+      - "127.0.0.1:${UK_PORT:-3001}:3001"
+    networks:
+      - internal
+
+  # Loki — log aggregation (opt-in: compose --profile monitoring up -d).
+  # Receives structured JSON logs from the API via winston-loki transport.
+  loki:
+    profiles: ["monitoring"]
+    image: grafana/loki:3
+    restart: unless-stopped
+    volumes:
+      - loki_data:/loki
+      - ./config/loki-config.yaml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - internal
+
+  # Grafana — observability dashboards (opt-in: compose --profile monitoring up -d).
+  # Loki datasource is auto-provisioned. Access via 127.0.0.1:3002.
+  grafana:
+    profiles: ["monitoring"]
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+    ports:
+      - "127.0.0.1:${GF_PORT:-3002}:3000"
+    networks:
+      - internal
+
 networks:
   internal:
     driver: bridge
@@ -233,3 +293,6 @@ volumes:
   uploads_data:
   logs_data:
   redis_data:
+  uptime_kuma_data:
+  loki_data:
+  grafana_data:

@@ -136,9 +136,15 @@ module.exports = {
     // service). Falls back to the lowest-priced active plan when absent.
     defaultPlanSlug: process.env.BILLING_DEFAULT_PLAN || 'free',
     currency: process.env.BILLING_CURRENCY || 'USD',
-    stripe: {
-      secretKey:      process.env.STRIPE_SECRET_KEY || '',
-      webhookSecret:  process.env.STRIPE_WEBHOOK_SECRET || '',
-    },
-  },
-}
+	  stripe: {
+	      secretKey:      process.env.STRIPE_SECRET_KEY || '',
+	      webhookSecret:  process.env.STRIPE_WEBHOOK_SECRET || '',
+	    },
+	  },
+	  loki: {
+	    // Enable log shipping to Loki (opt-in).
+	    enabled: process.env.LOKI_ENABLED === 'true',
+	    host:    process.env.LOKI_HOST || 'loki',
+	    port:    parseInt(process.env.LOKI_PORT || '3100', 10),
+	  },
+	}
