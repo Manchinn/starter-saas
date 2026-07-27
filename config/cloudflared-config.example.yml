@@ -1,0 +1,24 @@
+# Cloudflare Tunnel configuration — example
+#
+# Copy to ~/.cloudflared/config.yml and replace <tunnel-id> with the
+# UUID from `cloudflared tunnel create starter-saas`.
+#
+# The credentials file is auto-generated at:
+#   ~/.cloudflared/<tunnel-id>.json
+#
+# See docs/production-runbook.md for the full startup sequence.
+
+tunnel: <tunnel-id>
+credentials-file: C:\Users\<your-user>\.cloudflared\<tunnel-id>.json
+
+ingress:
+  # Primary application
+  - hostname: app.cslogbook.me
+    service: http://127.0.0.1:8080
+
+  # Monitoring dashboard (Uptime Kuma)
+  - hostname: monitor.cslogbook.me
+    service: http://127.0.0.1:3001
+
+  # Reject everything else
+  - service: http_status:404

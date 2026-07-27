@@ -1,5 +1,7 @@
 # PostgreSQL Docker Deployment
 
+> **Production operators:** สำหรับการรันระบบวันต่อวัน (startup, shutdown, health check, troubleshooting) ดู [`docs/production-runbook.md`](production-runbook.md)
+
 This deployment runs one PostgreSQL-backed API replica and a static web container. It publishes only the web container to `127.0.0.1:8080` by default. For public access, use either **Cloudflare Tunnel** (no open ports, free TLS, works without a VPS) or a traditional reverse proxy (Nginx/Caddy with Let's Encrypt on a VPS). Both terminate TLS externally and forward requests to the loopback endpoint.
 
 ## Scope and constraints
@@ -8,7 +10,7 @@ This deployment runs one PostgreSQL-backed API replica and a static web containe
 - `uploads/` contains organization logos and ERP attachments. Back up and transfer it with the database.
 - PostgreSQL and the API are private Docker-network services. Do not publish port `5432` or `3000`.
 - Configuration is immutable. Production values come from a host-protected `.env.production` file or Docker secrets, not `server/.env` and not the installer/settings configuration screens.
-- This stack is one API replica. Socket.IO, cache fallback, and rate limiting are process-local while Redis is disabled.
+- This stack is one API replica by default. Redis is enabled for shared cache, rate limiting, and Socket.IO scaling. Add a second replica with `--profile scale`.
 
 ## Host configuration
 
@@ -65,17 +67,7 @@ This creates a `CNAME app.cslogbook.me → <tunnel-id>.cfargotunnel.com`.
 
 **3. Create `~/.cloudflared/config.yml`:**
 
-```yaml
-tunnel: <tunnel-id>
-credentials-file: /path/to/<tunnel-id>.json
-
-ingress:
-  - hostname: app.cslogbook.me
-    service: http://127.0.0.1:8080
-  - service: http_status:404
-```
-
-The catch-all `http_status:404` ensures only the configured hostname reaches your stack.
+Copy the template from `config/cloudflared-config.example.yml` and replace `<tunnel-id>` with the UUID from step 1. The template includes ingress rules for both `app.cslogbook.me` and `monitor.cslogbook.me`.
 
 **4. Update `.env.production`:**
 

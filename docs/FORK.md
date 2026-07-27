@@ -83,7 +83,7 @@ still exist for archaeology. They are **not** the product direction of
 | **Monitoring** | Done — Uptime Kuma + Loki + Grafana + LINE Notify alerting (issue #7) |
 | **API image** | 542 MB (down from 921 MB, -41%) |
 
-See `docs/postgresql-docker-deployment.md` for the full deployment guide and Cloudflare Tunnel setup.
+See `docs/postgresql-docker-deployment.md` for the full deployment guide and Cloudflare Tunnel setup. See `docs/production-runbook.md` for daily startup/shutdown/health-check procedures.
 
 ## Memory note
 

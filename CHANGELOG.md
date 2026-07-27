@@ -42,6 +42,12 @@ Git history remains the complete implementation-level record.
   `GET /admin/rich-menus/batch/:requestId/progress`) — `requestId` อ่านจาก
   `x-line-request-id` response header ผ่าน `richMenuBatchWithHttpInfo`;
   validation แยก endpoint ก่อน submit; 65 tests (ADR-0004)
+- **Production runbook**: `docs/production-runbook.md` — คู่มือการรัน production
+  ครอบคลุม Docker Compose + Cloudflare Tunnel + monitoring ตั้งแต่ startup
+  sequence (Docker ก่อน cloudflared), shutdown sequence, health verification,
+  troubleshooting และ recovery scenarios พร้อม PowerShell scripts สำหรับ
+  start/stop/health-check และ `config/cloudflared-config.example.yml` เป็น
+  versioned template สำหรับ tunnel config
 
 ### Changed
 
