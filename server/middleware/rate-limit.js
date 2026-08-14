@@ -24,10 +24,17 @@ const HOUR_1 = 60 * 60 * 1000
 // rejects shared stores. When Redis is disabled (or unavailable) the factory
 // returns undefined, and express-rate-limit falls back to its built-in MemoryStore.
 function createRedisStore(subPrefix) {
-  const redisClient = cache.getClient()
-  if (!redisClient) return undefined
+  if (!cache.getClient()) return undefined
   return new RedisStore({
-    sendCommand: (...args) => redisClient.call(...args),
+    // Resolve the live client on every command. cache.reconfigure() (install
+    // wizard, Settings → Redis) tears down and rebuilds the ioredis instance,
+    // so a store that captured the client at boot would keep sending on a
+    // closed connection ("Connection is closed" → 500 after redis/configure).
+    sendCommand: (...args) => {
+      const c = cache.getClient()
+      if (!c) throw new Error('Redis client is not connected')
+      return c.call(...args)
+    },
     prefix: `rl:${subPrefix}:`,
   })
 }

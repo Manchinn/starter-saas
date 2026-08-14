@@ -139,6 +139,21 @@ async function configureDb(payload) {
     try { await probe.close() } catch {}
   }
 
+  // Containerised/production: the DB connection is injected via process env
+  // (compose env_file → .env.production) and is authoritative. Rewriting
+  // server/.env and self-terminating here would restart the container
+  // mid-install — the client polls /health, sees the server still up inside
+  // the 250ms grace window, races ahead, and the install POST gets killed by
+  // the exit. Validate the selection, then return without touching .env or
+  // the process.
+  if (process.env.DB_DIALECT && process.env.DB_DIALECT !== 'sqlite') {
+    return {
+      dialect: cfg.dialect,
+      restartRequired: false,
+      message: 'Database is configured by the deployment environment; no restart needed.',
+    }
+  }
+
   // 2. Rewrite .env.
   const env = readEnv()
   // Drop the DB_* keys that aren't relevant to the chosen dialect (e.g.
@@ -244,6 +259,17 @@ async function configureRedis(payload) {
   await assertPreInstall()
   const cfg = validateRedisPayload(payload)
   if (cfg.enabled) await probeRedis(toCacheCfg(cfg))
+
+  // Containerised/production: Redis config comes from process env and is
+  // authoritative. Avoid rewriting server/.env and swapping the live client —
+  // reconfigure() tears down the ioredis instance the Socket.IO adapter holds,
+  // breaking realtime until reboot. Validate the selection, then return.
+  if (process.env.REDIS_ENABLED === 'true') {
+    return {
+      enabled: cfg.enabled,
+      message: 'Redis is configured by the deployment environment.',
+    }
+  }
 
   const env = readEnv()
   for (const k of Object.keys(env)) if (k.startsWith('REDIS_')) delete env[k]

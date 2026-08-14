@@ -21,7 +21,8 @@ COPY server ./server
 COPY shared ./shared
 
 RUN mkdir -p /app/uploads /app/logs \
-  && chown -R node:node /app/uploads /app/logs
+  && chown -R node:node /app/uploads /app/logs \
+  && chown -R node:node /app/server /app/shared
 
 USER node
 EXPOSE 3000
