@@ -1,9 +1,8 @@
 # LINE LIFF Integration Checklist — starter-saas
 
-> สร้างเมื่อ: 2026-08-19 · ตรวจสถานะโค้ดจริงบน c46 (`admin2@100.89.73.34`) + clone `Manchinn/starter-saas@main`
-> อ้างอิง workflow: `2026-08-19-starter-saas-line-development-and-deployment-workflow` (12oo)
+> สร้างเมื่อ: 2026-08-19 · อัปเดตล่าสุด: 2026-08-19 (route `/line-liff`, tunnel routing, Phase 0/1 confirmed)
 > หลักการ: แก้ที่ local (`C:\Users\chinn\web-projects\starter-saas`) → push fork → c46 pull + redeploy → verify
-> ข้อตกลงตอนนี้: **ยังไม่แตะ rich menu** (deploy ไปแล้ว 2 ตัว — `XiaoPao main menu v2 (2026-08-19)` เป็น default) โฟกัส LIFF ก่อน
+> ข้อตกลงตอนนี้: **ยังไม่แตะ rich menu** — โฟกัส LIFF ก่อน
 
 ---
 
@@ -12,51 +11,42 @@
 | ส่วน | สถานะ |
 | --- | --- |
 | Backend LIFF routes (`/api/line/liff/:organizationId/*`) | ✅ มีแล้ว (config/catalog/orders) |
-| `verifyLiffIdToken` service | ✅ มีแล้ว (`shared/erp/line-integration/services/line-liff-auth.service.js`) |
+| `verifyLiffIdToken` service | ✅ มีแล้ว |
 | `LineConnection` model + migration | ✅ มีแล้ว (เก็บ secret เป็น AES-GCM ciphertext) |
 | Admin API ตั้งค่า connection | ✅ มีแล้ว (`GET/PUT /api/line/admin/connection`) |
 | Client dep `@line/liff` | ✅ มีแล้ว (`client/package.json` `^2.29.1`) |
-| Client หน้า LIFF / route | ❌ **ยังไม่มี** — ต้องเขียน |
-| LIFF app ใน LINE Console | ❌ ต้องไปสร้าง |
-| `LineConnection` record ใน DB | ❌ ต้อง insert ผ่าน admin API |
-| Public URL สำหรับ LIFF endpoint | ⚠️ ต้องยืนยัน (webhook ใช้ `app.cslogbook.me` ผ่าน cloudflared) |
+| LIFF app ใน LINE Console | ✅ สร้างแล้ว — LIFF ID `2010854084-v7SPSvSZ`, endpoint `https://app.cslogbook.me/line-liff` |
+| Cloudflared tunnel routing `/line-liff*` + `/api/*` → c46 web | ✅ ทำแล้ว 2026-08-19 |
+| Client หน้า LIFF / route | ❌ **ยังไม่มี** — ต้องเขียน (Phase 2) |
+| `LineConnection` record ใน DB | ❌ ยังไม่ได้ seed (Phase 1) |
 
 **API base ทั้งหมด**: `/api/line` (mount ใน `server/modules/line/line.module.js`, nginx proxy `/api/` → `api:3000`)
 
 | Route | Auth | หมายเหตุ |
 | --- | --- | --- |
-| `GET /api/line/liff/:organizationId/config` | public | คืน `{ organizationId, liffId }` — เอาไว้ให้ client เรียกก่อน `liff.init` |
+| `GET /api/line/liff/:organizationId/config` | public | คืน `{ organizationId, liffId }` |
 | `GET /api/line/liff/:organizationId/catalog` | `x-line-id-token` | รายการสินค้า |
 | `POST /api/line/liff/:organizationId/orders` | `x-line-id-token` | body `{ items, notes }` |
 | `GET /api/line/liff/:organizationId/orders` | `x-line-id-token` | order ของ user |
-| `PUT /api/line/admin/connection` | JWT + permission `erp.line-integration.manage` | save LineConnection |
+| `PUT /api/line/admin/connection` | JWT + `erp.line-integration.manage` | save LineConnection |
 | `GET /api/line/admin/connection` | JWT + permission | ดูค่า connection |
 
 `verifyLiffRequest` (`server/modules/line/line.auth.js`): อ่าน header `x-line-id-token` → `verifyLiffIdToken` → ใช้ `connection.liffChannelId` เป็น `client_id` ยิง `POST https://api.line.me/oauth2/v2.1/verify` → attach `req.line = { connection, profile: { userId, displayName, pictureUrl } }`
 
 ---
 
-## Phase 0 — LINE Developers Console (ทำที่มือ, ก่อนเขียนโค้ด)
+## Phase 0 — LINE Developers Console ✅ ทำแล้ว
 
-1. เปิด https://developers.line.biz → เลือก Provider ของ OA `@807jvhju` (Hermes Assistant)
-2. **สร้าง LIFF app** (ใน Messaging API channel หรือ LINE Login channel):
-   - LIFF app name: เช่น `starter-saas ordering`
-   - Size: `full`
-   - **Endpoint URL**: ต้องเป็น HTTPS ที่ LINE server เข้าถึงได้จากนอก — ใช้ public domain เดียวกับ webhook (`https://app.cslogbook.me/liff`) ⚠️ tailscale serve อย่างเดียว LINE เข้าไม่ถึง (ต้อง cloudflared tunnel — เช็ค `docs/production-runbook.md` + cloudflared config บน c46 ว่า forward path ยังไง)
-   - Scopes: อย่างน้อย `profile` (openid เป็น default)
-   - Bot link: เปิด (จะได้เปิดจากแชทบอทได้)
-3. บันทึกค่าเหล่านี้ (ห้ามแปะลง git):
-   - **LIFF ID** (รูปแบบ `2001234567-xxxx`)
-   - **Channel ID** (Messaging API channel — ใช้เป็น `liffChannelId` ด้วย)
-   - **Channel Secret** (Messaging API tab)
-   - **Channel Access Token** (ออก long-lived ใน Messaging API tab)
-4. ยืนยัน webhook `https://app.cslogbook.me/line/webhook` ยัง active (อย่าไปแก้)
+- LIFF ID: `2010854084-v7SPSvSZ`
+- Endpoint URL: `https://app.cslogbook.me/line-liff` (ผ่าน cloudflared tunnel — ดู `docs/production-runbook.md`)
+- Bot link: เปิด
+- ต้องใช้ค่า: Channel ID (=liffChannelId), Channel Secret, Channel Access Token — ไว้ seed connection (Phase 1)
 
-## Phase 1 — Seed LineConnection ผ่าน admin API (ทำบน c46 หรือ local ที่มี `LINE_CREDENTIAL_ENCRYPTION_KEY`)
+## Phase 1 — Seed LineConnection ผ่าน admin API (ทำบน c46)
 
 > secret ถูก encrypt ด้วย `LINE_CREDENTIAL_ENCRYPTION_KEY` (`server/modules/line/line.crypto.js`) — ต้องรันบน env ที่มี key นี้ (c46 `.env.production` มีแล้ว)
 
-1. หา `organizationId`: login admin → ดูใน dashboard/DB (`organizations` table) หรือจากฝั่ง ERP
+1. หา `organizationId`: login admin → ดูใน dashboard/DB
 2. เรียก (หลัง login เอา JWT มา):
 ```bash
 curl -X PUT http://127.0.0.1:8081/api/line/admin/connection \
@@ -66,7 +56,7 @@ curl -X PUT http://127.0.0.1:8081/api/line/admin/connection \
     "organizationId": "<org-uuid>",
     "messagingChannelId": "<channel-id>",
     "botUserId": "@807jvhju",
-    "liffId": "<liff-id>",
+    "liffId": "2010854084-v7SPSvSZ",
     "liffChannelId": "<channel-id>",
     "defaultStoreId": null,
     "channelSecret": "<channel-secret>",
@@ -76,13 +66,13 @@ curl -X PUT http://127.0.0.1:8081/api/line/admin/connection \
 3. ตรวจ:
 ```bash
 curl -s http://127.0.0.1:8081/api/line/liff/<org-uuid>/config
-# ต้องได้: {"organizationId":"<org-uuid>","liffId":"<liff-id>"}
+# ต้องได้: {"organizationId":"<org-uuid>","liffId":"2010854084-v7SPSvSZ"}
 ```
 4. ถ้า 404 "LINE ordering is not configured" → record ยังไม่เข้า / `isActive` ไม่ true
 
 ## Phase 2 — Client: สร้างหน้า LIFF (Vue 3 + Vite)
 
-สร้าง module ใหม่ `client/src/modules/line/` — ModuleRegistry auto-register (`import.meta.glob('../modules/**/index.js')`) แค่มี `index.js` default export `{ slug, routes }`
+สร้าง module ใหม่ `client/src/modules/line/` — ModuleRegistry auto-register
 
 **`client/src/modules/line/index.js`:**
 ```js
@@ -91,7 +81,7 @@ export default {
   order: 93,
   routes: [
     {
-      path: '/liff/:organizationId',
+      path: '/line-liff',
       name: 'line-liff',
       component: () => import('./views/LiffOrdering.vue'),
       meta: { title: 'line.liffTitle' },
@@ -99,77 +89,75 @@ export default {
   ],
 }
 ```
+⚠️ route เป็น `/line-liff` (ไม่ใช่ `/liff/:orgId`) — endpoint LINE Console ผูกไว้ที่ `/line-liff` แล้ว
 
 **`client/src/modules/line/views/LiffOrdering.vue`** — flow หลัก:
-1. `onMounted`: `api.get(\`/line/liff/${organizationId}/config\`)` → `{ liffId }`
-2. `await liff.init({ liffId })`
-3. `if (!liff.isLoggedIn()) { liff.login(); return }` (LINE จะ redirect กลับมา)
-4. `const idToken = liff.getIDToken()`
-5. เรียก API โดยส่ง token ใน header:
+1. `orgId` ใช้จาก env `VITE_LIFF_ORG_ID` (single-org deployment) — อยู่ใน `.env.production.example`
+2. `onMounted`: `api.get(\`/line/liff/${orgId}/config\`)` → `{ liffId }`
+3. `await liff.init({ liffId })`
+4. `if (!liff.isLoggedIn()) { liff.login(); return }`
+5. `const idToken = liff.getIDToken()`
+6. เรียก API โดยส่ง token ใน header:
 ```js
-api.get(`/line/liff/${organizationId}/catalog`, {
+api.get(`/line/liff/${orgId}/catalog`, {
   headers: { 'x-line-id-token': idToken },
 })
-api.post(`/line/liff/${organizationId}/orders`, { items, notes }, {
+api.post(`/line/liff/${orgId}/orders`, { items, notes }, {
   headers: { 'x-line-id-token': idToken },
 })
 ```
-6. UI: รายการสินค้าจาก catalog, ปุ่มสั่ง order, list order ของตัวเอง
-7. อย่าลืม i18n ถ้า module อื่นใช้ pattern เดิม
-
-ดู pattern จาก `client/src/modules/billing/index.js` + `views/Billing.vue`
+7. UI: รายการสินค้าจาก catalog, ปุ่มสั่ง order, list order ของตัวเอง
+8. ดู pattern จาก `client/src/modules/billing/`
 
 ## Phase 3 — ทดสอบ local
 
-1. `cd C:\Users\chinn\web-projects\starter-saas\client && npm run dev` (vite)
-2. เปิดหน้า `/liff/<org-uuid>` ในเบราว์เซอร์ปกติ → ยังไงก็ได้ (LIFF API จะ error นอก LINE) — อย่างน้อยเช็คว่า config fetch ผ่าน + UI render
-3. ทดสอบจริงต้องเปิดใน LINE app (Phase 5)
+1. `cd client && npm run dev`
+2. เปิด `/line-liff` ในเบราว์เซอร์ปกติ → LIFF API จะ error นอก LINE — อย่างน้อยเช็ค config fetch + UI render
+3. ทดสอบจริงต้องเปิดใน LINE app (Phase 6)
 
 ## Phase 4 — Commit + push
 
 ```bash
-git add docs/line-liff-integration-checklist.md client/src/modules/line/
-git commit -m "feat(line): add LIFF ordering client module (issue #<n>, ADR ref)"
+git add docs/line-liff-integration-checklist.md client/src/modules/line/ .env.production.example
+git commit -m "feat(line): add LIFF ordering client module, route /line-liff"
 git push origin main
 ```
-⚠️ ห้าม push ไฟล์ `.env*` — ถ้ามี key ใหม่ให้ลง `.env.example` / `.env.production.example` เท่านั้น
+⚠️ ห้าม push `.env*` — ใช้ `.env.production.example` เท่านั้น
 
 ## Phase 5 — Deploy บน c46
 
-1. SSH: `ssh c46-ts` (= `admin2@100.89.73.34:22`) — **ห้ามใช้ `ssh c46`** (NAT เก่า connection refused)
-2. **จัดการของค้าง 3 ไฟล์ก่อน pull** (verified 2026-08-19):
-   - `Dockerfile.api`, `server/middleware/rate-limit.js`, `server/modules/system/system.service.js`
-   - stash หรือ commit แยก — ห้ามทับ/ห้าม discard ถ้าไม่ชัวร์
+1. SSH: `ssh c46-ts` (= `admin2@100.89.73.34:22`) — **ห้ามใช้ `ssh c46`**
+2. **จัดการของค้างก่อน pull**: `git status` — ถ้ามี stash ให้ pop ก่อน (stash@{0}: `Dockerfile.api`, `rate-limit.js`, `system.service.js`)
 3. ```bash
    cd /home/admin2/starter-saas
-   git stash  # หรือ commit ของค้างก่อน
    git pull origin main
    docker compose --env-file .env.production up -d --build api web
    ```
 4. Verify:
-   - `docker compose --env-file .env.production ps` → ทุกตัว healthy (api, web, redis, db)
+   - `docker compose --env-file .env.production ps` → ทุกตัว healthy
    - `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8081/dashboard` → 200
    - `curl -s http://127.0.0.1:8081/api/line/liff/<org-uuid>/config` → มี `liffId`
-   - tailscale serve `:8444 → 127.0.0.1:8081` ยังอยู่ (ห้ามเปิด Funnel/พอร์ตสาธารณะใหม่)
+   - tailscale serve `:8444 → 127.0.0.1:8081` ยังอยู่ (ห้าม Funnel)
 
 ## Phase 6 — Verify ด้วย LINE จริง
 
-1. เปิด LIFF URL ใน LINE app (bot link / rich menu / QR ของ LIFF)
+1. เปิด LIFF URL ใน LINE app (bot link / rich menu / QR)
 2. login → เห็น catalog
-3. สั่ง order → เช็ค order ใน DB + log (`server/modules/line/`)
+3. สั่ง order → เช็ค order ใน DB + log
 4. ตรวจ network tab: header `x-line-id-token` ถูกส่งไหม, response 401/404 อะไร
 
 ---
 
-## Pitfalls (เจอแล้ว/ควรระวัง)
+## Pitfalls
 
-- **`x-line-id-token` ต้องเป็น ID token จาก `liff.getIDToken()`** — ไม่ใช่ access token ของ LINE
-- **LIFF endpoint ต้องเป็น HTTPS สาธารณะ** — tailscale serve อย่างเดียว LINE เข้าไม่ถึง; ต้องผ่าน cloudflared tunnel เดียวกับ webhook (เช็ค `docs/production-runbook.md`, commit `695955d`)
-- `liffChannelId` = Channel ID (ใช้เป็น `client_id` ตอน verify) — ผิดตัวเดียว login หลุด 401 ตลอด
-- Secret ต้อง encrypt ด้วย key เดียวกับ env ที่รัน (`LINE_CREDENTIAL_ENCRYPTION_KEY`) — ถ้า key ต่างกัน decrypt ไม่ได้
-- `verifyLiffRequest` อ่าน `organizationId` จาก `req.params` (path) หรือ `req.body` — อย่าส่งแค่ header
+- **`x-line-id-token` ต้องเป็น ID token จาก `liff.getIDToken()`** — ไม่ใช่ access token
+- **LIFF endpoint ต้อง HTTPS สาธารณะ** — ผ่าน cloudflared tunnel (เช็ค `docs/production-runbook.md`)
+- `liffChannelId` = Channel ID (client_id) ผิดตัวเดียว 401 ตลอด
+- Secret ต้อง encrypt ด้วย `LINE_CREDENTIAL_ENCRYPTION_KEY` เดียวกับ env ที่รัน
+- `verifyLiffRequest` อ่าน `organizationId` จาก `req.params` — อย่าส่งแค่ header
 - **ห้ามเปิดพอร์ตสาธารณะ** บน c46 / **ห้ามใช้ `ssh c46`** / **อย่าแตะ rich menu** ตอนนี้
 - ห้าม push secret ขึ้น repo — ใช้ admin API ตั้งค่า connection แทน
+- webhook ของ OA ยังเป็นของ Hermes bot (`/line/webhook` → 8646) — LIFF ordering ไม่ต้องพึ่ง webhook
 
 ## Reference
 
