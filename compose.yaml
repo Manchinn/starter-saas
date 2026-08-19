@@ -210,6 +210,7 @@ services:
       dockerfile: Dockerfile.web
       args:
         VITE_APP_NAME: ${VITE_APP_NAME:-SaaS}
+        VITE_LIFF_ORG_ID: ${VITE_LIFF_ORG_ID:-}
     restart: unless-stopped
     depends_on:
       api:

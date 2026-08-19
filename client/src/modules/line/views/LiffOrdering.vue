@@ -22,7 +22,7 @@
     <div v-else class="max-w-lg mx-auto px-4 py-6">
       <!-- Header -->
       <div class="text-center mb-6">
-        <h1 class="text-xl font-bold text-slate-800">{{ storeName }}</h1>
+        <h1 class="text-xl font-bold text-slate-800">สั่งซื้อสินค้า</h1>
         <p v-if="profile" class="text-sm text-slate-500 mt-1">
           สวัสดี {{ profile.displayName }}
         </p>
@@ -137,7 +137,6 @@ const ORG_ID = import.meta.env.VITE_LIFF_ORG_ID
 const loading = ref(true)
 const error = ref('')
 const profile = ref(null)
-const storeName = ref('')
 const catalog = ref([])
 const orders = ref([])
 const cart = ref({})
@@ -163,10 +162,9 @@ async function init() {
   try {
     // Fetch LIFF config to get liffId
     const { data: config } = await api.get(`/line/liff/${ORG_ID}/config`)
-    storeName.value = config.storeName || ''
 
     // Init LIFF
-    await liff.init({ liffId: config.liffId })
+    await liff.init({ liffId: config.data.liffId })
 
     // Check login
     if (!liff.isLoggedIn()) {
@@ -194,14 +192,16 @@ async function fetchCatalog() {
   const { data } = await api.get(`/line/liff/${ORG_ID}/catalog`, {
     headers: idTokenHeader(),
   })
-  catalog.value = data.data || data || []
+  // Backend returns { products: [...], defaultStoreId }
+  catalog.value = data.data?.products || []
 }
 
 async function fetchOrders() {
   const { data } = await api.get(`/line/liff/${ORG_ID}/orders`, {
     headers: idTokenHeader(),
   })
-  orders.value = data.data || data || []
+  // Backend returns { orders: [...] }
+  orders.value = data.data?.orders || []
 }
 
 function incrementQty(item) {
@@ -224,7 +224,7 @@ async function placeOrder() {
   try {
     const items = Object.entries(cart.value)
       .filter(([, qty]) => qty > 0)
-      .map(([id, quantity]) => ({ id, quantity }))
+      .map(([productId, quantity]) => ({ productId, quantity }))
 
     await api.post(`/line/liff/${ORG_ID}/orders`, { items, notes: notes.value || undefined }, {
       headers: idTokenHeader(),

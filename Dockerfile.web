@@ -13,6 +13,8 @@ COPY shared ./shared
 
 ARG VITE_APP_NAME=SaaS
 ENV VITE_APP_NAME=$VITE_APP_NAME
+ARG VITE_LIFF_ORG_ID=
+ENV VITE_LIFF_ORG_ID=$VITE_LIFF_ORG_ID
 RUN npm --workspace=client run build
 
 FROM nginx:1.27-alpine
