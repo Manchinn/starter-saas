@@ -144,6 +144,10 @@ const notes = ref('')
 const ordering = ref(false)
 const tab = ref('catalog')
 
+// Rich menu deep-link: ?tab=catalog | ?tab=orders
+const urlTab = new URLSearchParams(window.location.search).get('tab')
+if (urlTab === 'catalog' || urlTab === 'orders') tab.value = urlTab
+
 const hasCartItems = computed(() => Object.values(cart.value).some((qty) => qty > 0))
 
 function idTokenHeader() {
