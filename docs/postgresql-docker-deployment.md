@@ -24,7 +24,9 @@ Set a unique password for PostgreSQL and independent long random values for `JWT
 
 For Nginx, point the TLS virtual host at `http://127.0.0.1:8080`. For a load balancer or ingress, set `WEB_PORT` to an unused loopback port and route traffic to it. Do not enable the Node HTTPS listener; TLS ends at the external proxy.
 
-## Cloudflare Tunnel (public access without a VPS)
+## Cloudflare Tunnel (public access)
+
+> **Production topology (2026-08-20):** ใน production ปัจจุบัน cloudflared **ไม่ได้**รันบนเครื่องเดียวกับ Docker stack แล้ว — Docker รันบน c46 ส่วน cloudflared (tunnel `line-gateway`) รันบน discord-bot-vps และ route ผ่าน Tailscale ไป c46 (ดู `docs/FORK.md` และ `config/cloudflared-config.example.yml`). ขั้นตอนด้านล่างเป็นวิธี setup จากศูนย์ (ยังใช้ได้กับเครื่อง standalone) แต่ค่าจริงของ production ดูที่ template ใน repo
 
 Cloudflare Tunnel (`cloudflared`) creates an outbound-only QUIC tunnel from your machine to Cloudflare's edge. No firewall ports need to be opened, and TLS is auto-terminated at Cloudflare with a free certificate. This is the simplest way to deploy publicly when you don't have (or want) a VPS.
 

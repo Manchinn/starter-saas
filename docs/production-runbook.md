@@ -2,6 +2,14 @@
 
 คู่มือการรัน production stack (`starter-saas`) บน Windows แบบ 24/7 ครอบคลุม Docker Compose + Cloudflare Tunnel + monitoring ตั้งแต่เริ่มต้นระบบจนถึง troubleshooting
 
+> ⚠️ **TOPOLOGY CHANGED (2026-08-20)** — เอกสารนี้เขียนไว้สำหรับ setup เดิม (cloudflared + Docker บน Windows เครื่องเดียว) ปัจจุบัน production ย้ายแล้ว:
+>
+> - **Docker stack** รันบน **c46** (`ssh c46-ts` = tailscale `digitalallthingsonline`); web อยู่ที่ `127.0.0.1:8081`, expose ผ่าน `tailscale serve :8444` (tailnet-only)
+> - **cloudflared** รันบน **discord-bot-vps** (systemd, tunnel `line-gateway`, config `/etc/cloudflared/config.yml`) → route ผ่าน Tailscale ไป c46
+> - **LINE webhook + media** อยู่ที่ `localhost:8646` (Hermes LINE adapter) บน discord-bot-vps; webhook URL = `https://app.cslogbook.me/line/webhook`
+>
+> คำสั่ง `sc start/stop cloudflared` (Windows Service) ด้านล่างเป็นของ setup เก่า — บน VPS ใช้ `sudo systemctl restart cloudflared` และ Docker ใช้ `ssh c46-ts 'docker compose ...'` แทน ดู topology จริงที่ `docs/FORK.md` และ `config/cloudflared-config.example.yml`
+
 **ก่อนเริ่ม:** อ่าน `docs/postgresql-docker-deployment.md` สำหรับการ setup ครั้งแรก (provision PostgreSQL, โอนข้อมูลจาก SQLite, ตั้งค่า Cloudflare Tunnel)
 
 ---

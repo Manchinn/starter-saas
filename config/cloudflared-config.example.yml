@@ -1,24 +1,45 @@
-# Cloudflare Tunnel configuration — example
+# Cloudflare Tunnel configuration — production reference (`line-gateway`)
 #
-# Copy to ~/.cloudflared/config.yml and replace <tunnel-id> with the
-# UUID from `cloudflared tunnel create starter-saas`.
+# Live config: /etc/cloudflared/config.yml on discord-bot-vps
+# (systemd service `cloudflared` runs
+#  `cloudflared --no-autoupdate --config /etc/cloudflared/config.yml tunnel run`).
+# This repo file is the versioned mirror — edit here, then sync to the VPS.
 #
-# The credentials file is auto-generated at:
-#   ~/.cloudflared/<tunnel-id>.json
-#
-# See docs/production-runbook.md for the full startup sequence.
+# Topology (2026-08-20):
+#   Browser / LINE platform
+#       └─► Cloudflare edge  https://app.cslogbook.me
+#             └─► cloudflared  (discord-bot-vps, this config)
+#                   ├─ /line-liff*, /assets/*, /favicon.svg, /api/*
+#                   │     └─► Tailscale ► c46 (digitalallthingsonline.tail75d1ef.ts.net)
+#                   │            tailscale serve :8444 ► 127.0.0.1:8081 (starter-saas web)
+#                   └─ catch-all ─► http://localhost:8646 (Hermes LINE adapter:
+#                                   webhook /line/webhook + media /line/media/*)
 
-tunnel: <tunnel-id>
-credentials-file: C:\Users\<your-user>\.cloudflared\<tunnel-id>.json
+tunnel: e8402f2f-f626-4c73-ae56-e11d58d5cf93
+credentials-file: /etc/cloudflared/e8402f2f-f626-4c73-ae56-e11d58d5cf93.json
 
 ingress:
-  # Primary application
+  # starter-saas LIFF endpoint (web app via c46 tailscale serve :8444)
   - hostname: app.cslogbook.me
-    service: http://127.0.0.1:8080
+    path: /line-liff*
+    service: https://digitalallthingsonline.tail75d1ef.ts.net:8444
 
-  # Monitoring dashboard (Uptime Kuma)
-  - hostname: monitor.cslogbook.me
-    service: http://127.0.0.1:3001
+  # starter-saas static assets (JS/CSS bundles for the SPA) + favicon
+  - hostname: app.cslogbook.me
+    path: /assets/*
+    service: https://digitalallthingsonline.tail75d1ef.ts.net:8444
+  - hostname: app.cslogbook.me
+    path: /favicon.svg
+    service: https://digitalallthingsonline.tail75d1ef.ts.net:8444
+
+  # starter-saas API (web nginx proxies /api -> api:3000)
+  - hostname: app.cslogbook.me
+    path: /api/*
+    service: https://digitalallthingsonline.tail75d1ef.ts.net:8444
+
+  # Hermes LINE adapter — webhook + media (localhost:8646 on discord-bot-vps)
+  - hostname: app.cslogbook.me
+    service: http://localhost:8646
 
   # Reject everything else
   - service: http_status:404

@@ -1,6 +1,6 @@
 # Fork status (Manchinn/starter-saas)
 
-**Last updated:** 2026-07-27
+**Last updated:** 2026-08-20
 **Fork release line:** `1.2.0-line.1` (see `CHANGELOG.md`; package versions match)
 
 ## What `main` is
@@ -74,14 +74,34 @@ still exist for archaeology. They are **not** the product direction of
 
 | Component | Status |
 |-----------|--------|
-| **Stack** | Docker Compose (`compose.yaml`): PostgreSQL 16 + Express API + Nginx |
-| **Public access** | Cloudflare Tunnel → `https://app.cslogbook.me` (TLS auto, QUIC tunnel, HSTS, WAF) |
-| **No open ports** | API and DB are internal Docker-network only; only web publishes to `127.0.0.1:8080` |
+| **Stack** | Docker Compose (`compose.yaml`): PostgreSQL 16 + Express API + Nginx — runs on **c46** (`ssh c46-ts` = tailscale `digitalallthingsonline`) |
+| **Public access** | Cloudflare Tunnel `line-gateway` on **discord-bot-vps** → `https://app.cslogbook.me`; routed via Tailscale to c46 for `/line-liff`, `/assets`, `/api`; LINE webhook + media on `localhost:8646` catch-all |
+| **No open ports** | API and DB are internal Docker-network only; web publishes to `127.0.0.1:8081` on c46, exposed tailnet-only via `tailscale serve :8444` |
 | **Redis** | Enabled — shared cache, rate limiting, Socket.IO scaling (issue #8) |
 | **Backup** | Not yet automated (open issue #5) |
 | **CI/CD** | Done — GitHub Actions test + build on push/PR to main (issue #6) |
 | **Monitoring** | Done — Uptime Kuma + Loki + Grafana + LINE Notify alerting (issue #7) |
 | **API image** | 542 MB (down from 921 MB, -41%) |
+
+### Production topology (current, 2026-08-20)
+
+```
+Browser / LINE platform
+    └─► Cloudflare edge  https://app.cslogbook.me  (public, WAF/TLS)
+          └─► cloudflared  (discord-bot-vps, systemd, tunnel `line-gateway`)
+                ├─ /line-liff*, /assets/*, /favicon.svg, /api/*
+                │     └─► Tailscale ► c46 = digitalallthingsonline
+                │            tailscale serve :8444 ► 127.0.0.1:8081 (starter-saas web/nginx)
+                └─ catch-all ─► http://localhost:8646 (Hermes LINE adapter)
+                                  ├─ POST /line/webhook  (LINE Messaging API webhook)
+                                  └─ GET  /line/media/*  (outbound image/audio/video)
+```
+
+| Node | Tailscale name | IP | Role |
+|------|----------------|----|------|
+| c46 | `digitalallthingsonline` | 100.89.73.34 | Docker stack (web/api/redis/db) |
+| discord-bot-vps | `discord-bot-vps` | 100.66.5.109 | cloudflared + LINE adapter + gateway |
+| Windows | `99cnav` | 100.66.202.95 | local dev / Hermes desktop |
 
 See `docs/postgresql-docker-deployment.md` for the full deployment guide and Cloudflare Tunnel setup. See `docs/production-runbook.md` for daily startup/shutdown/health-check procedures.
 
