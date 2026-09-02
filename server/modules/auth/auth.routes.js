@@ -13,6 +13,7 @@ const {
 const {
   registerRules,
   loginRules,
+  lineRules,
   changePasswordRules,
   emailOnlyRules,
   resetPasswordRules,
@@ -24,6 +25,8 @@ const router = Router()
 router.post('/register', registerLimiter, registerRules, validate, (req, res) => controller.register(req, res))
 
 router.post('/login', loginLimiter, loginRules, validate, (req, res) => controller.login(req, res))
+
+router.post('/line', tokenLimiter, lineRules, validate, (req, res) => controller.lineLogin(req, res))
 
 router.post('/refresh', refreshLimiter, (req, res) => controller.refresh(req, res))
 

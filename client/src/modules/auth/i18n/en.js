@@ -107,6 +107,25 @@ export default {
     registrationFailed:   'Registration failed',
     installationFailed:   'Installation failed',
 
+    // ── LINE login ──────────────────────────────────────────────────────────
+    lineContinue:      'Continue with LINE',
+    lineSigningIn:     'Connecting to LINE…',
+    lineNotConfigured: 'LINE login is not configured for this instance yet. You can still sign in with email below.',
+    lineLoginFailed:   'LINE login failed. Please try again, or sign in with email below.',
+    orEmail:           'or continue with email',
+
+    // ── Role & permission summary ───────────────────────────────────────────
+    rolesLabel:          'Roles',
+    permissionsLabel:    'Permissions',
+    systemAdmin:         'System Admin',
+    allPermissions:      'All permissions',
+    noRoles:             'No roles assigned',
+    noPermissions:       'No permissions',
+    accountReady:        'Your account is ready',
+    accountReadyDesc:    'Here are the roles and permissions you were granted.',
+    welcome:             'Welcome',
+    continueToApp:       'Go to the app',
+
     // ── Forgot password ──────────────────────────────────────────────────────
     forgotTitle:       'Forgot your password?',
     forgotDesc:        "Enter your email and we'll send you a link to reset it.",

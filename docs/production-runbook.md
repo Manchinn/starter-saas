@@ -509,6 +509,32 @@ UK_PORT=3002
 
 > ⚠️ ค่านี้อยู่บน c46 เท่านั้น (ไม่ใช่ git) — **ถ้า re-clone demo ต้องใส่ UK_PORT ใหม่อีกครั้ง** ไม่งั้น `deploy-poc` ล้มด้วย `Bind for 127.0.0.1:3001 failed: port is already allocated`
 
+### LINE login (PoC)
+
+PoC surface ให้ลูกค้า login ผ่าน LINE (LIFF) หรือ register ด้วยอีเมล แล้วเล่นได้. ถ้า `LINE_CHANNEL_ID` ไม่ตั้ง → `POST /api/auth/line` ตอบ **501** (feature disabled) — ลูกค้า login LINE ไม่ได้จนกว่าจะใส่ค่า.
+
+ตั้งค่า env **บน c46**:
+
+- **staging** (`/home/admin2/starter-saas/.env.production`): `LINE_CHANNEL_ID`, `LINE_LIFF_ID`, `VITE_LIFF_ORG_ID`
+- **PoC/demo** (`/home/admin2/starter-saas-demo/.env.demo`): ชุดค่าเดียวกับด้านบน + `UK_PORT=3002` (host-local — ดูหัวข้อก่อนหน้า)
+
+> `VITE_LIFF_ORG_ID` คือ **organization UUID** (ไม่ใช่ LIFF ID) — ถูก inject ตอน build client (web build-arg) ดังนั้นต้องตั้งตัวเลขจริง **ก่อน** `up -d --build`; ถ้าแก้แล้วต้อง rebuild ไม่งั้น image ยังมีค่าเก่า.
+>
+> ⚠️ **ห้ามเอา channel secret ใส่ client** — client เป็น static bundle ที่มีคนดูได้. ส่งแค่ `idToken` ไป `/api/auth/line`; secret อยู่ฝั่ง server เท่านั้น (encrypt ด้วย `LINE_CREDENTIAL_ENCRYPTION_KEY`).
+
+Check ว่าตั้งถูก: `curl -fsS https://demo.cslogbook.me/api/health` ผ่าน แล้วลอง login LINE — ถ้าตอบ 501 → `LINE_CHANNEL_ID` ว่าง/ผิด ใน `.env.demo`.
+
+### PoC client flow (วิธีพาลูกค้า)
+
+1. เปิด `https://demo.cslogbook.me` → หน้า landing
+2. login — แนะนำ **LINE** (`liff.login()` → `liff.getIDToken()` → `POST /api/auth/line`) หรือ **register ด้วยอีเมล** (`POST /api/auth/register`)
+3. ระบบ find/create user + ออก **JWT** (`{ user, permissions, accessToken }` + refresh cookie)
+4. เข้าสู่หน้าหลักตาม role:
+   - **admin** (`role==='admin'` ⇒ wildcard permissions) → dashboard + menu เต็ม (modules, ERP, settings)
+   - **user** (default สำหรับบัญชีใหม่) → เห็น UI จำกัดตาม permissions ที่มี
+
+> เคล็ดลับ demo: สร้างบัญชี admin แล้วใช้ `POST /api/auth/login-as/:userId` เพื่อโชว์มุมมองทั้งสองระดับโดยไม่ต้อง logout.
+
 ### ดูผล / re-run
 
 ```bash

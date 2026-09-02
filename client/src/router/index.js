@@ -26,13 +26,6 @@ async function checkInstallStatus() {
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    {
-      path: '/',
-      redirect: () => {
-        const auth = useAuthStore()
-        return auth.isAdmin ? '/dashboard' : '/erp/dashboard'
-      },
-    },
     ...getModuleRoutes(),
     {
       path: '/:pathMatch(.*)*',
@@ -60,7 +53,7 @@ router.beforeEach(async (to, from, next) => {
 
   // If installed and navigating to install page, redirect away
   if (to.meta.isInstallPage) {
-    if (auth.isAuthenticated) return next(auth.isAdmin ? '/dashboard' : '/erp/dashboard')
+    if (auth.isAuthenticated) return next(auth.homeRoute())
     return next('/login')
   }
 
@@ -78,7 +71,7 @@ router.beforeEach(async (to, from, next) => {
   const requiresAdmin = to.meta.requiresAdmin === true
   const isGuest = to.meta.guest === true
 
-  const defaultHome = auth.isAdmin ? '/dashboard' : '/erp/dashboard'
+  const defaultHome = auth.homeRoute()
 
   if (isGuest && auth.isAuthenticated) return next(defaultHome)
   if (requiresAuth && !auth.isAuthenticated) return next('/login')

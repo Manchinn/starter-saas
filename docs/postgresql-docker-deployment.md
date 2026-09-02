@@ -131,6 +131,43 @@ The Cloudflare Tunnel setup is fully portable. To move to a VPS:
 
 The stack itself never knows whether cloudflared runs locally or on a VPS.
 
+## LINE login (LIFF) — PoC
+
+> สำหรับ PoC: ลูกค้า login ผ่าน LINE (LIFF) หรือ register ด้วยอีเมล แล้วเข้าเล่นได้ โดย `POST /api/auth/line` คืน **501** จนกว่าจะตั้งค่า LINE.
+
+### ที่มาของ channel ID / LIFF ID
+
+ค่าทั้งหมดได้จาก **LINE Developers Console** (`https://developers.line.biz/console`):
+
+| Env | ที่มาช่อง | ใช้ที่ไหน |
+| --- | --- | --- |
+| `LINE_CHANNEL_ID` | Channel ID ของ LINE Login app (Messaging API channel) | server — ใช้ verify `idToken` ตอน `POST /api/auth/line` |
+| `LINE_LIFF_ID` | LIFF app → Basic settings → LIFF ID | `liff.init({ liffId })` ฝั่ง client + อ้างอิงฝั่ง server |
+| `VITE_LIFF_ORG_ID` | **Organization UUID** ในระบบนี้ที่ถือ LIFF app (single-org PoC) | inject ใน client build (web build-arg) |
+
+### client flow
+
+```
+liff.init({ liffId: LINE_LIFF_ID })              // เปิดหน้าใน LINE
+  → liff.getIDToken()  → idToken
+  → POST /api/auth/line  { idToken }             // ส่ง idToken เข้า API
+      → server verify (ใช้ LINE_CHANNEL_ID)      // ยิง api.line.me oauth2/v2.1/verify
+      → find/create user ด้วย LINE uid
+      → { user, permissions, accessToken } + refresh cookie (httpOnly)
+  → redirect ไปหน้า landing/dashboard ตาม role
+```
+
+ถ้า LINE ยังไม่ตั้ง (`LINE_CHANNEL_ID` ว่าง) → `/api/auth/line` ตอบ **501**.
+
+### สิ่งที่ต้องตั้ง
+
+- **inject `VITE_LIFF_ORG_ID`** ใน client build — `compose.yaml` ส่งผ่านเป็น build-arg ของ `web` (ใส่ **organization UUID** ใน `.env.production` / `.env.demo`, ไม่ใช่ LIFF ID). ต้อง rebuild image หลังแก้ (`up -d --build`)
+- **ตั้ง `LINE_CHANNEL_ID`** ฝั่ง server — อ่านผ่าน `env_file` ของ service `api` อัตโนมัติ
+- **ตั้ง `LINE_LIFF_ID`** ให้ตรงกับ LIFF app ใน Console
+- `LINE_CREDENTIAL_ENCRYPTION_KEY` (base64 32 bytes) — จำเป็นเฉพาะถ้าใช้ LINE admin connection API (encrypt secret ฝั่ง server)
+
+> ⚠️ **channel secret ห้ามอยู่ใน client bundle** — client เป็น static bundle เปิดดูได้. ส่งแค่ `idToken` ไป `/api/auth/line`; secret อยู่ฝั่ง server เท่านั้น (encrypt ด้วย `LINE_CREDENTIAL_ENCRYPTION_KEY` ที่เก็บใน DB).
+
 ## Fresh PostgreSQL environment
 
 Build the images and start PostgreSQL only:

@@ -43,6 +43,16 @@ module.exports = {
     }
   },
 
+  async lineLogin(req, res) {
+    try {
+      const { user, permissions, accessToken, refreshToken } = await authService.lineLogin(req.body, reqMeta(req))
+      setRefreshCookie(req, res, refreshToken, { persist: wantsPersist(req) })
+      return ok(res, { user, permissions, accessToken }, 'Login successful')
+    } catch (err) {
+      return fail(res, err.message, err.status || 400)
+    }
+  },
+
   async refresh(req, res) {
     try {
       const refreshToken = readCookie(req, REFRESH_COOKIE)

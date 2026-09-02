@@ -121,6 +121,55 @@
             <p class="text-[14px] text-[#64748B]">{{ t('auth.loginSubtitle') }}</p>
           </div>
 
+          <!-- Continue with LINE -->
+          <div class="mb-5">
+            <button
+              type="button"
+              @click="handleLine"
+              :disabled="lineLoading"
+              class="w-full inline-flex items-center justify-center gap-2.5 py-3 px-6 text-[14px] font-semibold text-white
+                     bg-[#06C755] hover:bg-[#05B04B] active:bg-[#05A046]
+                     disabled:opacity-60 disabled:cursor-not-allowed
+                     shadow-[0_4px_16px_rgba(6,199,85,0.35)] transition-all duration-150">
+              <svg v-if="lineLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <svg v-else class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18 2.5H6C3.24 2.5 1 4.74 1 7.5v6.53c0 2.76 2.24 5 5 5h5.5l5.5 3.5v-3.5H18c2.76 0 5-2.24 5-5V7.5c0-2.76-2.24-5-5-5z" />
+              </svg>
+              <span>{{ lineLoading ? t('auth.lineSigningIn') : t('auth.lineContinue') }}</span>
+            </button>
+
+            <!-- LINE / fallback notice (e.g. LINE not configured → 501) -->
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="opacity-0 -translate-y-1"
+              enter-to-class="opacity-100 translate-y-0"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0">
+              <div v-if="lineError"
+                class="mt-3 flex items-start gap-2.5 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-[13px]">
+                <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>{{ lineError }}</span>
+              </div>
+            </transition>
+          </div>
+
+          <!-- Divider -->
+          <div class="relative flex items-center mb-6">
+            <span class="absolute inset-0 flex items-center">
+              <span class="w-full border-t border-[#E2E8F0]"></span>
+            </span>
+            <span class="relative pr-2 bg-[#F8FAFC] text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+              {{ t('auth.orEmail') }}
+            </span>
+          </div>
+
           <!-- Form -->
           <form @submit.prevent="handleLogin" class="space-y-5">
 
@@ -290,6 +339,7 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useFieldErrors } from '@/composables/useFieldErrors'
+import { useLineAuth } from '@/composables/useLineAuth'
 import FieldError from '@/components/form/FieldError.vue'
 import BrandMark from '@/components/BrandMark.vue'
 import { brand } from '@/config/brand'
@@ -297,6 +347,7 @@ import { brand } from '@/config/brand'
 const auth   = useAuthStore()
 const router = useRouter()
 const { t }  = useI18n()
+const { lineLoading, lineError, loginWithLine } = useLineAuth()
 
 const form         = ref({ email: '', password: '' })
 const remember     = ref(true)
@@ -340,7 +391,7 @@ async function handleLogin() {
     } else {
       localStorage.removeItem('rememberedEmail')
     }
-    router.push(auth.user?.defaultPage || '/dashboard')
+    router.push(auth.homeRoute())
   } catch (err) {
     const hadFieldErrors = setFromError(err)
     if (!hadFieldErrors) {
@@ -349,5 +400,10 @@ async function handleLogin() {
   } finally {
     loading.value = false
   }
+}
+
+// LINE login — keeps the email form as a fallback on any failure (incl. 501).
+function handleLine() {
+  loginWithLine()
 }
 </script>

@@ -77,9 +77,14 @@ module.exports = {
     ttl:       parseInt(process.env.REDIS_TTL, 10) || 3600,
   },
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
-  // AES-256-GCM key (base64 32 bytes) used to encrypt LINE channel secrets/tokens at rest.
+  // LINE Messaging API channel config. credentialEncryptionKey is the AES-256-GCM
+  // key (base64 32 bytes) used to encrypt LINE channel secrets/tokens at rest.
+  // channelId is the Messaging API channel id (used as the OAuth client_id to verify
+  // LINE login ID tokens); liffId is the LIFF app id used by the client.
   line: {
     credentialEncryptionKey: process.env.LINE_CREDENTIAL_ENCRYPTION_KEY || '',
+    channelId: process.env.LINE_CHANNEL_ID || '',
+    liffId: process.env.LINE_LIFF_ID || '',
   },
   appName: process.env.APP_NAME || 'SaaS',
   // A live getter (not a snapshot) so SMTP settings edited at runtime via the

@@ -105,6 +105,22 @@ export const useAuthStore = defineStore('auth', () => {
     applySession(data.data)
   }
 
+  // LINE login: the browser (LIFF) sends the user's LINE idToken; the server
+  // verifies it and returns { user, permissions, accessToken } + an httpOnly
+  // refresh cookie. Matches the /auth/line contract.
+  async function loginWithLine(idToken) {
+    const { data } = await api.post('/auth/line', { idToken })
+    setAccessToken(data.data.accessToken)
+    applySession(data.data)
+  }
+
+  // Destination after a successful login/register — honors the user's
+  // configured default page, else the role-appropriate dashboard.
+  function homeRoute() {
+    if (user.value?.defaultPage) return user.value.defaultPage
+    return isAdmin.value ? '/dashboard' : '/erp/dashboard'
+  }
+
   async function register(name, email, password) {
     const { data } = await api.post('/auth/register', { name, email, password })
     setAccessToken(data.data.accessToken)
@@ -150,7 +166,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated, isAdmin,
     hasPermission, hasRole,
     fetchMe, bootstrap, login, register, install, logout, changePassword,
-    loginAs, returnToAdmin,
+    loginAs, returnToAdmin, loginWithLine, homeRoute,
     setAccessToken, clearSession, syncTokensFromRefresh, markLocked, checkSubscription,
   }
 })

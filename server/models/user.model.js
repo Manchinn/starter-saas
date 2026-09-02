@@ -113,12 +113,24 @@ const User = sequelize.define('User', {
     allowNull: true,
     comment: 'Password Reset Expires At (โทเค็นรีเซ็ตหมดอายุ)',
   },
+  provider: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Auth Provider (ผู้ให้บริการเข้าใช้) — e.g. "line" for LINE login. Null = local credential login.',
+  },
+  providerUid: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Auth Provider UID (รหัสผู้ใช้ตามผู้ให้บริการ) — the LINE `sub` claim, unique per provider.',
+  },
   ...recordFields,
 }, {
   indexes: [
     // Token-lookup indexes for password reset / email verification flows.
     { name: 'idx_users_password_reset_token', fields: ['passwordResetToken'] },
     { name: 'idx_users_email_verification_token', fields: ['emailVerificationToken'] },
+    // A LINE (or other provider) login maps 1:1 to a platform User via (provider, providerUid).
+    { name: 'idx_users_provider_uid', fields: ['provider', 'providerUid'] },
   ],
   hooks: {
     beforeCreate: async (user) => {

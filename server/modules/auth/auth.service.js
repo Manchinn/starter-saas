@@ -173,6 +173,70 @@ const login = async ({ email, password }, meta = {}) => {
   return { ...session, accessToken, refreshToken }
 }
 
+// ── LINE login ────────────────────────────────────────────────────────────────
+//
+// A LINE LIFF app hands us an ID token via POST /api/auth/line. We verify it
+// server-side against LINE's OAuth endpoint (client_id = our channel id), then
+// find-or-create a platform User keyed by the LINE `sub` claim. No password is
+// involved — LINE is the identity provider, so we mint an opaque password for the
+// row (the beforeCreate hook hashes it) purely to satisfy the NOT NULL column.
+
+const LINE_PROVIDER = 'line'
+const LINE_ID_TOKEN_VERIFY_URL = 'https://api.line.me/oauth2/v2.1/verify'
+
+// Verify a LINE ID token and return the trusted profile claims. `channelId` is the
+// OAuth client_id LINE expects; we also cross-check the `aud` claim as defence in
+// depth (LINE sets `aud` to the channel id for channel-scoped tokens).
+const verifyLineIdToken = async (idToken, channelId) => {
+  const body = new URLSearchParams({ id_token: idToken, client_id: channelId })
+  const response = await fetch(LINE_ID_TOKEN_VERIFY_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body,
+  })
+  if (!response.ok) throw { status: 401, message: 'Invalid LINE ID token' }
+  const claims = await response.json()
+  if (!claims.sub) throw { status: 401, message: 'LINE ID token has no user subject' }
+  if (claims.aud && claims.aud !== channelId) {
+    throw { status: 401, message: 'LINE ID token audience does not match this channel' }
+  }
+  return { uid: claims.sub, name: claims.name || null, picture: claims.picture || null }
+}
+
+const lineLogin = async ({ idToken }, meta = {}) => {
+  if (!idToken) throw { status: 400, message: 'LINE idToken is required' }
+  // Feature-flag: LINE login can't work without a configured channel id.
+  const channelId = config.line && config.line.channelId
+  if (!channelId) throw { status: 501, message: 'LINE login is not configured — set LINE_CHANNEL_ID on the server.' }
+
+  const profile = await verifyLineIdToken(idToken, channelId)
+
+  let user = await User.findOne({ where: { provider: LINE_PROVIDER, providerUid: profile.uid } })
+  if (!user) {
+    // Auto-create a platform User (role user) and link the LINE uid. The synthetic
+    // email is namespaced by uid so it never collides with a real address; the
+    // opaque password satisfies the NOT NULL column without allowing login.
+    user = await User.create({
+      name: profile.name || 'LINE User',
+      email: `${profile.uid}@line.local`,
+      password: crypto.randomBytes(24).toString('hex'),
+      role: 'user',
+      provider: LINE_PROVIDER,
+      providerUid: profile.uid,
+    })
+    await assignDefaultRole(user)
+  }
+  if (!user.isActive) throw { status: 401, message: 'Account is inactive' }
+
+  await user.update({ lastLoginAt: new Date() })
+
+  const accessToken = signAccess(user)
+  const refreshToken = signRefresh(user)
+  await saveRefreshToken(user.id, refreshToken, meta)
+  const session = await resolveSession(user.id)
+  return { ...session, accessToken, refreshToken }
+}
+
 const refresh = async (token, meta = {}) => {
   const record = await RefreshToken.findOne({ where: { token, isRevoked: false } })
   if (!record || record.expiresAt < new Date()) {
@@ -555,4 +619,5 @@ module.exports = {
   register, login, loginAs, returnToAdmin, refresh, logout, getMe, changePassword,
   pruneExpiredTokens, getInstallStatus, install,
   forgotPassword, resetPassword, verifyEmail, resendVerification,
+  lineLogin,
 }
