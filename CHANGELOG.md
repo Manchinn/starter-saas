@@ -51,6 +51,14 @@ Git history remains the complete implementation-level record.
 
 ### Changed
 
+- **แบรนด์ MaeKade** (productize): default `APP_NAME` / `VITE_APP_NAME` เปลี่ยนจาก
+  `SaaS` → `MaeKade` (env examples, `client/src/config/brand.js`, `server/config/config.js`,
+  `compose.yaml` build-arg, README); ธีม `tailwind` primary → coral palette
+  (`#FF7847` family, focus ring ตาม), landing hero retint อบอุ่น (คงปุ่ม LINE เขียว
+  `#06C755`), copy landing (en/th) ใหม่พร้อม tagline, และโลโก้ / logo-mark / favicon
+  ใหม่ (M monogram + chat tail + cart hook บน rounded-square coral→mango tile) พร้อม
+  SEO / OpenGraph / Twitter meta + theme-color ใน `index.html`
+  ([`0c0c4d9`](https://github.com/Manchinn/starter-saas/commit/0c0c4d9))
 - แบรนด์ที่ผู้ใช้เห็นตอน runtime เป็น **SaaS** ผ่าน `APP_NAME` / `VITE_APP_NAME`
   พร้อม `BrandMark.vue` เป็น component กลาง — repository/package identity,
   เอกสารย้อนหลัง, คำศัพท์ Redis และ LINE ไม่เปลี่ยน
