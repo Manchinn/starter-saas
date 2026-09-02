@@ -513,27 +513,53 @@ UK_PORT=3002
 
 PoC surface ให้ลูกค้า login ผ่าน LINE (LIFF) หรือ register ด้วยอีเมล แล้วเล่นได้. ถ้า `LINE_CHANNEL_ID` ไม่ตั้ง → `POST /api/auth/line` ตอบ **501** (feature disabled) — ลูกค้า login LINE ไม่ได้จนกว่าจะใส่ค่า.
 
+#### #6 — Config alignment (สำคัญ)
+
+ตัวแปร 3 ตัวนี้ต้องตั้งให้ตรงกัน มิฉะนั้น LINE login ล้มเหลว (401 ทุกครั้ง) และดีบั๊กยาก. ค่าทั้งหมดต้องมาจาก **LINE Developers console ตัวเดียวกัน** (channel เดียว + LIFF app ตัวเดียวกัน):
+
+| ตัวแปร | ฝั่ง | ใช้ทำอะไร | ต้องตรงกับ |
+| --- | --- | --- | --- |
+| `LINE_CHANNEL_ID` | server | OAuth `client_id` ที่ใช้ verify idToken ของ LIFF (`POST /api/auth/line`, `config.line.channelId`) + cross-check claim `aud` ให้ตรง channel. ว่าง → 501 | Channel ID ของ channel ที่ LIFF app สังกัด |
+| `VITE_LIFF_ORG_ID` | client | ถูก inject เข้า client bundle ตอน **build** (compose.yaml `web` build-arg) แล้วส่งเข้า `liff.init({ liffId })` ใน flow login (`client/src/composables/useLineAuth.js`) | ค่า LIFF ID ที่พาตรงกับ `LINE_LIFF_ID` |
+| `LINE_LIFF_ID` | server | เก็บไว้เป็น LIFF app ID ฝั่ง server (`config.line.liffId`) | ค่า LIFF ID เดียวกับ `VITE_LIFF_ORG_ID` |
+
+> ⚠️ **`VITE_LIFF_ORG_ID` คือ LIFF ID ไม่ใช่ organization UUID** — ชื่อตัวแปรหลอกว่าเป็น org. ใน flow login มันถูกส่งเข้า `liff.init({ liffId })` (LIFF ID เช่น `2010854084-v7SPSvSZ`). การเรียก `liff.init` ด้วยค่าผิด (เช่น UUID ของ org หรือ LIFF ID ของ channel อื่น) → verify ล้มเหลว / `aud` ไม่ตรง → 401.
+>
+> ⚠️ **การแก้ `VITE_LIFF_ORG_ID` ต้อง rebuild client image** (เป็น build-arg, baked ใน bundle): `docker compose --env-file .env.production up -d --build web`. แก้ env อย่างเดียวยังได้ bundle เก่า.
+>
+> ⚠️ **ตัวแปรเดียวถูกอ่านสองแบบ** ใน client build: flow login (`useLineAuth.js`) ใช้ `VITE_LIFF_ORG_ID` เป็น **LIFF ID** สำหรับ `liff.init`; ส่วน line-ordering module (`client/src/modules/line/views/LiffOrdering.vue`) อ่านเป็น **organization UUID** เพื่อเรียก `/line/liff/:orgId/config` แล้วเอา `liffId` ที่ได้มาใช้กับ `liff.init`. ถ้าคนในทีมตั้งค่าผสมกัน (คิดว่าเป็น org สำหรับ ordering แล้วปล่อยให้ login พัง หรือสลับกัน) อีกฝั่งจะพังทันที — ทั้งสอง path ต้องชัดเจนว่าค่าเดียวนี้ทำหน้าที่อะไรในแต่ละจุด (จุดนี้เกี่ยวกับ `POST /api/auth/line` โดยตรง: ค่าใน `liff.init` ต้องตรงกับ channel ที่ `LINE_CHANNEL_ID` ชี้).
+>
+> ⚠️ **ห้ามเอา channel secret ใส่ client** — client เป็น static bundle ที่มีคนดูได้. ส่งแค่ `idToken` ไป `/api/auth/line`; secret อยู่ฝั่ง server เท่านั้น (encrypt ด้วย `LINE_CREDENTIAL_ENCRYPTION_KEY`).
+
 ตั้งค่า env **บน c46**:
 
 - **staging** (`/home/admin2/starter-saas/.env.production`): `LINE_CHANNEL_ID`, `LINE_LIFF_ID`, `VITE_LIFF_ORG_ID`
 - **PoC/demo** (`/home/admin2/starter-saas-demo/.env.demo`): ชุดค่าเดียวกับด้านบน + `UK_PORT=3002` (host-local — ดูหัวข้อก่อนหน้า)
 
-> `VITE_LIFF_ORG_ID` คือ **organization UUID** (ไม่ใช่ LIFF ID) — ถูก inject ตอน build client (web build-arg) ดังนั้นต้องตั้งตัวเลขจริง **ก่อน** `up -d --build`; ถ้าแก้แล้วต้อง rebuild ไม่งั้น image ยังมีค่าเก่า.
->
-> ⚠️ **ห้ามเอา channel secret ใส่ client** — client เป็น static bundle ที่มีคนดูได้. ส่งแค่ `idToken` ไป `/api/auth/line`; secret อยู่ฝั่ง server เท่านั้น (encrypt ด้วย `LINE_CREDENTIAL_ENCRYPTION_KEY`).
+Check ว่าตั้งถูก: `curl -fsS https://demo.cslogbook.me/api/health` ผ่าน แล้วลอง login LINE — ถ้าตอบ 501 → `LINE_CHANNEL_ID` ว่าง/ผิด ใน `.env.demo`; ถ้าตอบ 401 → idToken ถูกต้องแต่ `aud`/channel ไม่ตรง (ตรวจ `LINE_CHANNEL_ID` + ค่า LIFF ID ใน `liff.init`).
 
-Check ว่าตั้งถูก: `curl -fsS https://demo.cslogbook.me/api/health` ผ่าน แล้วลอง login LINE — ถ้าตอบ 501 → `LINE_CHANNEL_ID` ว่าง/ผิด ใน `.env.demo`.
+#### #4 / #7 / #9 — พฤติกรรมเมื่อ login ด้วย LINE (server, `POST /api/auth/line`)
+
+- **#4 account-linking (ตามโค้ดปัจจุบัน)**: `verifyLineIdToken` อ่าน `email` จาก ID token (optional — LINE ต้อง grant email scope ซึ่งตอนนี้ deprecated แล้ว มักไม่มี). `findLineUserOrCreate` ทำ race-safe 3 ขั้น: (1) หาโดย key `(provider='line', providerUid=<sub>)`; (2) ถ้า ID token มี `email` (และไม่ใช่ synthetic ของ uid นี้) → พยายาม match กับ user ที่สมัครอีเมลมาก่อน แล้ว **link** (set `provider`/`providerUid` ลง user เดิม ไม่สร้างซ้ำ); (3) ไม่ match → สร้างบัญชีใหม่ (role `user`, synthetic email `<uid>@line.local`, `emailVerifiedAt=now`). ทุกกรณีถ้าชน UNIQUE `(provider,providerUid)` → refetch winner ไม่ 500.
+- **#7 emailVerifiedAt / verified by design**: lineLogin **ไม่ตรวจ `requireEmailVerification`** (gate นั้นมีเฉพาะใน password login `login()` ที่บรรทัด 161) — LINE OAuth login ถือเป็น verified โดยตั้งใจสำหรับ IdP; ทั้งบน create และ link โค้ดตั้ง `emailVerifiedAt = new Date()` เลย (ไม่ใช่ null). โปรดรู้ว่า `emailVerifiedAt` จะถูกรีเซ็ตเป็น `null` ใหม่เสมอเมื่อ user เปลี่ยนอีเมล (`server/modules/profile/profile.service.js`).
+- **#9 synthetic email**: `<uid>@line.local` — โดเมน `line.local` เป็น reserved/private TLD (ไม่ resolve), namespaced ด้วย LINE uid จึงชนอีเมลจริงได้ยาก; จึงมี `resolveLineEmail` ตรวจ collision + fallback เป็น random-suffix (`<uid>-<hex>@line.local`) ถ้าชน (ดู `auth.service.js`). ตัว `password` ที่ยิงเข้าไปเป็น random hex เพื่อให้ผ่าน NOT NULL column แต่ end-user ไม่มีทาง login ด้วยพาสเวิร์ด (LINE เป็น identity provider).
 
 ### PoC client flow (วิธีพาลูกค้า)
 
-1. เปิด `https://demo.cslogbook.me` → หน้า landing
-2. login — แนะนำ **LINE** (`liff.login()` → `liff.getIDToken()` → `POST /api/auth/line`) หรือ **register ด้วยอีเมล** (`POST /api/auth/register`)
+1. เปิด `https://demo.cslogbook.me` → หน้า landing (`client/src/modules/public/views/Landing.vue`)
+2. login — แนะนำ **LINE** (ปุ่ม "ดำเนินการต่อด้วย LINE" → `useLineAuth` → `liff.init({ liffId })` → `liff.getIDToken()` → `POST /api/auth/line`) หรือ **register ด้วยอีเมล** (`POST /api/auth/register`) / **login ด้วยอีเมล** (`POST /api/auth/login`)
 3. ระบบ find/create user + ออก **JWT** (`{ user, permissions, accessToken }` + refresh cookie)
 4. เข้าสู่หน้าหลักตาม role:
    - **admin** (`role==='admin'` ⇒ wildcard permissions) → dashboard + menu เต็ม (modules, ERP, settings)
    - **user** (default สำหรับบัญชีใหม่) → เห็น UI จำกัดตาม permissions ที่มี
 
 > เคล็ดลับ demo: สร้างบัญชี admin แล้วใช้ `POST /api/auth/login-as/:userId` เพื่อโชว์มุมมองทั้งสองระดับโดยไม่ต้อง logout.
+
+**พฤติกรรมที่ควรรู้เวลาสาธิต:**
+
+- **ยังไม่ได้ตั้งค่า LINE → 501 (friendly)**: ถ้า `VITE_LIFF_ORG_ID` ว่าง (client) หรือ `LINE_CHANNEL_ID` ว่าง (server) → client วาดบั๊วแจ้งเตือน "ยังไม่ได้ตั้งค่าการเข้าสู่ระบบด้วย LINE…" (`auth.lineNotConfigured`) และ **ฟอร์มอีเมลยังใช้ได้** — ไม่ติดครับปุ่ม. ฝั่ง server `POST /api/auth/line` ตอบ **501** เมื่อ `LINE_CHANNEL_ID` ว่าง.
+- **เปิดใน external browser (ไม่ใช่ LINE app)**: `useLineAuth` เรียก `liff.init({ withLoginOnExternalBrowser: false })` — LIFF จะไม่ login ข้าม browser ภายนอก; เวลาสาธิตควรเปิด URL ใน **LINE app** (bot link / rich menu / QR) หรือแจ้งลูกค้าให้ **login ด้วยอีเมล** แทน. (ไม่มีข้อความ in-UI แยกเจาะจงสำหรับกรณีนี้ — สอนปากเปล่า / ใช้ hint ในบทความ)
+- **email register/login ใช้ได้เสมอ**: ฟอร์มอีเมลเป็น fallback ที่ไม่ขึ้นกับ config LINE — ถ้า LINE ไม่ได้ตั้งหรือล้มเหลว ลูกค้า register/login ด้วยอีเมลได้ตามปกติ
 
 ### ดูผล / re-run
 

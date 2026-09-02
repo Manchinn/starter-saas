@@ -139,7 +139,7 @@ import { brand } from '@/config/brand'
 import { useLineAuth } from '@/composables/useLineAuth'
 
 const { t } = useI18n()
-const { lineLoading, lineError, loginWithLine } = useLineAuth()
+const { lineLoading, lineError, loginWithLine } = useLineAuth({ context: 'landing' })
 
 const items = computed(() => [
   { title: t('landing.item1Title'), desc: t('landing.item1Desc') },

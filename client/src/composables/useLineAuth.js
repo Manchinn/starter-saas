@@ -16,10 +16,17 @@ const LIFF_ID = import.meta.env.VITE_LIFF_ORG_ID
  *   → store accessToken in the auth store → redirect to the app.
  *
  * Failure is non-fatal: on a 501 ("LINE not configured") or any LIFF error we
- * set a friendly `lineError` and return false, so the caller's email form stays
- * usable and the client is never stuck on a dead button.
+ * set a friendly `lineError` and return false, so the caller's email fallback
+ * stays usable and the client is never stuck on a dead button.
+ *
+ * @param {object}   [options]
+ * @param {'login'|'landing'} [options.context='login'] where the flow is used.
+ *   Picks the right copy: the landing page has no email form (its fallback is
+ *   the sign-up / sign-in links), so its hints point there instead of to a
+ *   form "below".
  */
-export function useLineAuth() {
+export function useLineAuth(options = {}) {
+  const { context = 'login' } = options
   const auth = useAuthStore()
   const router = useRouter()
   const { t } = useI18n()
@@ -39,6 +46,15 @@ export function useLineAuth() {
 
       await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: false })
 
+      // The LINE consent screen can't be reached from outside the LINE app —
+      // e.g. when the landing page is opened in a desktop browser. Don't fire a
+      // flow that breaks; surface a friendly hint and leave email login usable.
+      if (!liff.isInClient()) {
+        const err = new Error('LIFF_OUTSIDE_CLIENT')
+        err.code = 'LIFF_OUTSIDE_CLIENT'
+        throw err
+      }
+
       // Not signed in on LINE yet — bounce to the LINE consent screen. The
       // flow resumes right here on return. Returning false keeps the UI calm.
       if (!liff.isLoggedIn()) {
@@ -57,12 +73,15 @@ export function useLineAuth() {
       router.push(auth.homeRoute())
       return true
     } catch (err) {
-      // 501 = the server has no LINE/LIFF credentials configured. Surface a
-      // friendly notice; the email form below is the fallback.
-      if (err.code === 'LIFF_NOT_CONFIGURED' || err.response?.status === 501) {
-        lineError.value = t('auth.lineNotConfigured')
+      // 501 = the server has no LINE/LIFF credentials configured. Pick copy
+      // that matches the page's real fallback CTA (email form on login, or the
+      // sign-up / sign-in page on the landing page).
+      if (err.code === 'LIFF_OUTSIDE_CLIENT') {
+        lineError.value = t(context === 'landing' ? 'auth.lineExternalLanding' : 'auth.lineExternal')
+      } else if (err.code === 'LIFF_NOT_CONFIGURED' || err.response?.status === 501) {
+        lineError.value = t(context === 'landing' ? 'auth.lineNotConfiguredLanding' : 'auth.lineNotConfigured')
       } else {
-        lineError.value = t('auth.lineLoginFailed')
+        lineError.value = t(context === 'landing' ? 'auth.lineLoginFailedLanding' : 'auth.lineLoginFailed')
       }
       return false
     } finally {

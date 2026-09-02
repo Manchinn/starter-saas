@@ -112,6 +112,12 @@ export default {
     lineSigningIn:     'Connecting to LINE…',
     lineNotConfigured: 'LINE login is not configured for this instance yet. You can still sign in with email below.',
     lineLoginFailed:   'LINE login failed. Please try again, or sign in with email below.',
+    // Landing page — no email form below; its fallback is the sign-up / sign-in links.
+    lineNotConfiguredLanding: 'LINE login is not configured for this instance yet. You can still create an account or sign in with email.',
+    lineLoginFailedLanding:   'LINE login failed. Please try again, or create an account / sign in with email.',
+    // Opened outside the LINE app (desktop browser) — LINE consent can't be reached.
+    lineExternal:            'LINE login must be opened inside the LINE app — open this page in the LINE app, or sign in with email below.',
+    lineExternalLanding:     'LINE login must be opened inside the LINE app — open this page in the LINE app, or sign in with email.',
     orEmail:           'or continue with email',
 
     // ── Role & permission summary ───────────────────────────────────────────

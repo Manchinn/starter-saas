@@ -30,7 +30,11 @@ if (auth.isAuthenticated && !auth.locked) await settings.load()
 
 app.use(router)
 router.afterEach((to) => {
-  document.title = to.meta?.title ? `${to.meta.title} · ${brand.name}` : brand.name
+  const raw = to.meta?.title
+  // meta.title may be a plain string ('Login') or an i18n key ('line.liffTitle');
+  // resolve keys just like useAppLayout does so the tab shows the real message.
+  const title = raw ? (i18n.global.te(raw) ? i18n.global.t(raw) : raw) : ''
+  document.title = title ? `${title} · ${brand.name}` : brand.name
 })
 app.directive('can', vCan)
 app.component('DateInput', DateInput)

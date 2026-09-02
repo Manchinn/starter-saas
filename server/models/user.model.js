@@ -130,7 +130,10 @@ const User = sequelize.define('User', {
     { name: 'idx_users_password_reset_token', fields: ['passwordResetToken'] },
     { name: 'idx_users_email_verification_token', fields: ['emailVerificationToken'] },
     // A LINE (or other provider) login maps 1:1 to a platform User via (provider, providerUid).
-    { name: 'idx_users_provider_uid', fields: ['provider', 'providerUid'] },
+    // UNIQUE so a concurrent find-or-create can never duplicates rows for the same
+    // provider identity. Postgres treats NULLs as distinct, so this is safe for users
+    // who have not logged in via LINE (provider keeps NULL).
+    { name: 'idx_users_provider_uid', fields: ['provider', 'providerUid'], unique: true },
   ],
   hooks: {
     beforeCreate: async (user) => {

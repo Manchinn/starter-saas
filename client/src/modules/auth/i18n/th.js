@@ -112,6 +112,12 @@ export default {
     lineSigningIn:     'กำลังเชื่อมต่อกับ LINE…',
     lineNotConfigured: 'ยังไม่ได้ตั้งค่าการเข้าสู่ระบบด้วย LINE สำหรับระบบนี้ คุณยังสามารถเข้าสู่ระบบด้วยอีเมลด้านล่างได้',
     lineLoginFailed:   'การเข้าสู่ระบบด้วย LINE ล้มเหลว กรุณาลองใหม่ หรือเข้าสู่ระบบด้วยอีเมลด้านล่าง',
+    // Landing page — no email form below; its fallback is the sign-up / sign-in links.
+    lineNotConfiguredLanding: 'ยังไม่ได้ตั้งค่าการเข้าสู่ระบบด้วย LINE สำหรับระบบนี้ คุณยังสามารถสร้างบัญชีหรือเข้าสู่ระบบด้วยอีเมลได้',
+    lineLoginFailedLanding:   'การเข้าสู่ระบบด้วย LINE ล้มเหลว กรุณาลองใหม่ หรือสร้างบัญชี/เข้าสู่ระบบด้วยอีเมล',
+    // Opened outside the LINE app (desktop browser) — LINE consent can't be reached.
+    lineExternal:            'การเข้าสู่ระบบด้วย LINE ต้องเปิดในแอป LINE — กรุณาเปิดหน้านี้ในแอป LINE หรือเข้าสู่ระบบด้วยอีเมลด้านล่าง',
+    lineExternalLanding:     'การเข้าสู่ระบบด้วย LINE ต้องเปิดในแอป LINE — กรุณาเปิดหน้านี้ในแอป LINE หรือเข้าสู่ระบบด้วยอีเมล',
     orEmail:           'หรือดำเนินการต่อด้วยอีเมล',
 
     // ── สรุปบทบาทและสิทธิ์ ────────────────────────────────────────────────────

@@ -184,9 +184,37 @@ const login = async ({ email, password }, meta = {}) => {
 const LINE_PROVIDER = 'line'
 const LINE_ID_TOKEN_VERIFY_URL = 'https://api.line.me/oauth2/v2.1/verify'
 
+// A Sequelize unique-constraint error, raised by the UNIQUE (provider, providerUid)
+// index when two concurrent logins race to create the same LINE user — or by the
+// email unique index when a synthetic address collides with a real one.
+const isUniqueViolation = (err) =>
+  !!err && (
+    err.name === 'SequelizeUniqueConstraintError' ||
+    /duplicate key|unique constraint|already exists|SequelizeUniqueConstraintError/i.test(err.message || '')
+  )
+
+// Synthetic email for LINE-only identities, namespaced by the LINE `sub` so it can
+// never collide with a real registered address. If a collision is ever found (e.g. a
+// real user registered literally `<sub>@line.local`), we fall back to a random suffix.
+const syntheticLineEmail = (uid) => `${uid}@line.local`
+const syntheticLineEmailFallback = (uid) => `${uid}-${crypto.randomBytes(4).toString('hex')}@line.local`
+
+// Pick the synthetic email, falling back to a random-suffixed one if `<sub>@line.local`
+// is already taken by a real account. This is a best-effort guard — the real race
+// safety for the same `sub` is the UNIQUE (provider, providerUid) index below.
+const resolveLineEmail = async (uid) => {
+  const base = syntheticLineEmail(uid)
+  const collision = await User.findOne({ where: { email: base }, attributes: ['id'] })
+  return collision ? syntheticLineEmailFallback(uid) : base
+}
+
 // Verify a LINE ID token and return the trusted profile claims. `channelId` is the
 // OAuth client_id LINE expects; we also cross-check the `aud` claim as defence in
 // depth (LINE sets `aud` to the channel id for channel-scoped tokens).
+//
+// NOTE: the ID token only carries `email` when the app was granted the (now
+// deprecated) email scope — treat it as optional and normalise it to match the
+// normalised addresses stored during registration, or account-linking won't match.
 const verifyLineIdToken = async (idToken, channelId) => {
   const body = new URLSearchParams({ id_token: idToken, client_id: channelId })
   const response = await fetch(LINE_ID_TOKEN_VERIFY_URL, {
@@ -200,7 +228,74 @@ const verifyLineIdToken = async (idToken, channelId) => {
   if (claims.aud && claims.aud !== channelId) {
     throw { status: 401, message: 'LINE ID token audience does not match this channel' }
   }
-  return { uid: claims.sub, name: claims.name || null, picture: claims.picture || null }
+  const email = typeof claims.email === 'string' ? claims.email.trim().toLowerCase() : null
+  return { uid: claims.sub, name: claims.name || null, picture: claims.picture || null, email }
+}
+
+// Find-or-create the platform User for a verified LINE profile:
+//   1) by the identity key (provider=line, providerUid=sub) — the normal path;
+//   2) by the ID-token email, linking an existing local account instead of creating a
+//      duplicate (no new row) — account linking;
+//   3) create a fresh role-user when neither matched.
+// Steps 2 and 3 are written to be race-safe: if a concurrent login wins first, the
+// loser hits the UNIQUE (provider, providerUid) index, catches the constraint error,
+// refetches the winner and carries on — never a 500 from an unhandled unique clash.
+const findLineUserOrCreate = async (profile) => {
+  // 1) Already linked to this LINE identity.
+  let user = await User.findOne({ where: { provider: LINE_PROVIDER, providerUid: profile.uid } })
+  if (user) return user
+
+  // 2) Account linking by email. Skip when the ID token carried no email, or when the
+  //    "email" is our own synthetic one for this uid.
+  const linkEmail = profile.email && profile.email !== syntheticLineEmail(profile.uid)
+  if (linkEmail) {
+    const local = await User.findOne({ where: { email: linkEmail } })
+    if (local && local.provider !== LINE_PROVIDER) {
+      try {
+        await local.update({
+          provider: LINE_PROVIDER,
+          providerUid: profile.uid,
+          // LINE is an OAuth IdP — treat the identity as verified so LINE users are
+          // never blocked by the requireEmailVerification gate (meant for sign-ups).
+          emailVerifiedAt: local.emailVerifiedAt || new Date(),
+        })
+        return local
+      } catch (err) {
+        if (!isUniqueViolation(err)) throw err
+        // Two different LINE accounts raced to link the same local account. Fall
+        // through to the refetch/conflict handling in step 3.
+        user = await User.findOne({ where: { provider: LINE_PROVIDER, providerUid: profile.uid } })
+        if (user) return user
+        throw { status: 409, message: 'This LINE account is already linked to another user' }
+      }
+    }
+  }
+
+  // 3) Create a fresh role-user linked to this LINE identity. The synthetic email is
+  //    namespaced by uid (with a random-suffix fallback if it collides); the opaque
+  //    password satisfies the NOT NULL column without allowing login.
+  const email = await resolveLineEmail(profile.uid)
+  try {
+    user = await User.create({
+      name: profile.name || 'LINE User',
+      email,
+      password: crypto.randomBytes(24).toString('hex'),
+      role: 'user',
+      provider: LINE_PROVIDER,
+      providerUid: profile.uid,
+      // LINE is an OAuth IdP — mark the (synthetic) email as verified immediately.
+      emailVerifiedAt: new Date(),
+    })
+    await assignDefaultRole(user)
+    return user
+  } catch (err) {
+    if (!isUniqueViolation(err)) throw err
+    // Lost a concurrent find-or-create race (UNIQUE provider/uid clash): the winner
+    // exists now — refetch and use it.
+    user = await User.findOne({ where: { provider: LINE_PROVIDER, providerUid: profile.uid } })
+    if (!user) throw { status: 500, message: 'Unable to link LINE account' }
+    return user
+  }
 }
 
 const lineLogin = async ({ idToken }, meta = {}) => {
@@ -209,23 +304,19 @@ const lineLogin = async ({ idToken }, meta = {}) => {
   const channelId = config.line && config.line.channelId
   if (!channelId) throw { status: 501, message: 'LINE login is not configured — set LINE_CHANNEL_ID on the server.' }
 
-  const profile = await verifyLineIdToken(idToken, channelId)
-
-  let user = await User.findOne({ where: { provider: LINE_PROVIDER, providerUid: profile.uid } })
-  if (!user) {
-    // Auto-create a platform User (role user) and link the LINE uid. The synthetic
-    // email is namespaced by uid so it never collides with a real address; the
-    // opaque password satisfies the NOT NULL column without allowing login.
-    user = await User.create({
-      name: profile.name || 'LINE User',
-      email: `${profile.uid}@line.local`,
-      password: crypto.randomBytes(24).toString('hex'),
-      role: 'user',
-      provider: LINE_PROVIDER,
-      providerUid: profile.uid,
-    })
-    await assignDefaultRole(user)
+  let profile
+  try {
+    profile = await verifyLineIdToken(idToken, channelId)
+  } catch (err) {
+    // Our own 400/401 guards (missing idToken, bad token, no sub, aud mismatch) pass
+    // through intact. Anything else is an upstream/network failure — respond with a
+    // clean generic 502 and log the real cause so it never reaches the client.
+    if (err.status) throw err
+    require('../../core/logger').forLabel('auth').warn('LINE ID token verify failed', { error: err.message })
+    throw { status: 502, message: 'LINE authentication is unavailable' }
   }
+
+  const user = await findLineUserOrCreate(profile)
   if (!user.isActive) throw { status: 401, message: 'Account is inactive' }
 
   await user.update({ lastLoginAt: new Date() })

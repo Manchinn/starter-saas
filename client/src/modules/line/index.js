@@ -8,7 +8,7 @@ export default {
       path: '/line-liff',
       name: 'line-liff',
       component: () => import('./views/LiffOrdering.vue'),
-      meta: { requiresAuth: false, title: 'line.liffTitle' },
+      meta: { requiresAuth: false, guest: true, title: 'line.liffTitle' },
     },
   ],
 }

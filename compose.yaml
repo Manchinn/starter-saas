@@ -140,6 +140,10 @@ services:
       context: .
       dockerfile: Dockerfile.api
     restart: unless-stopped
+    # LINE login config alignment (#6): LINE_CHANNEL_ID (OAuth client_id ใช้ verify
+    # idToken + aud cross-check) และ LINE_LIFF_ID (LIFF app ID ฝั่ง server) อ่านมาจาก
+    # env_file ตัวเดียวกับฝั่ง web (ต้องเป็น LINE Developers console ตัวเดียวกัน).
+    # ถ้า LINE_CHANNEL_ID ว่าง → POST /api/auth/line ตอบ 501.
     env_file:
       - ${ENV_FILE:-.env.production}
     environment:
@@ -208,6 +212,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.web
+      # LINE login config alignment (#6): VITE_LIFF_ORG_ID คือค่า LIFF ID ที่ client
+      # ส่งเข้า liff.init({ liffId }) ใน flow login — ไม่ใช่ org UUID (ชื่อชวนเข้าใจผิด).
+      # ถูก bake เข้า client bundle ตอน BUILD นี้: เปลี่ยนค่าแล้วต้อง --build ไม่งั้นได้ bundle เก่า.
+      # ให้ตรงกับ LINE_CHANNEL_ID / LINE_LIFF_ID (ต้องมาจาก LINE Developers console ตัวเดียวกัน).
       args:
         VITE_APP_NAME: ${VITE_APP_NAME:-SaaS}
         VITE_LIFF_ORG_ID: ${VITE_LIFF_ORG_ID:-}

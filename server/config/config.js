@@ -153,3 +153,18 @@ module.exports = {
 	    port:    parseInt(process.env.LOKI_PORT || '3100', 10),
 	  },
 	}
+
+// ── LINE config sanity check (boot-time, non-fatal) ───────────────────────────
+// LINE login needs BOTH the channel id (used as the OAuth client_id to verify
+// ID tokens) and the LIFF app id (used by the client). If exactly one is set the
+// configuration is almost certainly half-finished — warn loudly at boot so the
+// operator notices, but don't throw (LINE feature should not take down the app
+// if it is not set up yet).
+const _lineChannelId = (process.env.LINE_CHANNEL_ID || '').trim()
+const _lineLiffId = (process.env.LINE_LIFF_ID || '').trim()
+if (Boolean(_lineChannelId) !== Boolean(_lineLiffId)) {
+  console.warn(
+    `[config] LINE config mismatch: set BOTH LINE_CHANNEL_ID and LINE_LIFF_ID (or neither) for LINE login. ` +
+    `Currently channelId=${_lineChannelId ? 'set' : 'unset'}, liffId=${_lineLiffId ? 'set' : 'unset'}.`,
+  )
+}

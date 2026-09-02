@@ -151,6 +151,7 @@ git push origin main
 ## Pitfalls
 
 - **`x-line-id-token` ต้องเป็น ID token จาก `liff.getIDToken()`** — ไม่ใช่ access token
+- **Config alignment (#6): `VITE_LIFF_ORG_ID` ถูกอ่านสองแบบใน client build เดียวกัน** — flow login (`useLineAuth.js`) ใช้เป็น **LIFF ID** ส่งเข้า `liff.init({ liffId })`; line-ordering module นี้ (`LiffOrdering.vue`) ใช้เป็น **organization UUID** เรียก `/line/liff/:orgId/config`. ให้ตรงกับ `LINE_CHANNEL_ID` / `LINE_LIFF_ID` (LINE Developers console ตัวเดียวกัน) มิฉะนั้น LINE login 401 — ดู `docs/production-runbook.md` หัวข้อ "LINE login (PoC)" และ `.env.production.example`
 - **LIFF endpoint ต้อง HTTPS สาธารณะ** — ผ่าน cloudflared tunnel (เช็ค `docs/production-runbook.md`)
 - `liffChannelId` = Channel ID (client_id) ผิดตัวเดียว 401 ตลอด
 - Secret ต้อง encrypt ด้วย `LINE_CREDENTIAL_ENCRYPTION_KEY` เดียวกับ env ที่รัน

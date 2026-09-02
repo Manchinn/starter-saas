@@ -18,8 +18,10 @@ module.exports = {
       allowNull: true,
       comment: 'Auth Provider UID — the LINE `sub` claim, unique per provider.',
     })
-    // LINE logins resolve the platform User via (provider, providerUid).
-    await addIndex('Users', ['provider', 'providerUid'], { name: 'idx_users_provider_uid' })
+    // LINE logins resolve the platform User via (provider, providerUid). UNIQUE so a
+    // concurrent find-or-create can never double-book the same LINE identity; Postgres
+    // treats NULLs as distinct, so this is safe for users who are not LINE-linked.
+    await addIndex('Users', ['provider', 'providerUid'], { name: 'idx_users_provider_uid', unique: true })
   },
 
   async down({ removeColumn }) {
