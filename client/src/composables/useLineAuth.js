@@ -44,19 +44,11 @@ export function useLineAuth(options = {}) {
         throw err
       }
 
-      await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: false })
+      await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true })
 
-      // The LINE consent screen can't be reached from outside the LINE app —
-      // e.g. when the landing page is opened in a desktop browser. Don't fire a
-      // flow that breaks; surface a friendly hint and leave email login usable.
-      if (!liff.isInClient()) {
-        const err = new Error('LIFF_OUTSIDE_CLIENT')
-        err.code = 'LIFF_OUTSIDE_CLIENT'
-        throw err
-      }
-
-      // Not signed in on LINE yet — bounce to the LINE consent screen. The
-      // flow resumes right here on return. Returning false keeps the UI calm.
+      // LINE consent screen runs inline in the LINE in-app browser; with
+      // withLoginOnExternalBrowser:true it also runs in an external browser
+      // (LINE web login). On return the page reloads and re-runs this flow.
       if (!liff.isLoggedIn()) {
         liff.login()
         return false
@@ -76,9 +68,7 @@ export function useLineAuth(options = {}) {
       // 501 = the server has no LINE/LIFF credentials configured. Pick copy
       // that matches the page's real fallback CTA (email form on login, or the
       // sign-up / sign-in page on the landing page).
-      if (err.code === 'LIFF_OUTSIDE_CLIENT') {
-        lineError.value = t(context === 'landing' ? 'auth.lineExternalLanding' : 'auth.lineExternal')
-      } else if (err.code === 'LIFF_NOT_CONFIGURED' || err.response?.status === 501) {
+      if (err.code === 'LIFF_NOT_CONFIGURED' || err.response?.status === 501) {
         lineError.value = t(context === 'landing' ? 'auth.lineNotConfiguredLanding' : 'auth.lineNotConfigured')
       } else {
         lineError.value = t(context === 'landing' ? 'auth.lineLoginFailedLanding' : 'auth.lineLoginFailed')

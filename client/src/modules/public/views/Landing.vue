@@ -58,20 +58,14 @@
         <!-- CTAs -->
         <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
-            @click="loginWithLine"
-            :disabled="lineLoading"
+            @click="$router.push('/login')"
             class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3 text-[14px] font-semibold text-white
                    bg-[#06C755] hover:bg-[#05B04B] active:bg-[#05A046]
-                   disabled:opacity-60 disabled:cursor-not-allowed
                    shadow-[0_4px_16px_rgba(6,199,85,0.35)] transition-all duration-150">
-            <svg v-if="lineLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            <svg v-else class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18 2.5H6C3.24 2.5 1 4.74 1 7.5v6.53c0 2.76 2.24 5 5 5h5.5l5.5 3.5v-3.5H18c2.76 0 5-2.24 5-5V7.5c0-2.76-2.24-5-5-5z" />
             </svg>
-            <span>{{ lineLoading ? t('auth.lineSigningIn') : t('landing.ctaLine') }}</span>
+            <span>{{ t('landing.ctaLine') }}</span>
           </button>
 
           <RouterLink to="/register"
@@ -80,21 +74,6 @@
             {{ t('landing.ctaRegister') }}
           </RouterLink>
         </div>
-
-        <!-- LINE / fallback notice -->
-        <transition
-          enter-active-class="transition duration-200 ease-out"
-          enter-from-class="opacity-0 -translate-y-1"
-          enter-to-class="opacity-100 translate-y-0">
-          <div v-if="lineError"
-            class="mt-6 inline-flex items-start gap-2.5 px-4 py-3 text-left bg-red-500/10 border border-red-400/30 text-red-300 text-[13px]">
-            <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>{{ lineError }}</span>
-          </div>
-        </transition>
       </div>
     </div>
 
@@ -136,10 +115,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import BrandMark from '@/components/BrandMark.vue'
 import { brand } from '@/config/brand'
-import { useLineAuth } from '@/composables/useLineAuth'
-
 const { t } = useI18n()
-const { lineLoading, lineError, loginWithLine } = useLineAuth({ context: 'landing' })
 
 const items = computed(() => [
   { title: t('landing.item1Title'), desc: t('landing.item1Desc') },
