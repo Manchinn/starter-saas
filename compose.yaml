@@ -217,7 +217,7 @@ services:
       # ถูก bake เข้า client bundle ตอน BUILD นี้: เปลี่ยนค่าแล้วต้อง --build ไม่งั้นได้ bundle เก่า.
       # ให้ตรงกับ LINE_CHANNEL_ID / LINE_LIFF_ID (ต้องมาจาก LINE Developers console ตัวเดียวกัน).
       args:
-        VITE_APP_NAME: ${VITE_APP_NAME:-SaaS}
+        VITE_APP_NAME: ${VITE_APP_NAME:-MaeKade}
         VITE_LIFF_ORG_ID: ${VITE_LIFF_ORG_ID:-}
     restart: unless-stopped
     depends_on:

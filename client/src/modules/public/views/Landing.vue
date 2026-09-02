@@ -4,23 +4,23 @@
     <!-- ── Background layers ─────────────────────────────────────────────────── -->
     <div class="absolute inset-0 pointer-events-none">
       <div class="absolute inset-0"
-        style="background: radial-gradient(ellipse 80% 60% at 110% -10%, #1b2d6b 0%, transparent 60%),
-                           radial-gradient(ellipse 60% 50% at -10% 110%, #18106a 0%, transparent 55%),
+        style="background: radial-gradient(ellipse 80% 60% at 110% -10%, #E8632F 0%, transparent 60%),
+                           radial-gradient(ellipse 60% 50% at -10% 110%, #C24A1E 0%, transparent 55%),
                            #0A0F1E;" />
       <div class="absolute inset-0 opacity-[0.045]"
         style="background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
                linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
                background-size: 44px 44px;" />
       <div class="absolute top-[-100px] right-[-80px] w-[500px] h-[500px] blur-[120px]"
-        style="background: radial-gradient(circle, rgba(70,95,255,0.2) 0%, transparent 70%)" />
+        style="background: radial-gradient(circle, rgba(255,120,71,0.2) 0%, transparent 70%)" />
       <div class="absolute bottom-[-80px] left-[-60px] w-[400px] h-[400px] blur-[100px]"
-        style="background: radial-gradient(circle, rgba(70,95,255,0.12) 0%, transparent 70%)" />
+        style="background: radial-gradient(circle, rgba(255,201,77,0.12) 0%, transparent 70%)" />
     </div>
 
     <!-- ── Top nav ────────────────────────────────────────────────────────────── -->
     <nav class="relative z-10 flex items-center justify-between px-6 sm:px-10 py-5">
       <BrandMark
-        mark-class="w-8 h-8 shadow-[0_0_0_1px_rgba(70,95,255,0.4)]"
+        mark-class="w-8 h-8 shadow-[0_0_0_1px_rgba(255,120,71,0.4)]"
         name-class="text-[17px] font-bold text-white tracking-[-0.3px]"
       />
       <div class="flex items-center gap-4">
@@ -41,7 +41,7 @@
 
         <!-- Badge -->
         <div class="inline-flex items-center gap-2 px-3 py-1.5 w-fit mb-7"
-          style="background: rgba(70,95,255,0.12); border: 1px solid rgba(70,95,255,0.28);">
+          style="background: rgba(255,120,71,0.12); border: 1px solid rgba(255,120,71,0.28);">
           <span class="w-1.5 h-1.5 bg-primary-400 animate-pulse flex-shrink-0" />
           <span class="text-[11px] font-semibold text-primary-300 tracking-widest uppercase">
             {{ t('landing.badge') }}

@@ -86,7 +86,7 @@ module.exports = {
     channelId: process.env.LINE_CHANNEL_ID || '',
     liffId: process.env.LINE_LIFF_ID || '',
   },
-  appName: process.env.APP_NAME || 'SaaS',
+  appName: process.env.APP_NAME || 'MaeKade',
   // A live getter (not a snapshot) so SMTP settings edited at runtime via the
   // Settings → Email Setting tab — which rewrites .env and process.env — are
   // reflected immediately by the mailer without a server restart.

@@ -345,7 +345,7 @@ The server reads configuration from a `server/.env` file via dotenv. Copy [`serv
 
 Most of these can also be set through the install wizard, which writes them and restarts the API when needed.
 
-The client display name is built from `VITE_APP_NAME` (default: `SaaS`). Set it in `client/.env` before running a production build; see [`client/.env.example`](client/.env.example). The server-side `APP_NAME` remains the source for mail subjects and mailer footers.
+The client display name is built from `VITE_APP_NAME` (default: `MaeKade`). Set it in `client/.env` before running a production build; see [`client/.env.example`](client/.env.example). The server-side `APP_NAME` remains the source for mail subjects and mailer footers.
 
 ### HTTPS
 
