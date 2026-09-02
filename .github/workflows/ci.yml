@@ -1,11 +1,12 @@
-name: CI - Test & Build
+name: CI - Test, Build & Deploy
 
-# Runs on every push and pull request to main.
-# - test:  122 suites / 1522 unit tests (jest, mocks models — no DB needed)
-# - build: Vite production bundle (client SPA)
+# test + build รันทุก push / PR → main
+# deploy (staging → PoC) รันเฉพาะ push ไป main ของ repo นี้ (ไม่ใช่ fork)
+#   - deployment ใช้ self-hosted runner บน c46 (tailnet-only ทุกครั้ง)
+#   - secrets ไม่อยู่ใน GitHub — ใช้ .env ที่อยู่บน c46 โดยตรง
 #
-# Uses npm install (not ci) because the lockfile is generated on Windows
-# and lacks Linux-native optional dependencies (@rollup/rollup-linux-x64-gnu).
+# หมายเหตุ: ใช้ npm install (ไม่ใช่ ci) เพราะ lockfile สร้างบน Windows
+# ไม่มี Linux-native optional deps (@rollup/rollup-linux-x64-gnu)
 
 on:
   push:
@@ -13,7 +14,6 @@ on:
   pull_request:
     branches: [main]
 
-# Cancel redundant runs on the same branch/PR.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -22,25 +22,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Install dependencies
-        # npm ci can't install platform-native optional deps for Linux
-        # when lockfile was generated on Windows. Remove lockfile so npm
-        # re-resolves optional deps for the runner platform.
         run: |
           rm -f package-lock.json
           npm install
-
       - name: Run unit tests
         run: npx jest --config server/jest.config.js
-
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v5
@@ -51,18 +43,56 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Install dependencies
         run: |
           rm -f package-lock.json
           npm install
-
       - name: Build client (Vite)
         run: npm run build
+
+  # ---- Deploy staging (c46, tailnet-only) — หลัง test+build ผ่าน, เฉพาะ main ----
+  deploy-staging:
+    if: github.ref == 'refs/heads/main' && github.repository == 'Manchinn/starter-saas'
+    needs: [test, build]
+    runs-on: [self-hosted, c46]
+    timeout-minutes: 30
+    steps:
+      - name: Deploy staging (git pull + compose up --build)
+        run: |
+          cd /home/admin2/starter-saas
+          git fetch origin main
+          git pull --ff-only origin main
+          docker compose --env-file .env.production up -d --build
+      - name: Verify staging (tailnet-only)
+        run: |
+          sleep 25
+          docker compose --env-file .env.production ps
+          curl -fS -m 20 http://127.0.0.1:8081/api/health \
+            || { echo "staging health check FAILED"; exit 1; }
+          echo "staging /api/health = 200 OK"
+
+  # ---- Deploy PoC (public demo.cslogbook.me) — หลัง staging ผ่านแล้วเท่านั้น ----
+  deploy-poc:
+    if: github.ref == 'refs/heads/main' && github.repository == 'Manchinn/starter-saas'
+    needs: [deploy-staging]
+    runs-on: [self-hosted, c46]
+    timeout-minutes: 30
+    steps:
+      - name: Deploy PoC (git pull + compose up --build)
+        run: |
+          cd /home/admin2/starter-saas-demo
+          git fetch origin main
+          git pull --ff-only origin main
+          docker compose --env-file .env.demo up -d --build
+      - name: Verify PoC (public)
+        run: |
+          sleep 25
+          docker compose --env-file .env.demo ps
+          curl -fS -m 20 https://demo.cslogbook.me/api/health \
+            || { echo "PoC health check FAILED"; exit 1; }
+          echo "PoC https://demo.cslogbook.me/api/health = 200 OK"
