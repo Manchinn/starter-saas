@@ -21,6 +21,7 @@
 - [Startup sequence](#startup-sequence)
 - [Shutdown sequence](#shutdown-sequence)
 - [Health verification](#health-verification)
+- [CI/CD deploy (self-hosted runner)](#cicd-deploy-self-hosted-runner)
 - [Daily operations](#daily-operations)
 - [Troubleshooting](#troubleshooting)
 - [Recovery scenarios](#recovery-scenarios)
@@ -449,4 +450,78 @@ docker compose down -v           # ลบ volumes ด้วย
 docker compose up -d db          # สร้าง DB เปล่า
 docker compose --profile provision run --rm db-provision  # สร้าง schema
 docker compose up -d             # เริ่มทั้งหมด
+```
+
+---
+
+## CI/CD deploy (self-hosted runner)
+
+> **2026-09-02** — เพิ่ม pipeline deploy อัตโนมัติ ผ่าน **self-hosted GitHub Actions runner บน c46** (อยู่ใน tailnet) ทำให้ `push → main` แล้ว deploy เองทั้ง staging และ PoC โดยไม่ต้อง SSH เข้ามือ
+
+### สถาปัตยกรรม
+
+```
+push → main (repo Manchinn/starter-saas, เฉพาะ main — ไม่ใช่ fork)
+ └► test  (cloud, ubuntu-latest)            # 1522 unit tests
+ └► build (cloud, ubuntu-latest)            # Vite client bundle
+     └► deploy-staging (self-hosted, c46)   # git pull + compose up -d --build → verify :8081
+         └► deploy-poc (self-hosted, c46)   # git pull + compose up -d --build → verify demo.cslogbook.me
+```
+
+- workflow: `.github/workflows/ci.yml`
+- **deploy job ใช้ self-hosted runner** (`runs-on: [self-hosted, c46]`) — เพราะ cloud runner แตะ c46 ไม่ได้ (tailnet-only)
+- **PoC รอ staging ผ่าน** (`needs: deploy-staging`) — staging พังแล้วไม่แตะ PoC
+- **fork guard** `github.repository == 'Manchinn/starter-saas'` — กัน fork trigger workflow
+
+### Self-hosted runner บน c46
+
+| ข้อ | ค่า |
+|---|---|
+| Host | c46 (`digitalallthingsonline`, 100.89.73.34), Ubuntu 26.04 |
+| Version | `v2.337.0` (actions-runner linux-x64) |
+| ติดตั้งที่ | `~/actions-runner` (user `admin2`) |
+| labels | `c46` (+ `self-hosted`, `Linux`, `X64` ที่ GitHub เพิ่มให้อัตโนมัติ) |
+| Service | `actions.runner.manchinn-starter-saas.<name>.service` (systemd) |
+| รันเป็น | **`admin2`** — เพื่อเข้าถึง `.env` (mode 600) + อยู่ใน docker group |
+
+> ⚠️ **Runner รันเป็น `admin2`** — ยอมรับได้บน personal VPS แต่ถ้าเป็น production ที่จริงจัง ควรแยก user + จำกัด sudo
+
+**เช็คสถานะ runner:**
+```bash
+# จากฝั่ง GitHub
+gh api repos/Manchinn/starter-saas/actions/runners | python3 -m json.tool
+# บน c46
+systemctl status actions.runner.*.service
+```
+
+### Secrets ไม่อยู่ใน GitHub
+
+Deploy ใช้ **`.env` ที่อยู่บน c46 โดยตรง**: `~/starter-saas/.env.production` (staging) และ `~/starter-saas-demo/.env.demo` (PoC) — **ไม่เก็บคีย์/secret ใน GitHub Actions secrets** ทำให้ fork-triggered run ไม่รั่วข้อมูล (มันรันบนเครื่องจริงด้วย .env จริง)
+
+### ⚠️ UK_PORT (สำคัญ — กัน port conflict)
+
+`compose.yaml` ของ uptime-kuma ใช้ `127.0.0.1:${UK_PORT:-3001}:3001`. ทั้ง staging และ demo ใช้ compose เดียวกัน → **demo ต้องตั้ง `UK_PORT` แยก** ไม่เช่นนั้นชนพอร์ต 3001 ของ staging:
+
+```bash
+# /home/admin2/starter-saas-demo/.env.demo  (host-local, gitignored)
+UK_PORT=3002
+```
+
+> ⚠️ ค่านี้อยู่บน c46 เท่านั้น (ไม่ใช่ git) — **ถ้า re-clone demo ต้องใส่ UK_PORT ใหม่อีกครั้ง** ไม่งั้น `deploy-poc` ล้มด้วย `Bind for 127.0.0.1:3001 failed: port is already allocated`
+
+### ดูผล / re-run
+
+```bash
+gh run list --repo Manchinn/starter-saas --limit 5           # ดู runs
+gh run view <run-id> --repo Manchinn/starter-saas            # ดูสรุป
+gh run rerun <run-id> --repo Manchinn/starter-saas --failed  # re-run เฉพาะ job ที่ fail
+```
+
+### Verify หลัง deploy (manual cross-check)
+
+```bash
+# staging (tailnet-only)
+ssh c46-ts 'cd /home/admin2/starter-saas && docker compose --env-file .env.production ps && curl -fsS http://127.0.0.1:8081/api/health'
+# PoC (public)
+curl -fsS https://demo.cslogbook.me/api/health && curl -sS -o /dev/null -w "root: %{http_code}\n" https://demo.cslogbook.me/
 ```
