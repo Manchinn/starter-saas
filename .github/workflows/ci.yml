@@ -70,6 +70,7 @@ jobs:
           docker compose --env-file .env.production up -d --build
       - name: Verify staging (tailnet-only)
         run: |
+          cd /home/admin2/starter-saas
           sleep 25
           docker compose --env-file .env.production ps
           curl -fS -m 20 http://127.0.0.1:8081/api/health \
@@ -91,6 +92,7 @@ jobs:
           docker compose --env-file .env.demo up -d --build
       - name: Verify PoC (public)
         run: |
+          cd /home/admin2/starter-saas-demo
           sleep 25
           docker compose --env-file .env.demo ps
           curl -fS -m 20 https://demo.cslogbook.me/api/health \
