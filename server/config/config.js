@@ -53,6 +53,8 @@ module.exports = {
     username: process.env.DB_USER     || '',
     password: process.env.DB_PASSWORD || '',
     logging:  process.env.NODE_ENV === 'development' ? console.log : false,
+    // TLS to managed Postgres (e.g. Supabase) — opt in with DB_SSL=true.
+    ssl: process.env.DB_SSL === 'true',
   },
   // Local development keeps the historical boot-time schema preparation. In a
   // container deployment, a one-shot provision job owns this work and API
@@ -86,7 +88,7 @@ module.exports = {
     channelId: process.env.LINE_CHANNEL_ID || '',
     liffId: process.env.LINE_LIFF_ID || '',
   },
-  appName: process.env.APP_NAME || 'MaeKade',
+  appName: process.env.APP_NAME || 'MakeIt',
   // A live getter (not a snapshot) so SMTP settings edited at runtime via the
   // Settings → Email Setting tab — which rewrites .env and process.env — are
   // reflected immediately by the mailer without a server restart.

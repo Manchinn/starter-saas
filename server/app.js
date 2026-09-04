@@ -12,6 +12,13 @@ const moduleLoader = require('./core/module.loader')
 const { pruneExpiredTokens } = require('./modules/auth/auth.service')
 const cache = require('./config/redis')
 const realtime = require('./core/realtime')
+// Serverless mode (Vercel Functions): export the app instead of listening.
+// Set SERVERLESS=1 (or VERCEL=1) in the deployment environment.
+const SERVERLESS = process.env.SERVERLESS === '1' || process.env.VERCEL === '1'
+// Realtime (Socket.IO) gate: ON by default (local `node app.js` unchanged);
+// set REALTIME_ENABLED=false in environments that can't hold open sockets
+// (e.g. serverless) to skip realtime.init() entirely.
+const REALTIME_ENABLED = process.env.REALTIME_ENABLED !== 'false'
 const logger = require('./core/logger')
 const requestLogger = require('./middleware/request-logger')
 const sanitizeQuery = require('./middleware/sanitize-query')
@@ -134,6 +141,14 @@ async function bootstrap() {
     res.status(err.status || 500).json({ success: false, message: 'Internal server error' })
   })
 
+  if (SERVERLESS) {
+    // Vercel Functions terminate the process after each invocation's response,
+    // so no HTTP listener, no Socket.IO, and no background timers. Module
+    // routes, the 404 handler and the error handler ARE mounted above —
+    // api/index.js awaits `ready` before handing requests to the app.
+    return
+  }
+
   // Always serve HTTP; additionally serve HTTPS when configured. Socket.IO is
   // attached to every server so realtime works over either scheme.
   const httpServer = http.createServer(app) // nosemgrep: problem-based-packs.insecure-transport.js-node.using-http-server.using-http-server -- intentional HTTP listener for HTTP/HTTPS dual-serving; TLS is provided by the HTTPS listener below or terminated by an upstream proxy
@@ -152,7 +167,7 @@ async function bootstrap() {
     servers.push(httpsServer)
   }
 
-  realtime.init(servers)
+  if (REALTIME_ENABLED) realtime.init(servers)
 
   httpServer.listen(config.port, () => {
     logger.info(`Server running on http://localhost:${config.port} (${config.env})`, { label: 'server' })
@@ -178,7 +193,14 @@ async function bootstrap() {
   process.once('SIGINT', flushOnExit)
 }
 
-bootstrap().catch((err) => {
+const bootstrapPromise = bootstrap().catch((err) => {
   logger.error('Fatal bootstrap error', { label: 'bootstrap', stack: err.stack, message: err.message })
   process.exit(1)
 })
+
+// ── Exports (synchronous, before bootstrap's async work finishes) ────────────
+// api/index.js (Vercel) consumes these; `node app.js` local start is unaffected.
+// In serverless mode the app never listens — every request awaits `ready`,
+// which resolves once DB/cache bootstrap and module mounting complete.
+module.exports = app
+module.exports.ready = bootstrapPromise

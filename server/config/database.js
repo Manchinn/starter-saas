@@ -44,6 +44,8 @@ function buildSequelize(dbCfg) {
     port:     dbCfg.port || DEFAULT_PORTS[dialect],
     dialect,
     logging:  dbCfg.logging,
+    // DB_SSL=true → require TLS (managed Postgres such as Supabase).
+    ...(dbCfg.ssl ? { ssl: true } : {}),
     dialectOptions: dialect === 'mssql'
       ? { options: { encrypt: false, trustServerCertificate: true } }
       : {},
