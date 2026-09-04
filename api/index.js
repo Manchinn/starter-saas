@@ -12,6 +12,11 @@
  */
 const serverApp = require('../server/app')
 
+// Sequelize loads dialect drivers via dynamic require(), which Vercel's file
+// tracer cannot see — pin them here so pg ships inside the lambda bundle.
+require('pg')
+require('pg-hstore')
+
 const app = serverApp
 const ready = serverApp.ready
 
