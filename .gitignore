@@ -17,3 +17,5 @@ test-results/
 semgrep-report.json
 .zcode/
 
+.vercel
+.env*
