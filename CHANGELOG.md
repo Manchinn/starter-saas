@@ -51,8 +51,8 @@ Git history remains the complete implementation-level record.
 
 ### Changed
 
-- **แบรนด์ MaeKade** (productize): default `APP_NAME` / `VITE_APP_NAME` เปลี่ยนจาก
-  `SaaS` → `MaeKade` (env examples, `client/src/config/brand.js`, `server/config/config.js`,
+- **แบรนด์ MakeIt** (productize): default `APP_NAME` / `VITE_APP_NAME` เปลี่ยนจาก
+  `SaaS` → `MakeIt` (env examples, `client/src/config/brand.js`, `server/config/config.js`,
   `compose.yaml` build-arg, README); ธีม `tailwind` primary → coral palette
   (`#FF7847` family, focus ring ตาม), landing hero retint อบอุ่น (คงปุ่ม LINE เขียว
   `#06C755`), copy landing (en/th) ใหม่พร้อม tagline, และโลโก้ / logo-mark / favicon

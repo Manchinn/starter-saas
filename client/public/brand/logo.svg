@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="logotitle">
-  <title id="logotitle">MaeKade</title>
+  <title id="logotitle">MakeIt</title>
   <defs>
     <linearGradient id="mk-grad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#FF7847"/>
@@ -14,5 +14,5 @@
       <path d="M27 24 q4 -5 8 0"/>
     </g>
   </g>
-  <text x="31" y="37" fill="#FF7847" font-family="Outfit, Inter, -apple-system, Segoe UI, Arial, sans-serif" font-size="7.5" font-weight="700" letter-spacing="0.1">MaeKade</text>
+  <text x="31" y="37" fill="#FF7847" font-family="Outfit, Inter, -apple-system, Segoe UI, Arial, sans-serif" font-size="7.5" font-weight="700" letter-spacing="0.1">MakeIt</text>
 </svg>

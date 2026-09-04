@@ -1,4 +1,4 @@
-const appName = import.meta.env.VITE_APP_NAME?.trim() || 'MaeKade'
+const appName = import.meta.env.VITE_APP_NAME?.trim() || 'MakeIt'
 
 export const brand = Object.freeze({
   name: appName,

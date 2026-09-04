@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
   // https port (e.g. https://localhost:3443). secure:false accepts a self-signed
   // dev cert. The /socket.io ws target follows the same host.
   const apiTarget = env.VITE_API_TARGET || 'http://localhost:3000'
-  const appName = env.VITE_APP_NAME?.trim() || 'MaeKade'
+  const appName = env.VITE_APP_NAME?.trim() || 'MakeIt'
 
   return {
     plugins: [
