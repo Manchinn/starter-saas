@@ -1,6 +1,6 @@
 # Fork status (Manchinn/starter-saas)
 
-**Last updated:** 2026-08-20
+**Last updated:** 2026-09-07
 **Fork release line:** `1.2.0-line.1` (see `CHANGELOG.md`; package versions match)
 
 ## What `main` is
@@ -79,11 +79,14 @@ still exist for archaeology. They are **not** the product direction of
 | **No open ports** | API and DB are internal Docker-network only; web publishes to `127.0.0.1:8081` on c46, exposed tailnet-only via `tailscale serve :8444` |
 | **Redis** | Enabled — shared cache, rate limiting, Socket.IO scaling (issue #8) |
 | **Backup** | Not yet automated (open issue #5) |
-| **CI/CD** | Done — GitHub Actions test + build on push/PR to main (issue #6) |
+| **CI/CD** | Done — GitHub Actions test + build on push/PR to main; `deploy-staging` → `deploy-poc` on main only (issues #6, #15) |
 | **Monitoring** | Done — Uptime Kuma + Loki + Grafana + LINE Notify alerting (issue #7) |
 | **API image** | 542 MB (down from 921 MB, -41%) |
+| **Demo (public)** | `https://demo.cslogbook.me` — deploy-poc target on c46 (compose, DB `saas_demo`); runs `main` via CI (pentest fixes #11–#17 live) |
+| **Staging (tailnet-only)** | c46 compose, DB `saas` — health-checked in CI before PoC deploys |
+| **MakeIt (pilot, 3rd party)** | Vercel — `makeit-api.vercel.app` + `makeit-web-blush.vercel.app`, Supabase `makeit-pilot`; deploys from branch `feat/pilot-deploy` via Vercel CLI (`--team chinnakrits-projects`) only — CI does not touch it |
 
-### Production topology (current, 2026-08-20)
+### Production topology (2026-08-20 — app.cslogbook.me; demo/staging deploy targets added 2026-09-07, see Deployment status)
 
 ```
 Browser / LINE platform
