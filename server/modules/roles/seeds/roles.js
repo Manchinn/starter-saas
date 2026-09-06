@@ -19,7 +19,11 @@ const DEFAULT_ROLES = [
   {
     name: 'Viewer', slug: 'viewer', description: 'Read-only access',
     color: '#16a34a', isSystem: false,
-    permissionSlugs: ['dashboard.view', 'organizations.list', 'modules.list'],
+    // `organizations.list` is deliberately NOT granted: the organizations
+    // endpoints return cross-tenant account data (every top-level org's
+    // profile — email, phone, taxId, provider uid), so read access there is
+    // admin-plane visibility, not a "read-only" default. See issue #11.
+    permissionSlugs: ['dashboard.view', 'modules.list'],
   },
   {
     name: 'Customer', slug: 'customer', description: 'Full access to the shared modules only — no admin access',

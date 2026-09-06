@@ -48,7 +48,7 @@ const { encrypt } = require('../services/line.crypto')
 const { handleWebhook, createLiffOrder } = require('../services/line.service')
 
 const CHANNEL_SECRET = 'line-channel-secret-for-tests'
-const BOT_USER_ID = 'U_destination_bot'
+const BOT_USER_ID = 'Ua1b2c3d4e5f60718293a4b5c6d7e8f90' // U + 32 hex, the real bot id shape
 const STORE_ID = 'store-1'
 const ORG_ID = 'org-1'
 const PRODUCT_ID = 'prod-1'
@@ -91,8 +91,22 @@ describe('handleWebhook — signature and destination', () => {
 
   test('rejects an unknown bot destination with 404', async () => {
     LineConnection.findOne.mockResolvedValue(null)
-    const req = signedReq({ destination: 'U_unknown', events: [] })
+    const req = signedReq({ destination: 'U0000000000000000000000000000face', events: [] })
     await expect(handleWebhook(req)).rejects.toMatchObject({ status: 404 })
+  })
+
+  test('rejects a missing destination with 404 before querying (no raw ORM error)', async () => {
+    const req = signedReq({})
+    await expect(handleWebhook(req)).rejects.toMatchObject({ status: 404, message: 'Unknown LINE destination' })
+    expect(LineConnection.findOne).not.toHaveBeenCalled()
+  })
+
+  test('rejects a malformed destination (not U + 32 hex) with 404 before querying', async () => {
+    for (const bad of ['U_destination_bot', '@1234abc', 'U123', 42, null]) {
+      const req = signedReq({ destination: bad, events: [] })
+      await expect(handleWebhook(req)).rejects.toMatchObject({ status: 404 })
+    }
+    expect(LineConnection.findOne).not.toHaveBeenCalled()
   })
 
   test('rejects a missing signature with 401', async () => {

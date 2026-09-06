@@ -107,6 +107,60 @@ describe('organization.getById', () => {
   })
 })
 
+describe('organization.list — field whitelist (issue #11)', () => {
+  test('selects only the whitelisted columns — provider/taxId-adjacent columns never leave the DB', async () => {
+    User.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+    await service.list({})
+    const args = User.findAndCountAll.mock.calls[0][0]
+    expect(args.attributes).toEqual(expect.arrayContaining(['id', 'name', 'email', 'taxId', 'companyName']))
+    expect(args.attributes).not.toContain('provider')
+    expect(args.attributes).not.toContain('providerUid')
+    expect(args.attributes).not.toContain('emailVerifiedAt')
+    expect(args.attributes).not.toContain('passwordResetExpiresAt')
+  })
+})
+
+describe('organization.getById — cross-tenant redaction (issue #11)', () => {
+  const fullRow = {
+    id: 'o1', name: 'Acme', email: 'a@x.com', role: 'user',
+    provider: 'line', providerUid: 'U-secret', emailVerifiedAt: '2026-01-01',
+    emailVerificationExpiresAt: '2026-01-02', passwordResetExpiresAt: '2026-01-03',
+    taxId: '0105555000000',
+    toJSON() { return { ...this } },
+    roles: [
+      { id: 'r1', name: 'Manager', color: '#2563eb', permissions: [{ slug: 'organizations.list' }], modules: [{ slug: 'erp' }] },
+    ],
+  }
+
+  beforeEach(() => {
+    User.findByPk.mockResolvedValue(fullRow)
+  })
+
+  test('a non-admin actor gets provider fields and role permission sets stripped', async () => {
+    const out = await service.getById('o1', { id: 'viewer-1', role: 'user' })
+    expect(out.provider).toBeUndefined()
+    expect(out.providerUid).toBeUndefined()
+    expect(out.emailVerifiedAt).toBeUndefined()
+    expect(out.emailVerificationExpiresAt).toBeUndefined()
+    expect(out.passwordResetExpiresAt).toBeUndefined()
+    expect(out.roles[0]).toEqual({ id: 'r1', name: 'Manager', color: '#2563eb' })
+    // business profile fields stay (the org-management plane needs them)
+    expect(out.taxId).toBe('0105555000000')
+  })
+
+  test('a system admin still gets the full record', async () => {
+    const out = await service.getById('o1', { id: 'admin-1', role: 'admin' })
+    expect(out.providerUid).toBe('U-secret')
+    expect(out.roles[0].permissions).toEqual([{ slug: 'organizations.list' }])
+  })
+
+  test('internal calls without an actor stay redacted (fail-closed)', async () => {
+    const out = await service.getById('o1')
+    expect(out.providerUid).toBeUndefined()
+    expect(out.roles[0].permissions).toBeUndefined()
+  })
+})
+
 describe('organization.update', () => {
   test('throws 404 when missing', async () => {
     User.findByPk.mockResolvedValue(null)
