@@ -189,7 +189,7 @@
           <!-- Language switcher -->
           <div class="relative" ref="langMenuRef">
             <button
-              @click="langOpen = !langOpen; $nextTick(() => $el.blur()); $nextTick(() => document.getElementById('glass-lang-menu')?.querySelector('[role=menuitem]')?.focus())"
+              @click="openLangMenu"
               aria-haspopup="menu"
               :aria-expanded="langOpen"
               aria-controls="glass-lang-menu"
@@ -214,7 +214,7 @@
                 id="glass-lang-menu"
                 role="menu"
                 aria-label="Language"
-                @keydown="onLangMenuKeydown"
+                @keydown="onMenuKeydown($event, () => { langOpen = false })"
                 class="absolute right-0 top-full mt-1.5 w-44 bg-white/92 backdrop-blur-xl border border-white/70 shadow-card-lg z-50 overflow-hidden"
               >
                 <div class="p-1.5">
@@ -244,7 +244,7 @@
           <div class="relative" ref="userMenuRef">
             <button
               type="button"
-              @click="userOpen = !userOpen; $nextTick(() => document.getElementById('glass-user-menu')?.querySelector('[role=menuitem]')?.focus())"
+              @click="openUserMenu"
               aria-haspopup="menu"
               :aria-expanded="userOpen"
               aria-controls="glass-user-menu"
@@ -275,7 +275,7 @@
                    id="glass-user-menu"
                    role="menu"
                    aria-label="Account"
-                   @keydown="onLangMenuKeydown"
+                   @keydown="onMenuKeydown($event, () => { userOpen = false })"
                    class="absolute right-0 top-full mt-1.5 w-56 bg-white/92 backdrop-blur-xl border border-white/70 shadow-card-lg z-50 overflow-hidden">
                 <div class="px-4 py-3 border-b border-black/[0.05]">
                   <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ auth.user?.name }}</p>
@@ -336,7 +336,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import {
   ChevronDownIcon, ArrowRightOnRectangleIcon,
   UserCircleIcon, ComputerDesktopIcon, CreditCardIcon, Bars3Icon, XMarkIcon, SparklesIcon,
@@ -405,16 +405,35 @@ function setLang(code) {
   langOpen.value = false
 }
 
-// Focus the first menuitem when a menu opens; keyboard users can actually
-// reach the items (critique P1: focus never moved into menus).
-function onLangMenuKeydown(e) {
+// Open a dropdown and move focus to its first menuitem — keyboard users can
+// actually reach the items (critique P1: focus never moved into menus).
+// Logic lives in script (NOT inline template expressions): Vue compiles bare
+// `document` in template expressions to _ctx.document, which is undefined and
+// threw a silent unhandled rejection on every click (verified in critique run 3).
+function focusFirstItem(menuRef) {
+  nextTick(() => {
+    menuRef.value?.querySelector('[role="menuitem"]')?.focus()
+  })
+}
+
+function openLangMenu() {
+  langOpen.value = !langOpen.value
+  if (langOpen.value) focusFirstItem(langMenuRef)
+}
+
+function openUserMenu() {
+  userOpen.value = !userOpen.value
+  if (userOpen.value) focusFirstItem(userMenuRef)
+}
+
+function onMenuKeydown(e, close) {
   const items = [...e.currentTarget.querySelectorAll('[role="menuitem"]')]
   const idx = items.indexOf(document.activeElement)
-  if (e.key === 'ArrowDown') { e.preventDefault(); items[idx + 1] || items[0]?.focus() }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); items[idx - 1] || items[items.length - 1]?.focus() }
+  if (e.key === 'ArrowDown') { e.preventDefault(); const n = items[idx + 1] || items[0]; n?.focus() }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); const n = items[idx - 1] || items[items.length - 1]; n?.focus() }
   else if (e.key === 'Home') { e.preventDefault(); items[0]?.focus() }
   else if (e.key === 'End') { e.preventDefault(); items[items.length - 1]?.focus() }
-  else if (e.key === 'Tab') { langOpen.value = false }
+  else if (e.key === 'Tab') { close() }
 }
 
 function onClickOutside(e) {
