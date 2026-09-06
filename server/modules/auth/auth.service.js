@@ -382,75 +382,25 @@ const getInstallStatus = async () => {
   return { installed: adminCount > 0 }
 }
 
-// ── Default permissions & roles seeded on first install ──────────────────────
-
-const DEFAULT_PERMISSIONS = [
-  { slug: 'dashboard.view',       name: 'View Dashboard',       group: 'dashboard',   description: 'Access the main dashboard' },
-  { slug: 'users.list',           name: 'List Users',           group: 'users',       description: 'View the users list' },
-  { slug: 'users.edit',           name: 'Edit Users',           group: 'users',       description: 'Create and edit users' },
-  { slug: 'users.delete',         name: 'Delete Users',         group: 'users',       description: 'Delete user accounts' },
-  { slug: 'roles.list',           name: 'List Roles',           group: 'roles',       description: 'View available roles' },
-  { slug: 'roles.manage',         name: 'Manage Roles',         group: 'roles',       description: 'Create, edit and delete roles' },
-  { slug: 'permissions.list',     name: 'List Permissions',     group: 'permissions', description: 'View defined permissions' },
-  { slug: 'permissions.manage',   name: 'Manage Permissions',   group: 'permissions', description: 'Create, edit and delete permissions' },
-  { slug: 'modules.list',         name: 'List Modules',         group: 'modules',     description: 'View installed modules' },
-  { slug: 'modules.manage',       name: 'Manage Modules',       group: 'modules',     description: 'Enable and disable modules' },
-]
-
-const DEFAULT_ROLES = [
-  {
-    slug: 'viewer', name: 'Viewer', color: '#059669', isSystem: true,
-    description: 'Read-only access across the application',
-    permissions: ['dashboard.view', 'users.list', 'roles.list', 'permissions.list', 'modules.list'],
-  },
-  {
-    slug: 'manager', name: 'Manager', color: '#2563eb', isSystem: true,
-    description: 'Full user and configuration management',
-    permissions: ['dashboard.view', 'users.list', 'users.edit', 'users.delete', 'roles.list', 'roles.manage', 'permissions.list', 'permissions.manage', 'modules.list', 'modules.manage'],
-  },
-  {
-    slug: 'super-admin', name: 'Super Admin', color: '#7c3aed', isSystem: true,
-    description: 'Unrestricted access to everything',
-    permissions: null, // assigned all permissions below
-  },
-]
+// ── Defaults seeded on first install ─────────────────────────────────────────
+// The install wizard must provision exactly the same permission catalog and
+// default role grants as the module seeds used by DB_BOOTSTRAP deployments.
+// A duplicated, drift-prone copy used to live here — it granted the viewer
+// role `roles.list`/`permissions.list` and did not track the post-#11 viewer
+// grant set (issue #16). Run the canonical seeds themselves instead.
 
 const seedDefaults = async () => {
-  const moduleLoader = require('../../core/module.loader')
+  const permissionsSeed = require('../permissions/seeds/permissions')
+  const rolesSeed = require('../roles/seeds/roles')
 
-  // Core admin permissions + every permission declared by the shared modules,
-  // so the shared features are grantable from /admin/roles and visible in
-  // /admin/permissions.
-  const catalog = [
-    ...DEFAULT_PERMISSIONS,
-    ...moduleLoader.sharedModulePermissionSlugs().map(moduleLoader.describePermissionSlug),
-  ]
-  for (const p of catalog) {
-    await Permission.findOrCreate({ where: { slug: p.slug }, defaults: p })
+  const store = {}
+  const ctx = {
+    models: { Permission, Role, Module },
+    get: (key) => store[key],
+    set: (key, value) => { store[key] = value },
   }
-
-  const allPerms = await Permission.findAll()
-  const bySlug = Object.fromEntries(allPerms.map((p) => [p.slug, p]))
-
-  for (const r of DEFAULT_ROLES) {
-    const [role] = await Role.findOrCreate({
-      where: { slug: r.slug },
-      defaults: { name: r.name, slug: r.slug, description: r.description, color: r.color, isSystem: r.isSystem },
-    })
-    const perms = r.permissions ? r.permissions.map((s) => bySlug[s]).filter(Boolean) : allPerms
-    await role.setPermissions(perms)
-  }
-
-  // Customer role — full access to the shared (non-core) modules only, with no
-  // admin (organizations/roles/permissions/modules) access. isSystem:false so
-  // admins can tailor it from the UI.
-  const [customer] = await Role.findOrCreate({
-    where: { slug: 'customer' },
-    defaults: { name: 'Customer', slug: 'customer', description: 'Full access to the shared modules only — no admin access', color: '#0891b2', isSystem: false },
-  })
-  const customerSlugs = ['dashboard.view', ...moduleLoader.sharedModulePermissionSlugs()]
-  await customer.setPermissions(customerSlugs.map((s) => bySlug[s]).filter(Boolean))
-  await customer.setModules(await Module.findAll({ where: { isCore: false } }))
+  await permissionsSeed.run(ctx)
+  await rolesSeed.run(ctx)
 }
 
 // ── Master Data seeded on first install ──────────────────────────────────────
