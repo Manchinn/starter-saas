@@ -16,4 +16,9 @@ tmp/
 test-results/
 semgrep-report.json
 .zcode/
+.impeccable/
+.tmp-glass/
+.vercel/
+client/.vercel/
+sketches/
 
