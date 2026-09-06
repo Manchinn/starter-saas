@@ -1,6 +1,5 @@
 <template>
-  <div class="template-glass flex h-screen overflow-hidden
-              bg-[radial-gradient(ellipse_60%_38%_at_50%_-6%,#FDE7CE_0%,transparent_60%),radial-gradient(ellipse_40%_30%_at_88%_82%,#F3E8FF_0%,transparent_58%),#FAF6EF]">
+  <div class="template-glass flex h-screen overflow-hidden">
     <!-- ── Mobile backdrop ───────────────────────────────────────────────────── -->
     <Transition
       enter-active-class="transition-opacity duration-200"
@@ -101,7 +100,7 @@
                           <RouterLink
                             :to="grandchild.to"
                             class="nav-item-sm"
-                            active-class="!text-[#1C2434] font-semibold"
+                            active-class="!text-[#C24A1E] font-semibold"
                           >
                             <component v-if="grandchild.icon" :is="grandchild.icon" class="w-3.5 h-3.5 flex-shrink-0" />
                             <span class="truncate">{{ t(grandchild.label) }}</span>
@@ -115,7 +114,7 @@
                       <RouterLink
                         :to="child.to"
                         class="nav-item-sm"
-                        active-class="!text-[#1C2434] font-semibold bg-black/[0.04]"
+                        active-class="!text-[#C24A1E] font-semibold bg-primary-50/[0.6]"
                       >
                         <component :is="child.icon" class="w-[15px] h-[15px] flex-shrink-0" />
                         <span class="truncate">{{ t(child.label) }}</span>
@@ -142,11 +141,12 @@
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-[13px] font-semibold text-[#1C2434] truncate leading-[1.3]">{{ auth.user?.name }}</p>
-            <p class="text-[11.5px] text-[#6B7A8D] capitalize leading-[1.3]">{{ auth.user?.role }}</p>
+            <p class="text-[11.5px] text-[#5B6B7C] capitalize leading-[1.3]">{{ auth.user?.role }}</p>
           </div>
           <button
             @click="handleLogout"
             title="Sign out"
+            aria-label="Sign out"
             class="p-1.5 text-[#6B7A8D] hover:text-[#1C2434] hover:bg-black/[0.05] transition-all duration-150"
           >
             <ArrowRightOnRectangleIcon class="w-4 h-4" />
@@ -189,7 +189,7 @@
           <!-- Language switcher -->
           <div class="relative" ref="langMenuRef">
             <button
-              @click="langOpen = !langOpen"
+              @click="langOpen = !langOpen; $nextTick(() => $el.blur()); $nextTick(() => document.getElementById('glass-lang-menu')?.querySelector('[role=menuitem]')?.focus())"
               aria-haspopup="menu"
               :aria-expanded="langOpen"
               aria-controls="glass-lang-menu"
@@ -214,6 +214,7 @@
                 id="glass-lang-menu"
                 role="menu"
                 aria-label="Language"
+                @keydown="onLangMenuKeydown"
                 class="absolute right-0 top-full mt-1.5 w-44 bg-white/92 backdrop-blur-xl border border-white/70 shadow-card-lg z-50 overflow-hidden"
               >
                 <div class="p-1.5">
@@ -243,7 +244,7 @@
           <div class="relative" ref="userMenuRef">
             <button
               type="button"
-              @click="userOpen = !userOpen"
+              @click="userOpen = !userOpen; $nextTick(() => document.getElementById('glass-user-menu')?.querySelector('[role=menuitem]')?.focus())"
               aria-haspopup="menu"
               :aria-expanded="userOpen"
               aria-controls="glass-user-menu"
@@ -274,6 +275,7 @@
                    id="glass-user-menu"
                    role="menu"
                    aria-label="Account"
+                   @keydown="onLangMenuKeydown"
                    class="absolute right-0 top-full mt-1.5 w-56 bg-white/92 backdrop-blur-xl border border-white/70 shadow-card-lg z-50 overflow-hidden">
                 <div class="px-4 py-3 border-b border-black/[0.05]">
                   <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ auth.user?.name }}</p>
@@ -403,6 +405,18 @@ function setLang(code) {
   langOpen.value = false
 }
 
+// Focus the first menuitem when a menu opens; keyboard users can actually
+// reach the items (critique P1: focus never moved into menus).
+function onLangMenuKeydown(e) {
+  const items = [...e.currentTarget.querySelectorAll('[role="menuitem"]')]
+  const idx = items.indexOf(document.activeElement)
+  if (e.key === 'ArrowDown') { e.preventDefault(); items[idx + 1] || items[0]?.focus() }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); items[idx - 1] || items[items.length - 1]?.focus() }
+  else if (e.key === 'Home') { e.preventDefault(); items[0]?.focus() }
+  else if (e.key === 'End') { e.preventDefault(); items[items.length - 1]?.focus() }
+  else if (e.key === 'Tab') { langOpen.value = false }
+}
+
 function onClickOutside(e) {
   if (langMenuRef.value && !langMenuRef.value.contains(e.target)) {
     langOpen.value = false
@@ -416,12 +430,12 @@ function onKeydown(e) {
   if (e.key === 'Escape') {
     if (langOpen.value) {
       langOpen.value = false
-      langMenuRef.value?.querySelector('button')?.focus()
+      langMenuRef.value?.querySelector('[aria-haspopup="menu"]')?.focus()
       return
     }
     if (userOpen.value) {
       userOpen.value = false
-      userMenuRef.value?.querySelector('button')?.focus()
+      userMenuRef.value?.querySelector('[aria-haspopup="menu"]')?.focus()
       return
     }
   }
