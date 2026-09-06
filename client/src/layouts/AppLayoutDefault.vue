@@ -186,7 +186,11 @@
           <!-- Language switcher -->
           <div class="relative" ref="langMenuRef">
             <button
-              @click="langOpen = !langOpen"
+              type="button"
+              @click="openLangMenu"
+              aria-haspopup="menu"
+              :aria-expanded="langOpen"
+              aria-controls="default-lang-menu"
               class="flex items-center gap-1.5 h-10 px-2.5 sm:px-3 text-[13px] font-medium text-[#637381]
                      border border-[#E2E8F0] bg-white hover:bg-[#F7F9FC] transition-colors select-none"
             >
@@ -204,13 +208,18 @@
               leave-to-class="opacity-0 scale-95 -translate-y-1"
             >
               <div
-                v-if="langOpen"
-                class="absolute right-0 top-full mt-1.5 w-44 bg-white border border-[#E2E8F0] shadow-card-lg z-50 overflow-hidden"
+                              v-if="langOpen"
+                              id="default-lang-menu"
+                              role="menu"
+                              aria-label="Language"
+                              @keydown="onMenuKeydown($event, () => { langOpen = false })"
+                              class="absolute right-0 top-full mt-1.5 w-44 bg-white border border-[#E2E8F0] shadow-card-lg z-50 overflow-hidden"
               >
                 <div class="p-1.5">
                   <button
                     v-for="opt in langOptions"
                     :key="opt.code"
+                    role="menuitem"
                     @click="setLang(opt.code)"
                     class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left
                            hover:bg-[#F7F9FC] transition-colors"
@@ -233,7 +242,10 @@
           <div class="relative" ref="userMenuRef">
             <button
               type="button"
-              @click="userOpen = !userOpen"
+              @click="openUserMenu"
+              aria-haspopup="menu"
+              :aria-expanded="userOpen"
+              aria-controls="default-user-menu"
               class="flex items-center gap-2.5 h-10 sm:pl-2.5 sm:pr-3.5 border border-transparent sm:border-[#E2E8F0] bg-transparent sm:bg-white
                      hover:bg-[#F7F9FC] transition-colors"
             >
@@ -258,30 +270,34 @@
               leave-to-class="opacity-0 scale-95 -translate-y-1"
             >
               <div v-if="userOpen"
-                   class="absolute right-0 top-full mt-1.5 w-56 bg-white border border-[#E2E8F0] shadow-card-lg z-50 overflow-hidden">
+                                 id="default-user-menu"
+                                 role="menu"
+                                 aria-label="Account"
+                                 @keydown="onMenuKeydown($event, () => { userOpen = false })"
+                                 class="absolute right-0 top-full mt-1.5 w-56 bg-white border border-[#E2E8F0] shadow-card-lg z-50 overflow-hidden">
                 <div class="px-4 py-3 border-b border-[#E2E8F0]">
                   <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ auth.user?.name }}</p>
                   <p class="text-[11.5px] text-[#637381] truncate">{{ auth.user?.email }}</p>
                 </div>
                 <div class="p-1.5">
-                  <RouterLink to="/profile/general" @click="userOpen = false"
+                  <RouterLink role="menuitem" to="/profile/general" @click="userOpen = false"
                     class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
                     <UserCircleIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('nav.profile') }}</span>
                   </RouterLink>
-                  <RouterLink to="/profile/sessions" @click="userOpen = false"
+                  <RouterLink role="menuitem" to="/profile/sessions" @click="userOpen = false"
                     class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
                     <ComputerDesktopIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('profile.tabSessions') }}</span>
                   </RouterLink>
-                  <RouterLink to="/billing" @click="userOpen = false"
+                  <RouterLink role="menuitem" to="/billing" @click="userOpen = false"
                     class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-[#F7F9FC] transition-colors">
                     <CreditCardIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('billing.nav') }}</span>
                   </RouterLink>
                 </div>
                 <div class="p-1.5 border-t border-[#E2E8F0]">
-                  <button type="button" @click="handleLogout"
+                  <button type="button" role="menuitem" @click="handleLogout"
                     class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#B91C1C] hover:bg-red-50 transition-colors">
                     <ArrowRightOnRectangleIcon class="w-4 h-4" />
                     <span>{{ t('nav.signOut') }}</span>
@@ -318,7 +334,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import {
   ChevronDownIcon, ArrowRightOnRectangleIcon,
   UserCircleIcon, ComputerDesktopIcon, CreditCardIcon, Bars3Icon, XMarkIcon, SparklesIcon,
@@ -387,6 +403,30 @@ function setLang(code) {
   langOpen.value = false
 }
 
+function focusFirstItem(menuRef) {
+  nextTick(() => menuRef.value?.querySelector('[role="menuitem"]')?.focus())
+}
+
+function openLangMenu() {
+  langOpen.value = !langOpen.value
+  if (langOpen.value) focusFirstItem(langMenuRef)
+}
+
+function openUserMenu() {
+  userOpen.value = !userOpen.value
+  if (userOpen.value) focusFirstItem(userMenuRef)
+}
+
+function onMenuKeydown(e, close) {
+  const items = [...e.currentTarget.querySelectorAll('[role="menuitem"]')]
+  const idx = items.indexOf(document.activeElement)
+  if (e.key === 'ArrowDown') { e.preventDefault(); (items[idx + 1] || items[0])?.focus() }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); (items[idx - 1] || items[items.length - 1])?.focus() }
+  else if (e.key === 'Home') { e.preventDefault(); items[0]?.focus() }
+  else if (e.key === 'End') { e.preventDefault(); items[items.length - 1]?.focus() }
+  else if (e.key === 'Tab') close()
+}
+
 function onClickOutside(e) {
   if (langMenuRef.value && !langMenuRef.value.contains(e.target)) {
     langOpen.value = false
@@ -397,6 +437,10 @@ function onClickOutside(e) {
 }
 
 function onKeydown(e) {
+  if (e.key === 'Escape') {
+    if (langOpen.value) { langOpen.value = false; langMenuRef.value?.querySelector('[aria-haspopup="menu"]')?.focus(); return }
+    if (userOpen.value) { userOpen.value = false; userMenuRef.value?.querySelector('[aria-haspopup="menu"]')?.focus(); return }
+  }
   if (e.key === 'Escape' && sidebarOpen.value) sidebarOpen.value = false
 
   // Shift+A toggles the AI panel — ignored while typing so it doesn't hijack
