@@ -14,7 +14,7 @@ module.exports = {
   async list(req, res) {
     try {
       const { page, limit, search } = req.query
-      const result = await organizationService.list({ page: +page || 1, limit: +limit || 20, search: search || '' }, req.user)
+      const result = await organizationService.list({ page: +page || 1, limit: +limit || 20, search: search || '' })
       return ok(res, result)
     } catch (err) {
       return serverError(res)
