@@ -60,8 +60,13 @@ module.exports = {
       return res.status(200).send('OK')
     } catch (err) {
       // LINE retries on non-2xx; log the reason so verification failures are diagnosable.
+      // Only the service's own {status, message} errors (invalid payload / unknown
+      // destination / bad signature) get their message back — anything else (e.g. a
+      // raw Sequelize error) is logged in full and answered with a generic string so
+      // internals never reach the client (issue #13).
       logger.warn('LINE webhook rejected', { status: err.status || 400, message: err.message })
-      return res.status(err.status || 400).send(err.message || 'Webhook failed')
+      const message = err.status && err.message ? err.message : 'Webhook failed'
+      return res.status(err.status || 400).send(message)
     }
   },
 

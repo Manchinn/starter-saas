@@ -74,6 +74,33 @@ const LOGO_ALLOWED_MIME = {
 }
 const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) }
 
+// ── Cross-tenant redaction (issue #11) ───────────────────────────────────────
+// Top-level "organizations" are User rows, so every org response embeds a full
+// account profile (LINE provider uid, email-verification / password-reset
+// timestamps). Callers without the system-admin role get a redacted view:
+// identity-adjacent provider fields are stripped and role permission sets are
+// never included. Org-profile fields (taxId/phone/address) stay because the
+// org-management plane needs them for documents; the register-open harvest
+// vector itself is closed by not granting `organizations.list` to the Viewer
+// role (see server/modules/roles/seeds/roles.js).
+const REDACTED_ORG_FIELDS = [
+  'provider', 'providerUid',
+  'emailVerifiedAt', 'emailVerificationExpiresAt',
+  'passwordResetExpiresAt',
+]
+
+const isPrivilegedOrgViewer = (actor) => !!actor && actor.role === 'admin'
+
+const sanitizeOrganization = (org, actor) => {
+  if (isPrivilegedOrgViewer(actor)) return org
+  const plain = typeof org?.toJSON === 'function' ? org.toJSON() : { ...org }
+  for (const field of REDACTED_ORG_FIELDS) delete plain[field]
+  if (Array.isArray(plain.roles)) {
+    plain.roles = plain.roles.map(({ permissions, modules, ...role }) => role)
+  }
+  return plain
+}
+
 const organizationIncludes = [
   { model: Module, as: 'modules', attributes: ['id', 'slug', 'name', 'icon', 'isActive'] },
   {
@@ -127,8 +154,16 @@ const create = async ({ name, email, password, role = 'user', defaultPage = null
     if (viewer) await organization.setRoles([viewer])
   }
 
-  return getById(organization.id)
+  return getById(organization.id, actor)
 }
+
+// Field whitelist for the organizations list — never return raw model rows
+// (the User table carries provider/taxId/etc. on every row). See issue #11.
+const LIST_ORG_FIELDS = [
+  'id', 'name', 'email', 'role', 'isActive', 'lastLoginAt', 'createdAt',
+  'companyName', 'address', 'phone', 'taxId', 'website', 'logoPath',
+  'organizationId', 'parentId',
+]
 
 const list = async ({ page = 1, limit = 20, search = '' }) => {
   const offset = (page - 1) * limit
@@ -144,6 +179,7 @@ const list = async ({ page = 1, limit = 20, search = '' }) => {
 
   const { count, rows } = await User.findAndCountAll({
     where,
+    attributes: LIST_ORG_FIELDS,
     limit,
     offset,
     order: [['createdAt', 'DESC']],
@@ -156,10 +192,10 @@ const list = async ({ page = 1, limit = 20, search = '' }) => {
   return { total: count, page, limit, organizations: rows }
 }
 
-const getById = async (id) => {
+const getById = async (id, actor) => {
   const organization = await User.findByPk(id, { include: organizationIncludes })
   if (!organization) throw { status: 404, message: 'Organization not found' }
-  return organization
+  return sanitizeOrganization(organization, actor)
 }
 
 const update = async (id, data, actor) => {
@@ -183,14 +219,16 @@ const update = async (id, data, actor) => {
     if (!current || current.planId !== data.planId) await billing.subscribe(id, data.planId)
   }
 
-  return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
+  // `organizations.edit` is delegable — the response gets the same redaction
+  // as reads (no provider identity fields, no role permission sets).
+  return getById(id, actor)
 }
 
 // Logo upload — accepts a base64 string (with or without data-URL prefix).
 // Writes the file under server/uploads/logos/{id}{ext}, persists the relative
 // path on User.logoPath, and removes any previous logo file on disk so we
 // don't accumulate orphans.
-const uploadLogo = async (id, { dataBase64, contentType }) => {
+const uploadLogo = async (id, { dataBase64, contentType }, actor) => {
   const organization = await User.findByPk(id)
   if (!organization) throw { status: 404, message: 'Organization not found' }
   if (!dataBase64) throw { status: 400, message: 'Logo data is required' }
@@ -220,10 +258,10 @@ const uploadLogo = async (id, { dataBase64, contentType }) => {
 
   const publicPath = `/uploads/logos/${filename}`
   await organization.update({ logoPath: publicPath })
-  return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
+  return getById(id, actor)
 }
 
-const removeLogo = async (id) => {
+const removeLogo = async (id, actor) => {
   const organization = await User.findByPk(id)
   if (!organization) throw { status: 404, message: 'Organization not found' }
   if (organization.logoPath) {
@@ -231,7 +269,7 @@ const removeLogo = async (id) => {
     try { if (fs.existsSync(full)) fs.unlinkSync(full) } catch (_) { /* ignore */ }
   }
   await organization.update({ logoPath: null })
-  return User.findByPk(id, { include: [{ model: Role, as: 'roles', attributes: ['id', 'slug', 'name', 'color'] }, { model: User, as: 'parent', attributes: ['id', 'name'] }] })
+  return getById(id, actor)
 }
 
 const remove = async (id) => {
@@ -240,12 +278,12 @@ const remove = async (id) => {
   await organization.destroy()
 }
 
-const assignModules = async (organizationId, moduleIds) => {
+const assignModules = async (organizationId, moduleIds, actor) => {
   const organization = await User.findByPk(organizationId)
   if (!organization) throw { status: 404, message: 'Organization not found' }
   const modules = await Module.findAll({ where: { id: moduleIds } })
   await organization.setModules(modules)
-  return getById(organizationId)
+  return getById(organizationId, actor)
 }
 
 const assignRoles = async (organizationId, roleIds, actor) => {
@@ -254,7 +292,7 @@ const assignRoles = async (organizationId, roleIds, actor) => {
   await assertCanAssignRoles(actor, roleIds)
   const roles = await Role.findAll({ where: { id: roleIds } })
   await organization.setRoles(roles)
-  return getById(organizationId)
+  return getById(organizationId, actor)
 }
 
 const getUserPermissions = async (organizationId) => {
