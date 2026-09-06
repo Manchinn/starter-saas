@@ -2,6 +2,7 @@ import AppLayoutDefault from '@/layouts/AppLayoutDefault.vue'
 import AppLayoutDark    from '@/layouts/AppLayoutDark.vue'
 import AppLayoutModern  from '@/layouts/AppLayoutModern.vue'
 import AppLayoutMinimal from '@/layouts/AppLayoutMinimal.vue'
+import AppLayoutGlass   from '@/layouts/AppLayoutGlass.vue'
 
 export const templates = [
   {
@@ -56,6 +57,19 @@ export const templates = [
       accent:   '#6b7280',
     },
     layout: AppLayoutMinimal,
+  },
+  {
+    slug: 'glass',
+    name: 'Glass',
+    description: 'Light glassmorphism with warm tones and translucent surfaces',
+    tags: { nav: 'sidebar', theme: 'light' },
+    preview: {
+      sidebar:  '#FAF6EF',
+      topbar:   '#FDF8F1',
+      content:  '#FAF6EF',
+      accent:   '#E8632F',
+    },
+    layout: AppLayoutGlass,
   },
 ]
 

@@ -184,3 +184,38 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-violet-500;
   }
 }
+
+/* ── Glass template (scoped to .template-glass wrapper — no effect on other templates) ── */
+.template-glass .card {
+  @apply border border-white/70 shadow-[0_8px_30px_rgba(28,25,23,0.07)];
+  background: linear-gradient(160deg, rgba(255,255,255,0.82), rgba(255,255,255,0.58));
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+.template-glass .card-md {
+  @apply border border-white/70 shadow-[0_12px_36px_rgba(28,25,23,0.09)];
+  background: linear-gradient(160deg, rgba(255,255,255,0.85), rgba(255,255,255,0.62));
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+.template-glass .stat-card {
+  @apply hover:shadow-[0_14px_40px_rgba(28,25,23,0.11)] hover:-translate-y-0.5;
+}
+.template-glass .table-wrap {
+  @apply border border-white/70 shadow-[0_8px_30px_rgba(28,25,23,0.07)];
+  background: linear-gradient(160deg, rgba(255,255,255,0.85), rgba(255,255,255,0.66));
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+.template-glass .th {
+  @apply bg-white/45 border-b border-white/80;
+}
+.template-glass .btn-secondary {
+  @apply border-white/80 shadow-[0_2px_10px_rgba(28,25,23,0.05)];
+  background: rgba(255,255,255,0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.template-glass .btn-secondary:hover {
+  background: rgba(255,255,255,0.88);
+}
