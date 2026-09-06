@@ -184,3 +184,73 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-violet-500;
   }
 }
+
+/* ── Glass template (scoped to .template-glass wrapper — no effect on other templates) ──
+   Canvas: warm cream + radials in plain CSS (Tailwind arbitrary-value bg class
+   emitted an empty rule — verified in CSSOM — so the canvas is real CSS here).
+   Blur strategy (critique P2): backdrop-filter only where content actually scrolls
+   beneath (topbar, sidebar, menus — handled in AppLayoutGlass.vue). Cards, tables and
+   buttons sit on a static cream canvas, so they use precomputed rgba gradients:
+   same look, no composited blur layers, honest hierarchy. */
+.template-glass {
+  background-color: #FAF6EF;
+  background-image:
+    radial-gradient(ellipse 60% 38% at 50% -6%, #FDE7CE 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 88% 82%, #F3E8FF 0%, transparent 58%);
+}
+.template-glass .card {
+  @apply border border-white/70 shadow-[0_8px_30px_rgba(28,25,23,0.07)];
+  background: linear-gradient(160deg, rgba(255,255,255,0.92), rgba(255,255,255,0.78));
+}
+.template-glass .card-md {
+  @apply border border-white/70 shadow-[0_12px_36px_rgba(28,25,23,0.09)];
+  background: linear-gradient(160deg, rgba(255,255,255,0.94), rgba(255,255,255,0.82));
+}
+.template-glass .stat-card {
+  @apply hover:shadow-[0_14px_40px_rgba(28,25,23,0.11)] hover:-translate-y-0.5;
+}
+.template-glass .table-wrap {
+  @apply border border-white/70 shadow-[0_8px_30px_rgba(28,25,23,0.07)];
+  background: linear-gradient(160deg, rgba(255,255,255,0.94), rgba(255,255,255,0.84));
+}
+.template-glass .th {
+  @apply bg-white/45 border-b border-white/80;
+}
+.template-glass .btn-secondary {
+  @apply border-white/80 shadow-[0_2px_10px_rgba(28,25,23,0.05)];
+  background: rgba(255,255,255,0.80);
+}
+.template-glass .btn-secondary:hover {
+  background: rgba(255,255,255,0.88);
+}
+
+/* Contrast fixes for light-glass surfaces (critique P2):
+   the grays below were tuned for dark sidebars and fail AA on glass. */
+.template-glass .section-label {
+  @apply text-[#5B6B7C];
+}
+.template-glass .nav-item {
+  color: #3F4A5A;
+}
+.template-glass .nav-item-sm {
+  color: #55637A;
+}
+.template-glass .nav-item:hover,
+.template-glass .nav-item-sm:hover {
+  color: #1C2434;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  /* attribute selectors bump specificity above the SFC's scoped .glass-* rules */
+  .template-glass .glass-surface[class],
+  .template-glass .glass-topbar[class] {
+    background: #FDFCF9;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .template-glass .card,
+  .template-glass .card-md,
+  .template-glass .table-wrap {
+    background: #FFFFFF;
+  }
+}
