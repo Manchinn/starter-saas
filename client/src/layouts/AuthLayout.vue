@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen flex bg-white">
+  <div class="min-h-screen flex bg-[#07111f] relative overflow-hidden">
 
     <!-- ── Brand panel ─────────────────────────────────────────────────────── -->
     <div class="hidden lg:flex lg:w-[420px] xl:w-[480px] flex-shrink-0 flex-col
-                bg-[#1C2434] relative overflow-hidden">
+                bg-[#07111f] relative overflow-hidden border-r border-white/10">
 
       <!-- Subtle grid pattern -->
       <div class="absolute inset-0 opacity-[0.04]"
@@ -73,8 +73,9 @@
     </div>
 
     <!-- ── Form panel ──────────────────────────────────────────────────────────── -->
-    <div class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-[#F1F5F9]">
-      <div class="w-full max-w-[400px]">
+    <div class="relative flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 bg-[#f4f7fb]">
+      <div class="absolute w-[520px] h-[520px] rounded-full bg-primary-500/10 blur-3xl pointer-events-none" />
+      <div class="w-full max-w-[420px] relative">
 
         <!-- Mobile logo -->
         <BrandMark
@@ -85,9 +86,9 @@
         />
 
         <!-- Form card -->
-        <div class="bg-white border border-[#E2E8F0] shadow-card-lg p-6 sm:p-8">
+        <div class="rounded-[28px] bg-white/75 backdrop-blur-xl border border-white/80 shadow-[0_24px_80px_rgba(15,23,42,0.12)] p-7 sm:p-9">
           <div class="mb-6 sm:mb-7">
-            <h2 class="text-[20px] sm:text-[22px] font-bold text-[#1C2434] tracking-tight">{{ subtitle }}</h2>
+            <h2 class="text-[24px] sm:text-[26px] font-bold text-[#0F172A] tracking-tight">{{ subtitle }}</h2>
             <p class="mt-1 text-[13px] text-[#637381]">{{ t('auth.continueDetails') }}</p>
           </div>
           <slot />

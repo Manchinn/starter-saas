@@ -1,16 +1,16 @@
 <template>
-  <div class="min-h-screen flex">
+  <div class="min-h-screen flex bg-[#07111f] relative overflow-hidden">
 
     <!-- ── Left branding panel ──────────────────────────────────────────────── -->
     <div class="hidden lg:flex lg:w-[540px] xl:w-[600px] flex-shrink-0 relative overflow-hidden
-                bg-[#0A0F1E] flex-col">
+                bg-[#07111f] flex-col border-r border-white/10">
 
       <!-- Background layers -->
       <div class="absolute inset-0 pointer-events-none">
         <div class="absolute inset-0"
           style="background: radial-gradient(ellipse 80% 60% at 110% -10%, #1b2d6b 0%, transparent 60%),
                              radial-gradient(ellipse 60% 50% at -10% 110%, #18106a 0%, transparent 55%),
-                             #0A0F1E;" />
+                             #07111f;" />
         <!-- Grid -->
         <div class="absolute inset-0 opacity-[0.045]"
           style="background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
@@ -88,10 +88,10 @@
     </div>
 
     <!-- ── Right form panel ─────────────────────────────────────────────────── -->
-    <div class="flex-1 flex flex-col bg-[#F8FAFC]">
+    <div class="relative flex-1 flex flex-col bg-[#f4f7fb]">
 
       <!-- Top bar -->
-      <div class="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0">
+      <div class="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0 relative z-10">
         <!-- Mobile logo (hidden on large) -->
         <BrandMark
           class="lg:hidden"
@@ -110,8 +110,9 @@
       </div>
 
       <!-- Form area -->
-      <div class="flex-1 flex items-center justify-center px-6 py-4">
-        <div class="w-full max-w-[400px]">
+      <div class="flex-1 flex items-center justify-center px-6 py-10 relative">
+        <div class="absolute w-[520px] h-[520px] rounded-full bg-primary-500/10 blur-3xl pointer-events-none" />
+        <div class="w-full max-w-[420px] relative rounded-[28px] border border-white/80 bg-white/75 backdrop-blur-xl shadow-[0_24px_80px_rgba(15,23,42,0.12)] px-7 py-8 sm:px-9">
 
           <!-- Heading -->
           <div class="mb-8">
@@ -127,7 +128,7 @@
               type="button"
               @click="handleLine"
               :disabled="lineLoading"
-              class="w-full inline-flex items-center justify-center gap-2.5 py-3 px-6 text-[14px] font-semibold text-white
+              class="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl text-[14px] font-semibold text-white
                      bg-[#06C755] hover:bg-[#05B04B] active:bg-[#05A046]
                      disabled:opacity-60 disabled:cursor-not-allowed
                      shadow-[0_4px_16px_rgba(6,199,85,0.35)] transition-all duration-150">
@@ -193,7 +194,7 @@
                   autocomplete="email"
                   :placeholder="t('auth.emailPh')"
                   :class="[
-                    'w-full pl-10 pr-4 py-3 bg-white border text-[14px] text-[#0F172A]',
+                    'w-full pl-10 pr-4 py-3.5 rounded-xl bg-white/80 border text-[14px] text-[#0F172A]',
                     'placeholder-[#CBD5E1] shadow-xs',
                     'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
                     errorOf('email')
@@ -231,7 +232,7 @@
                   autocomplete="current-password"
                   :placeholder="t('auth.passwordPh')"
                   :class="[
-                    'w-full pl-10 pr-11 py-3 bg-white border text-[14px] text-[#0F172A]',
+                    'w-full pl-10 pr-11 py-3.5 rounded-xl bg-white/80 border text-[14px] text-[#0F172A]',
                     'placeholder-[#CBD5E1] shadow-xs',
                     'focus:outline-none focus:ring-2 focus:border-primary-400 hover:border-[#C7D2E0] transition-all duration-150',
                     errorOf('password')
@@ -293,7 +294,7 @@
 
             <!-- Submit -->
             <button type="submit" :disabled="loading"
-              class="w-full py-3 px-6 text-[14px] font-semibold text-white
+              class="w-full py-3.5 px-6 rounded-2xl text-[14px] font-semibold text-white
                      bg-primary-500 hover:bg-primary-600 active:bg-primary-700
                      disabled:opacity-60 disabled:cursor-not-allowed
                      shadow-[0_4px_16px_rgba(70,95,255,0.3)] hover:shadow-[0_6px_24px_rgba(70,95,255,0.4)]
