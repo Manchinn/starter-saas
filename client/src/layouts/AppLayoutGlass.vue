@@ -72,7 +72,7 @@
                   <component :is="item.icon" class="w-[18px] h-[18px] flex-shrink-0" />
                   <span class="flex-1 text-left truncate">{{ t(item.label) }}</span>
                   <ChevronDownIcon
-                    class="w-3.5 h-3.5 text-[#9BA7B0] transition-transform duration-200 flex-shrink-0"
+                    class="w-3.5 h-3.5 text-[#5E6E82] transition-transform duration-200 flex-shrink-0"
                     :class="{ 'rotate-180': openGroups.has(item.label) }"
                   />
                 </button>
@@ -89,7 +89,7 @@
                         <component :is="child.icon" class="w-[15px] h-[15px] flex-shrink-0" />
                         <span class="flex-1 text-left truncate">{{ t(child.label) }}</span>
                         <ChevronDownIcon
-                          class="w-3 h-3 text-[#9BA7B0] transition-transform duration-200"
+                          class="w-3 h-3 text-[#5E6E82] transition-transform duration-200"
                           :class="{ 'rotate-180': openGroups.has(item.label + ':' + child.label) }"
                         />
                       </button>
@@ -142,13 +142,12 @@
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-[13px] font-semibold text-[#1C2434] truncate leading-[1.3]">{{ auth.user?.name }}</p>
-            <p class="text-[11.5px] text-[#8D9BB4] capitalize leading-[1.3]">{{ auth.user?.role }}</p>
+            <p class="text-[11.5px] text-[#6B7A8D] capitalize leading-[1.3]">{{ auth.user?.role }}</p>
           </div>
           <button
             @click="handleLogout"
             title="Sign out"
-            class="p-1.5 text-[#8D9BB4] hover:text-[#1C2434] hover:bg-black/[0.05]
-                   opacity-0 group-hover:opacity-100 transition-all duration-150"
+            class="p-1.5 text-[#6B7A8D] hover:text-[#1C2434] hover:bg-black/[0.05] transition-all duration-150"
           >
             <ArrowRightOnRectangleIcon class="w-4 h-4" />
           </button>
@@ -170,12 +169,17 @@
           <Bars3Icon class="w-6 h-6" />
         </button>
         <div class="flex-1 min-w-0">
-          <h2 class="text-[14px] font-semibold text-[#1C2434] truncate">{{ currentPageTitle }}</h2>
+          <h2 class="flex items-center gap-2 text-[14px] font-semibold text-[#1C2434] truncate">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0" aria-hidden="true" />
+            <span class="truncate">{{ currentPageTitle }}</span>
+          </h2>
         </div>
 
         <div class="flex items-center gap-1.5 sm:gap-2.5">
           <!-- AI Chat button -->
           <button type="button" @click="chatOpen = true"
+            :aria-expanded="chatOpen"
+            aria-label="AI chat"
             class="w-10 h-10 flex items-center justify-center border border-white/70
                    bg-white/55 hover:bg-white/85 text-[#637381] hover:text-[#1C2434] transition-colors"
             :title="`${t('aiAgent.chat.title')} (Shift+A)`">
@@ -186,11 +190,14 @@
           <div class="relative" ref="langMenuRef">
             <button
               @click="langOpen = !langOpen"
+              aria-haspopup="menu"
+              :aria-expanded="langOpen"
+              aria-controls="glass-lang-menu"
               class="flex items-center gap-1.5 h-10 px-2.5 sm:px-3 text-[13px] font-medium text-[#637381]
                      border border-white/70 bg-white/55 hover:bg-white/85 transition-colors select-none"
             >
               <span>{{ currentLangLabel }}</span>
-              <ChevronDownIcon class="w-3.5 h-3.5 text-[#9BA7B0] transition-transform duration-150"
+              <ChevronDownIcon class="w-3.5 h-3.5 text-[#5E6E82] transition-transform duration-150"
                               :class="{ 'rotate-180': langOpen }" />
             </button>
 
@@ -204,12 +211,16 @@
             >
               <div
                 v-if="langOpen"
+                id="glass-lang-menu"
+                role="menu"
+                aria-label="Language"
                 class="absolute right-0 top-full mt-1.5 w-44 bg-white/92 backdrop-blur-xl border border-white/70 shadow-card-lg z-50 overflow-hidden"
               >
                 <div class="p-1.5">
                   <button
                     v-for="opt in langOptions"
                     :key="opt.code"
+                    role="menuitem"
                     @click="setLang(opt.code)"
                     class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left
                            hover:bg-black/[0.04] transition-colors"
@@ -233,6 +244,9 @@
             <button
               type="button"
               @click="userOpen = !userOpen"
+              aria-haspopup="menu"
+              :aria-expanded="userOpen"
+              aria-controls="glass-user-menu"
               class="flex items-center gap-2.5 h-10 sm:pl-2.5 sm:pr-3.5 border border-transparent sm:border-white/70 bg-transparent sm:bg-white/55
                      hover:bg-white/85 transition-colors"
             >
@@ -244,7 +258,7 @@
                 <p class="text-[13px] font-semibold text-[#1C2434] truncate max-w-32 leading-tight">{{ auth.user?.name }}</p>
                 <p class="text-[11px] text-[#637381] capitalize leading-tight">{{ auth.user?.role }}</p>
               </div>
-              <ChevronDownIcon class="hidden lg:block w-3.5 h-3.5 text-[#9BA7B0] transition-transform"
+              <ChevronDownIcon class="hidden lg:block w-3.5 h-3.5 text-[#5E6E82] transition-transform"
                                :class="{ 'rotate-180': userOpen }" />
             </button>
 
@@ -257,30 +271,33 @@
               leave-to-class="opacity-0 scale-95 -translate-y-1"
             >
               <div v-if="userOpen"
+                   id="glass-user-menu"
+                   role="menu"
+                   aria-label="Account"
                    class="absolute right-0 top-full mt-1.5 w-56 bg-white/92 backdrop-blur-xl border border-white/70 shadow-card-lg z-50 overflow-hidden">
                 <div class="px-4 py-3 border-b border-black/[0.05]">
                   <p class="text-[13px] font-semibold text-[#1C2434] truncate">{{ auth.user?.name }}</p>
                   <p class="text-[11.5px] text-[#637381] truncate">{{ auth.user?.email }}</p>
                 </div>
                 <div class="p-1.5">
-                  <RouterLink to="/profile/general" @click="userOpen = false"
+                  <RouterLink role="menuitem" to="/profile/general" @click="userOpen = false"
                     class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-black/[0.04] transition-colors">
                     <UserCircleIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('nav.profile') }}</span>
                   </RouterLink>
-                  <RouterLink to="/profile/sessions" @click="userOpen = false"
+                  <RouterLink role="menuitem" to="/profile/sessions" @click="userOpen = false"
                     class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-black/[0.04] transition-colors">
                     <ComputerDesktopIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('profile.tabSessions') }}</span>
                   </RouterLink>
-                  <RouterLink to="/billing" @click="userOpen = false"
+                  <RouterLink role="menuitem" to="/billing" @click="userOpen = false"
                     class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#1C2434] hover:bg-black/[0.04] transition-colors">
                     <CreditCardIcon class="w-4 h-4 text-[#637381]" />
                     <span>{{ t('billing.nav') }}</span>
                   </RouterLink>
                 </div>
                 <div class="p-1.5 border-t border-black/[0.05]">
-                  <button type="button" @click="handleLogout"
+                  <button type="button" role="menuitem" @click="handleLogout"
                     class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#B91C1C] hover:bg-red-50 transition-colors">
                     <ArrowRightOnRectangleIcon class="w-4 h-4" />
                     <span>{{ t('nav.signOut') }}</span>
@@ -396,6 +413,18 @@ function onClickOutside(e) {
 }
 
 function onKeydown(e) {
+  if (e.key === 'Escape') {
+    if (langOpen.value) {
+      langOpen.value = false
+      langMenuRef.value?.querySelector('button')?.focus()
+      return
+    }
+    if (userOpen.value) {
+      userOpen.value = false
+      userMenuRef.value?.querySelector('button')?.focus()
+      return
+    }
+  }
   if (e.key === 'Escape' && sidebarOpen.value) sidebarOpen.value = false
 
   // Shift+A toggles the AI panel — ignored while typing so it doesn't hijack
@@ -441,7 +470,8 @@ onUnmounted(() => {
          hover:bg-white/70 hover:text-[#1C2434] transition-colors duration-100 w-full;
 }
 .nav-item-active {
-  @apply !bg-white/90 !text-[#1C2434] font-semibold shadow-[0_1px_6px_rgba(28,25,23,0.06)];
+  @apply !bg-gradient-to-r !from-primary-50 !to-white/70 !text-[#C24A1E] font-semibold;
+  box-shadow: inset 3px 0 0 #E8632F, 0 1px 6px rgba(28, 25, 23, 0.06);
 }
 .nav-item-open {
   @apply bg-white/50 text-[#1C2434];

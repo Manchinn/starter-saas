@@ -185,37 +185,66 @@
   }
 }
 
-/* ── Glass template (scoped to .template-glass wrapper — no effect on other templates) ── */
+/* ── Glass template (scoped to .template-glass wrapper — no effect on other templates) ──
+   Blur strategy (critique P2): backdrop-filter only where content actually scrolls
+   beneath (topbar, sidebar, menus — handled in AppLayoutGlass.vue). Cards, tables and
+   buttons sit on a static cream canvas, so they use precomputed rgba gradients:
+   same look, no composited blur layers, honest hierarchy. */
 .template-glass .card {
   @apply border border-white/70 shadow-[0_8px_30px_rgba(28,25,23,0.07)];
-  background: linear-gradient(160deg, rgba(255,255,255,0.82), rgba(255,255,255,0.58));
-  backdrop-filter: blur(18px) saturate(1.12);
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+  background: linear-gradient(160deg, rgba(255,255,255,0.92), rgba(255,255,255,0.78));
 }
 .template-glass .card-md {
   @apply border border-white/70 shadow-[0_12px_36px_rgba(28,25,23,0.09)];
-  background: linear-gradient(160deg, rgba(255,255,255,0.85), rgba(255,255,255,0.62));
-  backdrop-filter: blur(18px) saturate(1.12);
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+  background: linear-gradient(160deg, rgba(255,255,255,0.94), rgba(255,255,255,0.82));
 }
 .template-glass .stat-card {
   @apply hover:shadow-[0_14px_40px_rgba(28,25,23,0.11)] hover:-translate-y-0.5;
 }
 .template-glass .table-wrap {
   @apply border border-white/70 shadow-[0_8px_30px_rgba(28,25,23,0.07)];
-  background: linear-gradient(160deg, rgba(255,255,255,0.85), rgba(255,255,255,0.66));
-  backdrop-filter: blur(18px) saturate(1.12);
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+  background: linear-gradient(160deg, rgba(255,255,255,0.94), rgba(255,255,255,0.84));
 }
 .template-glass .th {
   @apply bg-white/45 border-b border-white/80;
 }
 .template-glass .btn-secondary {
   @apply border-white/80 shadow-[0_2px_10px_rgba(28,25,23,0.05)];
-  background: rgba(255,255,255,0.62);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.80);
 }
 .template-glass .btn-secondary:hover {
   background: rgba(255,255,255,0.88);
+}
+
+/* Contrast fixes for light-glass surfaces (critique P2):
+   the grays below were tuned for dark sidebars and fail AA on glass. */
+.template-glass .section-label {
+  @apply text-[#5B6B7C];
+}
+.template-glass .nav-item {
+  color: #3F4A5A;
+}
+.template-glass .nav-item-sm {
+  color: #55637A;
+}
+.template-glass .nav-item .text-\[\#9BA7B0\] {
+  color: #5E6E82;
+}
+.template-glass .nav-item:hover,
+.template-glass .nav-item-sm:hover {
+  color: #1C2434;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .template-glass .glass-surface,
+  .template-glass .glass-topbar {
+    background: #FDFCF9;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .template-glass .card,
+  .template-glass .card-md,
+  .template-glass .table-wrap {
+    background: #FFFFFF;
+  }
 }
