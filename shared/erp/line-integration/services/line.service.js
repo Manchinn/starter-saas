@@ -12,11 +12,17 @@ async function handleWebhook(req) {
   const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.rawBody || '')
   let body = {}
   try { body = JSON.parse(rawBody.toString('utf8') || '{}') } catch { throw { status: 400, message: 'Invalid LINE webhook payload' } }
-  const connection = await LineConnection.findOne({ where: { botUserId: body.destination, isActive: true } })
+  // `destination` is the bot user id (U + 32 hex). Validate the shape BEFORE it
+  // reaches the query: an undefined/malformed value used to surface as a raw
+  // Sequelize error ("WHERE parameter \"botUserId\" has invalid ... value").
+  const destination = typeof body.destination === 'string' && /^U[0-9a-f]{32}$/i.test(body.destination)
+    ? body.destination
+    : null
+  if (!destination) throw { status: 404, message: 'Unknown LINE destination' }
+  const connection = await LineConnection.findOne({ where: { botUserId: destination, isActive: true } })
   if (!connection) {
-    // `destination` is the bot user id (U + 32 hex), not the basic id (@xxx).
     // A mismatch here means the stored botUserId is wrong for this channel.
-    logger.warn('LINE webhook destination has no active connection', { destination: body.destination })
+    logger.warn('LINE webhook destination has no active connection', { destination })
     throw { status: 404, message: 'Unknown LINE destination' }
   }
   const signature = req.get('x-line-signature')

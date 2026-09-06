@@ -23,7 +23,7 @@ module.exports = {
 
   async getById(req, res) {
     try {
-      const organization = await organizationService.getById(req.params.id)
+      const organization = await organizationService.getById(req.params.id, req.user)
       return ok(res, { organization })
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -53,7 +53,7 @@ module.exports = {
       const organization = await organizationService.uploadLogo(req.params.id, {
         dataBase64:  req.body?.dataBase64,
         contentType: req.body?.contentType,
-      })
+      }, req.user)
       return ok(res, { organization }, 'Logo updated')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -62,7 +62,7 @@ module.exports = {
 
   async removeLogo(req, res) {
     try {
-      const organization = await organizationService.removeLogo(req.params.id)
+      const organization = await organizationService.removeLogo(req.params.id, req.user)
       return ok(res, { organization }, 'Logo removed')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
@@ -71,7 +71,7 @@ module.exports = {
 
   async assignModules(req, res) {
     try {
-      const organization = await organizationService.assignModules(req.params.id, req.body.moduleIds || [])
+      const organization = await organizationService.assignModules(req.params.id, req.body.moduleIds || [], req.user)
       return ok(res, { organization }, 'Modules assigned')
     } catch (err) {
       return fail(res, err.message, err.status || 400)
